@@ -1,0 +1,194 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN orchestrator API
+  version: 0.2.0
+  description: Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
+servers:
+  - url: http://orchestrator:8000
+security:
+  - serviceToken: []
+paths:
+  /healthz:
+    $ref: "shared.yaml#/components/pathItems/Healthz"
+  /readyz:
+    $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/workflows:
+    get:
+      summary: List workflows
+      operationId: listWorkflows
+      parameters:
+        - name: projectId
+          in: query
+          schema: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/WorkflowStatus" }
+        - $ref: "shared.yaml#/components/parameters/Limit"
+        - $ref: "shared.yaml#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of workflows (without steps)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Workflow" }
+                  nextCursor: { type: string }
+    post:
+      summary: Trigger a workflow manually
+      operationId: createWorkflow
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, projectId]
+              properties:
+                type:
+                  enum: [full, extract, tlr, detect]
+                  description: full = extract all current versions, then tlr, then detect.
+                projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+                params:
+                  type: object
+                  description: Passed to the skills, e.g. {"approaches":["lissa"]} for tlr or {"detectors":[...]} for detect.
+                force:
+                  type: boolean
+                  default: false
+                  description: Re-run steps even if a step with the same actionKey completed (actionKey includes the trigger id, so manual requests normally run anyway).
+              additionalProperties: false
+      responses:
+        "202":
+          description: Workflow accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+  /v1/workflows/{workflowId}:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    get:
+      summary: Get a workflow with steps
+      operationId: getWorkflow
+      responses:
+        "200":
+          description: Workflow
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+  /v1/workflows/{workflowId}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    post:
+      summary: Cancel running steps (A2A CancelTask) and pending steps
+      operationId: cancelWorkflow
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      responses:
+        "202":
+          description: Cancellation requested
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+  /v1/dead-events:
+    get:
+      summary: Events that exceeded MaxDeliver
+      operationId: listDeadEvents
+      responses:
+        "200":
+          description: Dead events
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [eventId, type, error, receivedAt]
+                      properties:
+                        eventId: { type: string }
+                        type: { type: string }
+                        error: { type: string }
+                        receivedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+  /v1/dead-events/{eventId}/replay:
+    post:
+      summary: Re-process a dead event
+      operationId: replayDeadEvent
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: { type: string }
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      responses:
+        "202": { description: Re-queued }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+  parameters:
+    WorkflowId:
+      name: workflowId
+      in: path
+      required: true
+      schema: { type: string, pattern: "^wf_[0-9a-f]{32}$" }
+  schemas:
+    WorkflowStatus:
+      enum: [PENDING, RUNNING, SUCCEEDED, FAILED, CANCELED, BLOCKED]
+    StepStatus:
+      enum: [PENDING, RUNNING, SUCCEEDED, FAILED, CANCELED, BLOCKED]
+    Workflow:
+      type: object
+      required: [id, projectId, trigger, status, createdAt, updatedAt]
+      properties:
+        id: { type: string, pattern: "^wf_[0-9a-f]{32}$" }
+        projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        trigger:
+          type: object
+          required: [kind]
+          properties:
+            kind: { enum: [event, manual, schedule] }
+            eventType: { type: string }
+            eventId: { type: string }
+            actor: { $ref: "../common.schema.json#/$defs/Actor" }
+        status: { $ref: "#/components/schemas/WorkflowStatus" }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        updatedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+    WorkflowDetail:
+      allOf:
+        - $ref: "#/components/schemas/Workflow"
+        - type: object
+          required: [steps]
+          properties:
+            steps:
+              type: array
+              items:
+                type: object
+                required: [id, agent, skill, status, attempts, actionKey]
+                properties:
+                  id: { type: string }
+                  agent: { type: string }
+                  skill: { type: string }
+                  status: { $ref: "#/components/schemas/StepStatus" }
+                  attempts: { type: integer, minimum: 0 }
+                  actionKey: { $ref: "../common.schema.json#/$defs/Sha256" }
+                  a2aTaskId: { type: string }
+                  input: { type: object }
+                  result: { type: object }
+                  error: { $ref: "../common.schema.json#/$defs/SkillError" }
+                  startedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+                  endedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }

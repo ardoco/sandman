@@ -1,0 +1,216 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN inconsistency-agent triage API
+  version: 0.2.0
+  description: |
+    Read and triage inconsistencies. Owner of Inconsistency and StatusChange nodes.
+    Transitions require X-Sandman-Actor, accepted only from the query-service's service token.
+    Authorization (role triager) is checked by the query-service. The A2A interface is described by
+    contracts/agent-cards/inconsistency-agent.json.
+servers:
+  - url: http://inconsistency-agent:8080
+security:
+  - serviceToken: []
+paths:
+  /healthz:
+    $ref: "shared.yaml#/components/pathItems/Healthz"
+  /readyz:
+    $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/detectors:
+    get:
+      summary: Available detectors and plugins with versions and inconsistency types
+      operationId: listDetectors
+      responses:
+        "200":
+          description: Detector catalog
+          content:
+            application/json:
+              schema: { $ref: "../skills.schema.json#/$defs/ListDetectorsOutput" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+  /v1/projects/{projectId}/inconsistencies:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    get:
+      summary: List inconsistencies of a project
+      operationId: listInconsistencies
+      parameters:
+        - name: status
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: array
+            items: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+        - name: type
+          in: query
+          schema: { type: string }
+        - name: severity
+          in: query
+          schema: { $ref: "../common.schema.json#/$defs/Severity" }
+        - name: artifactId
+          in: query
+          schema: { $ref: "../common.schema.json#/$defs/StableId" }
+        - name: changedSince
+          in: query
+          description: Only items created or transitioned after this time (console "new since last visit").
+          schema: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        - $ref: "shared.yaml#/components/parameters/Limit"
+        - $ref: "shared.yaml#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of inconsistencies
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, counts]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/InconsistencySummary" }
+                  counts:
+                    type: object
+                    description: Counts per status for the project (ignores filters).
+                    additionalProperties: { type: integer }
+                  nextCursor: { type: string }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+  /v1/inconsistencies/{inconsistencyId}:
+    parameters:
+      - $ref: "#/components/parameters/InconsistencyId"
+    get:
+      summary: Get an inconsistency with evidence and history
+      operationId: getInconsistency
+      responses:
+        "200":
+          description: Inconsistency
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InconsistencyDetail" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+  /v1/inconsistencies/{inconsistencyId}/transitions:
+    parameters:
+      - $ref: "#/components/parameters/InconsistencyId"
+    post:
+      summary: Change the status of an inconsistency (user transition)
+      operationId: transitionInconsistency
+      parameters:
+        - name: X-Sandman-Actor
+          in: header
+          required: true
+          schema:
+            type: string
+            pattern: "^user:[A-Za-z0-9._@-]+$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to, expectedStatus]
+              properties:
+                to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                expectedStatus: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                reason:
+                  type: string
+                  maxLength: 2000
+                  description: Required for ACCEPTED, REJECTED and DEFERRED.
+              additionalProperties: false
+      responses:
+        "200":
+          description: Transition applied; sandman.inconsistency.status.changed published
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InconsistencyDetail" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+        "422":
+          description: Transition not allowed from the current status, or reason missing
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+  parameters:
+    InconsistencyId:
+      name: inconsistencyId
+      in: path
+      required: true
+      schema: { $ref: "../common.schema.json#/$defs/StableId" }
+  schemas:
+    InconsistencySummary:
+      type: object
+      required: [id, projectId, type, severity, title, status, detector, createdAt, updatedAt]
+      properties:
+        id: { $ref: "../common.schema.json#/$defs/StableId" }
+        projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        type: { type: string }
+        severity: { $ref: "../common.schema.json#/$defs/Severity" }
+        title: { type: string }
+        status: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+        verification: { enum: [none, pending, confirmed] }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        detector: { type: string }
+        detectorVersion: { type: string }
+        artifactPaths:
+          type: array
+          items: { type: string }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        updatedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+    InconsistencyDetail:
+      allOf:
+        - $ref: "#/components/schemas/InconsistencySummary"
+        - type: object
+          required: [description, involved, history, allowedTransitions]
+          properties:
+            description: { type: string }
+            fingerprint: { $ref: "../common.schema.json#/$defs/Sha256" }
+            evidence: { type: object }
+            involved:
+              type: array
+              items:
+                type: object
+                required: [role]
+                properties:
+                  role: { type: string }
+                  element:
+                    type: object
+                    required: [id, key, label, name, artifactPath]
+                    properties:
+                      id: { $ref: "../common.schema.json#/$defs/StableId" }
+                      key: { type: string }
+                      label: { $ref: "../common.schema.json#/$defs/ElementLabel" }
+                      name: { type: string }
+                      artifactPath: { type: string }
+                      artifactVersionId: { $ref: "../common.schema.json#/$defs/StableId" }
+                      startLine: { type: integer }
+                      endLine: { type: integer }
+                      excerpt: { type: string }
+                  traceLink:
+                    type: object
+                    required: [id, approach, confidence, sourceKey, targetKey]
+                    properties:
+                      id: { $ref: "../common.schema.json#/$defs/StableId" }
+                      approach: { type: string }
+                      confidence: { type: number }
+                      sourceKey: { type: string }
+                      targetKey: { type: string }
+            history:
+              type: array
+              items:
+                type: object
+                required: [from, to, actor, at]
+                properties:
+                  from: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                  to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                  actor: { $ref: "../common.schema.json#/$defs/Actor" }
+                  reason: { type: string }
+                  at: { $ref: "../common.schema.json#/$defs/Timestamp" }
+            allowedTransitions:
+              type: array
+              description: User transitions allowed from the current status (for rendering buttons).
+              items: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }

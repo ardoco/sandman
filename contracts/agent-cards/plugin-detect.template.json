@@ -1,0 +1,72 @@
+{
+  "name": "<plugin-name>",
+  "description": "Template for a detector plugin service. Replace name, description, url and version.",
+  "version": "0.2.0",
+  "supportedInterfaces": [
+    {
+      "url": "http://<plugin-host>:<port>/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false,
+    "extensions": [
+      {
+        "uri": "https://sandman.invalid/a2a/extensions/skill-invocation/v1",
+        "description": "Skill id in message.metadata['sandman.skill']; input = one data part; result = task artifact 'result' with one data part; errors in status message metadata 'sandman.error'.",
+        "required": true,
+        "params": {
+          "skills": {
+            "sandman.plugin.detect": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginDetectInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginDetectOutput"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "securitySchemes": {
+    "bearer": {
+      "httpAuthSecurityScheme": {
+        "scheme": "Bearer",
+        "description": "Plugin inbound token (secret plugin_in_<plugin>), presented by the calling SANDMAN agent"
+      }
+    }
+  },
+  "securityRequirements": [
+    {
+      "schemes": {
+        "bearer": {
+          "list": []
+        }
+      }
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "sandman.plugin.detect",
+      "name": "Detect (plugin)",
+      "description": "Returns inconsistency findings for the given scope. Reads the KG only via the query service.",
+      "tags": [
+        "consistency",
+        "plugin"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ]
+}

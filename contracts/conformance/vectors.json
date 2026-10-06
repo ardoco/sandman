@@ -1,0 +1,372 @@
+{
+  "description": "Language-neutral conformance vectors. Both agent libraries must reproduce every 'expected*' value. Contract version 0.2.0.",
+  "stableId": {
+    "rule": "prefix + '_' + first 32 hex chars of sha256(UTF-8(parts joined by U+001F))",
+    "cases": [
+      {
+        "prefix": "art",
+        "parts": [
+          "mediastore",
+          "docs/architecture.md"
+        ],
+        "expected": "art_33727f5dc615803eb80cc14de97b2a4d"
+      },
+      {
+        "prefix": "ver",
+        "parts": [
+          "art_33727f5dc615803eb80cc14de97b2a4d",
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ],
+        "expected": "ver_b0a9ff8f2f212d4c839872a7a463b26c"
+      },
+      {
+        "prefix": "el",
+        "parts": [
+          "ver_0123456789abcdef0123456789abcdef",
+          "Bar.baz(int)"
+        ],
+        "expected": "el_39698e5d79944bc4b77320caa34a076a"
+      },
+      {
+        "prefix": "con",
+        "parts": [
+          "mediastore",
+          "ümlaut-cache"
+        ],
+        "expected": "con_c4af805182b3be6e82379f1bd13b2aae"
+      },
+      {
+        "prefix": "ing",
+        "parts": [
+          "mediastore",
+          "7"
+        ],
+        "expected": "ing_35e685b38d2e94ebd9b9009f05c626df"
+      }
+    ]
+  },
+  "sectionKey": {
+    "rule": "'sec:' + per heading from the top: slug + ('~' + n for the n-th sibling with the same slug, n >= 2), joined by '/'. slug = Unicode NFC, ASCII letters A-Z lowercased (other characters unchanged), every run of characters outside [a-z0-9] replaced by '-', leading/trailing '-' removed, empty -> 'section'. Text before the first heading: 'sec:'.",
+    "cases": [
+      {
+        "headings": [
+          "Architecture",
+          "Media Cache (v2)"
+        ],
+        "occurrences": [
+          1,
+          1
+        ],
+        "expected": "sec:architecture/media-cache-v2"
+      },
+      {
+        "headings": [
+          "Größe & Café"
+        ],
+        "occurrences": [
+          1
+        ],
+        "expected": "sec:gr-e-caf"
+      },
+      {
+        "headings": [
+          "Overview",
+          "Overview"
+        ],
+        "occurrences": [
+          1,
+          2
+        ],
+        "expected": "sec:overview/overview~2"
+      },
+      {
+        "headings": [
+          "***"
+        ],
+        "occurrences": [
+          1
+        ],
+        "expected": "sec:section"
+      }
+    ]
+  },
+  "sentenceKey": {
+    "rule": "sectionLocalKey + '/' + first 12 hex of sha256(UTF-8(normalized text)) + ('~' + n if n >= 2); normalized = Unicode NFC, runs of ASCII whitespace [ \\t\\n\\r\\f\\v] replaced by one space, leading/trailing ASCII whitespace removed",
+    "cases": [
+      {
+        "sectionLocalKey": "sec:architecture/media-cache",
+        "text": "The  MediaCache stores\taudio files. ",
+        "occurrence": 1,
+        "expected": "sec:architecture/media-cache/703c4e4a5dd6"
+      },
+      {
+        "sectionLocalKey": "sec:architecture/media-cache",
+        "text": "The MediaCache stores audio files.",
+        "occurrence": 2,
+        "expected": "sec:architecture/media-cache/703c4e4a5dd6~2"
+      },
+      {
+        "sectionLocalKey": "sec:",
+        "text": "Größe und Café.",
+        "occurrence": 1,
+        "expected": "sec:/54b850c03299"
+      }
+    ]
+  },
+  "fingerprint": {
+    "rule": "sha256 hex of UTF-8(type, detector id WITHOUT version, involved keys sorted byte-wise by UTF-8; all joined by U+001F). Involved key = element key, or sourceKey + '->' + targetKey for a trace link. inc id = stableId('inc', [projectId, fingerprint]).",
+    "cases": [
+      {
+        "input": {
+          "type": "missing-model-element",
+          "detector": "ardoco-id",
+          "involved": [
+            "art_33727f5dc615803eb80cc14de97b2a4d#sec:architecture/media-cache/703c4e4a5dd6",
+            "art_0123456789abcdef0123456789abcdef#_MediaCacheId"
+          ]
+        },
+        "expected": "88fea5546e46bb278002fe3f647a724aa1685ed1b56646d1acdacb1e8a9fb061",
+        "projectId": "mediastore",
+        "expectedInconsistencyId": "inc_db87c4653f67185721a1253f684f966c"
+      },
+      {
+        "input": {
+          "type": "untraced-requirement",
+          "detector": "stub-untraced",
+          "involved": [
+            "art_aa#REQ-2",
+            "art_aa#REQ-2->art_bb#mini.MediaCache"
+          ]
+        },
+        "expected": "2235ad092345e3694f172647583a9cb1f87e39232621b6b86b05af67ff770a30",
+        "projectId": "mini",
+        "expectedInconsistencyId": "inc_af07fc5b63394580f8dcace54de94036"
+      }
+    ]
+  },
+  "cassetteKey": {
+    "rule": "sha256 hex of the RFC 8785 (JCS) serialization of the OpenAI request body without the members user, stream, stream_options. Implemented only by the llm-replay server.",
+    "cases": [
+      {
+        "endpoint": "chat/completions",
+        "request": {
+          "model": "openai/gpt-4.1-mini-2025-04-14",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a classifier."
+            },
+            {
+              "role": "user",
+              "content": "Is REQ-1 implemented by Foo?"
+            }
+          ],
+          "temperature": 0.0,
+          "seed": 42,
+          "user": "run_0123456789abcdef0123456789abcdef"
+        },
+        "canonical": "{\"messages\":[{\"content\":\"You are a classifier.\",\"role\":\"system\"},{\"content\":\"Is REQ-1 implemented by Foo?\",\"role\":\"user\"}],\"model\":\"openai/gpt-4.1-mini-2025-04-14\",\"seed\":42,\"temperature\":0}",
+        "expectedKey": "e97c30e4dfeab2dddaa053101a27aec8535bfff6425c1d19013d66b740e0721b"
+      },
+      {
+        "endpoint": "chat/completions",
+        "request": {
+          "model": "ollama/qwen3:8b",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Größe?"
+            }
+          ],
+          "temperature": 0.2,
+          "max_tokens": 256,
+          "stream": false
+        },
+        "canonical": "{\"max_tokens\":256,\"messages\":[{\"content\":\"Größe?\",\"role\":\"user\"}],\"model\":\"ollama/qwen3:8b\",\"temperature\":0.2}",
+        "expectedKey": "099008fa94490694cfd05024ee49e4d33702fa5a1c5cdebe4f1328a1652dccbf"
+      },
+      {
+        "endpoint": "embeddings",
+        "request": {
+          "model": "openai/text-embedding-3-small",
+          "input": [
+            "MediaCache stores audio files."
+          ]
+        },
+        "canonical": "{\"input\":[\"MediaCache stores audio files.\"],\"model\":\"openai/text-embedding-3-small\"}",
+        "expectedKey": "258f6e0587f511720cde273e2adafcec947df7631a1a0782055b948dd6b2fd14"
+      }
+    ]
+  },
+  "skillInvocation": {
+    "cases": [
+      {
+        "name": "valid input is accepted",
+        "skill": "recover-trace-links",
+        "message": {
+          "messageId": "m-1",
+          "role": "ROLE_USER",
+          "metadata": {
+            "sandman.skill": "recover-trace-links",
+            "sandman.workflowId": "wf_0123456789abcdef0123456789abcdef"
+          },
+          "parts": [
+            {
+              "data": {
+                "projectId": "mediastore",
+                "sourceVersionIds": [
+                  "ver_0123456789abcdef0123456789abcdef"
+                ],
+                "targetVersionIds": [
+                  "ver_fedcba9876543210fedcba9876543210"
+                ]
+              }
+            }
+          ]
+        },
+        "expectedState": "TASK_STATE_SUBMITTED_OR_LATER"
+      },
+      {
+        "name": "missing skill metadata is rejected",
+        "skill": null,
+        "message": {
+          "messageId": "m-2",
+          "role": "ROLE_USER",
+          "metadata": {},
+          "parts": [
+            {
+              "data": {
+                "projectId": "mediastore"
+              }
+            }
+          ]
+        },
+        "expectedState": "TASK_STATE_REJECTED",
+        "expectedErrorCode": "INVALID_INPUT"
+      },
+      {
+        "name": "schema-invalid input is rejected",
+        "skill": "recover-trace-links",
+        "message": {
+          "messageId": "m-3",
+          "role": "ROLE_USER",
+          "metadata": {
+            "sandman.skill": "recover-trace-links"
+          },
+          "parts": [
+            {
+              "data": {
+                "projectId": "Mediastore!"
+              }
+            }
+          ]
+        },
+        "expectedState": "TASK_STATE_REJECTED",
+        "expectedErrorCode": "INVALID_INPUT"
+      },
+      {
+        "name": "unknown skill is rejected",
+        "skill": "does-not-exist",
+        "message": {
+          "messageId": "m-4",
+          "role": "ROLE_USER",
+          "metadata": {
+            "sandman.skill": "does-not-exist"
+          },
+          "parts": [
+            {
+              "data": {}
+            }
+          ]
+        },
+        "expectedState": "TASK_STATE_REJECTED",
+        "expectedErrorCode": "UNKNOWN_SKILL"
+      }
+    ]
+  },
+  "eventEnvelope": {
+    "rule": "Valid against contracts/events.schema.json; serialized without null members.",
+    "cases": [
+      {
+        "valid": true,
+        "event": {
+          "specversion": "1.0",
+          "id": "0b6f4a0e-8f6e-4c6b-9d7a-1f2e3d4c5b6a",
+          "source": "sandman/tlr-agent",
+          "type": "sandman.tracelinks.updated",
+          "subject": "mediastore",
+          "time": "2026-10-06T12:00:00Z",
+          "datacontenttype": "application/json",
+          "correlationid": "wf_0123456789abcdef0123456789abcdef",
+          "data": {
+            "projectId": "mediastore",
+            "sourceVersionIds": [
+              "ver_0123456789abcdef0123456789abcdef"
+            ],
+            "targetVersionIds": [
+              "ver_fedcba9876543210fedcba9876543210"
+            ],
+            "runs": [
+              {
+                "approach": "lissa",
+                "approachVersion": "1.0.0",
+                "runId": "run_0123456789abcdef0123456789abcdef",
+                "status": "completed",
+                "linkCount": 3
+              }
+            ]
+          },
+          "causationid": "task-7f3c"
+        }
+      },
+      {
+        "valid": false,
+        "reason": "data does not match type",
+        "event": {
+          "specversion": "1.0",
+          "id": "0b6f4a0e-8f6e-4c6b-9d7a-1f2e3d4c5b6b",
+          "source": "sandman/tlr-agent",
+          "type": "sandman.tracelinks.updated",
+          "subject": "mediastore",
+          "time": "2026-10-06T12:00:00Z",
+          "datacontenttype": "application/json",
+          "data": {
+            "projectId": "mediastore"
+          }
+        }
+      },
+      {
+        "valid": false,
+        "reason": "completion event without causationid",
+        "event": {
+          "specversion": "1.0",
+          "id": "0b6f4a0e-8f6e-4c6b-9d7a-1f2e3d4c5b6a",
+          "source": "sandman/tlr-agent",
+          "type": "sandman.tracelinks.updated",
+          "subject": "mediastore",
+          "time": "2026-10-06T12:00:00Z",
+          "datacontenttype": "application/json",
+          "correlationid": "wf_0123456789abcdef0123456789abcdef",
+          "data": {
+            "projectId": "mediastore",
+            "sourceVersionIds": [
+              "ver_0123456789abcdef0123456789abcdef"
+            ],
+            "targetVersionIds": [
+              "ver_fedcba9876543210fedcba9876543210"
+            ],
+            "runs": [
+              {
+                "approach": "lissa",
+                "approachVersion": "1.0.0",
+                "runId": "run_0123456789abcdef0123456789abcdef",
+                "status": "completed",
+                "linkCount": 3
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,750 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/skills.schema.json",
+  "title": "SANDMAN A2A skill inputs and outputs",
+  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.2.0.",
+  "$defs": {
+    "ExtractArtifactVersionsInput": {
+      "type": "object",
+      "required": [
+        "projectId",
+        "artifactVersionIds"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "artifactVersionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "llmEnrichment": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExtractArtifactVersionsOutput": {
+      "type": "object",
+      "required": [
+        "runId",
+        "status",
+        "elementCount",
+        "explicitLinkCount",
+        "pluginRuns"
+      ],
+      "properties": {
+        "runId": {
+          "$ref": "common.schema.json#/$defs/RunId"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "partial"
+          ]
+        },
+        "elementCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "explicitLinkCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pluginRuns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PluginRunSummary"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginRunSummary": {
+      "type": "object",
+      "required": [
+        "pluginId",
+        "runId",
+        "status"
+      ],
+      "properties": {
+        "pluginId": {
+          "type": "string"
+        },
+        "runId": {
+          "$ref": "common.schema.json#/$defs/RunId"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "failed",
+            "skipped"
+          ]
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RecoverTraceLinksInput": {
+      "type": "object",
+      "required": [
+        "projectId",
+        "sourceVersionIds",
+        "targetVersionIds"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "sourceVersionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "minItems": 1
+        },
+        "targetVersionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "minItems": 1
+        },
+        "approaches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Absent = project default approaches for the kind pairs."
+        },
+        "params": {
+          "type": "object",
+          "description": "Per-approach parameter overrides keyed by approach id; enters configHash."
+        }
+      },
+      "additionalProperties": false
+    },
+    "RecoverTraceLinksOutput": {
+      "type": "object",
+      "required": [
+        "runs"
+      ],
+      "properties": {
+        "runs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "approach",
+              "approachVersion",
+              "runId",
+              "status",
+              "linkCount"
+            ],
+            "properties": {
+              "approach": {
+                "type": "string"
+              },
+              "approachVersion": {
+                "type": "string"
+              },
+              "runId": {
+                "$ref": "common.schema.json#/$defs/RunId"
+              },
+              "status": {
+                "enum": [
+                  "completed",
+                  "failed"
+                ]
+              },
+              "linkCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "error": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Same runs as in the task's single sandman.tracelinks.updated event."
+    },
+    "ListApproachesOutput": {
+      "type": "object",
+      "required": [
+        "approaches"
+      ],
+      "properties": {
+        "approaches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "version",
+              "kindPairs",
+              "usesLlm"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "kindPairs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "target"
+                  ],
+                  "properties": {
+                    "source": {
+                      "$ref": "common.schema.json#/$defs/ArtifactKind"
+                    },
+                    "target": {
+                      "$ref": "common.schema.json#/$defs/ArtifactKind"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "usesLlm": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "REST response of tlr-agent GET /v1/approaches (not an A2A skill)."
+    },
+    "DetectInconsistenciesInput": {
+      "type": "object",
+      "required": [
+        "projectId"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "scopeArtifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "uniqueItems": true,
+          "description": "Artifact ids (art_). An existing inconsistency is in scope iff every artifact of its involved keys is in this set. Absent = whole project."
+        },
+        "detectors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Absent = all enabled detectors and plugins. Only detectors that complete in this run may auto-resolve their own inconsistencies."
+        }
+      },
+      "additionalProperties": false
+    },
+    "DetectInconsistenciesOutput": {
+      "type": "object",
+      "required": [
+        "runId",
+        "status",
+        "newIds",
+        "reopenedIds",
+        "autoResolvedIds",
+        "stillOpenCount",
+        "detectorRuns"
+      ],
+      "properties": {
+        "runId": {
+          "$ref": "common.schema.json#/$defs/RunId"
+        },
+        "status": {
+          "enum": [
+            "completed",
+            "partial"
+          ]
+        },
+        "newIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          }
+        },
+        "reopenedIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          }
+        },
+        "autoResolvedIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          }
+        },
+        "stillOpenCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "detectorRuns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "detector",
+              "status",
+              "findingCount"
+            ],
+            "properties": {
+              "detector": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "completed",
+                  "failed"
+                ]
+              },
+              "findingCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "error": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ListDetectorsOutput": {
+      "type": "object",
+      "required": [
+        "detectors"
+      ],
+      "properties": {
+        "detectors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "version",
+              "types",
+              "usesLlm",
+              "kind"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "in-process",
+                  "plugin-a2a",
+                  "plugin-http"
+                ]
+              },
+              "types": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "usesLlm": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "REST response of inconsistency-agent GET /v1/detectors (not an A2A skill)."
+    },
+    "PluginExtractInput": {
+      "type": "object",
+      "description": "Input of plugin skill sandman.plugin.extract (A2A) or POST /v1/extract (plain HTTP, contracts/openapi/plugin-http.yaml). Content is read from storagePath on the read-only artifact-store mount.",
+      "required": [
+        "projectId",
+        "llmPolicy",
+        "artifacts",
+        "context"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "llmPolicy": {
+          "$ref": "common.schema.json#/$defs/LlmPolicy",
+          "description": "Project policy. Plugins that call LLMs must use their local-only gateway key when local-only (ADR-0012)."
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "artifactVersionId",
+              "path",
+              "kind",
+              "storagePath",
+              "contentHash"
+            ],
+            "properties": {
+              "artifactVersionId": {
+                "$ref": "common.schema.json#/$defs/StableId"
+              },
+              "path": {
+                "type": "string"
+              },
+              "kind": {
+                "$ref": "common.schema.json#/$defs/ArtifactKind"
+              },
+              "format": {
+                "type": "string"
+              },
+              "storagePath": {
+                "type": "string",
+                "description": "Absolute path below /artifacts."
+              },
+              "contentHash": {
+                "$ref": "common.schema.json#/$defs/Sha256"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "context": {
+          "type": "object",
+          "required": [
+            "currentArtifacts"
+          ],
+          "properties": {
+            "currentArtifacts": {
+              "type": "array",
+              "description": "All current artifacts of the project handled by this plugin (for cross-file relations).",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "storagePath"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "storagePath": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginExtractOutput": {
+      "type": "object",
+      "required": [
+        "elements",
+        "relations"
+      ],
+      "properties": {
+        "elements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "localKey",
+              "label",
+              "kind",
+              "name"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "localKey": {
+                "type": "string",
+                "description": "Unique within the artifact and stable across versions (e.g. qualified name + signature)."
+              },
+              "label": {
+                "$ref": "common.schema.json#/$defs/ElementLabel"
+              },
+              "kind": {
+                "type": "string",
+                "examples": [
+                  "file",
+                  "package",
+                  "type",
+                  "method",
+                  "test-method"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "qualifiedName": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "startLine": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "endLine": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "parentLocalKey": {
+                "type": "string",
+                "description": "Creates CONTAINS from the parent in the same artifact."
+              },
+              "properties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "type",
+              "source",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "$ref": "common.schema.json#/$defs/RelationType"
+              },
+              "source": {
+                "$ref": "common.schema.json#/$defs/ElementLocator"
+              },
+              "target": {
+                "$ref": "common.schema.json#/$defs/ElementLocator"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "explicitReferences": {
+          "type": "array",
+          "description": "Textual references found in the artifact (e.g. REQ-12 in a test); resolved to elements by the extraction agent.",
+          "items": {
+            "type": "object",
+            "required": [
+              "source",
+              "referenceText",
+              "linkType"
+            ],
+            "properties": {
+              "source": {
+                "$ref": "common.schema.json#/$defs/ElementLocator"
+              },
+              "referenceText": {
+                "type": "string"
+              },
+              "linkType": {
+                "$ref": "common.schema.json#/$defs/LinkType"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginDetectInput": {
+      "type": "object",
+      "description": "Input of plugin skill sandman.plugin.detect (A2A) or POST /v1/detect (plain HTTP). The plugin reads the KG through queryServiceUrl with its own plugin token (read-only, project-scoped queries).",
+      "required": [
+        "projectId",
+        "llmPolicy",
+        "queryServiceUrl"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "llmPolicy": {
+          "$ref": "common.schema.json#/$defs/LlmPolicy",
+          "description": "Project policy. Plugins that call LLMs must use their local-only gateway key when local-only (ADR-0012)."
+        },
+        "scopeArtifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "description": "Absent = whole project."
+        },
+        "queryServiceUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "params": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginDetectOutput": {
+      "type": "object",
+      "required": [
+        "findings"
+      ],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Finding"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Finding": {
+      "type": "object",
+      "description": "Detector output before fingerprinting. The owner computes fingerprint = sha256 hex of UTF-8(type, detector id without version, involved keys sorted byte-wise by UTF-8, all joined by U+001F); involved key = element key for elementKey, sourceKey + '->' + targetKey for traceLinkId.",
+      "required": [
+        "type",
+        "severity",
+        "title",
+        "involved"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "severity": {
+          "$ref": "common.schema.json#/$defs/Severity"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "involved": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "role"
+            ],
+            "properties": {
+              "elementKey": {
+                "type": "string"
+              },
+              "traceLinkId": {
+                "$ref": "common.schema.json#/$defs/StableId"
+              },
+              "role": {
+                "type": "string",
+                "examples": [
+                  "subject",
+                  "expected-counterpart",
+                  "evidence"
+                ]
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "elementKey"
+                ]
+              },
+              {
+                "required": [
+                  "traceLinkId"
+                ]
+              }
+            ],
+            "additionalProperties": false
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "description": "Free-form detector evidence shown in the console (e.g. sentence text, rationale)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

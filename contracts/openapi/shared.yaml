@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN shared OpenAPI components
+  version: 0.2.0
+  description: Components referenced by the service OpenAPI documents. Not a service itself.
+paths: {}
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      description: SANDMAN service token. Each service holds only its own token (secret svc_token_<name>); receivers map it to a caller name via the hash file svc_tokens_verify. Owners call plugins with a per-plugin inbound token (secret plugin_in_<plugin>).
+    session:
+      type: apiKey
+      in: cookie
+      name: sandman_session
+      description: Signed console session cookie (query-service only).
+    personalToken:
+      type: http
+      scheme: bearer
+      description: Personal API token of a user (query-service only), e.g. for CLI/CI.
+  parameters:
+    Actor:
+      name: X-Sandman-Actor
+      in: header
+      required: false
+      description: End-user identity forwarded by the query-service (trusted forwarder). Ignored from other callers.
+      schema:
+        type: string
+        pattern: "^user:[A-Za-z0-9._@-]+$"
+    Roles:
+      name: X-Sandman-Roles
+      in: header
+      required: false
+      description: Comma-separated roles of the actor for the addressed project, forwarded by the query-service.
+      schema:
+        type: string
+        examples: ["triager", "maintainer,admin"]
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        $ref: "../common.schema.json#/$defs/ProjectId"
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 500, default: 50 }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+  schemas:
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri-reference, examples: ["about:blank"] }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        errors:
+          type: array
+          items: { type: string }
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status: { enum: [ok, degraded, down] }
+        checks:
+          type: object
+          additionalProperties: { enum: [ok, down] }
+  responses:
+    BadRequest:
+      description: Invalid input
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Unauthorized:
+      description: Missing or invalid credentials
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Conflict:
+      description: State changed concurrently or resource exists
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Unavailable:
+      description: Dependency unavailable (KG, NATS, gateway)
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  pathItems:
+    Healthz:
+      get:
+        summary: Liveness
+        operationId: healthz
+        security: []
+        responses:
+          "200":
+            description: Process alive
+            content:
+              application/json:
+                schema: { $ref: "#/components/schemas/Health" }
+    Readyz:
+      get:
+        summary: Readiness (dependencies reachable)
+        operationId: readyz
+        security: []
+        responses:
+          "200":
+            description: Ready
+            content:
+              application/json:
+                schema: { $ref: "#/components/schemas/Health" }
+          "503":
+            description: Not ready
+            content:
+              application/json:
+                schema: { $ref: "#/components/schemas/Health" }

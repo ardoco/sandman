@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/common.schema.json",
+  "title": "SANDMAN common definitions",
+  "description": "Shared types used by events, skills, OpenAPI documents and the agent libraries. Contract version 0.2.0.",
+  "$defs": {
+    "ProjectId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "description": "User-chosen project slug."
+    },
+    "StableId": {
+      "type": "string",
+      "pattern": "^[a-z]+_[0-9a-f]{32}$",
+      "description": "Deterministic id: <prefix>_ + first 32 hex chars of sha256(parts joined by U+001F, UTF-8). Prefixes: art, ver, el, con, tl, inc, ing."
+    },
+    "RunId": {
+      "type": "string",
+      "pattern": "^run_[0-9a-f]{32}$",
+      "description": "Random id (uuid4 hex) of one agent invocation."
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC, e.g. 2026-10-06T12:00:00Z."
+    },
+    "Sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "ArtifactKind": {
+      "enum": [
+        "requirements",
+        "architecture-doc",
+        "architecture-model",
+        "code",
+        "test",
+        "other"
+      ]
+    },
+    "ElementLabel": {
+      "enum": [
+        "Requirement",
+        "TextUnit",
+        "ModelElement",
+        "CodeUnit",
+        "TestCase"
+      ],
+      "description": "Secondary label of an Element node."
+    },
+    "RelationType": {
+      "enum": [
+        "CONTAINS",
+        "DEPENDS_ON",
+        "PROVIDES",
+        "REQUIRES"
+      ]
+    },
+    "LinkType": {
+      "enum": [
+        "documents",
+        "implements",
+        "satisfies",
+        "verifies",
+        "relates"
+      ]
+    },
+    "LinkStatus": {
+      "enum": [
+        "candidate",
+        "confirmed",
+        "rejected"
+      ]
+    },
+    "InconsistencyStatus": {
+      "enum": [
+        "OPEN",
+        "DEFERRED",
+        "ACCEPTED",
+        "REJECTED",
+        "RESOLVED",
+        "REOPENED"
+      ]
+    },
+    "Severity": {
+      "enum": [
+        "info",
+        "warning",
+        "error"
+      ]
+    },
+    "LlmPolicy": {
+      "enum": [
+        "cloud-allowed",
+        "local-only"
+      ]
+    },
+    "Actor": {
+      "type": "string",
+      "pattern": "^(user|system|service):[A-Za-z0-9._@-]+$",
+      "description": "user:<name>, system:<detector-or-rule>, service:<component>."
+    },
+    "ElementLocator": {
+      "type": "object",
+      "description": "Reference to an element by artifact path and local key, used by plugins before ids exist.",
+      "required": [
+        "path",
+        "localKey"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "localKey": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "CassetteEntry": {
+      "type": "object",
+      "description": "One line of a cassette JSONL file written by the llm-replay server (ADR-0010). key = sha256 hex of the RFC 8785 (JCS) serialization of the OpenAI request body after removing the members 'user', 'stream' and 'stream_options'.",
+      "required": [
+        "key",
+        "endpoint",
+        "request",
+        "response",
+        "recordedAt"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "endpoint": {
+          "enum": [
+            "chat/completions",
+            "embeddings"
+          ]
+        },
+        "request": {
+          "type": "object",
+          "description": "OpenAI request body as sent by the caller (incl. the gateway model name, e.g. openai/<model>)."
+        },
+        "response": {
+          "type": "object",
+          "description": "OpenAI response body as returned by the gateway (its 'model' member is the resolved model)."
+        },
+        "recordedAt": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SkillError": {
+      "type": "object",
+      "description": "Placed in the A2A task status message metadata under 'sandman.error' when a skill fails.",
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "examples": [
+            "INVALID_INPUT",
+            "UNKNOWN_SKILL",
+            "DEPENDENCY_UNAVAILABLE",
+            "BUDGET_EXCEEDED",
+            "INTERNAL"
+          ]
+        },
+        "message": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SkillInvocationMetadata": {
+      "type": "object",
+      "description": "Required A2A message.metadata members for SANDMAN skill calls.",
+      "required": [
+        "sandman.skill"
+      ],
+      "properties": {
+        "sandman.skill": {
+          "type": "string"
+        },
+        "sandman.workflowId": {
+          "type": "string"
+        },
+        "sandman.actor": {
+          "$ref": "#/$defs/Actor",
+          "description": "End user who triggered the work. Accepted only from the orchestrator (trusted forwarder); ignored from other callers."
+        },
+        "traceparent": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$"
+        }
+      }
+    }
+  }
+}

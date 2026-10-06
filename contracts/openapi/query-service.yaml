@@ -1,0 +1,687 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN query-service API (user and agent entry point)
+  version: 0.2.0
+  description: |
+    The only user-facing API. Authenticates users (session cookie or personal API token) and services
+    (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor/X-Sandman-Roles.
+    Roles: global admin; per project viewer < triager < maintainer. Reads are per project (ADR-0013):
+    every query is confined to one project by the Cypher scope guard (ADR-0009); only admin may run unscoped queries.
+    Each operation lists its minimum role in x-sandman-min-role. Console HTML routes (/console/...) are not part of this contract.
+servers:
+  - url: http://localhost:8080
+security:                 # /v1/* accepts bearer tokens only (ADR-0013); the session cookie is used by the console routes
+  - personalToken: []
+  - serviceToken: []
+paths:
+  /healthz:
+    $ref: "shared.yaml#/components/pathItems/Healthz"
+  /readyz:
+    $ref: "shared.yaml#/components/pathItems/Readyz"
+
+  /v1/auth/login:
+    post:
+      summary: Log in and receive a session cookie
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Logged in (Set-Cookie sandman_session for the /console routes, HttpOnly, SameSite=Strict)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+  /v1/auth/logout:
+    post:
+      summary: Log out (console session)
+      operationId: logout
+      security:
+        - session: []
+      responses:
+        "204": { description: Logged out }
+  /v1/auth/me:
+    get:
+      summary: Current user with roles
+      operationId: me
+      x-sandman-min-role: authenticated
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+  /v1/auth/tokens:
+    get:
+      summary: List own personal API tokens (metadata only)
+      operationId: listTokens
+      x-sandman-min-role: authenticated
+      responses:
+        "200":
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TokenInfo" }
+    post:
+      summary: Create a personal API token (secret returned once)
+      operationId: createToken
+      x-sandman-min-role: authenticated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, maxLength: 100 }
+                projectId:
+                  $ref: "../common.schema.json#/$defs/ProjectId"
+                  description: Restrict the token to one project (recommended for CI).
+                maxRole:
+                  enum: [viewer, triager, maintainer]
+                  description: Cap the token's role below the user's own role.
+                expiresAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+              additionalProperties: false
+      responses:
+        "201":
+          description: Token created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/TokenInfo"
+                  - type: object
+                    required: [secret]
+                    properties:
+                      secret: { type: string }
+  /v1/auth/tokens/{tokenId}:
+    delete:
+      summary: Revoke a personal API token
+      operationId: revokeToken
+      x-sandman-min-role: authenticated
+      parameters:
+        - name: tokenId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Revoked }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+
+  /v1/admin/users:
+    get:
+      summary: List users
+      operationId: listUsers
+      x-sandman-min-role: admin
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+    post:
+      summary: Create a user
+      operationId: createUser
+      x-sandman-min-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, pattern: "^[A-Za-z0-9._@-]{2,64}$" }
+                password: { type: string, format: password, minLength: 12 }
+                globalRoles:
+                  type: array
+                  items: { enum: [admin] }
+              additionalProperties: false
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+  /v1/admin/users/{username}:
+    patch:
+      summary: Update a user (disable, reset password, global roles)
+      operationId: updateUser
+      x-sandman-min-role: admin
+      parameters:
+        - $ref: "#/components/parameters/Username"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disabled: { type: boolean }
+                password: { type: string, format: password, minLength: 12 }
+                globalRoles:
+                  type: array
+                  items: { enum: [admin] }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+  /v1/admin/projects/{projectId}:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    put:
+      summary: Create or update a project (forwarded to extraction-agent PUT /v1/projects/{projectId})
+      operationId: putProject
+      x-sandman-min-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "extraction-agent.yaml#/components/schemas/ProjectSpec" }
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema: { $ref: "extraction-agent.yaml#/components/schemas/Project" }
+  /v1/admin/projects/{projectId}/members/{username}:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+      - $ref: "#/components/parameters/Username"
+    put:
+      summary: Set a member's project role
+      operationId: putMember
+      x-sandman-min-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role: { $ref: "#/components/schemas/ProjectRole" }
+              additionalProperties: false
+      responses:
+        "204": { description: Stored }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+    delete:
+      summary: Remove a member
+      operationId: deleteMember
+      x-sandman-min-role: admin
+      responses:
+        "204": { description: Removed }
+
+  /v1/projects:
+    get:
+      summary: Projects visible to the caller, with the caller's role
+      operationId: listProjects
+      x-sandman-min-role: authenticated
+      responses:
+        "200":
+          description: Projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "extraction-agent.yaml#/components/schemas/Project"
+                    - type: object
+                      required: [role]
+                      properties:
+                        role: { $ref: "#/components/schemas/ProjectRole" }
+
+  /v1/projects/{projectId}/ingestions/check:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    post:
+      summary: Forwarded to extraction-agent
+      operationId: checkIngestion
+      x-sandman-min-role: maintainer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "extraction-agent.yaml#/components/schemas/Manifest" }
+      responses:
+        "200":
+          description: Unknown hashes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [missing]
+                properties:
+                  missing:
+                    type: array
+                    items: { $ref: "../common.schema.json#/$defs/Sha256" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+  /v1/projects/{projectId}/ingestions:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    post:
+      summary: Forwarded to extraction-agent (same multipart body)
+      operationId: createIngestion
+      x-sandman-min-role: maintainer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [manifest]
+              properties:
+                manifest: { $ref: "extraction-agent.yaml#/components/schemas/Manifest" }
+                archive:
+                  type: string
+                  contentMediaType: application/octet-stream
+            encoding:
+              manifest:
+                contentType: application/json
+      responses:
+        "201":
+          description: Ingestion completed
+          content:
+            application/json:
+              schema: { $ref: "extraction-agent.yaml#/components/schemas/Ingestion" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "422":
+          description: Forwarded validation error
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+
+  /v1/projects/{projectId}/inconsistencies:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    get:
+      summary: Forwarded to inconsistency-agent (same query parameters)
+      operationId: listInconsistencies
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Page of inconsistencies
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, counts]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "inconsistency-agent.yaml#/components/schemas/InconsistencySummary" }
+                  counts:
+                    type: object
+                    additionalProperties: { type: integer }
+                  nextCursor: { type: string }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+  /v1/inconsistencies/{inconsistencyId}:
+    parameters:
+      - $ref: "inconsistency-agent.yaml#/components/parameters/InconsistencyId"
+    get:
+      summary: Forwarded to inconsistency-agent
+      operationId: getInconsistency
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Inconsistency
+          content:
+            application/json:
+              schema: { $ref: "inconsistency-agent.yaml#/components/schemas/InconsistencyDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+  /v1/inconsistencies/{inconsistencyId}/transitions:
+    parameters:
+      - $ref: "inconsistency-agent.yaml#/components/parameters/InconsistencyId"
+    post:
+      summary: Forwarded to inconsistency-agent with the actor
+      operationId: transitionInconsistency
+      x-sandman-min-role: triager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to, expectedStatus]
+              properties:
+                to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                expectedStatus: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                reason: { type: string, maxLength: 2000 }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "inconsistency-agent.yaml#/components/schemas/InconsistencyDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+        "422":
+          description: Transition not allowed
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+
+  /v1/projects/{projectId}/workflows:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    get:
+      summary: Forwarded to orchestrator GET /v1/workflows?projectId=
+      operationId: listWorkflows
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Page of workflows
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "orchestrator.yaml#/components/schemas/Workflow" }
+                  nextCursor: { type: string }
+    post:
+      summary: Forwarded to orchestrator POST /v1/workflows
+      operationId: createWorkflow
+      x-sandman-min-role: maintainer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type: { enum: [full, extract, tlr, detect] }
+                params: { type: object }
+                force: { type: boolean, default: false }
+              additionalProperties: false
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: "orchestrator.yaml#/components/schemas/WorkflowDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+  /v1/workflows/{workflowId}:
+    parameters:
+      - $ref: "orchestrator.yaml#/components/parameters/WorkflowId"
+    get:
+      summary: Forwarded to orchestrator
+      operationId: getWorkflow
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Workflow
+          content:
+            application/json:
+              schema: { $ref: "orchestrator.yaml#/components/schemas/WorkflowDetail" }
+
+  /v1/schema:
+    get:
+      summary: KG schema contract (contracts/kg/schema.yaml as JSON)
+      operationId: getSchema
+      x-sandman-min-role: authenticated
+      responses:
+        "200":
+          description: Schema
+          content:
+            application/json:
+              schema: { type: object }
+  /v1/query/cypher:
+    post:
+      summary: Execute read-only Cypher confined to one project
+      description: |
+        The query must pass the scope guard (ADR-0009): allowlisted read clauses only, and every pattern
+        anchored to the project via {projectId: $projectId} or (:Project {id: $projectId}); results are
+        post-checked. $projectId is bound by the service. Plugins (callers plugin:<id>) may call this operation
+        only for projects granted to them in config/query/plugins.yaml, users only for projects they are members of.
+        Unscoped queries: admin only.
+      operationId: queryCypher
+      x-sandman-min-role: viewer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cypher]
+              properties:
+                projectId:
+                  $ref: "../common.schema.json#/$defs/ProjectId"
+                  description: Required unless the caller is a global admin.
+                cypher: { type: string, maxLength: 20000 }
+                params: { type: object }
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                  default: 200
+                  description: Services may be configured with a higher maximum.
+                timeoutMs: { type: integer, minimum: 100, maximum: 30000, default: 10000, description: "Users are capped at 10000." }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/QueryResult" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "422":
+          description: Rejected by validation (non-allowlisted clause, pattern not anchored to the project, syntax error)
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+  /v1/query/nl:
+    post:
+      summary: Answer a natural-language question about one project
+      operationId: queryNl
+      x-sandman-min-role: viewer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, question]
+              properties:
+                projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+                question: { type: string, minLength: 3, maxLength: 2000 }
+                mode: { enum: [answer, cypher-only], default: answer }
+                execute: { type: boolean, default: true }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Answer
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/QueryResult"
+                  - type: object
+                    required: [cypher, attempts, warnings]
+                    properties:
+                      answer: { type: string }
+                      cypher: { type: string }
+                      params: { type: object }
+                      attempts:
+                        type: array
+                        items:
+                          type: object
+                          required: [cypher]
+                          properties:
+                            cypher: { type: string }
+                            error: { type: string }
+                      warnings:
+                        type: array
+                        items: { type: string }
+                      model: { type: string }
+                      resolvedModel: { type: string }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "422":
+          description: No valid query after repairs
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
+  /v1/projects/{projectId}/export/tracelinks:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    get:
+      summary: Export current trace links
+      operationId: exportTraceLinks
+      x-sandman-min-role: viewer
+      parameters:
+        - name: format
+          in: query
+          schema: { enum: [csv, json], default: csv }
+        - name: approach
+          in: query
+          schema: { type: string }
+        - name: minConfidence
+          in: query
+          schema: { type: number, minimum: 0, maximum: 1, default: 0 }
+        - name: includeRejected
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: Links (CSV columns source_key,target_key,link_type,approach,approach_version,confidence,status,run_id)
+          content:
+            text/csv:
+              schema: { type: string }
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [sourceKey, targetKey, linkType, approach, approachVersion, confidence, status, runId]
+                  properties:
+                    sourceKey: { type: string }
+                    targetKey: { type: string }
+                    linkType: { $ref: "../common.schema.json#/$defs/LinkType" }
+                    approach: { type: string }
+                    approachVersion: { type: string }
+                    confidence: { type: number }
+                    status: { $ref: "../common.schema.json#/$defs/LinkStatus" }
+                    runId: { $ref: "../common.schema.json#/$defs/RunId" }
+  /v1/projects/{projectId}/export/inconsistencies:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    get:
+      summary: Export inconsistencies with status history
+      operationId: exportInconsistencies
+      x-sandman-min-role: viewer
+      parameters:
+        - name: format
+          in: query
+          schema: { enum: [csv, json], default: json }
+      responses:
+        "200":
+          description: Inconsistencies
+          content:
+            text/csv:
+              schema: { type: string }
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "inconsistency-agent.yaml#/components/schemas/InconsistencyDetail" }
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: sandman_session
+    personalToken:
+      type: http
+      scheme: bearer
+    serviceToken:
+      type: http
+      scheme: bearer
+  parameters:
+    Username:
+      name: username
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Za-z0-9._@-]{2,64}$" }
+  schemas:
+    ProjectRole:
+      enum: [viewer, triager, maintainer]
+    User:
+      type: object
+      required: [username, globalRoles, disabled, createdAt]
+      properties:
+        username: { type: string }
+        globalRoles:
+          type: array
+          items: { enum: [admin] }
+        disabled: { type: boolean }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        memberships:
+          type: array
+          items:
+            type: object
+            required: [projectId, role]
+            properties:
+              projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+              role: { $ref: "#/components/schemas/ProjectRole" }
+    Me:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            lastVisit:
+              type: object
+              description: Last console visit per project (drives "new since last visit").
+              additionalProperties: { $ref: "../common.schema.json#/$defs/Timestamp" }
+    TokenInfo:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        maxRole: { $ref: "#/components/schemas/ProjectRole" }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        expiresAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        lastUsedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+    QueryResult:
+      type: object
+      required: [columns, rows, truncated, elapsedMs]
+      properties:
+        columns:
+          type: array
+          items: { type: string }
+        rows:
+          type: array
+          description: Row values are JSON values; nodes/relationships are maps of properties plus _labels/_type.
+          items:
+            type: array
+        truncated: { type: boolean }
+        elapsedMs: { type: integer }

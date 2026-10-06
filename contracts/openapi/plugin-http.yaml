@@ -1,0 +1,105 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN plugin contract (plain HTTP variant)
+  version: 0.2.0
+  description: |
+    Plain-HTTP alternative to the A2A plugin skills sandman.plugin.extract / sandman.plugin.detect (ADR-0012).
+    Same payloads (contracts/skills.schema.json). Synchronous: the response is returned within the timeout
+    configured by the caller (default 10 min). Use A2A instead when a call can run longer, must be cancellable,
+    or reports progress. A plugin implements /v1/extract or /v1/detect (or both) and /manifest. Currently the
+    inconsistency-agent calls /v1/detect; the extraction-agent calls extraction plugins via A2A only (D-7).
+    Results are returned to the owning agent, which validates and writes them; plugins never write the KG.
+    The owner authenticates with the plugin's inbound token (not its own service token). Plugins are external
+    systems (ADR-0012): any language, but LLM calls only through the SANDMAN gateway with their own virtual keys,
+    honoring llmPolicy from the input.
+servers:
+  - url: http://plugin-host:8000
+security:
+  - serviceToken: []
+paths:
+  /healthz:
+    $ref: "shared.yaml#/components/pathItems/Healthz"
+  /manifest:
+    get:
+      summary: Plugin identity and capabilities (recorded as Run.tool / Run.toolVersion)
+      operationId: manifest
+      responses:
+        "200":
+          description: Manifest
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, version, operations]
+                properties:
+                  id: { type: string, pattern: "^[a-z0-9-]+$" }
+                  version: { type: string }
+                  description: { type: string }
+                  operations:
+                    type: array
+                    items: { enum: [extract, detect] }
+                    minItems: 1
+                  handles:
+                    type: object
+                    description: Extraction only - which artifacts the plugin can process.
+                    properties:
+                      kinds:
+                        type: array
+                        items: { $ref: "../common.schema.json#/$defs/ArtifactKind" }
+                      formats:
+                        type: array
+                        items: { type: string }
+                  types:
+                    type: array
+                    description: Detection only - inconsistency types the plugin can report.
+                    items: { type: string }
+                  usesLlm: { type: boolean }
+  /v1/extract:
+    post:
+      summary: Extract elements, relations and explicit references
+      operationId: extract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "../skills.schema.json#/$defs/PluginExtractInput" }
+      responses:
+        "200":
+          description: Extraction result
+          content:
+            application/json:
+              schema: { $ref: "../skills.schema.json#/$defs/PluginExtractOutput" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "503":
+          description: Temporarily unavailable; the caller retries (retryable)
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+  /v1/detect:
+    post:
+      summary: Detect inconsistencies in the given scope
+      operationId: detect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "../skills.schema.json#/$defs/PluginDetectInput" }
+      responses:
+        "200":
+          description: Findings
+          content:
+            application/json:
+              schema: { $ref: "../skills.schema.json#/$defs/PluginDetectOutput" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "503":
+          description: Temporarily unavailable; the caller retries (retryable)
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer

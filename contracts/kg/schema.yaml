@@ -1,0 +1,200 @@
+# SANDMAN knowledge graph schema contract.
+# Source of truth for writers (single-writer rule), contract tests and the NL-to-Cypher prompt.
+# Changes: additive -> minor version; renames/removals -> major version + migration script.
+version: 0.2.0
+conventions:
+  ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
+  timestamps: "ISO-8601 UTC strings."
+  provenance: "Every fact node has projectId and runId and an incoming PRODUCED/DETECTED edge from its Run."
+  current: "An element is current iff (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(element). A link is current iff active = true and both endpoints are current."
+  active_facts: "Readers never see facts of unfinished runs: the extraction-agent writes the element set of one artifact version in one transaction (re-extraction replaces the set: elements not produced again lose their HAS_ELEMENT edge); the tlr-agent writes links in batches with active = false and activates them in the run's final transaction, which also deactivates earlier links of the same approach (any version/configHash) between the run's source and target versions; the inconsistency-agent writes one detection run in one transaction."
+  keys: "Element.key = artifactId + '#' + localKey, stable across versions. TextUnit localKeys are content-based (see labels.TextUnit), so inserting text does not change other keys."
+  fingerprint: "sha256 hex of UTF-8(type, detector id without version, involved keys sorted byte-wise by UTF-8; joined by U+001F). Involved key = Element.key, or sourceKey + '->' + targetKey for a TraceLink (contracts/conformance/vectors.json)."
+
+nodes:
+  Project:
+    owner: extraction-agent
+    description: A software project whose artifacts are analysed.
+    properties:
+      id: { type: string, required: true, description: "Project slug." }
+      name: { type: string, required: true }
+      llmPolicy: { type: string, required: true, enum: [cloud-allowed, local-only] }
+      ingestionSeq: { type: integer, required: true, description: "Last ingestion sequence number (0 = none)." }
+      createdAt: { type: string, required: true }
+
+  Ingestion:
+    owner: extraction-agent
+    description: One intake request; ACTIVATED/DELETED edges record how it changed the current state. Recorded also when nothing changed (no event then).
+    properties:
+      id: { type: string, required: true, description: "ing_ = stableId(projectId, seq)" }
+      projectId: { type: string, required: true }
+      seq: { type: integer, required: true, description: "Per-project sequence (Project.ingestionSeq + 1)." }
+      mode: { type: string, required: true, enum: [full, partial] }
+      sourceRevision: { type: string, required: false }
+      actor: { type: string, required: true }
+      unchangedCount: { type: integer, required: true }
+      eventPublished: { type: boolean, required: true, description: "Set after the ingestion.completed publish ack (true also when no event is due); unpublished ingestions are re-published at startup and before every intake." }
+      createdAt: { type: string, required: true }
+
+  Artifact:
+    owner: extraction-agent
+    description: A file of the project identified by its path; versions hold content.
+    properties:
+      id: { type: string, required: true, description: "art_ = stableId(projectId, path)" }
+      projectId: { type: string, required: true }
+      path: { type: string, required: true }
+      kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, code, test, other] }
+      format: { type: string, required: false, description: "e.g. markdown, pdf, pcm-repository, uml, java" }
+      deletedAt: { type: string, required: false, description: "Set when a full snapshot no longer contains the path; cleared when the path is ingested again." }
+
+  ArtifactVersion:
+    owner: extraction-agent
+    description: Immutable content of an artifact at one point in time.
+    properties:
+      id: { type: string, required: true, description: "ver_ = stableId(artifactId, contentHash)" }
+      artifactId: { type: string, required: true }
+      projectId: { type: string, required: true }
+      contentHash: { type: string, required: true, description: "sha256 hex" }
+      storageUri: { type: string, required: true, description: "artifact://<projectId>/<sha256>" }
+      sizeBytes: { type: integer, required: true }
+      sourceRevision: { type: string, required: false, description: "e.g. Git commit" }
+      ingestionId: { type: string, required: true, description: "Ingestion that first created the version; later activations via ACTIVATED edges." }
+      ingestedAt: { type: string, required: true }
+
+  Element:
+    owner: extraction-agent
+    description: Extracted unit of an artifact version. Always carries exactly one secondary label from 'labels'.
+    labels:
+      Requirement: "A single requirement (kind: functional, quality, ...)."
+      TextUnit: "Part of documentation text (kind: section, sentence). Section localKey = 'sec:' + heading slugs from the top joined by '/' (slug rule and duplicate siblings '~2', '~3', ... in vectors sectionKey; text before the first heading = 'sec:'). Sentence localKey = section localKey + '/' + first 12 hex chars of sha256(normalized sentence text) + ('~' + n for the n-th identical normalized sentence in the section, n >= 2); normalized = Unicode NFC, runs of ASCII whitespace collapsed to one space, trimmed (vectors sentenceKey). Property sentenceIndex keeps the position."
+      ModelElement: "Architecture model element (kind: component, interface, connector, ...); localKey = model id (XMI/PCM id)."
+      CodeUnit: "Code element (kind: file, package, type, method, ...)."
+      TestCase: "Test element (kind: test-class, test-method)."
+    properties:
+      id: { type: string, required: true, description: "el_ = stableId(artifactVersionId, localKey)" }
+      key: { type: string, required: true, description: "artifactId#localKey, stable across versions" }
+      projectId: { type: string, required: true }
+      kind: { type: string, required: true }
+      name: { type: string, required: true }
+      qualifiedName: { type: string, required: false }
+      text: { type: string, required: false, description: "Bounded excerpt (<= 4000 chars)." }
+      summary: { type: string, required: false, description: "LLM-generated short summary." }
+      startLine: { type: integer, required: false }
+      endLine: { type: integer, required: false }
+      sentenceIndex: { type: integer, required: false, description: "0-based sentence number within the document (TextUnit sentences); not part of the key." }
+      contentHash: { type: string, required: false }
+      runId: { type: string, required: true }
+
+  Concept:
+    owner: extraction-agent
+    description: Named concept mentioned in elements (LLM-extracted).
+    properties:
+      id: { type: string, required: true, description: "con_ = stableId(projectId, normalizedName)" }
+      projectId: { type: string, required: true }
+      name: { type: string, required: true }
+
+  TraceLink:
+    owner: tlr-agent
+    co_owner: "extraction-agent writes links with approach = explicit-reference only"
+    description: Candidate or confirmed trace link between two elements, produced by one approach.
+    properties:
+      id: { type: string, required: true, description: "tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId)" }
+      projectId: { type: string, required: true }
+      linkType: { type: string, required: true, enum: [documents, implements, satisfies, verifies, relates] }
+      confidence: { type: float, required: true, description: "0..1" }
+      approach: { type: string, required: true }
+      approachVersion: { type: string, required: true }
+      configHash: { type: string, required: true }
+      status: { type: string, required: true, enum: [candidate, confirmed, rejected] }
+      active: { type: boolean, required: true, description: "See conventions.active_facts. Detection, console, exports and NL queries use active links only." }
+      rationale: { type: string, required: false }
+      runId: { type: string, required: true }
+      createdAt: { type: string, required: true }
+
+  Inconsistency:
+    owner: inconsistency-agent
+    description: Potential inconsistency with lifecycle status (ADR-0007).
+    properties:
+      id: { type: string, required: true, description: "inc_ = stableId(projectId, fingerprint)" }
+      fingerprint: { type: string, required: true, description: "conventions.fingerprint (detector id without version)" }
+      projectId: { type: string, required: true }
+      type: { type: string, required: true }
+      severity: { type: string, required: true, enum: [info, warning, error] }
+      title: { type: string, required: true }
+      description: { type: string, required: false }
+      evidence: { type: string, required: false, description: "JSON string" }
+      status: { type: string, required: true, enum: [OPEN, DEFERRED, ACCEPTED, REJECTED, RESOLVED, REOPENED] }
+      verification: { type: string, required: true, enum: [none, pending, confirmed] }
+      confidence: { type: float, required: false }
+      detector: { type: string, required: true, description: "Detector id without version." }
+      detectorVersion: { type: string, required: true }
+      firstRunId: { type: string, required: true }
+      lastRunId: { type: string, required: true }
+      evidenceHash: { type: string, required: true, description: "sha256 over contentHashes of involved elements at last detection" }
+      acceptedEvidenceHash: { type: string, required: false }
+      createdAt: { type: string, required: true }
+      updatedAt: { type: string, required: true }
+
+  StatusChange:
+    owner: inconsistency-agent
+    properties:
+      from: { type: string, required: true }
+      to: { type: string, required: true }
+      actor: { type: string, required: true, description: "user:<name> | system:<detector>" }
+      reason: { type: string, required: false, description: "User text, or for system transitions: re-detected, not-redetected, artifact-deleted." }
+      at: { type: string, required: true }
+      runId: { type: string, required: false }
+
+  Run:
+    owner: "each writer for its own runs"
+    description: One invocation of an agent tool (extractor, plugin, approach, detector).
+    properties:
+      id: { type: string, required: true }
+      projectId: { type: string, required: true }
+      agent: { type: string, required: true }
+      agentVersion: { type: string, required: true, description: "image tag + git commit" }
+      skill: { type: string, required: true }
+      tool: { type: string, required: true, description: "extractor/plugin/approach/detector id" }
+      toolVersion: { type: string, required: true }
+      model: { type: string, required: false, description: "logical route, e.g. chat-default" }
+      resolvedModel: { type: string, required: false }
+      params: { type: string, required: false, description: "JSON string incl. temperature, seed" }
+      configHash: { type: string, required: false }
+      promptIds: { type: list, required: false, description: "template id@hash" }
+      inputKey: { type: string, required: true, description: "sha256 of canonical skill input + tool + config" }
+      workflowId: { type: string, required: false }
+      a2aTaskId: { type: string, required: false }
+      triggeredBy: { type: string, required: false, description: "actor" }
+      replayMode: { type: string, required: true, enum: [live, record, replay] }
+      inputTokens: { type: integer, required: false }
+      outputTokens: { type: integer, required: false }
+      status: { type: string, required: true, enum: [running, completed, partial, failed] }
+      error: { type: string, required: false }
+      startedAt: { type: string, required: true }
+      endedAt: { type: string, required: false }
+
+relationships:
+  HAS_ARTIFACT: { from: Project, to: Artifact }
+  HAS_INGESTION: { from: Project, to: Ingestion }
+  ACTIVATED: { from: Ingestion, to: ArtifactVersion, description: "Version created or made current again by this ingestion. Version history of an artifact = ACTIVATED edges ordered by Ingestion.seq." }
+  DELETED: { from: Ingestion, to: Artifact, description: "Artifact marked deleted by this ingestion (full snapshots)." }
+  HAS_VERSION: { from: Artifact, to: ArtifactVersion }
+  CURRENT_VERSION: { from: Artifact, to: ArtifactVersion, description: "At most one; absent for deleted artifacts." }
+  HAS_ELEMENT: { from: ArtifactVersion, to: Element }
+  CONTAINS: { from: Element, to: Element, description: "Structural nesting (section > sentence, package > type > method)." }
+  DEPENDS_ON: { from: Element, to: Element, description: "Code imports/calls, model connectors." }
+  PROVIDES: { from: Element, to: Element, description: "Component provides interface." }
+  REQUIRES: { from: Element, to: Element, description: "Component requires interface." }
+  MENTIONS: { from: Element, to: Concept, properties: { confidence: float, runId: string } }
+  SOURCE: { from: TraceLink, to: Element }
+  TARGET: { from: TraceLink, to: Element }
+  INVOLVES: { from: Inconsistency, to: [Element, TraceLink], properties: { role: string } }
+  HAS_STATUS_CHANGE: { from: Inconsistency, to: StatusChange }
+  USED: { from: Run, to: ArtifactVersion }
+  PRODUCED: { from: Run, to: [Element, Concept, TraceLink] }
+  DETECTED: { from: Run, to: Inconsistency }
+
+memgraph_dialect_notes:
+  - "No pattern expressions inside size(); use OPTIONAL MATCH + count()."
+  - "Use MAGE procedures, not APOC."
+  - "Internal ids (id()/elementId) are not stable; always use the id property."

@@ -1,0 +1,71 @@
+{
+  "name": "sandman-inconsistency-agent",
+  "description": "Detects potential inconsistencies with in-process detectors (ArDoCo) and detector plugins and maintains their lifecycle. Detector catalog: REST GET /v1/detectors.",
+  "version": "0.2.0",
+  "supportedInterfaces": [
+    {
+      "url": "http://inconsistency-agent:8080/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false,
+    "extensions": [
+      {
+        "uri": "https://sandman.invalid/a2a/extensions/skill-invocation/v1",
+        "description": "Skill id in message.metadata['sandman.skill']; input = one data part; result = task artifact 'result' with one data part; errors in status message metadata 'sandman.error'.",
+        "required": true,
+        "params": {
+          "skills": {
+            "detect-inconsistencies": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/DetectInconsistenciesInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/DetectInconsistenciesOutput"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "securitySchemes": {
+    "bearer": {
+      "httpAuthSecurityScheme": {
+        "scheme": "Bearer",
+        "description": "SANDMAN service token"
+      }
+    }
+  },
+  "securityRequirements": [
+    {
+      "schemes": {
+        "bearer": {
+          "list": []
+        }
+      }
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "detect-inconsistencies",
+      "name": "Detect inconsistencies",
+      "description": "Runs detectors on the given scope, matches findings by fingerprint and applies lifecycle transitions.",
+      "tags": [
+        "consistency"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ]
+}

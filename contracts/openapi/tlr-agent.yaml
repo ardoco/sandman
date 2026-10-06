@@ -1,0 +1,31 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN tlr-agent REST API
+  version: 0.2.0
+  description: |
+    Catalog and health. Trace link recovery itself is an A2A skill (contracts/agent-cards/tlr-agent.json).
+servers:
+  - url: http://tlr-agent:8080
+security:
+  - serviceToken: []
+paths:
+  /healthz:
+    $ref: "shared.yaml#/components/pathItems/Healthz"
+  /readyz:
+    $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/approaches:
+    get:
+      summary: Available TLR approaches with versions and supported kind pairs
+      operationId: listApproaches
+      responses:
+        "200":
+          description: Approach catalog
+          content:
+            application/json:
+              schema: { $ref: "../skills.schema.json#/$defs/ListApproachesOutput" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer

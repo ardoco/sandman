@@ -1,0 +1,212 @@
+openapi: 3.1.0
+info:
+  title: SANDMAN extraction-agent REST API
+  version: 0.2.0
+  description: |
+    Artifact intake and project registration. Owner of Project, Artifact, ArtifactVersion and Element nodes.
+    Called by the query-service (user requests, actor forwarded) and by services. The A2A interface is
+    described by contracts/agent-cards/extraction-agent.json.
+servers:
+  - url: http://extraction-agent:8000
+security:
+  - serviceToken: []
+paths:
+  /healthz:
+    $ref: "shared.yaml#/components/pathItems/Healthz"
+  /readyz:
+    $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/projects/{projectId}:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    put:
+      summary: Create or update a project (KG Project node)
+      operationId: putProject
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProjectSpec" }
+      responses:
+        "200":
+          description: Project stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+    get:
+      summary: Get a project
+      operationId: getProject
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+  /v1/projects/{projectId}/ingestions/check:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    post:
+      summary: Report which content hashes are unknown (upload only those)
+      operationId: checkIngestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Manifest" }
+      responses:
+        "200":
+          description: Unknown hashes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [missing]
+                properties:
+                  missing:
+                    type: array
+                    items: { $ref: "../common.schema.json#/$defs/Sha256" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+  /v1/projects/{projectId}/ingestions:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    post:
+      summary: Ingest a snapshot (full) or a set of files (partial)
+      description: |
+        Stores blobs content-addressed, creates ArtifactVersions for new content, makes existing versions
+        current again when a path returns to earlier content (reactivation, also for deleted artifacts),
+        moves CURRENT_VERSION, marks artifacts missing from a full snapshot as deleted, records an Ingestion
+        (sequence number per project), publishes sandman.ingestion.completed and returns after the publish ack.
+        Idempotency is state-based: a manifest that matches the current state changes nothing; the Ingestion
+        is recorded with empty change lists and no event is published. If publishing failed after the KG
+        commit (503), the event is re-published with a deterministic id at startup and before the next intake,
+        so a retried request never loses it.
+        The archive must contain every file whose hash is unknown (see /ingestions/check); paths in the
+        archive are relative to the project root and must match manifest paths.
+      operationId: createIngestion
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [manifest]
+              properties:
+                manifest:
+                  $ref: "#/components/schemas/Manifest"
+                archive:
+                  type: string
+                  contentMediaType: application/octet-stream
+                  description: tar.gz or zip with the files whose content is unknown to the server.
+            encoding:
+              manifest:
+                contentType: application/json
+      responses:
+        "201":
+          description: Ingestion completed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ingestion" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "422":
+          description: Archive lacks content for unknown hashes, or hash mismatch
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
+  /v1/projects/{projectId}/ingestions/{ingestionId}:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+      - name: ingestionId
+        in: path
+        required: true
+        schema: { $ref: "../common.schema.json#/$defs/StableId" }
+    get:
+      summary: Get an ingestion result
+      operationId: getIngestion
+      responses:
+        "200":
+          description: Ingestion
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ingestion" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+  schemas:
+    ProjectSpec:
+      type: object
+      required: [name, llmPolicy]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        llmPolicy: { $ref: "../common.schema.json#/$defs/LlmPolicy" }
+      additionalProperties: false
+    Project:
+      allOf:
+        - $ref: "#/components/schemas/ProjectSpec"
+        - type: object
+          required: [id, createdAt]
+          properties:
+            id: { $ref: "../common.schema.json#/$defs/ProjectId" }
+            createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+    Manifest:
+      type: object
+      required: [mode, files]
+      properties:
+        mode:
+          enum: [full, partial]
+          description: full = files is the complete project snapshot (missing paths are marked deleted).
+        sourceRevision: { type: string, description: "e.g. Git commit SHA" }
+        kindRules:
+          type: array
+          description: First matching glob decides the artifact kind; unmatched files get kind 'other'.
+          items:
+            type: object
+            required: [glob, kind]
+            properties:
+              glob: { type: string, examples: ["docs/**/*.md", "src/test/**"] }
+              kind: { $ref: "../common.schema.json#/$defs/ArtifactKind" }
+              format: { type: string, examples: ["markdown", "pcm-repository", "uml", "java"] }
+            additionalProperties: false
+        files:
+          type: array
+          maxItems: 20000
+          items:
+            type: object
+            required: [path, sha256]
+            properties:
+              path: { type: string, pattern: "^[^/].*", description: "Relative path, forward slashes, no '..' segments." }
+              sha256: { $ref: "../common.schema.json#/$defs/Sha256" }
+            additionalProperties: false
+      additionalProperties: false
+    Ingestion:
+      type: object
+      required: [ingestionId, projectId, seq, mode, createdVersionIds, reactivatedVersionIds, deletedArtifactIds, unchangedCount, createdAt]
+      properties:
+        ingestionId: { $ref: "../common.schema.json#/$defs/StableId" }
+        projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        seq: { type: integer, minimum: 1 }
+        mode: { enum: [full, partial] }
+        sourceRevision: { type: string }
+        createdVersionIds:
+          type: array
+          items: { $ref: "../common.schema.json#/$defs/StableId" }
+        reactivatedVersionIds:
+          type: array
+          items: { $ref: "../common.schema.json#/$defs/StableId" }
+        deletedArtifactIds:
+          type: array
+          items: { $ref: "../common.schema.json#/$defs/StableId" }
+        unchangedCount: { type: integer, minimum: 0 }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }

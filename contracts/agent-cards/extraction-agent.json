@@ -1,0 +1,72 @@
+{
+  "name": "sandman-extraction-agent",
+  "description": "Extracts structure and content of ingested artifact versions into the SANDMAN knowledge graph; delegates configured formats to extraction plugins.",
+  "version": "0.2.0",
+  "supportedInterfaces": [
+    {
+      "url": "http://extraction-agent:8000/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false,
+    "extensions": [
+      {
+        "uri": "https://sandman.invalid/a2a/extensions/skill-invocation/v1",
+        "description": "Skill id in message.metadata['sandman.skill']; input = one data part; result = task artifact 'result' with one data part; errors in status message metadata 'sandman.error'.",
+        "required": true,
+        "params": {
+          "skills": {
+            "extract-artifact-versions": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/ExtractArtifactVersionsInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/ExtractArtifactVersionsOutput"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "securitySchemes": {
+    "bearer": {
+      "httpAuthSecurityScheme": {
+        "scheme": "Bearer",
+        "description": "SANDMAN service token"
+      }
+    }
+  },
+  "securityRequirements": [
+    {
+      "schemes": {
+        "bearer": {
+          "list": []
+        }
+      }
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "extract-artifact-versions",
+      "name": "Extract artifact versions",
+      "description": "Extracts elements, relations and explicit references of the given artifact versions and writes them to the KG.",
+      "tags": [
+        "extraction",
+        "knowledge-graph"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ]
+}

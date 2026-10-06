@@ -1,0 +1,72 @@
+{
+  "name": "<plugin-name>",
+  "description": "Template for an extraction plugin service. Replace name, description, url and version.",
+  "version": "0.2.0",
+  "supportedInterfaces": [
+    {
+      "url": "http://<plugin-host>:<port>/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false,
+    "extensions": [
+      {
+        "uri": "https://sandman.invalid/a2a/extensions/skill-invocation/v1",
+        "description": "Skill id in message.metadata['sandman.skill']; input = one data part; result = task artifact 'result' with one data part; errors in status message metadata 'sandman.error'.",
+        "required": true,
+        "params": {
+          "skills": {
+            "sandman.plugin.extract": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginExtractInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginExtractOutput"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "securitySchemes": {
+    "bearer": {
+      "httpAuthSecurityScheme": {
+        "scheme": "Bearer",
+        "description": "Plugin inbound token (secret plugin_in_<plugin>), presented by the calling SANDMAN agent"
+      }
+    }
+  },
+  "securityRequirements": [
+    {
+      "schemes": {
+        "bearer": {
+          "list": []
+        }
+      }
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "sandman.plugin.extract",
+      "name": "Extract (plugin)",
+      "description": "Returns elements, relations and explicit references for the given artifacts. Must not write to the KG.",
+      "tags": [
+        "extraction",
+        "plugin"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ]
+}

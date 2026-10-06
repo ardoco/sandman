@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/events.schema.json",
+  "title": "SANDMAN domain events",
+  "description": "CloudEvents 1.0 (structured JSON) envelope plus payloads. NATS subject = type. Nats-Msg-Id = id. Events are the only signal the orchestrator chains steps on (ADR-0003): every A2A skill task of the three SANDMAN agents publishes exactly one completion event (plugin skills publish none) (extraction.completed, tracelinks.updated, inconsistencies.updated) with causationid = messageId of the A2A request, after its output was validated and before the task completes. Payload changes are additive only; breaking changes get a new type with suffix .v2. Contract version 0.2.0.",
+  "$ref": "#/$defs/Event",
+  "$defs": {
+    "Event": {
+      "type": "object",
+      "required": ["specversion", "id", "source", "type", "subject", "time", "datacontenttype", "data"],
+      "properties": {
+        "specversion": { "const": "1.0" },
+        "id": { "type": "string", "format": "uuid" },
+        "source": { "type": "string", "pattern": "^sandman/[a-z0-9-]+$", "examples": ["sandman/extraction-agent"] },
+        "type": {
+          "enum": [
+            "sandman.ingestion.completed",
+            "sandman.extraction.completed",
+            "sandman.tracelinks.updated",
+            "sandman.inconsistencies.updated",
+            "sandman.inconsistency.status.changed"
+          ]
+        },
+        "subject": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "time": { "$ref": "common.schema.json#/$defs/Timestamp" },
+        "datacontenttype": { "const": "application/json" },
+        "correlationid": { "type": "string", "description": "Workflow id." },
+        "causationid": { "type": "string", "description": "Completion events (required): messageId of the A2A SendMessage request that started the task (chosen and stored by the caller before sending, so the event can never arrive before the caller knows it). Otherwise: id of the event that caused this event." },
+        "traceparent": { "type": "string" },
+        "data": { "type": "object" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "sandman.ingestion.completed" } } },
+          "then": { "properties": { "data": { "$ref": "#/$defs/IngestionCompleted" } } } },
+        { "if": { "properties": { "type": { "const": "sandman.extraction.completed" } } },
+          "then": { "required": ["causationid"], "properties": { "data": { "$ref": "#/$defs/ExtractionCompleted" } } } },
+        { "if": { "properties": { "type": { "const": "sandman.tracelinks.updated" } } },
+          "then": { "required": ["causationid"], "properties": { "data": { "$ref": "#/$defs/TracelinksUpdated" } } } },
+        { "if": { "properties": { "type": { "const": "sandman.inconsistencies.updated" } } },
+          "then": { "required": ["causationid"], "properties": { "data": { "$ref": "#/$defs/InconsistenciesUpdated" } } } },
+        { "if": { "properties": { "type": { "const": "sandman.inconsistency.status.changed" } } },
+          "then": { "properties": { "data": { "$ref": "#/$defs/InconsistencyStatusChanged" } } } }
+      ]
+    },
+    "IngestionCompleted": {
+      "type": "object",
+      "description": "Published only when the ingestion changed the current state (at least one created, reactivated or deleted item).",
+      "required": ["projectId", "ingestionId", "seq", "mode", "actor", "createdVersionIds", "reactivatedVersionIds", "deletedArtifactIds", "unchangedCount"],
+      "properties": {
+        "projectId": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "ingestionId": { "$ref": "common.schema.json#/$defs/StableId" },
+        "seq": { "type": "integer", "minimum": 1, "description": "Per-project ingestion sequence number." },
+        "mode": { "enum": ["full", "partial"] },
+        "sourceRevision": { "type": "string" },
+        "actor": { "$ref": "common.schema.json#/$defs/Actor" },
+        "createdVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "reactivatedVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" }, "description": "Existing versions made current again (reverts, re-added files); handled like created versions." },
+        "deletedArtifactIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "unchangedCount": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "ExtractionCompleted": {
+      "type": "object",
+      "required": ["projectId", "runId", "status", "artifactVersionIds", "elementCount", "explicitLinkCount", "pluginRuns"],
+      "properties": {
+        "projectId": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "runId": { "$ref": "common.schema.json#/$defs/RunId" },
+        "status": { "enum": ["completed", "partial"] },
+        "artifactVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" }, "minItems": 1 },
+        "elementCount": { "type": "integer", "minimum": 0 },
+        "explicitLinkCount": { "type": "integer", "minimum": 0 },
+        "pluginRuns": { "type": "array", "items": { "$ref": "skills.schema.json#/$defs/PluginRunSummary" } }
+      },
+      "additionalProperties": false
+    },
+    "TracelinksUpdated": {
+      "type": "object",
+      "description": "One event per recover-trace-links task, listing every approach run (also failed ones).",
+      "required": ["projectId", "sourceVersionIds", "targetVersionIds", "runs"],
+      "properties": {
+        "projectId": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "sourceVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "targetVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "runs": { "$ref": "skills.schema.json#/$defs/RecoverTraceLinksOutput/properties/runs" }
+      },
+      "additionalProperties": false
+    },
+    "InconsistenciesUpdated": {
+      "type": "object",
+      "required": ["projectId", "runId", "status", "newIds", "reopenedIds", "autoResolvedIds", "stillOpenCount"],
+      "properties": {
+        "projectId": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "runId": { "$ref": "common.schema.json#/$defs/RunId" },
+        "status": { "enum": ["completed", "partial"] },
+        "scopeArtifactIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" }, "description": "Absent = whole project." },
+        "newIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "reopenedIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "autoResolvedIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
+        "stillOpenCount": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "InconsistencyStatusChanged": {
+      "type": "object",
+      "required": ["projectId", "inconsistencyId", "from", "to", "actor", "at"],
+      "properties": {
+        "projectId": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "inconsistencyId": { "$ref": "common.schema.json#/$defs/StableId" },
+        "from": { "$ref": "common.schema.json#/$defs/InconsistencyStatus" },
+        "to": { "$ref": "common.schema.json#/$defs/InconsistencyStatus" },
+        "actor": { "$ref": "common.schema.json#/$defs/Actor" },
+        "reason": { "type": "string" },
+        "at": { "$ref": "common.schema.json#/$defs/Timestamp" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

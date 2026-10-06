@@ -1,0 +1,27 @@
+// SANDMAN KG initialization (idempotent at startup of each writer; executed by the extraction-agent in M0).
+// Memgraph syntax. Composite index support to verify (V-7); single-property indexes are used meanwhile.
+CREATE CONSTRAINT ON (n:Project) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:Ingestion) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:Artifact) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:ArtifactVersion) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:Element) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:Concept) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:TraceLink) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:Inconsistency) ASSERT n.id IS UNIQUE;
+CREATE CONSTRAINT ON (n:Run) ASSERT n.id IS UNIQUE;
+CREATE INDEX ON :Project(id);
+CREATE INDEX ON :Ingestion(id);
+CREATE INDEX ON :Artifact(id);
+CREATE INDEX ON :Artifact(projectId);
+CREATE INDEX ON :ArtifactVersion(id);
+CREATE INDEX ON :Element(id);
+CREATE INDEX ON :Element(key);
+CREATE INDEX ON :Element(projectId);
+CREATE INDEX ON :Concept(id);
+CREATE INDEX ON :TraceLink(id);
+CREATE INDEX ON :TraceLink(projectId);
+CREATE INDEX ON :Inconsistency(id);
+CREATE INDEX ON :Inconsistency(fingerprint);
+CREATE INDEX ON :Inconsistency(projectId);
+CREATE INDEX ON :Run(id);
+CREATE INDEX ON :Run(inputKey);

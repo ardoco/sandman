@@ -233,7 +233,7 @@ sandman/
 | Concern | Python | Java |
 |---|---|---|
 | Version | 3.13 | 21 (ArDoCo target) |
-| Build/deps | uv workspace (`[tool.uv.workspace] members = ["libs/python/*", "services/orchestrator", "services/extraction-agent", "services/query-service", "services/llm-replay", "tools/cli", "tests/plugin-stubs"]`), single `uv.lock` | Maven aggregator; `dependencyManagement` with BOMs (Quarkus platform, OpenTelemetry), properties for a2a-java, neo4j-java-driver, jnats, networknt validator |
+| Build/deps (binding: Python = uv only, Java = Maven only) | uv workspace (`[tool.uv.workspace] members = ["libs/python/*", "services/orchestrator", "services/extraction-agent", "services/query-service", "services/llm-replay", "tools/cli", "tests/plugin-stubs"]`), single `uv.lock` | Maven aggregator; `dependencyManagement` with BOMs (Quarkus platform, OpenTelemetry), properties for a2a-java, neo4j-java-driver, jnats, networknt validator |
 | Key libraries | `a2a-sdk[http-server]`, `openai`, `neo4j`, `nats-py`, `pydantic`, `fastapi`, `jinja2`, `jsonschema`, `rfc8785`, `argon2-cffi`, `opentelemetry-sdk`; extraction: `docling` | `a2a-java` reference JSON-RPC server + client (provisional, T0.4), Quarkus (REST, health), `neo4j-java-driver`, `jnats`, `json-schema-validator`, `java-json-canonicalization` (JCS); ArDoCo modules |
 | Lint/format | `ruff format`, `ruff check`, `mypy --strict` for `libs/` | Spotless (formatter configuration aligned with ArDoCo), compiler `-Werror` for libs |
 | Tests | `pytest`, Testcontainers (`testcontainers[neo4j]` image override to Memgraph, NATS container) | JUnit 5, Testcontainers, Quarkus test |

@@ -31,7 +31,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | ID | Task | Effort | Depends on | Spec |
 |---|---|---|---|---|
 | **M0** | | | | |
-| T0.1 | Repository scaffolding, build tooling, CI (contracts job, Python/Java skeleton jobs), Makefile | M | – | [T0.1](tasks/T0.1-repo-scaffolding-ci.md) |
+| T0.1 | Repository scaffolding, build tooling (Java: Maven; Python: uv), CI (contracts job, Python/Java skeleton jobs), Makefile | M | – | [T0.1](tasks/T0.1-repo-scaffolding-ci.md) |
 | T0.2 | Python agent library (`sandman_agent`) incl. A2A glue and conformance runner | L | T0.1 | [T0.2](tasks/T0.2-python-agent-library.md) |
 | T0.3 | Java agent library (`agent-lib`, `agent-lib-a2a`) incl. conformance runner; no LLM client, tool loop or replay (D-3, D-7) | M | T0.1 | [T0.3](tasks/T0.3-java-agent-library.md) |
 | T0.4 | Gateway smoke test (Bifrost incl. admin auth and local-only keys), Memgraph/A2A interoperability spike, Java A2A runtime decision (D-6), network and memory checks (V-1, V-2, V-4–V-8, V-18–V-21, V-30–V-35) | M | T0.1 | [T0.4](tasks/T0.4-gateway-and-interop-spike.md) |
@@ -195,7 +195,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 
 - Follow the contracts in `contracts/` exactly; never change them inside an implementation task.
 - No agent frameworks (LangChain, LangGraph, DeepAgents, LlamaIndex, CrewAI, AutoGen, LangChain4j in agent code).
-- One language per service; Python 3.13 (uv) or Java 21 (Maven).
+- One language per service; Python 3.13 or Java 21. Build tools are fixed: all Java parts use Maven (no Gradle), all Python parts use uv (no pip, Poetry, PDM or Hatch for dependency management; `pyproject.toml` + `uv.lock`).
 - Commits follow Conventional Commits, are small, and carry no AI attribution.
 - Every non-trivial logic path has a test; CI must be green.
 

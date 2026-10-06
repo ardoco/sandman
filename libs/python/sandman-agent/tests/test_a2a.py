@@ -114,3 +114,29 @@ async def test_skill_invocation_vectors(case: dict[str, Any], settings: Settings
         assert done.state == "TASK_STATE_REJECTED" and done.error["code"] == case["expectedErrorCode"], (skill, done)
     else:
         assert done.state in {"TASK_STATE_SUBMITTED", "TASK_STATE_WORKING", "TASK_STATE_COMPLETED"}
+
+
+async def test_status_reports_working_while_a_skill_runs(settings: Settings, contracts: Contracts) -> None:
+    started, release = asyncio.Event(), asyncio.Event()
+
+    class Slow(Recover):
+        async def run(self, ctx: SkillContext, input: dict[str, Any]) -> SkillResult:
+            started.set()
+            await release.wait()
+            return await super().run(ctx, input)
+
+    bus = InMemoryEventBus(contracts, "tlr-agent")
+    app = serve(CARD, [Slow()], settings, events=bus, contracts=contracts)
+    http = httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url=URL)
+    headers = {"Authorization": f"Bearer {TOKENS['orchestrator']}"}
+    assert (await http.get("/v1/status")).status_code == 401
+    idle = (await http.get("/v1/status", headers=headers)).json()
+    assert idle["state"] == "idle" and idle["activeTasks"] == 0 and idle["service"] == "tlr-agent"
+    client = A2aClient(TOKENS["orchestrator"], transport=httpx.ASGITransport(app=app))
+    task = await client.submit(URL, "recover-trace-links", INPUT)
+    await started.wait()
+    working = (await http.get("/v1/status", headers=headers)).json()
+    assert working["state"] == "working" and working["activeTasks"] == 1
+    release.set()
+    await wait(client, task.task_id)
+    assert (await http.get("/v1/status", headers=headers)).json()["state"] == "idle"

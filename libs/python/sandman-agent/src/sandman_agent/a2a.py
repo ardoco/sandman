@@ -44,6 +44,7 @@ from sandman_agent import auth, telemetry
 from sandman_agent.config import Settings
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.events import EventSink
+from sandman_agent.status import StatusTracker, status_route
 
 log = logging.getLogger(__name__)
 
@@ -142,10 +143,12 @@ class _Executor(AgentExecutor):
         contracts: Contracts,
         events: EventSink | None,
         authenticate: "_Authenticator",
+        status: StatusTracker,
     ) -> None:
         self._skills, self._schemas, self._settings = skills, schemas, settings
         self._contracts, self._events, self._authenticate = contracts, events, authenticate
         self._running: dict[str, SkillContext] = {}
+        self._status = status
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         message = context.message
@@ -184,8 +187,9 @@ class _Executor(AgentExecutor):
         self._running[context.task_id] = ctx
         token = telemetry.bind(taskId=ctx.task_id, workflowId=ctx.workflow_id, actor=ctx.actor)
         try:
-            await updater.start_work()
-            await self._run(skill, ctx, input, updater)
+            async with self._status.track():
+                await updater.start_work()
+                await self._run(skill, ctx, input, updater)
         finally:
             self._running.pop(context.task_id, None)
             telemetry.reset(token)
@@ -280,8 +284,9 @@ def serve(
     *,
     events: EventSink | None = None,
     contracts: Contracts | None = None,
+    status: StatusTracker | None = None,
 ) -> Starlette:
-    """Starlette app serving the Agent Card and the JSON-RPC endpoint of the card's interface URL."""
+    """Starlette app: Agent Card, JSON-RPC endpoint of the card's interface URL, GET /v1/status."""
     card, schemas = load_card(agent_card_path)
     missing = [s.id for s in skills if s.id not in schemas]
     if missing:
@@ -294,10 +299,16 @@ def serve(
         contracts or Contracts(settings.contracts_dir),
         events,
         authenticate,
+        status := status or StatusTracker(settings.service_name),
     )
     handler = DefaultRequestHandlerV2(executor, InMemoryTaskStore(), card)
     rpc_path = urlsplit(card.supported_interfaces[0].url).path or "/"
-    app = Starlette(routes=[*create_agent_card_routes(card), *create_jsonrpc_routes(handler, rpc_path)])
+    routes = [
+        *create_agent_card_routes(card),
+        *create_jsonrpc_routes(handler, rpc_path),
+        status_route(status, authenticate),
+    ]
+    app = Starlette(routes=routes)
     app.add_middleware(_RequireToken, rpc_path=rpc_path, authenticate=authenticate)
     return app
 

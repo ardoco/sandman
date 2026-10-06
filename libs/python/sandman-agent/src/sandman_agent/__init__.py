@@ -19,14 +19,50 @@ from sandman_agent.ids import fingerprint, new_run_id, new_workflow_id, section_
 from sandman_agent.kg import KgClient, RunRecorder
 from sandman_agent.llm import ChatMessage, ChatRequest, ChatResponse, LlmClient, ModelSelector, OpenAiLlmClient, Usage
 from sandman_agent.plugins import A2aPluginClient, PluginError
+from sandman_agent.status import StatusTracker, status_route
 
 __version__ = "0.1.0"
 
 __all__ = [
-    "A2aClient", "A2aPluginClient", "ArtifactStore", "ChatMessage", "ChatRequest", "ChatResponse", "ConfigError",
-    "ContractError", "Contracts", "Event", "EventConsumer", "EventPublisher", "EventSink", "KgClient", "LlmClient",
-    "ModelSelector", "OpenAiLlmClient", "PluginError", "PublishError", "RunRecorder", "Settings", "Skill",
-    "SkillContext", "SkillError", "SkillResult", "TaskNotFoundError", "TaskSnapshot", "TokenVerifier", "Usage",
-    "ensure_stream", "fingerprint", "new_run_id", "new_workflow_id", "require_service", "section_local_key",
-    "sentence_local_key", "serve", "stable_id", "trusted_actor",
-]  # fmt: skip
+    "A2aClient",
+    "A2aPluginClient",
+    "ArtifactStore",
+    "ChatMessage",
+    "ChatRequest",
+    "ChatResponse",
+    "ConfigError",
+    "ContractError",
+    "Contracts",
+    "Event",
+    "EventConsumer",
+    "EventPublisher",
+    "EventSink",
+    "KgClient",
+    "LlmClient",
+    "ModelSelector",
+    "OpenAiLlmClient",
+    "PluginError",
+    "PublishError",
+    "RunRecorder",
+    "Settings",
+    "Skill",
+    "SkillContext",
+    "SkillError",
+    "SkillResult",
+    "StatusTracker",
+    "TaskNotFoundError",
+    "TaskSnapshot",
+    "TokenVerifier",
+    "Usage",
+    "ensure_stream",
+    "fingerprint",
+    "new_run_id",
+    "new_workflow_id",
+    "require_service",
+    "section_local_key",
+    "sentence_local_key",
+    "serve",
+    "stable_id",
+    "status_route",
+    "trusted_actor",
+]

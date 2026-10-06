@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Throwaway spike T0.12: runs ArDoCo inconsistency detection from a locally installed build (see README). -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>sandman.spikes</groupId>
+  <artifactId>spike-t0-12</artifactId>
+  <version>0</version>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <ardoco.version>2.1.0-SNAPSHOT</ardoco.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.ardoco.id</groupId>
+      <artifactId>pipeline-id</artifactId>
+      <version>${ardoco.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.18</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <mainClass>Spike</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

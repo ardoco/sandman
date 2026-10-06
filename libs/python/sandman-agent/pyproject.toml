@@ -3,7 +3,19 @@ name = "sandman-agent"
 version = "0.1.0"
 description = "Shared minimal agent library (ADR-0010)."
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+    "a2a-sdk[http-server]==1.2.2",
+    "httpx>=0.28.1",
+    "jsonschema>=4.26.0",
+    "nats-py>=2.16.0",
+    "neo4j>=6.4.0",
+    "openai>=3.24.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.45.0",
+    "opentelemetry-sdk>=1.45.0",
+    "pyyaml>=6.0.3",
+    "referencing>=0.37.0",
+    "rfc8785>=0.1.4",
+]
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]

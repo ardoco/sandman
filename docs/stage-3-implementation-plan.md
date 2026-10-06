@@ -1,6 +1,6 @@
 # SANDMAN – Stage 3: Implementation Plan
 
-Status: revision 4 (all Stage 4 review decisions D-1…D-10 and Q-20 incorporated) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (rev. 4), [Stage 2](stage-2-contracts-repository.md) (rev. 3) and the [ADRs](../adr/README.md).
+Status: revision 5 (system overview dashboard added: T0.14, T1.9–T1.11, ADR-0016) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (rev. 4), [Stage 2](stage-2-contracts-repository.md) (rev. 3) and the [ADRs](../adr/README.md).
 
 ## 0. Summary of key decisions
 
@@ -19,7 +19,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | Milestone | Goal | Exit criterion |
 |---|---|---|
 | **M0 Walking skeleton** | All components as stubs, Compose, CI, one end-to-end flow | Walking-skeleton test (Stage 2 §5) green in CI; gateway smoke test done; ADR-0004 accepted or switched |
-| **M1 Real extraction** | Built-in extractors for documentation, requirements and models; LLM enrichment; record/replay end to end; observability profile | Golden-file tests on benchmark projects; replay determinism test green |
+| **M1 Real extraction + dashboard** | Built-in extractors for documentation, requirements and models; LLM enrichment; record/replay end to end; observability profile; system overview dashboard (ADR-0016) | Golden-file tests on benchmark projects; replay determinism test green; dashboard shows every service's health and activity, the KG graph view and gateway statistics on the walking-skeleton deployment |
 | **M2 TLR approaches** | ArDoCo TLR and LiSSA in-process; evaluation exports and harness | ArDoCo: link set identical to the standalone runner on ≥ 2 benchmark projects; LiSSA: live re-run with the closest available model on ≥ 2 projects, Δ F1 to the published value reported with a 95 % CI, then recorded for replay (§3.3) |
 | **M3 ArDoCo inconsistency detection** | ArDoCo ID (standard + Artemis variant) running in-process, using the TLR results of M2, mapped to the KG | Same findings as the standalone ArDoCo runner on its benchmark inputs; lifecycle scenario on real data |
 | **M4 NL-to-Cypher** | LLM generation with validation and repair; evaluation set; console evidence views | Execution accuracy ≥ target (Q-16) on the held-out split; security suite green |
@@ -41,9 +41,10 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T0.8 | Orchestrator (rule engine, SQLite state, event-driven step completion, per-project pipeline lock, failure polling, retries, REST) | L | T0.2 | [T0.8](tasks/T0.8-orchestrator.md) |
 | T0.9 | Query-service stub (users/roles, per-service token verification, forwarding, parse-tree scope guard for Cypher (D-2, V-28), NL intents, minimal console with session security) | L+S | T0.2 | (spec after T0.2) |
 | T0.10 | Plugin stubs (extract via A2A — reference for the code-extraction team, Q-19; detect via HTTP), plugin-author kit (`docs/plugins.md`: contracts, Agent Card template, contract tests, obligations of external plugins: no egress, gateway keys, `llmPolicy`, token pair; D-9), fixtures `mini/`, `sandman` CLI (`ingest`, `workflows`, `export`) | M | T0.2 | – |
-| T0.11 | Dockerfiles, Compose integration, walking-skeleton e2e test, CI `compose` and `e2e` jobs | M | T0.5–T0.10 | – |
+| T0.11 | Dockerfiles, Compose integration, walking-skeleton e2e test, CI `compose` and `e2e` jobs | M | T0.5–T0.10, T0.13, T0.14 | – |
 | T0.12 | ArDoCo spike: build branch at pinned commit, run `InconsistencyDetection` on fixtures, analyze sentence/model id mapping and whether external trace links can be fed in (V-16, V-17, V-27; ADR-0015) | S | T0.1 | – |
 | T0.13 | `llm-replay` proxy (standalone Python, no `sandman_agent`): OpenAI-compatible pass-through/record/replay for chat and embeddings, cassette format and key per contracts (D-3) | S | T0.1 | – |
+| T0.14 | `GET /v1/status` (`ServiceStatus`, working/idle) in both agent libraries and `llm-replay` (mode, experiment, hits/misses/recordings) | S | T0.2, T0.3, T0.13 | – |
 | **M1** | | | | |
 | T1.1 | Markdown/text extractor (sections, sentences with `sentenceIndex` compatible with ArDoCo's splitting, V-16) | M | T0.5, T0.12 | |
 | T1.2 | PCM and UML model extractors (ids preserved, `PROVIDES`/`REQUIRES`) | M | T0.5 | |
@@ -52,6 +53,9 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T1.5 | LLM enrichment (concepts, summaries) with schemas, replay tests | M | T1.1 | |
 | T1.6 | Record/replay end to end through `llm-replay` (experiment manifest, cassette dirs), replay determinism test on a canonical KG export without ids and timestamps; `ORDER BY` in prompt-building reads | M | T0.11, T0.13 | |
 | T1.7 | Observability: OTel in both libraries, `obs` profile dashboards (A2A, events, LLM tokens) | S | T0.11 | |
+| T1.9 | Dashboard core (Stage 1 §10.1): admin login, services page (health + working/idle, Memgraph/NATS/gateway), KG graph view with Cytoscape.js incl. extras (Cypher box in read transactions, paths, PNG/JSON export), LLM gateway statistics and budgets, Dockerfile + Compose | L | T0.11, T0.14 | |
+| T1.10 | Dashboard operations: workflow monitor with cancel and dead-event replay, event stream viewer, alerts (banner + `event=alert` log), record/replay status page | M | T1.9 | |
+| T1.11 | Dashboard insights: project statistics, history charts (SQLite samples, uPlot), resource usage via cAdvisor (profile `resources`) | M | T1.9 | |
 | **M2** | | | | |
 | T2.1 | ArDoCo TLR approach adapter(s) (SAD↔SAM, SAD↔code) | L | T1.1, T1.2, T0.6 | |
 | T2.2 | LiSSA adapter (LangChain4j configured via `LlmAccess` to `llm-replay`/gateway with the policy-dependent key; embeddings likewise) | L | T0.6 | |
@@ -84,14 +88,15 @@ flowchart LR
   T02 --> T05[T0.5 extraction stub] & T08[T0.8 orchestrator] & T09[T0.9 query stub] & T010[T0.10 plugins+CLI]
   T03 --> T06[T0.6 tlr stub] & T07[T0.7 inconsistency stub]
   T05 & T06 & T07 & T08 & T09 & T010 & T013 --> T011[T0.11 compose + e2e]
-  T011 --> M1[M1 extraction]
+  T011 --> M1[M1 extraction + dashboard]
+  T02 & T03 & T013 --> T014[T0.14 status endpoint] --> T011
   T012 --> M1
   M1 --> M2[M2 TLR] --> M3[M3 ArDoCo ID] --> M4[M4 NL-to-Cypher] --> M5[M5 continuous use]
 ```
 
 Recommended order inside M0: T0.1 → (T0.2 ∥ T0.3 ∥ T0.4 ∥ T0.12 ∥ T0.13) → (T0.5, T0.8, T0.9, T0.10 ∥ T0.6, T0.7) → T0.11. T0.3 does not start its A2A glue before T0.4 has decided the Java runtime (D-6). With two developers, one takes the Python track and one the Java track. T0.4 and T0.12 are early risk spikes. Their results may change ADR-0002, ADR-0004 and the ArDoCo mapping design before much code depends on them.
 
-Rough calendar (one developer), **re-baselined after the review decisions (D-10 confirmed 2026-10-06):** M0 tasks sum to ≈ 46 days at the lower and ≈ 86 days at the upper end of the effort classes (S = 1–2, M = 3–5, L = 5–10 days; T0.9 = L + S for the scope guard), i.e. 9–17 weeks; **planning value M0 = 13 weeks** (midpoint). The D-7 cuts save ≈ 1 week, the scope guard (D-2), the replay proxy (D-3) and the reactivation logic (D-5) add ≈ 2 weeks. M1 ≈ 4 weeks (T1.8 dropped), M2 ≈ 4–5 weeks, M3 ≈ 4 weeks (incl. labeling study T3.6), M4 ≈ 3 weeks, M5 ≈ 3 weeks plus the soak period.
+Rough calendar (one developer), **re-baselined after the review decisions (D-10 confirmed 2026-10-06):** M0 tasks sum to ≈ 46 days at the lower and ≈ 86 days at the upper end of the effort classes (S = 1–2, M = 3–5, L = 5–10 days; T0.9 = L + S for the scope guard), i.e. 9–17 weeks; **planning value M0 = 13 weeks** (midpoint). The D-7 cuts save ≈ 1 week, the scope guard (D-2), the replay proxy (D-3) and the reactivation logic (D-5) add ≈ 2 weeks. T0.14 adds ≈ 2 days to M0 (planning value stays 13 weeks, within the range). M1 ≈ 7 weeks (T1.8 dropped; dashboard T1.9–T1.11 ≈ 3 weeks), M2 ≈ 4–5 weeks, M3 ≈ 4 weeks (incl. labeling study T3.6), M4 ≈ 3 weeks, M5 ≈ 3 weeks plus the soak period.
 
 ## 2. Replacement order
 
@@ -186,6 +191,8 @@ Threats to validity to track: benchmark contamination of LLMs (benchmark project
 | RK-17 | Speed advantage of Memgraph not confirmed for our workload (one 2026 third-party test shows Neo4j and FalkorDB ahead on mixed load) | M | M | Check against the T5.4 performance budget (benchmark T1.8 dropped, D-7); switch path via portable Cypher | M5 |
 | RK-18 | ArDoCo's inconsistency detection cannot consume externally provided trace links (Q-20 needs it) | M | M | T0.12 answers V-27 early; upstream extension of the branch; meanwhile `linkApproaches: [ardoco]` | M0–M3 |
 | RK-19 | No maintained openCypher parser for Python covers Memgraph's dialect (scope guard, D-2) | M | M | V-28 in T0.9; fallback: a small own parser for the allowlisted subset (queries outside it are rejected) | M0 |
+| RK-20 | The dashboard is a privileged component (Memgraph and gateway admin credentials, orchestrator token, cAdvisor host mounts) | M | H | Admins only, own login, localhost-only port, KG access in read transactions only, cAdvisor opt-in on the internal network, secrets mounted only there (ADR-0016) | M1 |
+| RK-21 | Large graphs overwhelm the browser graph view | M | L | At most 500 nodes per view, expand on demand, server-side filters | M1 |
 
 L = likelihood, I = impact (H/M/L).
 
@@ -225,6 +232,10 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-33 | Bifrost: `governance.auth_config` protects the management API (not only the UI) against unauthenticated calls from other containers; a virtual key with only the Ollama provider is rejected on OpenAI/OpenRouter routes; log retention configuration (T0.4). |
 | V-34 | Bifrost starts healthy with empty provider keys (keyless walking skeleton; see review R-040). |
 | V-35 | Memgraph write-write conflict errors are classified as transient by the Neo4j drivers' managed transactions (retry per batch) (T0.4). |
+| V-36 | Bifrost: `/metrics` metric names and labels per virtual key/model/provider (tokens, cost, errors, latency); management API for budget usage; both with `auth_config` Basic auth (T1.9). |
+| V-37 | cAdvisor v0.60.x image registry, required mounts and metrics on Docker Desktop (macOS) and Linux; license Apache-2.0 (T1.11). |
+| V-38 | Memgraph syntax for path queries between two nodes (e.g. BFS `[*BFS ..n]`) and `QUERY MEMORY LIMIT` in the dashboard's Cypher box (T1.9). |
+| V-39 | Versions and licenses of the vendored front-end libraries (Cytoscape.js 3.34.x MIT, uPlot 1.6.x MIT, htmx) and offline use without a CDN (T1.9). |
 
 ## 8. Open questions
 

@@ -1,6 +1,6 @@
 # SANDMAN – Stage 1: Analysis and Architecture
 
-Status: revision 4 (review decisions D-1…D-10 and Q-20 incorporated, see 0.2) · Date: 2026-10-06 · Scope: Stage 1 of the design (analysis, architecture, ADRs).
+Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-06 · Scope: Stage 1 of the design (analysis, architecture, ADRs).
 
 ### 0.1 Changelog revisions 2 and 3
 
@@ -37,6 +37,13 @@ Status: revision 4 (review decisions D-1…D-10 and Q-20 incorporated, see 0.2) 
 | Q-20 links for detection | Detectors use the active links of all approaches (5.4, ADR-0015). |
 | D-8 evaluation protocol (R-038, R-043, R-044) | Pre-registered protocol in `experiments/PROTOCOL.md` (Stage 3 §3.3); 11.6. |
 | D-10 M0 re-baseline (R-003) | M0 planned at 13 weeks (Stage 3 §1.3). |
+
+### 0.3 Changelog revision 5 (system overview, 2026-10-06)
+
+| Input | Change |
+|---|---|
+| New requirement: web service giving an overview of the system | FR-21–FR-23; new component `dashboard` (2.2, 2.3, 10.1); `GET /v1/status` on every SANDMAN service (contract 0.3.0); ADR-0016 |
+| Your decisions | Separate service (keeps working when monitored components fail); admins only; all proposed extras: workflow monitor, event stream viewer, alerts, resource usage, project statistics, graph view extras, record/replay status, history charts |
 
 ## 0. Summary of key decisions
 
@@ -77,6 +84,9 @@ Status: revision 4 (review decisions D-1…D-10 and Q-20 incorporated, see 0.2) 
 | FR-18 *(Q-8)* | Manage users with per-project roles; restrict reads, triage, ingestion and workflow control by role. | Query Service |
 | FR-19 *(Q-5, Q-6)* | Plug in external services for extraction (e.g., code) and inconsistency detection without changing contracts. | Extraction, Inconsistency Agent |
 | FR-20 *(Q-7)* | Process an evolving project continuously: incremental ingestion from CI, deletions, incremental re-processing; batch mode for experiments. | all |
+| FR-21 *(new)* | Show all services with their health and whether they are working or idle; show the LLM gateway's usage statistics (requests, tokens, cost, errors, latency, budgets). | Dashboard |
+| FR-22 *(new)* | Open a graphical view of the knowledge graph (nodes and edges) per project, with exploration, a read-only Cypher box, paths between elements and export. | Dashboard |
+| FR-23 *(new, confirmed extras)* | Operations and insight views: workflow monitor with dead-event replay, event stream viewer, alerts on failures, container resource usage, project statistics, record/replay status, history charts. | Dashboard |
 
 ### 1.2 Non-functional requirements
 
@@ -177,8 +187,11 @@ flowchart LR
 flowchart TB
   user([User / CLI]):::person
 
+  admin([Admin / operator]):::person
+
   subgraph edge[edge network]
     qs["query-service (Python)<br/>REST: /v1/query, /v1/schema, /v1/auth<br/>Console UI, user store + roles"]
+    dash["dashboard (Python)<br/>system overview, KG graph view,<br/>LLM statistics (admins)"]
   end
 
   subgraph internal[internal network, no egress]
@@ -198,6 +211,12 @@ flowchart TB
   prov[(OpenAI, OpenRouter, Ollama)]:::ext
 
   user -->|HTTP| qs
+  admin -->|HTTP| dash
+  dash -->|"/readyz, /v1/status"| orch & ext & tlr & inc & qs & rp
+  dash -->|"Bolt read"| kg
+  dash -->|"monitoring, ordered consumer"| bus
+  dash -->|"/metrics, management API"| gw
+  dash -->|"workflows, dead-event replay"| orch
   qs -->|"REST: transitions (actor forwarded)"| inc
   qs -->|"REST: artifact upload"| ext
   qs -->|"REST: workflow status/trigger"| orch
@@ -241,6 +260,8 @@ Component responsibilities in one line each (details in Section 5):
 | `llm-gateway` | (off-the-shelf, Bifrost) | Unified LLM access, virtual keys, budgets, logging | – |
 | `memgraph` | (off-the-shelf) | Knowledge graph | – |
 | `nats` | (off-the-shelf) | Durable event log / bus | – |
+| `dashboard` | Python | System overview for admins: health and activity of all services, KG graph view, LLM statistics, operations and insight views (10.1, ADR-0016) | none (own SQLite for history samples) |
+| `cadvisor` | (off-the-shelf, optional profile `resources`) | Container resource metrics for the dashboard | – |
 
 **Single-writer rule:** each KG node type has exactly one owning component (table above). Other components read it and request changes through the owner's API; plugins return results to their owner, which validates and writes them. This keeps stubs and plugins replaceable and avoids write conflicts.
 
@@ -252,6 +273,7 @@ flowchart TB
     direction TB
     subgraph core["profile: default"]
       qs["query-service :8000<br/>host 127.0.0.1:8080"]
+      dash["dashboard :8000<br/>host 127.0.0.1:8090"]
       orch[orchestrator :8000]
       ext[extraction-agent :8000]
       tlr[tlr-agent :8080]
@@ -276,6 +298,7 @@ flowchart TB
     v7[/ollama-models/]
     v8[/query-data/]
     v9[/"./data/logs (bind)"/]
+    v10[/dashboard-data/]
   end
   internet((Internet: LLM providers))
   mg --- v1
@@ -288,6 +311,7 @@ flowchart TB
   ollama --- v7
   qs --- v8
   ext & tlr & inc & qs & orch ---|"optional file log"| v9
+  dash --- v10
   gw -->|egress network| internet
   rp --> gw
   gw -->|llm-local network| ollama
@@ -307,6 +331,7 @@ flowchart TB
 | `gateway-data` | llm-gateway | Bifrost config + SQLite logs (container path to verify) |
 | `query-data` → `/data` | query-service | SQLite user store (users, project memberships, API token hashes) |
 | `./data/logs` → `/logs` | all services (optional) | JSONL log files incl. notifications (`SANDMAN_LOG_FILE`) |
+| `dashboard-data` → `/data` | dashboard | SQLite with history samples (14 days) and admin sessions |
 | `orchestrator-data` → `/data` | orchestrator | SQLite workflow state |
 | `artifact-store` → `/artifacts` | extraction-agent (rw), tlr-agent/inconsistency-agent/query-service (ro) | content-addressed blobs `/{projectId}/{sha256}` |
 | `./data/llm-records` → `/llm-records` | llm-replay | record/replay cassettes per experiment |
@@ -324,6 +349,7 @@ flowchart TB
 | `memgraph_password` | memgraph and all KG clients |
 | `admin_bootstrap_password` (first admin account) | query-service |
 | `session_secret` (cookie signing) | query-service |
+| `dashboard_admin_password`, `dashboard_session_secret`; read access to `gateway_admin_password` and `memgraph_password` | dashboard (admin-only operator tool, ADR-0016) |
 
 Startup order via `depends_on: condition: service_healthy`: `memgraph`, `nats`, `llm-gateway` → `llm-replay` → agents → `orchestrator` → `query-service`. All services `restart: unless-stopped` and have a `mem_limit` (memory budget in Stage 2 §3.2). Profiles: `default` (core), `obs` (OpenTelemetry backend), `local-llm` (Ollama), `stubs` (plugin stubs); a `docker-compose.dev.yml` overlay publishes Bolt and NATS ports on localhost (Memgraph Lab is excluded as proprietary). Full Compose file: [deploy/docker-compose.yml](../deploy/docker-compose.yml) (Stage 2).
 
@@ -1124,7 +1150,7 @@ Tool registry and tool-calling loop (until the M6 planner needs them), prompt te
 
 **Notifications (Q-9):** the inconsistency-agent emits one structured log event per new or reopened inconsistency (`event=notification, projectId, inconsistencyId, type, severity, status, title`) on stdout and, if `SANDMAN_LOG_FILE` is set, to a JSONL file on the `./data/logs` mount. The console shows "new/reopened since last visit" badges per user (last-visit timestamp stored in the user store).
 
-Console pages:
+Console pages (project members):
 1. **Projects** – projects the user is a member of: counts by status, "new/reopened since last visit" badge, last workflow status.
 2. **Inconsistency list** – filter by status/type/severity/artifact, sort by severity/date.
 3. **Inconsistency detail** – description, detector + confidence, involved elements with artifact path, line range and excerpt, involved trace links (approach, confidence), status history, transition form (allowed target states only, reason required for `ACCEPTED`/`REJECTED`/`DEFERRED`).
@@ -1132,6 +1158,26 @@ Console pages:
 5. **Ask** – NL question box showing answer, generated Cypher and rows.
 6. **Workflows** – recent workflows/steps with status, errors and manual trigger buttons (`maintainer`).
 7. **Administration** (`admin`) – users, project memberships and roles, API tokens.
+
+### 10.1 System overview dashboard (FR-21–FR-23, ADR-0016)
+
+A separate service `dashboard` for **global admins** (operators). It is independent of the query-service and the agents, so it keeps showing their state when they fail. Server-rendered (FastAPI, Jinja2, vendored htmx, Cytoscape.js and uPlot; no build chain), port `127.0.0.1:8090`, own admin login (`dashboard_admin_password`) with the session rules of 11.2.
+
+| Page | Content | Data source |
+|---|---|---|
+| **Services** (start page) | Every service and infrastructure component: health (`up`/`degraded`/`down`), activity (`working`/`idle`, active tasks, last activity), version; Memgraph nodes/edges/memory, NATS stream size and consumer lag, gateway health; refreshed every 5 s | `GET /readyz` + `GET /v1/status` of SANDMAN services, Memgraph `SHOW STORAGE INFO`, NATS `/jsz`, Bifrost `/health` |
+| **Knowledge graph** | Per project (or all): start from a label, a search by key/name or a Cypher query; expand neighbors on click; filters by label and relationship type; node/edge properties panel; at most 500 nodes per view; read-only Cypher box; path between two elements; export of the visible subgraph as PNG or JSON | Memgraph read transactions with timeout (10 s) and `QUERY MEMORY LIMIT`; Cytoscape.js |
+| **LLM gateway** | Requests, tokens, cost, errors and latency per virtual key, model and provider over time; budget usage per key | Bifrost `/metrics` (Prometheus) and management API with the gateway admin credentials (V-36) |
+| **Workflows** | Running and recent workflows with steps, durations and errors; dead events with replay; cancel | orchestrator REST API (dashboard service token) |
+| **Events** | Recent events per type and project, payload view; consumer pending/redelivered counts | NATS ephemeral ordered consumer (read-only), `/jsz` |
+| **Projects** | Per project: artifacts and versions, elements by label, active links per approach, inconsistencies by status and type, last ingestion | Memgraph read transactions |
+| **Experiments** | `llm-replay` mode, experiment name, cassette entries, hits, misses, recordings | `llm-replay` `GET /v1/status` |
+| **Resources** (profile `resources`) | Memory and CPU per container against its `mem_limit`; Memgraph memory against `--memory-limit` | cAdvisor API, `SHOW STORAGE INFO` |
+| **History** | Health, activity and LLM usage over time (charts) | own SQLite samples every 30 s, 14 days retention |
+
+- **Working vs. idle:** a service is `working` while `activeTasks > 0`: A2A tasks for agents, ingestions in progress for the extraction-agent, running workflow steps for the orchestrator, in-flight requests for the query-service and `llm-replay`. Both agent libraries implement `GET /v1/status` (`ServiceStatus`, contracts 0.3.0).
+- **Alerts:** a banner and one structured log line (`event=alert`) when a service is down for more than 30 s, a workflow fails or is blocked, dead events exist, a gateway budget reaches 80 % or Memgraph memory reaches 80 % of its limit.
+- **Security:** the dashboard is privileged (Memgraph password, gateway admin password, a token the orchestrator accepts for workflow cancel and dead-event replay; cAdvisor with read-only host mounts). Mitigations: localhost-only port, own admin login, KG access only in read transactions, cAdvisor only in the opt-in `resources` profile on the internal network.
 
 ## 11. Cross-cutting concerns
 
@@ -1145,6 +1191,7 @@ Console pages:
 - **Service → service (A2A, owner REST APIs, query API):** each service holds only its own bearer token (`svc_token_<name>`); receivers verify against sha256 hashes (`svc_tokens_verify`) and map token → caller name for logs/audit. Trusted forwarders: query-service (REST actor headers), orchestrator (A2A `sandman.actor`). Plugins: own token, registered in the hash file as caller `plugin:<id>`; every receiver except the query-service rejects `plugin:` callers, and the query-service allows them only scoped read queries on the projects granted in `config/query/plugins.yaml`; owners call plugins with the plugin's inbound token. *(Ceiling: no mTLS; tokens are static until rotated by regenerating secrets.)*
 - **Services → Memgraph:** one database user with password (Community has users, but roles/read-only users are Enterprise). Plugins get no Bolt credentials; they read through the query-service. Write discipline is enforced by the single-writer rule and code review; the read path is enforced by read transactions (Section 7).
 - **Services → LLM:** per-component virtual keys with provider/model allowlists and budgets; `-local` keys restricted to Ollama enforce `local-only` in the gateway.
+- **Dashboard:** admins log in with the dashboard's own password; it calls services with its own service token (accepted by the orchestrator for workflow cancel and dead-event replay, recorded as `service:dashboard`).
 - **Network:** internal network without egress; `edge` (published ports, only on `127.0.0.1`) without IP masquerading; Ollama only on a network shared with the gateway.
 
 ### 11.3 Observability
@@ -1198,6 +1245,7 @@ ADRs are in [`adr/`](../adr/README.md) (MADR 4 format). Status `proposed` = depe
 | [0013](../adr/0013-users-and-roles.md) | Built-in user store with per-project roles in the query-service | accepted | Q-12 answered |
 | [0014](../adr/0014-graph-database.md) | Memgraph Community as graph database | accepted | Q-11 answered |
 | [0015](../adr/0015-ardoco-integration.md) | ArDoCo integration: links of all approaches, sentence keys, pinned build | proposed | V-16, V-17, V-27, R-025 |
+| [0016](../adr/0016-system-overview-dashboard.md) | System overview dashboard: separate admin-only service | accepted | decided 2026-10-06 |
 
 Review decisions of Stage 4 are recorded as dated `Amendments` in ADR-0002…0007, 0009, 0010, 0012…0014.
 

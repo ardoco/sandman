@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN shared OpenAPI components
-  version: 0.2.0
+  version: 0.3.0
   description: Components referenced by the service OpenAPI documents. Not a service itself.
 paths: {}
 components:
@@ -64,6 +64,21 @@ components:
         errors:
           type: array
           items: { type: string }
+    ServiceStatus:
+      type: object
+      description: Activity of a SANDMAN service for the system overview (ADR-0016). Implemented by both agent libraries and llm-replay.
+      required: [service, version, state, activeTasks]
+      properties:
+        service: { type: string, examples: ["tlr-agent"] }
+        version: { type: string, description: "image tag + git commit" }
+        state:
+          enum: [working, idle]
+          description: working iff activeTasks > 0.
+        activeTasks: { type: integer, minimum: 0, description: "A2A tasks, ingestions or requests in progress." }
+        lastActivityAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        details:
+          type: object
+          description: "Service-specific, e.g. orchestrator {runningWorkflows, pendingSteps}, llm-replay {mode, experiment, hits, misses, recorded, entries}."
     Health:
       type: object
       required: [status]
@@ -104,6 +119,17 @@ components:
         application/problem+json:
           schema: { $ref: "#/components/schemas/Problem" }
   pathItems:
+    Status:
+      get:
+        summary: Activity (working/idle) for the system overview
+        operationId: status
+        responses:
+          "200":
+            description: Status
+            content:
+              application/json:
+                schema: { $ref: "#/components/schemas/ServiceStatus" }
+          "401": { $ref: "#/components/responses/Unauthorized" }
     Healthz:
       get:
         summary: Liveness

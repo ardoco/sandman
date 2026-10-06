@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN extraction-agent REST API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     Artifact intake and project registration. Owner of Project, Artifact, ArtifactVersion and Element nodes.
     Called by the query-service (user requests, actor forwarded) and by services. The A2A interface is
@@ -15,6 +15,8 @@ paths:
     $ref: "shared.yaml#/components/pathItems/Healthz"
   /readyz:
     $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/status:
+    $ref: "shared.yaml#/components/pathItems/Status"
   /v1/projects/{projectId}:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"

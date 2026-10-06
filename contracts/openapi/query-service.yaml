@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN query-service API (user and agent entry point)
-  version: 0.2.0
+  version: 0.3.0
   description: |
     The only user-facing API. Authenticates users (session cookie or personal API token) and services
     (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor/X-Sandman-Roles.
@@ -18,6 +18,8 @@ paths:
     $ref: "shared.yaml#/components/pathItems/Healthz"
   /readyz:
     $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/status:
+    $ref: "shared.yaml#/components/pathItems/Status"
 
   /v1/auth/login:
     post:

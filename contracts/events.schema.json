@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/events.schema.json",
   "title": "SANDMAN domain events",
-  "description": "CloudEvents 1.0 (structured JSON) envelope plus payloads. NATS subject = type. Nats-Msg-Id = id. Events are the only signal the orchestrator chains steps on (ADR-0003): every A2A skill task of the three SANDMAN agents publishes exactly one completion event (plugin skills publish none) (extraction.completed, tracelinks.updated, inconsistencies.updated) with causationid = messageId of the A2A request, after its output was validated and before the task completes. Payload changes are additive only; breaking changes get a new type with suffix .v2. Contract version 0.2.0.",
+  "description": "CloudEvents 1.0 (structured JSON) envelope plus payloads. NATS subject = type. Nats-Msg-Id = id. Events are the only signal the orchestrator chains steps on (ADR-0003): every A2A skill task of the three SANDMAN agents publishes exactly one completion event (plugin skills publish none) (extraction.completed, tracelinks.updated, inconsistencies.updated) with causationid = messageId of the A2A request, after its output was validated and before the task completes. Payload changes are additive only; breaking changes get a new type with suffix .v2. Contract version 0.3.0.",
   "$ref": "#/$defs/Event",
   "$defs": {
     "Event": {

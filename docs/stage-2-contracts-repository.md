@@ -242,7 +242,7 @@ sandman/
 | Framework guard | CI check: no imports of `langchain*`, `langgraph`, `deepagents`, `llama_index`, `crewai`, `autogen` under `libs/` and `services/` | `maven-enforcer` `bannedDependencies` for agent frameworks; `dev.langchain4j:*` allowed only as transitive dependency of the ArDoCo/LiSSA adapter packages (Q-2) |
 | Updates | Renovate (grouped weekly; A2A SDKs pinned, manual) | same |
 
-ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…` at time of writing) into the local Maven repository — in the Docker build stage and via `make ardoco` for local development — until it is released.
+ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…`) together with its unpublished dependency `named-architecture-entity-recognition` (pinned `d631a70…`); the two repositories depend on each other, so they are built in a bootstrap order (spike T0.12, `spikes/T0.12/bootstrap.sh`) — in the Docker build stage and via `make ardoco` for local development — until both are published.
 
 ### 2.3 CI outline (GitHub Actions)
 
@@ -290,9 +290,10 @@ Java services (example: inconsistency-agent):
 
 ```dockerfile
 FROM maven:3.9-eclipse-temurin-21 AS ardoco
-ARG ARDOCO_COMMIT=0d1f22b11caf3a758e5d32e5d3b06020c15d7407
-RUN git clone https://github.com/ArDoCo/ardoco.git /ardoco && cd /ardoco && git checkout $ARDOCO_COMMIT \
- && mvn -B -q install -DskipTests
+COPY spikes/T0.12/bootstrap.sh /bootstrap.sh
+# two-pass build of the mutually dependent snapshots (ArDoCo <-> named-architecture-entity-recognition);
+# pinned commits and the Maven repository location are set in the script (adapted for the image in T0.11)
+RUN sh /bootstrap.sh
 
 FROM maven:3.9-eclipse-temurin-21 AS build
 COPY --from=ardoco /root/.m2 /root/.m2

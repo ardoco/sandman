@@ -37,6 +37,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 | Q-20 links for detection | Detectors use the active links of all approaches (5.4, ADR-0015). |
 | D-8 evaluation protocol (R-038, R-043, R-044) | Pre-registered protocol in `experiments/PROTOCOL.md` (Stage 3 §3.3); 11.6. |
 | D-10 M0 re-baseline (R-003) | M0 planned at 13 weeks (Stage 3 §1.3). |
+| Spike T0.12 (applied 2026-10-06) | ArDoCo sentences mapped by an adapter-controlled one-sentence-per-line rendering instead of text matching; two pinned commits; V-27 workaround; V-29 needs upstream change (5.4, ADR-0015) |
 
 ### 0.3 Changelog revision 5 (system overview, 2026-10-06)
 
@@ -839,7 +840,7 @@ Common to all agents: built on the shared agent library (Section 9); stateless a
 | Inputs | A2A `detect-inconsistencies`; REST `GET /v1/detectors`, `GET /v1/projects/{p}/inconsistencies`, `GET /v1/inconsistencies/{id}`, `POST /v1/inconsistencies/{id}/transitions` (actor from trusted forwarder). |
 | Outputs | `Inconsistency`, `StatusChange`, `Run`; events `inconsistencies.updated`, `inconsistency.status.changed`; log events `notification` (new/reopened). |
 | Pluggability | (1) In-process SPI `InconsistencyDetector { String id(); String version(); Set<String> types(); List<Finding> detect(DetectionScope s, DetectorContext ctx); }`. (2) Detector plugins (Q-6) via plain HTTP `POST /v1/detect` (the A2A variant `sandman.plugin.detect` is in the contract but not implemented in the agent until needed), registered in `config/inconsistency/plugins.yaml`; findings go through the same fingerprint/lifecycle path. Detectors read **active links of all approaches** (Q-20). |
-| Detectors (final) | **ArDoCo inconsistency detection** from branch `feature/make-inconsistency-great-again` (pinned commit), in-process: `InconsistencyDetection` (documentation text + PCM/UML model) → `ModelEntityAbsentFromText` mapped to type `undocumented-model-element` (involves the `ModelElement` matched by model id), `TextEntityAbsentFromModel` mapped to `missing-model-element` (involves the `TextUnit` sentence; ArDoCo sentence number mapped via sentence text, see V-16); `ArtemisInconsistencyDetection` (LLM-based NER strategies, optional code) mapped analogously once its output types are analyzed. Further types from plugged-in detector services. |
+| Detectors (final) | **ArDoCo inconsistency detection** from branch `feature/make-inconsistency-great-again` (pinned commits of ArDoCo and `named-architecture-entity-recognition`, built in a bootstrap order until published), in-process: `InconsistencyDetection` (documentation text + PCM/UML model) → `ModelEntityAbsentFromText` mapped to type `undocumented-model-element` (involves the `ModelElement` matched by model id), `TextEntityAbsentFromModel` mapped to `missing-model-element` (involves the `TextUnit` sentence; the adapter hands ArDoCo its own one-sentence-per-line rendering, so ArDoCo sentence *i* = rendered line *i* = a known `TextUnit`; ADR-0015, spike T0.12); `ArtemisInconsistencyDetection` (LLM-based NER strategies, optional code) mapped analogously once its output types are analyzed. Further types from plugged-in detector services. |
 | State | none (lifecycle state in KG) |
 | Failure modes | Detector or plugin fails → partial run; its inconsistencies are not auto-resolved (only detectors that completed may auto-resolve their own items); concurrent user transition → 409 for the user, system transition skipped for the detector. |
 | LLM usage | Only inside LLM-based detectors (ArDoCo Artemis variant via its LLM client configured to the gateway); lifecycle deterministic. |
@@ -1244,7 +1245,7 @@ ADRs are in [`adr/`](../adr/README.md) (MADR 4 format). Status `proposed` = depe
 | [0012](../adr/0012-pluggable-approaches-and-detectors.md) | In-process SPI + plugin services (A2A or plain HTTP) for extraction and detection | accepted | Q-13 answered |
 | [0013](../adr/0013-users-and-roles.md) | Built-in user store with per-project roles in the query-service | accepted | Q-12 answered |
 | [0014](../adr/0014-graph-database.md) | Memgraph Community as graph database | accepted | Q-11 answered |
-| [0015](../adr/0015-ardoco-integration.md) | ArDoCo integration: links of all approaches, sentence keys, pinned build | proposed | V-16, V-17, V-27, R-025 |
+| [0015](../adr/0015-ardoco-integration.md) | ArDoCo integration: links of all approaches, adapter-controlled sentence rendering, two pinned commits | proposed | upstream changes (spike T0.12) |
 | [0016](../adr/0016-system-overview-dashboard.md) | System overview dashboard: separate admin-only service | accepted | decided 2026-10-06 |
 
 Review decisions of Stage 4 are recorded as dated `Amendments` in ADR-0002…0007, 0009, 0010, 0012…0014.

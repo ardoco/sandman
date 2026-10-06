@@ -19,27 +19,29 @@ ArDoCo provides TLR (SAD↔SAM, SAD↔code via TransArC) and, on branch `feature
 ## Considered Options
 
 * Link source for detection: (L1) only links produced by the `ardoco` approach; (L2) active links of all approaches from the KG, configurable per detector.
-* Sentence mapping: (S1) by ArDoCo sentence number; (S2) by normalized sentence text using the content-based TextUnit keys (ADR-0005 amendment).
-* Build: (B1) pinned commit of the branch built in the Docker image and via `make ardoco`; (B2) wait for the release.
+* Sentence mapping: (S1) by ArDoCo's own sentence number; (S2) by normalized sentence text using the content-based TextUnit keys (ADR-0005 amendment); (S3) the adapter hands ArDoCo its own one-sentence-per-line rendering and maps sentence *i* to line *i*.
+* Build: (B1) pinned commits built in the Docker image and via `make ardoco`; (B2) wait for the release.
 
 ## Decision Outcome
 
-Proposed: **L2 + S2 + B1**.
+Proposed: **L2 + S3 + B1** (S3 replaces S2 after spike T0.12, `docs/notes/spike-T0.12.md`).
 
-* **L2 (Q-20, answered 2026-10-06):** the ArDoCo detector adapter feeds the active trace links of all approaches from the KG into ArDoCo's inconsistency detection. A detector parameter `linkApproaches` (default: all) restricts the source; the equivalence test (T3.3) uses `[ardoco]`.
-* **S2:** ArDoCo sentences are mapped to `TextUnit` sentence elements of the same document version by the hash of the normalized sentence text (the hash part of the sentence key, vectors `sentenceKey`); identical sentences are disambiguated by document order (`sentenceIndex`). ArDoCo's text alone does not determine the section part of the key, so the adapter never recomputes full keys. Model elements map by XMI/PCM id (`ModelElement.localKey`).
-* **B1:** pinned commit until the release; then switch to Maven Central coordinates (T3.5).
+* **L2 (Q-20, answered 2026-10-06):** the ArDoCo detector adapter feeds the active trace links of all approaches from the KG into ArDoCo's inconsistency detection. A detector parameter `linkApproaches` (default: all) restricts the source; the equivalence test (T3.3) uses `[ardoco]`. ArDoCo has no input for external links (V-27): the adapter replaces ArDoCo's links with a custom pipeline step after `ConnectionGenerator` and maps sentence-level links to ArDoCo's text candidates heuristically (reproduces ArDoCo's 42 findings on MediaStore when fed its own links). Exact semantics need an upstream extension: an optional input with sentence-level links read by both detectors.
+* **S3:** CoreNLP in ArDoCo does not split at line breaks (Markdown headings merge with the next sentence) and its settings are hard-coded. The adapter therefore renders the document's `TextUnit` sentences one per line, annotates them with the same CoreNLP properties plus `ssplit.eolonly` and hands them in as `PreprocessingData`; ArDoCo then skips its own NLP. ArDoCo sentence *i* (1-based in findings) = rendered line *i* = a known `TextUnit`; the sentence-text hash is only an assertion. Verified byte-identical output to the standard runner on MediaStore. This rendering is the canonical text ArDoCo sees (R-025). Model elements map by XMI/PCM id (`ModelElement.localKey`); the model extractor must also produce interfaces. Text findings are deduplicated by (sentence, word).
+* **B1:** two pinned commits — ArDoCo `0d1f22b…` and `named-architecture-entity-recognition` `d631a70…` (its 2.1.0-SNAPSHOT is published nowhere and depends on ArDoCo, a cycle) — built in a bootstrap order (`spikes/T0.12/bootstrap.sh`) until both are published; then Maven Central coordinates (T3.5). Adds about 570 MB to the image (CoreNLP models, onnxruntime).
+* **LLM variant (V-29):** `ArtemisInconsistencyDetection` uses a non-streaming LangChain4j `ChatModel` configured only by process-wide environment variables or a `.env` file; per-project keys (`local-only` policy) need an upstream change that accepts a `ChatModel`. Until then the Artemis variant runs only for `cloud-allowed` projects with one deployment-wide configuration, and no `.env` may exist in the agent's working directory.
 
 Open points (reason for `proposed`):
-* Whether ArDoCo's inconsistency pipeline accepts externally provided links (V-27). If not, the adapter needs an extension of the branch (contribution upstream); until then only the `ardoco` approach's links can be used, computed internally.
-* Which doc/model pairs run and which canonical text rendering ArDoCo sees (R-025, open in the review).
+* Upstream changes in ArDoCo: publish the snapshot or break the cycle; input for sentence-level links; `ChatModel` injection for the Artemis variant.
+* ArDoCo on the Quarkus classpath (protobuf 3→4, JNA downgrade) is not verified (T3.3).
+* Which doc/model pairs run (R-025, rest open in the review).
 
 ### Consequences
 
 * Good, because detection results improve with any better TLR approach without adapter changes.
-* Good, because sentence mapping does not depend on matching CoreNLP's sentence numbering.
+* Good, because sentence mapping is exact by construction and does not depend on CoreNLP's splitting.
 * Bad, because results with non-ArDoCo links are not comparable to published ArDoCo numbers (equivalence only with `linkApproaches: [ardoco]`).
-* Bad, because differences in sentence splitting between the extraction agent and ArDoCo leave unmapped sentences (measured as alignment rate in T1.1/T0.12).
+* Bad, because the adapter must build ArDoCo's pipeline itself (public factories; `definePipeline` is private) and keep CoreNLP annotation settings in sync with ArDoCo's.
 
 ### Confirmation
 
@@ -65,7 +67,12 @@ T0.12 spike answers V-16, V-17 and V-27; T3.3 equivalence test with `linkApproac
 ### S2 sentence keys
 
 * Good, because stable and identical to the KG keys.
-* Bad, because identical sentences in one section rely on the occurrence counter.
+* Bad, because ArDoCo's sentences differ from ours (no split at line breaks), and identical sentences occur in 5 of 10 benchmark texts.
+
+### S3 adapter-controlled rendering
+
+* Good, because exact by construction (verified on MediaStore) and independent of CoreNLP's splitting.
+* Bad, because relies on ArDoCo's `PreprocessingData` input staying available.
 
 ### B1 pinned commit / B2 wait
 

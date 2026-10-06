@@ -96,7 +96,9 @@ services:
       SANDMAN_LLM_UPSTREAM: http://llm-gateway:8080/openai
       SANDMAN_LLM_MODE: ${SANDMAN_LLM_MODE:-live}           # live | record | replay
       SANDMAN_LLM_RECORDS_DIR: /llm-records/${SANDMAN_EXPERIMENT:-default}
+      SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify    # GET /v1/status
       SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
+    secrets: [svc_tokens_verify]
     volumes:
       - ../data/llm-records:/llm-records
       - ../data/logs:/logs

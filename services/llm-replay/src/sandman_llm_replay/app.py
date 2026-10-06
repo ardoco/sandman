@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import hmac
 import json
 import os
 import sys
@@ -35,6 +36,7 @@ class Settings:
     upstream: str = ""
     mode: str = "live"
     records_dir: Path = Path("/llm-records")
+    status_tokens: tuple[str, ...] = ()  # sha256 hex of service tokens allowed to read /v1/status
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -44,7 +46,9 @@ class Settings:
         upstream = os.environ.get("SANDMAN_LLM_UPSTREAM", "").rstrip("/")
         if mode != "replay" and not upstream:
             raise ValueError(f"SANDMAN_LLM_UPSTREAM is required in mode {mode}")
-        return cls(upstream, mode, Path(os.environ.get("SANDMAN_LLM_RECORDS_DIR", "/llm-records")))
+        verify_file = os.environ.get("SANDMAN_SERVICE_VERIFY_FILE")
+        hashes = tuple(json.loads(Path(verify_file).read_text(encoding="utf-8")).values()) if verify_file else ()
+        return cls(upstream, mode, Path(os.environ.get("SANDMAN_LLM_RECORDS_DIR", "/llm-records")), hashes)
 
 
 def canonical(body: dict[str, Any]) -> bytes:
@@ -188,8 +192,17 @@ def create_app(settings: Settings, transport: httpx.AsyncBaseTransport | None = 
         log(path, response.status_code, outcome, key)
         return response
 
+    def authorized(request: Request) -> bool:
+        auth = request.headers.get("authorization", "")
+        if not auth.lower().startswith("bearer "):
+            return False
+        digest = hashlib.sha256(auth[7:].strip().encode()).hexdigest()
+        return any(hmac.compare_digest(digest, h) for h in settings.status_tokens)
+
     async def status(request: Request) -> Response:
-        # ServiceStatus (contracts/openapi/shared.yaml); internal network only, no prompt data
+        # ServiceStatus (contracts/openapi/shared.yaml); service token required as for all SANDMAN services
+        if not authorized(request):
+            return error(401, "authentication_error", "unauthorized", "missing or invalid service token")
         body: dict[str, Any] = {
             "service": "llm-replay",
             "version": os.environ.get("SANDMAN_VERSION", "dev"),

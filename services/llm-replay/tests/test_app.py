@@ -1,3 +1,4 @@
+import hashlib
 import json
 from collections.abc import Callable
 from pathlib import Path
@@ -135,12 +136,16 @@ def test_status_counts_hits_and_misses(tmp_path: Path) -> None:
     entry = {"key": cassette_key(body), "endpoint": "chat/completions", "request": body,
              "response": {"id": "x"}, "recordedAt": "2026-10-06T00:00:00Z"}  # fmt: skip
     (tmp_path / "cassette.jsonl").write_text(json.dumps(entry) + "\n")
-    app = create_app(Settings("", "replay", tmp_path))
+    token_hash = hashlib.sha256(b"dash-token").hexdigest()
+    app = create_app(Settings("", "replay", tmp_path, (token_hash,)))
+    auth = {"Authorization": "Bearer dash-token"}
     with TestClient(app) as c:
-        assert c.get("/v1/status").json()["state"] == "idle"
+        assert c.get("/v1/status").status_code == 401
+        assert c.get("/v1/status", headers={"Authorization": "Bearer wrong"}).status_code == 401
+        assert c.get("/v1/status", headers=auth).json()["state"] == "idle"
         c.post("/openai/chat/completions", json=body)
         c.post("/openai/chat/completions", json={**body, "seed": 1})
-        status = c.get("/v1/status").json()
+        status = c.get("/v1/status", headers=auth).json()
     assert status["details"] == {"mode": "replay", "experiment": tmp_path.name, "entries": 1,
                                  "hits": 1, "misses": 1, "recorded": 0, "forwarded": 0}  # fmt: skip
     assert status["activeTasks"] == 0 and "lastActivityAt" in status

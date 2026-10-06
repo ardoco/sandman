@@ -1,6 +1,7 @@
 # SANDMAN reference deployment (single server).
 #   cd deploy && ./gen-secrets.sh && docker compose up -d --build
 # Profiles: (default) core system · obs: OpenTelemetry backend · local-llm: Ollama · stubs: plugin stubs for the walking skeleton
+#           resources: cAdvisor container metrics for the dashboard (privileged read-only host mounts, opt-in)
 # Dev ports (Bolt, NATS monitoring): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 # Memory limits assume a 32 GB host (A-7); initial values, tuned in T5.4.
 name: sandman
@@ -234,7 +235,52 @@ services:
     healthcheck: *py-health
     restart: unless-stopped
 
+  dashboard:                                   # system overview for admins (ADR-0016)
+    build: { context: .., dockerfile: services/dashboard/Dockerfile }
+    environment:
+      SANDMAN_SERVICE_NAME: dashboard
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_dashboard
+      SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE: /run/secrets/dashboard_admin_password
+      SANDMAN_SESSION_SECRET_FILE: /run/secrets/dashboard_session_secret
+      SANDMAN_STATE_DB: /data/dashboard.db
+      SANDMAN_KG_URI: bolt://memgraph:7687
+      SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
+      SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
+      SANDMAN_NATS_URL: nats://nats:4222
+      SANDMAN_NATS_MONITOR_URL: http://nats:8222
+      SANDMAN_GATEWAY_URL: http://llm-gateway:8080
+      SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE: /run/secrets/gateway_admin_password
+      SANDMAN_CADVISOR_URL: http://cadvisor:8080           # optional (profile resources)
+      SANDMAN_TARGETS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080,orchestrator=http://orchestrator:8000,query-service=http://query-service:8000,llm-replay=http://llm-replay:8000
+      SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
+    volumes:
+      - dashboard-data:/data
+      - ../data/logs:/logs
+    secrets: [svc_token_dashboard, dashboard_admin_password, dashboard_session_secret, memgraph_password,
+              gateway_admin_password]
+    networks: [internal, edge]
+    ports:
+      - "127.0.0.1:8090:8000"                    # system overview (admins)
+    mem_limit: 512m
+    depends_on:                                  # deliberately not on agents: it must show them when they are down
+      memgraph: { condition: service_healthy }
+      nats: { condition: service_healthy }
+    healthcheck: *py-health
+    restart: unless-stopped
+
   # ---------------------------------------------------------------- optional profiles
+  cadvisor:
+    profiles: [resources]
+    image: gcr.io/cadvisor/cadvisor:v0.60.6      # registry and mounts to verify (V-37)
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks: [internal]
+    mem_limit: 256m
+    restart: unless-stopped
+
   plugin-stubs:
     profiles: [stubs]
     build: { context: .., dockerfile: tests/plugin-stubs/Dockerfile }
@@ -307,6 +353,7 @@ volumes:
   artifact-store: {}
   otel-data: {}
   ollama-models: {}
+  dashboard-data: {}
 
 secrets:
   memgraph_password: { file: ./secrets/memgraph_password }
@@ -317,6 +364,7 @@ secrets:
   svc_token_inconsistency-agent: { file: ./secrets/svc_token_inconsistency-agent }
   svc_token_query-service: { file: ./secrets/svc_token_query-service }
   svc_token_plugin-stubs: { file: ./secrets/svc_token_plugin-stubs }
+  svc_token_dashboard: { file: ./secrets/svc_token_dashboard }
   plugin_in_plugin-stubs: { file: ./secrets/plugin_in_plugin-stubs }
   llm_key_orchestrator: { file: ./secrets/llm_key_orchestrator }
   llm_key_extraction: { file: ./secrets/llm_key_extraction }
@@ -329,3 +377,6 @@ secrets:
   llm_key_query_local: { file: ./secrets/llm_key_query_local }
   admin_bootstrap_password: { file: ./secrets/admin_bootstrap_password }
   session_secret: { file: ./secrets/session_secret }
+  dashboard_admin_password: { file: ./secrets/dashboard_admin_password }
+  dashboard_session_secret: { file: ./secrets/dashboard_session_secret }
+  gateway_admin_password: { file: ./secrets/gateway_admin_password }

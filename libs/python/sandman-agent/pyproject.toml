@@ -1,0 +1,13 @@
+[project]
+name = "sandman-agent"
+version = "0.1.0"
+description = "Shared minimal agent library (ADR-0010)."
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "sandman_agent"

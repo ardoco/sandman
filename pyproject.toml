@@ -1,0 +1,64 @@
+[project]
+name = "sandman"
+version = "0.1.0"
+description = "SANDMAN workspace root (not a package)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "sandman-agent",
+  "sandman-orchestrator",
+  "sandman-extraction-agent",
+  "sandman-query-service",
+  "sandman-llm-replay",
+  "sandman-cli",
+  "sandman-plugin-stubs",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+sandman-agent = { workspace = true }
+sandman-orchestrator = { workspace = true }
+sandman-extraction-agent = { workspace = true }
+sandman-query-service = { workspace = true }
+sandman-llm-replay = { workspace = true }
+sandman-cli = { workspace = true }
+sandman-plugin-stubs = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+  "libs/python/*",
+  "services/orchestrator",
+  "services/extraction-agent",
+  "services/query-service",
+  "services/llm-replay",
+  "tools/cli",
+  "tests/plugin-stubs",
+]
+
+[dependency-groups]
+dev = ["ruff==0.16.10", "mypy==2.4.0", "pytest==9.1.1", { include-group = "contracts" }]
+contracts = [
+  "jsonschema==4.26.0",
+  "referencing==0.37.0",
+  "rfc8785==0.1.4",
+  "openapi-spec-validator==0.9.0",
+  "pyyaml==6.0.3",
+]
+
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+pythonpath = ["scripts"]
+testpaths = ["libs/python", "services", "tools", "tests/plugin-stubs", "scripts"]

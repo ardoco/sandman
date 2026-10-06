@@ -22,7 +22,7 @@ Status: revision 4 (review decisions D-1…D-10 and Q-20 incorporated, see 0.2) 
 | Q-14 GitHub Actions | CI outline (Stage 2) confirmed. |
 | Q-15 ArDoCo branch released soon | Pinned-commit build is temporary; switch to Maven Central coordinates when released. |
 
-### 0.2 Changelog revision 4 (Stage 4 review decisions, see [REVIEW.md](../REVIEW.md))
+### 0.2 Changelog revision 4 (Stage 4 review decisions, see [stage-4-review.md](stage-4-review.md))
 
 | Decision | Change |
 |---|---|

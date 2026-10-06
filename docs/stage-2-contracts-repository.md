@@ -201,7 +201,7 @@ Validated on 2026-10-06 (commands become the CI `contracts` job):
 ```text
 sandman/
 ├── adr/                                ADRs (MADR 4)
-├── docs/                               stage documents, REVIEW.md later
+├── docs/                               stage documents 1–4 (stage-4-review.md), task specs, notes
 ├── contracts/                          (Section 1) + config/ schemas from M0
 ├── libs/
 │   ├── python/sandman-agent/           package sandman_agent (+ tests/)

@@ -230,4 +230,4 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 
 Answered 2026-10-06: Q-16 default (80 % execution accuracy) · Q-17 default (TEAMMATES or JabRef) · Q-18 TLR (M2) before inconsistency detection (M3), because detection uses TLR information · Q-19 code-extraction plugin by a separate team; A2A is demoed first (plugin stub + plugin-author kit in T0.10) · Q-20 links from all approaches: ArDoCo and other approaches write their links to the KG, and inconsistency detection uses them (T3.1, ADR-0015).
 
-Review decisions D-8 (evaluation protocol, §3.3) and D-10 (M0 = 13 weeks, §1.3) were taken on 2026-10-06; no review decision is open ([REVIEW.md](../REVIEW.md) §4).
+Review decisions D-8 (evaluation protocol, §3.3) and D-10 (M0 = 13 weeks, §1.3) were taken on 2026-10-06; no review decision is open ([stage-4-review.md](stage-4-review.md) §4).

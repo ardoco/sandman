@@ -46,7 +46,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T0.13 | `llm-replay` proxy (standalone Python, no `sandman_agent`): OpenAI-compatible pass-through/record/replay for chat and embeddings, cassette format and key per contracts (D-3) | S | T0.1 | – |
 | T0.14 | `GET /v1/status` (`ServiceStatus`, working/idle) in both agent libraries and `llm-replay` (mode, experiment, hits/misses/recordings) | S | T0.2, T0.3, T0.13 | – |
 | **M1** | | | | |
-| T1.1 | Markdown/text extractor (sections, sentences with `sentenceIndex` compatible with ArDoCo's splitting, V-16) | M | T0.5, T0.12 | |
+| T1.1 | Markdown/text extractor (sections, sentences with content-based keys and `sentenceIndex`; also one-sentence-per-line rendering stored per version for ArDoCo, ADR-0015) | M | T0.5, T0.12 | |
 | T1.2 | PCM and UML model extractors (ids preserved, `PROVIDES`/`REQUIRES`) | M | T0.5 | |
 | T1.3 | Requirements extractor (Markdown/CSV) + explicit references | S | T0.5 | |
 | T1.4 | PDF/DOCX via Docling, offline prefetch | M | T0.5 | |
@@ -62,7 +62,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T2.3 | Evaluation harness: exports in benchmark formats, metric computation (paired bootstrap CIs, McNemar, effect sizes, Holm correction), experiment manifests; pre-registered protocol `experiments/PROTOCOL.md` (§3.3) | M | T2.1 | |
 | T2.4 | Reproduction study per §3.3 (ArDoCo exact equality; LiSSA live re-run with Δ and CI), variance pilot deciding the number of runs, perturbed-benchmark contamination probe | M | T2.3 | |
 | **M3** | | | | |
-| T3.1 | ArDoCo `InconsistencyDetection` adapter: inputs from artifact store, **active trace links of all approaches from the KG** (Q-20; parameter `linkApproaches`, default all; needs V-27, else an upstream extension), mapping to `TextUnit` (sentence keys) / `ModelElement`, finding types (ADR-0015) | L | T2.1, T0.7 | |
+| T3.1 | ArDoCo `InconsistencyDetection` adapter: own pipeline from public factories, `runWithoutSaving()`; hands in the one-sentence-per-line rendering as pre-annotated `PreprocessingData` (`ssplit.eolonly`), maps sentence *i* to line *i* (hash as assertion), model elements by XMI id incl. interfaces; **active trace links of all approaches** via a custom step after `ConnectionGenerator` (Q-20 workaround; exact semantics need the upstream extension); deduplicates text findings by (sentence, word) (ADR-0015, spike T0.12) | L | T2.1, T0.7 | |
 | T3.2 | ArDoCo `ArtemisInconsistencyDetection` adapter (LLM via gateway through ArDoCo's client) | M | T3.1 | |
 | T3.3 | Equivalence test vs. standalone ArDoCo runner on benchmark inputs (`linkApproaches: [ardoco]`) | M | T3.1 | |
 | T3.4 | Console evidence view (sentence text, model element, involved links, history) | S | T3.1, T0.9 | |
@@ -174,7 +174,7 @@ Threats to validity to track: benchmark contamination of LLMs (benchmark project
 |---|---|---|---|---|---|
 | RK-1 | A2A SDK churn (weekly Python releases; 1.0 broke 0.3) breaks interop | H | M | Pin SDK versions; cross-language interop test in CI; protocol glue isolated in the libraries | M0 onward |
 | RK-2 | `a2a-java` server tied to Quarkus/CDI; integration friction with ArDoCo dependencies | M | M | Decided in T0.4 by two criteria (custom executor in plain Quarkus; tlr-agent skeleton with ArDoCo/LiSSA builds and starts, D-6); fallback: hand-written JSON-RPC endpoint, covered by conformance tests | M0 |
-| RK-3 | ArDoCo results cannot be mapped reliably to KG elements (sentence splitting, model ids) | M | H | T0.12 spike; extraction aligns sentence splitting to ArDoCo's (T1.1); map by sentence text as fallback; equivalence tests (T2.4, T3.3) | M0–M3 |
+| RK-3 | ArDoCo results cannot be mapped reliably to KG elements (sentence splitting, model ids) | L | H | Spike T0.12: adapter-controlled one-sentence-per-line rendering makes the mapping exact by construction (verified byte-identical on MediaStore); model ids are XMI/PCM ids; equivalence tests (T2.4, T3.3) | M1–M3 |
 | RK-4 | LiSSA/LangChain4j bypasses gateway settings or conflicts with dependency versions | M | M | Internal network blocks egress (fails loudly); policy enforced by gateway keys; calls recorded by `llm-replay`; dependency convergence enforced; shaded or isolated module if needed | M2 |
 | RK-5 | Bifrost behavior differs from docs (governance, nested model names, read-only config) | M | M | T0.4 smoke test; LiteLLM fallback (library is gateway-agnostic) | M0 |
 | RK-6 | Memgraph Community license or feature scope changes; driver 6.x incompatibility | L | H | Portable Cypher (contract tests), drivers pinned, fallback order ArcadeDB → Neo4j (ADR-0014, revisited only on failure) | ongoing |
@@ -189,10 +189,11 @@ Threats to validity to track: benchmark contamination of LLMs (benchmark project
 | RK-15 | Benchmark contamination and evaluation bias weaken research claims | M | H | Perturbed-benchmark probe; ≥ 1 non-public or post-cutoff project; splits by template and project; independent question authors; labeling study with two blinded raters (§3.3) | M2–M4 |
 | RK-16 | Single server is a single point of failure for continuous use | M | M | Backups + restore drill; health-gated restarts; acceptable for a prototype | M5 |
 | RK-17 | Speed advantage of Memgraph not confirmed for our workload (one 2026 third-party test shows Neo4j and FalkorDB ahead on mixed load) | M | M | Check against the T5.4 performance budget (benchmark T1.8 dropped, D-7); switch path via portable Cypher | M5 |
-| RK-18 | ArDoCo's inconsistency detection cannot consume externally provided trace links (Q-20 needs it) | M | M | T0.12 answers V-27 early; upstream extension of the branch; meanwhile `linkApproaches: [ardoco]` | M0–M3 |
+| RK-18 | ArDoCo's inconsistency detection cannot consume externally provided trace links (Q-20 needs it) | M | M | Workaround now (custom pipeline step replacing ArDoCo's links, heuristic mapping to text candidates; reproduces ArDoCo on MediaStore); upstream extension with sentence-level links for exact semantics (TODO for the ArDoCo team) | M1–M3 |
 | RK-19 | No maintained openCypher parser for Python covers Memgraph's dialect (scope guard, D-2) | M | M | V-28 in T0.9; fallback: a small own parser for the allowlisted subset (queries outside it are rejected) | M0 |
 | RK-20 | The dashboard is a privileged component (Memgraph and gateway admin credentials, orchestrator token, cAdvisor host mounts) | M | H | Admins only, own login, localhost-only port, KG access in read transactions only, cAdvisor opt-in on the internal network, secrets mounted only there (ADR-0016) | M1 |
 | RK-21 | Large graphs overwhelm the browser graph view | M | L | At most 500 nodes per view, expand on demand, server-side filters | M1 |
+| RK-22 | `named-architecture-entity-recognition` 2.1.0-SNAPSHOT is unpublished and depends on ArDoCo itself (cycle); LangChain4j and old CoreNLP dependencies conflict with the Quarkus BOM (protobuf 3→4, JNA) | M | M | Bootstrap build with two pinned commits; publish the snapshot / break the cycle upstream; T3.3 equivalence test on the Quarkus classpath | M0–M3 |
 
 L = likelihood, I = impact (H/M/L).
 
@@ -223,9 +224,9 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-24 | Exact dataset list and gold-standard formats of the ArDoCo and LiSSA benchmarks (for T2.3 export formats). |
 | V-25 | Schemathesis support for OpenAPI 3.1 with external `$ref`s to JSON Schema files. |
 | V-26 | Whether GitHub-hosted runners can build the Java images with the ArDoCo stage in acceptable time (cache `~/.m2`). |
-| V-27 | Whether ArDoCo's inconsistency pipeline can take externally provided trace links instead of computing them internally (required by Q-20; T0.12). |
+| V-27 | **Answered (T0.12):** no built-in input; workaround via a custom pipeline step after `ConnectionGenerator`; exact semantics need an upstream extension (sentence-level links read by both detectors). |
 | V-28 | A maintained openCypher parser usable from Python (e.g. the openCypher ANTLR grammar with `antlr4-python3-runtime`) that parses the allowlisted subset incl. pattern comprehensions and existential subqueries (T0.9). |
-| V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming (else `llm-replay` needs SSE re-encoding) (T0.12/T2.2). |
+| V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming. **ArDoCo answered (T0.12):** non-streaming `ChatModel`, but configured only by process-wide env/`.env` (`OLLAMA_GENERIC`, `OLLAMA_TOKEN`, `OLLAMA_HOST`); per-project keys need an upstream change accepting a `ChatModel`. LiSSA still open (T2.2). |
 | V-30 | Memgraph `--memory-limit` unit (MiB) and behavior when reached (query abort vs. process kill) (T0.4). |
 | V-31 | A bridge network with `com.docker.network.bridge.enable_ip_masquerade=false` still serves ports published to `127.0.0.1` and blocks outbound traffic of its containers (T0.4). |
 | V-32 | OpenRouter account-level privacy setting excluding providers that train on prompts; whether Bifrost can pass provider preferences (`data_collection: deny`) (T0.4). |

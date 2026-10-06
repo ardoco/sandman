@@ -1,0 +1,435 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "client": {
+    "enforce_auth_on_inference": true,
+    "enable_logging": true
+  },
+  "config_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "./config.db"
+    }
+  },
+  "logs_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "./logs.db"
+    }
+  },
+  "providers": {
+    "openai": {
+      "keys": [
+        {
+          "name": "openai-1",
+          "value": "env.OPENAI_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    },
+    "openrouter": {
+      "keys": [
+        {
+          "name": "openrouter-1",
+          "value": "env.OPENROUTER_API_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    },
+    "ollama": {
+      "keys": [
+        {
+          "name": "ollama-local",
+          "value": "",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0,
+          "ollama_key_config": {
+            "url": "http://ollama:11434"
+          }
+        }
+      ]
+    }
+  },
+  "governance": {
+    "auth_config": {
+      "is_enabled": true,
+      "admin_username": "admin",
+      "admin_password": "env.BIFROST_ADMIN_PASSWORD"
+    },
+    "virtual_keys": [
+      {
+        "id": "vk-orchestrator",
+        "name": "orchestrator",
+        "value": "env.VK_ORCHESTRATOR",
+        "is_active": true,
+        "rate_limit_id": "rl-default",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-extraction",
+        "name": "extraction",
+        "value": "env.VK_EXTRACTION",
+        "is_active": true,
+        "rate_limit_id": "rl-default",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-tlr",
+        "name": "tlr",
+        "value": "env.VK_TLR",
+        "is_active": true,
+        "rate_limit_id": "rl-heavy",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-inconsistency",
+        "name": "inconsistency",
+        "value": "env.VK_INCONSISTENCY",
+        "is_active": true,
+        "rate_limit_id": "rl-heavy",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-query",
+        "name": "query",
+        "value": "env.VK_QUERY",
+        "is_active": true,
+        "rate_limit_id": "rl-default",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-experiments",
+        "name": "experiments",
+        "value": "env.VK_EXPERIMENTS",
+        "is_active": true,
+        "rate_limit_id": "rl-heavy",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "openrouter",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-extraction-local",
+        "name": "extraction-local",
+        "value": "env.VK_EXTRACTION_LOCAL",
+        "is_active": true,
+        "rate_limit_id": "rl-default",
+        "provider_configs": [
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-tlr-local",
+        "name": "tlr-local",
+        "value": "env.VK_TLR_LOCAL",
+        "is_active": true,
+        "rate_limit_id": "rl-heavy",
+        "provider_configs": [
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-inconsistency-local",
+        "name": "inconsistency-local",
+        "value": "env.VK_INCONSISTENCY_LOCAL",
+        "is_active": true,
+        "rate_limit_id": "rl-heavy",
+        "provider_configs": [
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      },
+      {
+        "id": "vk-query-local",
+        "name": "query-local",
+        "value": "env.VK_QUERY_LOCAL",
+        "is_active": true,
+        "rate_limit_id": "rl-default",
+        "provider_configs": [
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1
+          }
+        ]
+      }
+    ],
+    "budgets": [
+      {
+        "id": "b-orchestrator",
+        "virtual_key_id": "vk-orchestrator",
+        "max_limit": 10.0,
+        "reset_duration": "1M"
+      },
+      {
+        "id": "b-extraction",
+        "virtual_key_id": "vk-extraction",
+        "max_limit": 20.0,
+        "reset_duration": "1M"
+      },
+      {
+        "id": "b-tlr",
+        "virtual_key_id": "vk-tlr",
+        "max_limit": 50.0,
+        "reset_duration": "1M"
+      },
+      {
+        "id": "b-inconsistency",
+        "virtual_key_id": "vk-inconsistency",
+        "max_limit": 30.0,
+        "reset_duration": "1M"
+      },
+      {
+        "id": "b-query",
+        "virtual_key_id": "vk-query",
+        "max_limit": 10.0,
+        "reset_duration": "1M"
+      },
+      {
+        "id": "b-experiments",
+        "virtual_key_id": "vk-experiments",
+        "max_limit": 50.0,
+        "reset_duration": "1M"
+      }
+    ],
+    "rate_limits": [
+      {
+        "id": "rl-default",
+        "request_max_limit": 60,
+        "request_reset_duration": "1m",
+        "token_max_limit": 200000,
+        "token_reset_duration": "1h"
+      },
+      {
+        "id": "rl-heavy",
+        "request_max_limit": 300,
+        "request_reset_duration": "1m",
+        "token_max_limit": 2000000,
+        "token_reset_duration": "1h"
+      }
+    ]
+  }
+}

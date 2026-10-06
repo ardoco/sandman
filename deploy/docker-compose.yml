@@ -1,0 +1,331 @@
+# SANDMAN reference deployment (single server).
+#   cd deploy && ./gen-secrets.sh && docker compose up -d --build
+# Profiles: (default) core system · obs: OpenTelemetry backend · local-llm: Ollama · stubs: plugin stubs for the walking skeleton
+# Dev ports (Bolt, NATS monitoring): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# Memory limits assume a 32 GB host (A-7); initial values, tuned in T5.4.
+name: sandman
+
+x-agent-env: &agent-env
+  SANDMAN_LLM_BASE_URL: http://llm-replay:8000/openai    # record/replay proxy in front of the gateway (ADR-0010)
+  SANDMAN_LLM_MODELS_FILE: /config/llm/models.yaml
+  SANDMAN_KG_URI: bolt://memgraph:7687
+  SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
+  SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
+  SANDMAN_NATS_URL: nats://nats:4222
+  SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify
+  SANDMAN_ARTIFACT_STORE: /artifacts
+  SANDMAN_CONFIG_DIR: /config
+  SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}                 # e.g. /logs/sandman.jsonl
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}   # http://otel-lgtm:4318 with profile obs
+  OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
+
+x-depends-core: &depends-core
+  memgraph: { condition: service_healthy }
+  nats: { condition: service_healthy }
+  llm-replay: { condition: service_healthy }
+
+services:
+  # ---------------------------------------------------------------- infrastructure
+  memgraph:
+    image: memgraph/memgraph:3.13.1
+    command:
+      - --telemetry-enabled=false
+      - --allow-load-csv=false
+      - --schema-info-enabled=true
+      - --query-execution-timeout-sec=300
+      - --storage-snapshot-interval-sec=300
+      - --memory-limit=8192                      # MiB, below mem_limit (V-30)
+      - --also-log-to-stderr=true
+      - --log-level=INFO
+    env_file: ./secrets/memgraph.env            # MEMGRAPH_USER, MEMGRAPH_PASSWORD
+    volumes:
+      - memgraph-data:/var/lib/memgraph
+      - memgraph-log:/var/log/memgraph
+    networks: [internal]
+    mem_limit: 10g
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'RETURN 1;' | mgconsole --username=$$MEMGRAPH_USER --password=$$MEMGRAPH_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    restart: unless-stopped
+
+  nats:
+    image: nats:2.15.0-alpine
+    command: ["-js", "-sd", "/data", "-m", "8222"]
+    volumes:
+      - nats-data:/data
+    networks: [internal]
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz?js-enabled-only=true"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  llm-gateway:
+    image: maximhq/bifrost:v2.2.6
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: "8080"
+      LOG_LEVEL: info
+      LOG_STYLE: json
+    env_file: ./secrets/gateway.env              # provider keys, BIFROST_ENCRYPTION_KEY, BIFROST_ADMIN_PASSWORD, VK_* values
+    volumes:
+      - gateway-data:/app/data
+      - ./gateway/config.json:/app/data/config.json:ro
+    networks: [internal, egress, llm-local]
+    ports:
+      - "127.0.0.1:8081:8080"                    # admin UI / request logs (governance.auth_config)
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  llm-replay:
+    build: { context: .., dockerfile: services/llm-replay/Dockerfile }
+    environment:
+      SANDMAN_SERVICE_NAME: llm-replay
+      SANDMAN_LLM_UPSTREAM: http://llm-gateway:8080/openai
+      SANDMAN_LLM_MODE: ${SANDMAN_LLM_MODE:-live}           # live | record | replay
+      SANDMAN_LLM_RECORDS_DIR: /llm-records/${SANDMAN_EXPERIMENT:-default}
+      SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
+    volumes:
+      - ../data/llm-records:/llm-records
+      - ../data/logs:/logs
+    networks: [internal]
+    mem_limit: 512m
+    depends_on:
+      llm-gateway: { condition: service_healthy }
+    healthcheck: &py-health
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/readyz').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- agents and services
+  extraction-agent:
+    build: { context: .., dockerfile: services/extraction-agent/Dockerfile }
+    environment:
+      <<: *agent-env
+      SANDMAN_SERVICE_NAME: extraction-agent
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_extraction-agent
+      SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_extraction
+      SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_extraction_local
+    volumes:
+      - ../config:/config:ro
+      - ../data/logs:/logs
+      - artifact-store:/artifacts
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_plugin-stubs,
+              llm_key_extraction, llm_key_extraction_local]
+    networks: [internal]
+    mem_limit: 3g                                # Docling (M1)
+    depends_on: *depends-core
+    healthcheck: *py-health
+    restart: unless-stopped
+
+  tlr-agent:
+    build: { context: .., dockerfile: services/tlr-agent/Dockerfile }
+    environment:
+      <<: *agent-env
+      SANDMAN_SERVICE_NAME: tlr-agent
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_tlr-agent
+      SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_tlr
+      SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_tlr_local
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+    volumes:
+      - ../config:/config:ro
+      - ../data/logs:/logs
+      - artifact-store:/artifacts:ro
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local]
+    networks: [internal]
+    mem_limit: 5g
+    depends_on: *depends-core
+    healthcheck: &java-health
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/readyz"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+    restart: unless-stopped
+
+  inconsistency-agent:
+    build: { context: .., dockerfile: services/inconsistency-agent/Dockerfile }
+    environment:
+      <<: *agent-env
+      SANDMAN_SERVICE_NAME: inconsistency-agent
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_inconsistency-agent
+      SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_inconsistency
+      SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_inconsistency_local
+      SANDMAN_QUERY_SERVICE_URL: http://query-service:8000
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+    volumes:
+      - ../config:/config:ro
+      - ../data/logs:/logs
+      - artifact-store:/artifacts:ro
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_inconsistency-agent, plugin_in_plugin-stubs,
+              llm_key_inconsistency, llm_key_inconsistency_local]
+    networks: [internal]
+    mem_limit: 5g
+    depends_on: *depends-core
+    healthcheck: *java-health
+    restart: unless-stopped
+
+  orchestrator:
+    build: { context: .., dockerfile: services/orchestrator/Dockerfile }
+    environment:
+      <<: *agent-env
+      SANDMAN_SERVICE_NAME: orchestrator
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_orchestrator
+      SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_orchestrator
+      SANDMAN_STATE_DB: /data/orchestrator.db
+      SANDMAN_AGENTS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080
+    volumes:
+      - ../config:/config:ro
+      - ../data/logs:/logs
+      - orchestrator-data:/data
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_orchestrator, llm_key_orchestrator]
+    networks: [internal]
+    mem_limit: 512m
+    depends_on:
+      nats: { condition: service_healthy }
+      extraction-agent: { condition: service_healthy }
+      tlr-agent: { condition: service_healthy }
+      inconsistency-agent: { condition: service_healthy }
+    healthcheck: *py-health
+    restart: unless-stopped
+
+  query-service:
+    build: { context: .., dockerfile: services/query-service/Dockerfile }
+    environment:
+      <<: *agent-env
+      SANDMAN_SERVICE_NAME: query-service
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_query-service
+      SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_query
+      SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_query_local
+      SANDMAN_USER_DB: /data/users.db
+      SANDMAN_ADMIN_PASSWORD_FILE: /run/secrets/admin_bootstrap_password
+      SANDMAN_SESSION_SECRET_FILE: /run/secrets/session_secret
+      SANDMAN_EXTRACTION_URL: http://extraction-agent:8000
+      SANDMAN_INCONSISTENCY_URL: http://inconsistency-agent:8080
+      SANDMAN_ORCHESTRATOR_URL: http://orchestrator:8000
+    volumes:
+      - ../config:/config:ro
+      - ../data/logs:/logs
+      - artifact-store:/artifacts:ro
+      - query-data:/data
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_query-service, llm_key_query, llm_key_query_local,
+              admin_bootstrap_password, session_secret]
+    networks: [internal, edge]
+    ports:
+      - "127.0.0.1:8080:8000"                    # console + user/agent API
+    mem_limit: 1g
+    depends_on:
+      memgraph: { condition: service_healthy }
+      orchestrator: { condition: service_healthy }
+    healthcheck: *py-health
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- optional profiles
+  plugin-stubs:
+    profiles: [stubs]
+    build: { context: .., dockerfile: tests/plugin-stubs/Dockerfile }
+    environment:
+      SANDMAN_SERVICE_NAME: plugin-stubs
+      SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_plugin-stubs          # plugin -> query-service (read-only)
+      SANDMAN_PLUGIN_INBOUND_TOKEN_FILE: /run/secrets/plugin_in_plugin-stubs   # owners -> plugin
+      SANDMAN_ARTIFACT_STORE: /artifacts
+    volumes:
+      - artifact-store:/artifacts:ro
+    secrets: [svc_token_plugin-stubs, plugin_in_plugin-stubs]
+    networks: [internal]
+    mem_limit: 512m
+    restart: unless-stopped
+
+  otel-lgtm:
+    profiles: [obs]
+    image: grafana/otel-lgtm:0.35.0
+    volumes:
+      - otel-data:/data
+    networks: [internal, edge]
+    ports:
+      - "127.0.0.1:3001:3000"                    # Grafana
+    mem_limit: 2g
+    restart: unless-stopped
+
+  ollama:
+    profiles: [local-llm]
+    image: ollama/ollama:0.35.1
+    volumes:
+      - ollama-models:/root/.ollama
+    networks: [llm-local, egress]                # reachable only by the gateway; egress for model pulls
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    # GPU (NVIDIA): uncomment
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices: [{ driver: nvidia, count: all, capabilities: [gpu] }]
+    restart: unless-stopped
+
+  # Plugged-in services (Q-5, Q-6; external systems, ADR-0012) are added in docker-compose.override.yml, e.g.:
+  # code-extractor:
+  #   image: <registry>/<code-extractor>@sha256:<digest>
+  #   volumes: [artifact-store:/artifacts:ro]
+  #   secrets: [svc_token_code-extractor, plugin_in_code-extractor]   # add the name to PLUGINS in gen-secrets.sh
+  #   networks: [internal]                       # no egress; LLM calls only via llm-replay with the plugin's own VKs
+
+networks:
+  internal:
+    internal: true          # no egress: agents reach LLMs only through llm-replay -> llm-gateway
+  egress: {}
+  edge:                     # published ports only; no outbound traffic (V-31)
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+  llm-local:
+    internal: true          # gateway <-> ollama only
+
+volumes:
+  memgraph-data: {}
+  memgraph-log: {}
+  nats-data: {}
+  gateway-data: {}
+  orchestrator-data: {}
+  query-data: {}
+  artifact-store: {}
+  otel-data: {}
+  ollama-models: {}
+
+secrets:
+  memgraph_password: { file: ./secrets/memgraph_password }
+  svc_tokens_verify: { file: ./secrets/svc_tokens_verify.json }
+  svc_token_orchestrator: { file: ./secrets/svc_token_orchestrator }
+  svc_token_extraction-agent: { file: ./secrets/svc_token_extraction-agent }
+  svc_token_tlr-agent: { file: ./secrets/svc_token_tlr-agent }
+  svc_token_inconsistency-agent: { file: ./secrets/svc_token_inconsistency-agent }
+  svc_token_query-service: { file: ./secrets/svc_token_query-service }
+  svc_token_plugin-stubs: { file: ./secrets/svc_token_plugin-stubs }
+  plugin_in_plugin-stubs: { file: ./secrets/plugin_in_plugin-stubs }
+  llm_key_orchestrator: { file: ./secrets/llm_key_orchestrator }
+  llm_key_extraction: { file: ./secrets/llm_key_extraction }
+  llm_key_extraction_local: { file: ./secrets/llm_key_extraction_local }
+  llm_key_tlr: { file: ./secrets/llm_key_tlr }
+  llm_key_tlr_local: { file: ./secrets/llm_key_tlr_local }
+  llm_key_inconsistency: { file: ./secrets/llm_key_inconsistency }
+  llm_key_inconsistency_local: { file: ./secrets/llm_key_inconsistency_local }
+  llm_key_query: { file: ./secrets/llm_key_query }
+  llm_key_query_local: { file: ./secrets/llm_key_query_local }
+  admin_bootstrap_password: { file: ./secrets/admin_bootstrap_password }
+  session_secret: { file: ./secrets/session_secret }

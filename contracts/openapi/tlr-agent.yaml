@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN tlr-agent REST API
-  version: 0.2.0
+  version: 0.3.0
   description: |
     Catalog and health. Trace link recovery itself is an A2A skill (contracts/agent-cards/tlr-agent.json).
 servers:
@@ -13,6 +13,8 @@ paths:
     $ref: "shared.yaml#/components/pathItems/Healthz"
   /readyz:
     $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/status:
+    $ref: "shared.yaml#/components/pathItems/Status"
   /v1/approaches:
     get:
       summary: Available TLR approaches with versions and supported kind pairs

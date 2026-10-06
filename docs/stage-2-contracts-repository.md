@@ -1,11 +1,11 @@
 # SANDMAN – Stage 2: Contracts and Repository
 
-Status: revision 3 (Stage 4 review decisions incorporated; contract version 0.2.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
+Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.3.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
 
 ## 0. Summary of key decisions
 
 1. **Contracts are files, not prose.** `contracts/` holds JSON Schemas (common types, events, skill I/O incl. plugin skills), A2A Agent Cards, OpenAPI 3.1 documents for every REST API, the KG schema contract and init script, and language-neutral conformance vectors. All files are validated in CI (Section 1.8); stubs and final implementations are tested against the same files.
-2. **One contract version (0.2.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions).
+2. **One contract version (0.3.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`).
 3. **Monorepo**: uv workspace (Python 3.13) and Maven multi-module build (Java 21, Quarkus for A2A servers) side by side; root-level contracts; one Compose file.
 4. **Docker:** multi-stage images with the repository root as build context (libraries and contracts are copied in); non-root runtime users; the ArDoCo inconsistency branch is built from a pinned commit inside the Java image build.
 5. **Reference Compose file** [deploy/docker-compose.yml](../deploy/docker-compose.yml) with four networks (internal without egress, egress, edge without masquerading, llm-local), health-gated startup, per-service file secrets, memory limits, the `llm-replay` proxy, profiles `obs`, `local-llm`, `stubs`, and a dev overlay. Validated with `docker compose config`.
@@ -27,14 +27,14 @@ Status: revision 3 (Stage 4 review decisions incorporated; contract version 0.2.
 | [contracts/openapi/plugin-http.yaml](../contracts/openapi/plugin-http.yaml) | plain-HTTP plugin variant: `GET /manifest`, `POST /v1/extract`, `POST /v1/detect` (same payloads as the A2A plugin skills) | plugin services | extraction-/inconsistency-agent |
 | [contracts/openapi/orchestrator.yaml](../contracts/openapi/orchestrator.yaml) | workflows, manual triggers, dead events | orchestrator | query-service, operators |
 | [contracts/openapi/query-service.yaml](../contracts/openapi/query-service.yaml) | user/agent entry point: auth, admin, projects, forwarded operations, query, schema, export; minimum role per operation (`x-sandman-min-role`) | query-service | users, CLI/CI, agents, detector plugins |
-| [contracts/openapi/shared.yaml](../contracts/openapi/shared.yaml) | problem details, security schemes, shared parameters/responses, health endpoints | – | all OpenAPI documents |
+| [contracts/openapi/shared.yaml](../contracts/openapi/shared.yaml) | problem details, security schemes, shared parameters/responses, `ServiceStatus` + `GET /v1/status` (working/idle), health endpoints | – | all OpenAPI documents |
 | [contracts/kg/schema.yaml](../contracts/kg/schema.yaml) | node labels, properties, relationships, owners, dialect notes | writers | contract tests, NL-to-Cypher prompt, `GET /v1/schema` |
 | [contracts/kg/init.cypher](../contracts/kg/init.cypher) | constraints and indexes | extraction-agent at startup | – |
 | [contracts/conformance/vectors.json](../contracts/conformance/vectors.json) | expected values for `stableId`, sentence keys, fingerprints, cassette keys (RFC 8785, llm-replay), skill invocation, event validation | both libraries, llm-replay | CI |
 
 ### 1.2 Conventions
 
-- **Versioning:** contract version `0.2.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
+- **Versioning:** contract version `0.3.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
 - **Ids:** `stableId(prefix, parts…)` (deterministic, see vectors) for everything that must be idempotent; `run_`/`wf_` ids are random. Element keys `artifactId#localKey` are stable across versions.
 - **Errors:** REST → RFC 9457 problem details; A2A → task state `TASK_STATE_FAILED`/`TASK_STATE_REJECTED` with `SkillError` in status message metadata `sandman.error` (`code`, `message`, `retryable`).
 - **Auth headers:** `Authorization: Bearer <service token>` between services; each service holds only its own token, receivers verify against hashes. User identity only via `X-Sandman-Actor`/`X-Sandman-Roles` from the query-service and via `sandman.actor` A2A metadata from the orchestrator (trusted forwarders). Owners reject these headers from other callers with 403. Owners call plugins with the plugin's inbound token.
@@ -105,7 +105,7 @@ The OpenAPI files are normative. Authorization matrix (enforced by the query-ser
 | unscoped raw Cypher | – | – | – | ✓ | – |
 | users, projects, memberships | – | – | – | ✓ | – |
 
-All reads are confined to one project by the scope guard (Stage 1 §7); members see only their projects. Plugin callers (`plugin:<id>`) are rejected by every receiver except the query-service, which allows them scoped reads on the projects granted in `config/query/plugins.yaml`.
+All reads are confined to one project by the scope guard (Stage 1 §7); members see only their projects. Orchestrator workflow cancel and dead-event replay are also accepted from the `dashboard` service token (admins, ADR-0016). Plugin callers (`plugin:<id>`) are rejected by every receiver except the query-service, which allows them scoped reads on the projects granted in `config/query/plugins.yaml`.
 
 ### 1.6 Configuration file contracts
 
@@ -180,6 +180,7 @@ plugins:
 | `SANDMAN_NATS_URL` | event bus |
 | `SANDMAN_SERVICE_TOKEN_FILE`, `SANDMAN_SERVICE_VERIFY_FILE` | own token; `{callerName: sha256(token)}` for verifying callers |
 | `SANDMAN_PLUGIN_INBOUND_TOKEN_FILE` | plugins only: token owners present when calling the plugin |
+| `SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE`, `SANDMAN_SESSION_SECRET_FILE`, `SANDMAN_TARGETS` (`name=url,…` of services with `/v1/status`), `SANDMAN_NATS_MONITOR_URL`, `SANDMAN_GATEWAY_URL`, `SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE`, `SANDMAN_CADVISOR_URL` (optional), `SANDMAN_STATE_DB` | dashboard only |
 | `SANDMAN_ARTIFACT_STORE`, `SANDMAN_CONFIG_DIR`, `SANDMAN_LOG_FILE` | paths |
 | `OTEL_*` | standard OpenTelemetry SDK variables |
 
@@ -201,7 +202,7 @@ Validated on 2026-10-06 (commands become the CI `contracts` job):
 ```text
 sandman/
 ├── adr/                                ADRs (MADR 4)
-├── docs/                               stage documents, REVIEW.md later
+├── docs/                               stage documents 1–4 (stage-4-review.md), task specs, notes
 ├── contracts/                          (Section 1) + config/ schemas from M0
 ├── libs/
 │   ├── python/sandman-agent/           package sandman_agent (+ tests/)
@@ -211,6 +212,7 @@ sandman/
 ├── services/
 │   ├── orchestrator/                   Python (FastAPI app + rule engine + SQLite)
 │   ├── llm-replay/                     Python (OpenAI-compatible record/replay proxy)
+│   ├── dashboard/                      Python (system overview for admins, ADR-0016)
 │   ├── extraction-agent/               Python (A2A server + intake REST)
 │   ├── query-service/                  Python (FastAPI + Jinja2 console + user store)
 │   ├── tlr-agent/                      Java (Quarkus app; approaches as packages)
@@ -331,9 +333,11 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 | memgraph | 10 GB (engine 8 GB) | extraction-agent | 3 GB |
 | tlr-agent | 5 GB | inconsistency-agent | 5 GB |
 | query-service | 1 GB | llm-gateway | 1 GB |
-| orchestrator, llm-replay, nats, plugin-stubs | 0.5 GB each | otel-lgtm (obs) | 2 GB |
+| orchestrator, llm-replay, nats, plugin-stubs, dashboard | 0.5 GB each | otel-lgtm (obs) | 2 GB |
+| cadvisor (resources) | 0.25 GB | | |
 
-  Total core ≈ 26.5 GB; Ollama (local-llm) is sized separately. Memgraph memory is monitored with `SHOW STORAGE INFO`.
+  Total core ≈ 27 GB (incl. dashboard); Ollama (local-llm) is sized separately. Memgraph memory is monitored with `SHOW STORAGE INFO`.
+- **Dashboard** (ADR-0016): port `127.0.0.1:8090`, networks `internal` + `edge`, depends only on Memgraph and NATS (not on the services it monitors), secrets `svc_token_dashboard`, `dashboard_admin_password`, `dashboard_session_secret`, `memgraph_password`, `gateway_admin_password`; volume `dashboard-data`. cAdvisor runs in the opt-in profile `resources` with read-only host mounts (V-37).
 - **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the walking skeleton.
 
 ### 3.3 Local development workflow
@@ -354,7 +358,7 @@ Recording LLM interactions for an experiment: `SANDMAN_EXPERIMENT=<name> SANDMAN
 
 ## 4. Stub specification
 
-General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards and OpenAPI contracts; real auth (service tokens, trusted forwarder); real KG writes with provenance (`Run` nodes, `tool = stub-*`, `toolVersion = 0`); real events; health/readiness endpoints; no LLM calls. A stub becomes "finalized" when it meets the criteria below — contract tests stay unchanged in between.
+General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards and OpenAPI contracts, including `GET /v1/status` (from the libraries); real auth (service tokens, trusted forwarder); real KG writes with provenance (`Run` nodes, `tool = stub-*`, `toolVersion = 0`); real events; health/readiness endpoints; no LLM calls. A stub becomes "finalized" when it meets the criteria below — contract tests stay unchanged in between.
 
 ### 4.1 Orchestrator
 

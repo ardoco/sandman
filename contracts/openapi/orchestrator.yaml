@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN orchestrator API
-  version: 0.2.0
+  version: 0.3.0
   description: Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
 servers:
   - url: http://orchestrator:8000
@@ -12,6 +12,8 @@ paths:
     $ref: "shared.yaml#/components/pathItems/Healthz"
   /readyz:
     $ref: "shared.yaml#/components/pathItems/Readyz"
+  /v1/status:
+    $ref: "shared.yaml#/components/pathItems/Status"
   /v1/workflows:
     get:
       summary: List workflows

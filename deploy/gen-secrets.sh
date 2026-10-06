@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 mkdir -p secrets ../data/llm-records ../data/logs
 umask 077
 
-SERVICES="orchestrator extraction-agent tlr-agent inconsistency-agent query-service"
+SERVICES="orchestrator extraction-agent tlr-agent inconsistency-agent query-service dashboard"
 PLUGINS="plugin-stubs"
 LLM_COMPONENTS="extraction tlr inconsistency query"   # get a cloud key and a local-only key
 
@@ -62,3 +62,5 @@ echo "wrote   secrets/svc_tokens_verify.json"
 
 write admin_bootstrap_password "$(rand)"
 write session_secret "$(rand)"
+write dashboard_admin_password "$(rand)"
+write dashboard_session_secret "$(rand)"

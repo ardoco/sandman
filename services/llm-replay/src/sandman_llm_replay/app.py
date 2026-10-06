@@ -84,6 +84,8 @@ def create_app(settings: Settings, transport: httpx.AsyncBaseTransport | None = 
     if mode == "record":
         settings.records_dir.mkdir(parents=True, exist_ok=True)
     cassettes = load_cassettes(settings.records_dir) if mode != "live" and settings.records_dir.is_dir() else {}
+    counts = {"hits": 0, "misses": 0, "recorded": 0, "forwarded": 0}
+    activity: dict[str, Any] = {"active": 0, "last": None}
 
     def log(path: str, status: int, outcome: str, key: str | None = None) -> None:
         line = {
@@ -163,6 +165,14 @@ def create_app(settings: Settings, transport: httpx.AsyncBaseTransport | None = 
         return out, outcome, key
 
     async def proxy(request: Request) -> Response:
+        activity["active"] += 1
+        try:
+            return await counted(request)
+        finally:
+            activity["active"] -= 1
+            activity["last"] = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+    async def counted(request: Request) -> Response:
         path = request.path_params["path"]
         try:
             response, outcome, key = await dispatch(request, path)
@@ -172,8 +182,24 @@ def create_app(settings: Settings, transport: httpx.AsyncBaseTransport | None = 
                 "forwarded",
                 None,
             )
+        counter = {"hit": "hits", "miss": "misses"}.get(outcome, outcome)
+        if counter in counts:
+            counts[counter] += 1
         log(path, response.status_code, outcome, key)
         return response
+
+    async def status(request: Request) -> Response:
+        # ServiceStatus (contracts/openapi/shared.yaml); internal network only, no prompt data
+        body: dict[str, Any] = {
+            "service": "llm-replay",
+            "version": os.environ.get("SANDMAN_VERSION", "dev"),
+            "state": "working" if activity["active"] > 0 else "idle",
+            "activeTasks": activity["active"],
+            "details": {"mode": mode, "experiment": settings.records_dir.name, "entries": len(cassettes), **counts},
+        }
+        if activity["last"]:
+            body["lastActivityAt"] = activity["last"]
+        return JSONResponse(body)
 
     async def healthz(request: Request) -> Response:
         return JSONResponse({"status": "ok"})
@@ -193,6 +219,7 @@ def create_app(settings: Settings, transport: httpx.AsyncBaseTransport | None = 
         routes=[
             Route("/healthz", healthz),
             Route("/readyz", readyz),
+            Route("/v1/status", status),
             Route("/openai/{path:path}", proxy, methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]),
         ],
         lifespan=lifespan,

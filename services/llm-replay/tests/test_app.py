@@ -128,3 +128,19 @@ def test_health_and_ready(tmp_path: Path) -> None:
         with make_client(mode) as c:
             assert c.get("/healthz").json() == {"status": "ok"}
             assert c.get("/readyz").status_code == 200
+
+
+def test_status_counts_hits_and_misses(tmp_path: Path) -> None:
+    body = {"model": "openai/m", "messages": [{"role": "user", "content": "hi"}]}
+    entry = {"key": cassette_key(body), "endpoint": "chat/completions", "request": body,
+             "response": {"id": "x"}, "recordedAt": "2026-10-06T00:00:00Z"}  # fmt: skip
+    (tmp_path / "cassette.jsonl").write_text(json.dumps(entry) + "\n")
+    app = create_app(Settings("", "replay", tmp_path))
+    with TestClient(app) as c:
+        assert c.get("/v1/status").json()["state"] == "idle"
+        c.post("/openai/chat/completions", json=body)
+        c.post("/openai/chat/completions", json={**body, "seed": 1})
+        status = c.get("/v1/status").json()
+    assert status["details"] == {"mode": "replay", "experiment": tmp_path.name, "entries": 1,
+                                 "hits": 1, "misses": 1, "recorded": 0, "forwarded": 0}  # fmt: skip
+    assert status["activeTasks"] == 0 and "lastActivityAt" in status

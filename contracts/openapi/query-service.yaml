@@ -247,13 +247,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items:
-                  allOf:
-                    - $ref: "extraction-agent.yaml#/components/schemas/Project"
-                    - type: object
-                      required: [role]
-                      properties:
-                        role: { $ref: "#/components/schemas/ProjectRole" }
+                items: { $ref: "#/components/schemas/ProjectWithRole" }
 
   /v1/projects/{projectId}/ingestions/check:
     parameters:
@@ -633,6 +627,17 @@ components:
       required: true
       schema: { type: string, pattern: "^[A-Za-z0-9._@-]{2,64}$" }
   schemas:
+    ProjectWithRole:
+      type: object
+      description: Project (extraction-agent.yaml) plus the caller's role; standalone, because Project forbids additional properties.
+      required: [id, name, llmPolicy, createdAt, role]
+      properties:
+        id: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        llmPolicy: { $ref: "../common.schema.json#/$defs/LlmPolicy" }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        role: { $ref: "#/components/schemas/ProjectRole" }
+      additionalProperties: false
     ProjectRole:
       enum: [viewer, triager, maintainer]
     User:

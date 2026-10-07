@@ -1,6 +1,6 @@
 # SANDMAN reference deployment (single server).
 #   cd deploy && ./gen-secrets.sh && docker compose up -d --build
-# Profiles: (default) core system · obs: OpenTelemetry backend · local-llm: Ollama · stubs: plugin stubs for the walking skeleton
+# Profiles: (default) core system · dashboard: system overview (M1) · obs: OpenTelemetry backend · local-llm: Ollama · stubs: plugin stubs for the walking skeleton
 #           resources: cAdvisor container metrics for the dashboard (privileged read-only host mounts, opt-in)
 # Dev ports (Bolt, NATS monitoring): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 # Memory limits assume a 32 GB host (A-7); initial values, tuned in T5.4.
@@ -235,7 +235,8 @@ services:
     healthcheck: *py-health
     restart: unless-stopped
 
-  dashboard:                                   # system overview for admins (ADR-0016)
+  dashboard:                                   # system overview for admins (ADR-0016); image arrives in M1 (T1.9)
+    profiles: [dashboard]
     build: { context: .., dockerfile: services/dashboard/Dockerfile }
     environment:
       SANDMAN_SERVICE_NAME: dashboard

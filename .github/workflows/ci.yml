@@ -4,12 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 3 * * *"
 
 permissions:
   contents: read
 
 jobs:
   changes:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     outputs:
       contracts: ${{ steps.filter.outputs.contracts }}
@@ -49,6 +52,15 @@ jobs:
             compose:
               - 'deploy/**'
               - 'services/**'
+              - 'libs/**'
+              - 'contracts/**'
+              - 'config/**'
+              - 'tools/**'
+              - 'tests/plugin-stubs/**'
+              - 'tests/e2e/**'
+              - 'pom.xml'
+              - 'pyproject.toml'
+              - 'uv.lock'
               - '.github/workflows/**'
 
   contracts:
@@ -105,3 +117,30 @@ jobs:
             docker compose $profiles config -q
           done
           docker compose -f docker-compose.yml -f docker-compose.dev.yml config -q
+      - name: build images, start the stack, wait for health
+        run: |
+          deploy/gen-secrets.sh > /dev/null
+          docker compose -f deploy/docker-compose.yml --profile stubs up -d --build --wait --wait-timeout 300
+      - name: logs
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml --profile stubs logs --no-color --tail 200
+      - if: always()
+        run: docker compose -f deploy/docker-compose.yml --profile stubs down -v
+
+  e2e:
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name == 'schedule' || needs.changes.outputs.compose == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - run: make e2e
+      - name: logs
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml --profile stubs logs --no-color --tail 300
+      - if: always()
+        run: docker compose -f deploy/docker-compose.yml --profile stubs down -v

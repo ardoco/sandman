@@ -3,7 +3,7 @@ COMPOSE     := docker compose -f deploy/docker-compose.yml
 COMPOSE_DEV := $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: secrets infra up down logs test test-py test-java lint guard contracts e2e backup
+.PHONY: secrets infra up down logs images test test-py test-java lint guard contracts e2e backup
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -13,6 +13,9 @@ infra:              ## memgraph, nats, llm-gateway with dev ports on localhost
 
 up:                 ## whole system
 	$(COMPOSE) up -d --build
+
+images:             ## build all M0 images
+	$(COMPOSE) --profile stubs build
 
 down:
 	$(COMPOSE) down
@@ -39,8 +42,9 @@ guard:              ## no agent frameworks in Python code (NFR-3)
 contracts:
 	uv run python scripts/validate_contracts.py
 
-e2e:
-	@echo "not implemented (T0.11)"; exit 1
+e2e: secrets        ## walking skeleton: stack with plugin stubs up, then the e2e test
+	$(COMPOSE) --profile stubs up -d --build --wait --wait-timeout 300
+	SANDMAN_E2E=1 uv run pytest tests/e2e -q
 
 backup:
 	@echo "not implemented (T5.3)"; exit 1

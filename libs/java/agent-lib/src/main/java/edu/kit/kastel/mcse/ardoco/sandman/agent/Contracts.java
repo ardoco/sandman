@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.agent;
 import com.networknt.schema.Error;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SchemaRegistryConfig;
 import com.networknt.schema.SpecificationVersion;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -54,7 +56,10 @@ public final class Contracts {
                 throw new UncheckedIOException(e);
             }
         }
-        registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12, b -> b.schemas(byId));
+        // English messages regardless of the JVM locale (they end up in sandman.error)
+        var config = SchemaRegistryConfig.builder().locale(Locale.ROOT).build();
+        registry = SchemaRegistry.withDefaultDialect(
+                SpecificationVersion.DRAFT_2020_12, b -> b.schemas(byId).schemaRegistryConfig(config));
     }
 
     /** Ref like 'skills.schema.json#/$defs/X' or a full $id URI (with optional fragment). */

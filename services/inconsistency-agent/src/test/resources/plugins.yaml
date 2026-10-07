@@ -1,0 +1,2 @@
+detectors:
+  stub-untraced: { enabled: true }

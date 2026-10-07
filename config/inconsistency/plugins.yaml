@@ -1,0 +1,9 @@
+# Detectors and detector plugins (Stage 2 §1.6). Plugins: plain HTTP only (a2a is rejected at startup).
+detectors:
+  stub-untraced: { enabled: true }
+plugins:
+  - id: detect-stub
+    transport: http                       # POST /v1/detect, GET /manifest
+    url: http://plugin-stubs:8001
+    tokenFile: /run/secrets/plugin_in_plugin-stubs   # inbound token of the plugin
+    timeout: 10m

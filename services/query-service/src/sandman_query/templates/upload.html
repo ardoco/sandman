@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Upload to {{ project }}{% endblock %}
+{% block body %}
+<h1>Upload artifacts to {{ project }}</h1>
+{% if result %}<pre>{{ result }}</pre>{% endif %}
+<form method="post" action="/console/projects/{{ project }}/upload" enctype="multipart/form-data">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>Archive (tar.gz or zip, paths relative to the project root) <input type="file" name="archive" required></label>
+  <label>Mode
+    <select name="mode"><option value="full">full snapshot</option><option value="partial">partial</option></select></label>
+  <label>Source revision (optional) <input name="sourceRevision" maxlength="200"></label>
+  <label>Kind rules, one per line: <code>glob = kind[:format]</code> (first match wins; kinds: {{ kinds }})
+    <textarea name="kindRules" rows="6" cols="60">{{ rules }}</textarea></label>
+  <button>Upload</button>
+</form>
+{% endblock %}

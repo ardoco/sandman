@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Administration{% endblock %}
+{% block body %}
+<h1>Administration</h1>
+<h2>Users</h2>
+<table>
+<tr><th>User</th><th>Global roles</th><th>Disabled</th><th>Memberships</th><th>Actions</th></tr>
+{% for u in users %}
+<tr><td>{{ u.username }}</td><td>{{ u.globalRoles | join(", ") }}</td><td>{{ "yes" if u.disabled else "no" }}</td>
+<td>{% for m in u.memberships %}
+  <form method="post" action="/console/admin/members/remove" style="display:inline">
+    <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="username" value="{{ u.username }}"><input type="hidden" name="project" value="{{ m.projectId }}">
+    {{ m.projectId }}: {{ m.role }} <button>Remove</button></form><br>
+{% endfor %}</td>
+<td>
+  <form method="post" action="/console/admin/users/{{ u.username }}/disabled"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="disabled" value="{{ "false" if u.disabled else "true" }}"><button>{{ "Enable" if u.disabled else "Disable" }}</button></form>
+  <form method="post" action="/console/admin/users/{{ u.username }}/password"><input type="hidden" name="csrf" value="{{ csrf }}"><input name="password" type="password" minlength="12" placeholder="new password" required><button>Reset password</button></form>
+</td></tr>
+{% endfor %}
+</table>
+<h2>Create user</h2>
+<form method="post" action="/console/admin/users">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>User name <input name="username" pattern="[A-Za-z0-9._@\-]{2,64}" required></label>
+  <label>Initial password (at least 12 characters; must be changed at first login) <input name="password" type="password" minlength="12" required></label>
+  <label><input type="checkbox" name="admin" value="true"> global admin</label>
+  <button>Create</button>
+</form>
+<h2>Set project role</h2>
+<form method="post" action="/console/admin/members">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>User <input name="username" required></label>
+  <label>Project <input name="project" required></label>
+  <label>Role <select name="role"><option>viewer</option><option>triager</option><option>maintainer</option></select></label>
+  <button>Set</button>
+</form>
+{% endblock %}

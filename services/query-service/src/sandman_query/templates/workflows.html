@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Workflows of {{ project }}{% endblock %}
+{% block body %}
+<h1>Workflows of {{ project }}</h1>
+<table>
+<tr><th>Id</th><th>Trigger</th><th>Status</th><th>Created</th><th>Updated</th></tr>
+{% for w in items %}
+<tr><td>{{ w.id }}</td><td>{{ w.trigger.kind }}{% if w.trigger.actor %} ({{ w.trigger.actor }}){% endif %}</td><td>{{ w.status }}</td><td>{{ w.createdAt }}</td><td>{{ w.updatedAt }}</td></tr>
+{% else %}<tr><td colspan="5">No workflows.</td></tr>{% endfor %}
+</table>
+{% if can_trigger %}
+<h2>Trigger</h2>
+{% for t in ["full", "extract", "tlr", "detect"] %}
+<form method="post" action="/console/projects/{{ project }}/workflows" style="display:inline">
+  <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="type" value="{{ t }}"><button>{{ t }}</button>
+</form>
+{% endfor %}
+{% endif %}
+{% endblock %}

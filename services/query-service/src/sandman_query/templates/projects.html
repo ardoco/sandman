@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Projects{% endblock %}
+{% block body %}
+<h1>Projects</h1>
+<table>
+<tr><th>Project</th><th>Role</th><th>Inconsistencies by status</th><th>New / reopened since last visit</th><th>Last workflow</th><th></th></tr>
+{% for p in projects %}
+<tr>
+  <td><a href="/console/projects/{{ p.id }}/inconsistencies">{{ p.name }}</a> <small>({{ p.id }})</small></td>
+  <td>{{ p.role }}</td>
+  <td>{% for status, n in p.counts.items() %}{{ status }}: {{ n }}{% if not loop.last %}, {% endif %}{% else %}-{% endfor %}</td>
+  <td>{% if p.new %}<span class="badge">{{ p.new }}</span>{% else %}-{% endif %}</td>
+  <td>{{ p.workflow or "-" }}</td>
+  <td>
+    <a href="/console/projects/{{ p.id }}/ask">Ask</a>
+    <a href="/console/projects/{{ p.id }}/workflows">Workflows</a>
+    {% if p.can_upload %}<a href="/console/projects/{{ p.id }}/upload">Upload</a>{% endif %}
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="6">No projects.</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

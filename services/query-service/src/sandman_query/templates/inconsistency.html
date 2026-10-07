@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ d.title }}{% endblock %}
+{% block body %}
+<p><a href="/console/projects/{{ d.projectId }}/inconsistencies">Back to {{ d.projectId }}</a></p>
+<h1>{{ d.title }}</h1>
+<p>Status <strong>{{ d.status }}</strong>, severity {{ d.severity }}, type {{ d.type }}, detector {{ d.detector }}{% if d.detectorVersion %} {{ d.detectorVersion }}{% endif %}{% if d.confidence is defined %}, confidence {{ d.confidence }}{% endif %}, verification {{ d.verification or "none" }}</p>
+<p>{{ d.description }}</p>
+{% if evidence %}<h2>Evidence</h2><pre>{{ evidence }}</pre>{% endif %}
+<h2>Involved</h2>
+<table>
+<tr><th>Role</th><th>What</th><th>Location</th><th>Excerpt</th></tr>
+{% for x in d.involved %}
+<tr><td>{{ x.role }}</td>
+{% if x.element %}
+<td>{{ x.element.label }} {{ x.element.name }} <small>{{ x.element.key }}</small></td>
+<td>{{ x.element.artifactPath }}{% if x.element.startLine is defined %}:{{ x.element.startLine }}{% if x.element.endLine is defined %}-{{ x.element.endLine }}{% endif %}{% endif %}</td>
+<td><pre>{{ x.element.excerpt or "" }}</pre></td>
+{% else %}
+<td>Link {{ x.traceLink.approach }} ({{ x.traceLink.confidence }})</td><td>{{ x.traceLink.sourceKey }} -&gt; {{ x.traceLink.targetKey }}</td><td></td>
+{% endif %}
+</tr>
+{% else %}<tr><td colspan="4">-</td></tr>{% endfor %}
+</table>
+<h2>History</h2>
+<table>
+<tr><th>When</th><th>Change</th><th>Actor</th><th>Reason</th></tr>
+{% for h in d.history %}<tr><td>{{ h.at }}</td><td>{{ h.from }} -&gt; {{ h.to }}</td><td>{{ h.actor }}</td><td>{{ h.reason or "" }}</td></tr>
+{% else %}<tr><td colspan="4">-</td></tr>{% endfor %}
+</table>
+{% if can_transition and d.allowedTransitions %}
+<h2>Change status</h2>
+<form method="post" action="/console/inconsistencies/{{ d.id }}/transition">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <input type="hidden" name="expectedStatus" value="{{ d.status }}">
+  <label>New status
+    <select name="to">{% for s in d.allowedTransitions %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></label>
+  <label>Reason (required for ACCEPTED, REJECTED, DEFERRED) <textarea name="reason" maxlength="2000"></textarea></label>
+  <button>Change status</button>
+</form>
+{% endif %}
+{% endblock %}

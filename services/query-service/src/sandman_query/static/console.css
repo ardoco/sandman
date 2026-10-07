@@ -1,0 +1,14 @@
+body { font-family: system-ui, sans-serif; margin: 0; color: #1b1f24; background: #f6f8fa; }
+header { background: #24292f; color: #fff; padding: .5rem 1rem; display: flex; gap: 1rem; align-items: center; }
+header a { color: #fff; text-decoration: none; }
+header form { margin-left: auto; display: inline; }
+main { max-width: 70rem; margin: 1rem auto; padding: 0 1rem; }
+table { border-collapse: collapse; width: 100%; background: #fff; }
+th, td { border: 1px solid #d0d7de; padding: .3rem .5rem; text-align: left; vertical-align: top; }
+pre { background: #fff; border: 1px solid #d0d7de; padding: .5rem; overflow: auto; white-space: pre-wrap; }
+.msg { padding: .5rem 1rem; border: 1px solid #d0d7de; background: #fff; margin: .5rem 0; }
+.error { border-color: #cf222e; color: #cf222e; }
+.badge { background: #cf222e; color: #fff; border-radius: 1rem; padding: 0 .5rem; }
+.new { background: #fff8c5; }
+label { display: block; margin: .3rem 0; }
+fieldset { margin: 1rem 0; background: #fff; }

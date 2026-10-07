@@ -1,0 +1,46 @@
+# Regex intents of the NL stub (M0, no LLM). `pattern` must match the whole normalized question
+# (case-insensitive, trailing "?" removed); named groups become Cypher parameters. Every template
+# must pass the scope guard (anchored to $projectId); the service binds $projectId.
+intents:
+  - id: untraced-requirements
+    pattern: '(?:show |list |which )?(?:the )?untraced requirements'
+    cypher: |
+      MATCH (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(r:Requirement {projectId: $projectId})
+      OPTIONAL MATCH (l:TraceLink {projectId: $projectId, active: true})-[:SOURCE|TARGET]->(r)
+      WITH r, count(l) AS links WHERE links = 0
+      RETURN r.key AS key, r.name AS name, r.text AS text ORDER BY key
+
+  - id: links-of
+    pattern: '(?:show |list )?(?:the )?links (?:of|for) (?P<name>.+)'
+    cypher: |
+      MATCH (e:Element {projectId: $projectId}) WHERE e.name = $name OR e.key = $name
+      MATCH (l:TraceLink {projectId: $projectId, active: true})-[:SOURCE|TARGET]->(e)
+      MATCH (l)-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element)
+      RETURN s.key AS sourceKey, t.key AS targetKey, l.linkType AS linkType, l.approach AS approach,
+             l.confidence AS confidence, l.status AS status
+      ORDER BY sourceKey, targetKey, approach
+
+  - id: open-inconsistencies
+    pattern: '(?:show |list )?(?:the )?open inconsistencies'
+    cypher: |
+      MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN ['OPEN', 'REOPENED']
+      RETURN i.id AS id, i.type AS type, i.severity AS severity, i.title AS title, i.status AS status
+      ORDER BY severity, id
+
+  - id: components-without-documentation
+    pattern: '(?:show |list |which )?(?:the )?components without (?:any )?documentation'
+    cypher: |
+      MATCH (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(c:ModelElement {projectId: $projectId, kind: 'component'})
+      OPTIONAL MATCH (l:TraceLink {projectId: $projectId, active: true, linkType: 'documents'})-[:SOURCE|TARGET]->(c)
+      WITH c, count(l) AS docs WHERE docs = 0
+      RETURN c.key AS key, c.name AS name ORDER BY key
+
+  - id: changes-since
+    pattern: 'what changed since (?P<revision>\S+)'
+    cypher: |
+      MATCH (base:Ingestion {projectId: $projectId, sourceRevision: $revision})
+      WITH max(base.seq) AS since
+      MATCH (i:Ingestion {projectId: $projectId})-[:ACTIVATED]->(v:ArtifactVersion)<-[:HAS_VERSION]-(a:Artifact)
+      WHERE i.seq > since
+      RETURN i.seq AS seq, i.sourceRevision AS revision, a.path AS path, v.id AS versionId
+      ORDER BY seq, path

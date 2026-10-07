@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Ask {{ project }}{% endblock %}
+{% block body %}
+<h1>Ask about {{ project }}</h1>
+<form method="post" action="/console/projects/{{ project }}/ask">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>Question <input name="question" size="60" value="{{ question }}" required minlength="3" maxlength="2000"></label>
+  <button>Ask</button>
+</form>
+<p><small>M0 stub: {{ intents }}</small></p>
+{% if result %}
+<h2>Cypher</h2><pre>{{ result.cypher }}</pre>
+<h2>Result{% if result.truncated %} (truncated){% endif %}</h2>
+<table>
+<tr>{% for c in result.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+{% for row in rows %}<tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>{% else %}<tr><td>No matching data.</td></tr>{% endfor %}
+</table>
+{% endif %}
+{% endblock %}

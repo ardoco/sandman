@@ -1,0 +1,3 @@
+# Projects each plugin may read through POST /v1/query/cypher (ADR-0013); {plugin-id: [project, ...] | "*"}.
+# Grant local-only projects only to locally operated plugins.
+plugin-stubs: "*"   # walking skeleton

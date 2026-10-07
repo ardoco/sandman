@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Tokens{% endblock %}
+{% block body %}
+<h1>Personal API tokens</h1>
+{% if secret %}<div class="msg">New token (shown once): <code>{{ secret }}</code></div>{% endif %}
+<table>
+<tr><th>Name</th><th>Project</th><th>Max role</th><th>Created</th><th>Expires</th><th>Last used</th><th></th></tr>
+{% for t in tokens %}
+<tr><td>{{ t.name }}</td><td>{{ t.projectId or "any" }}</td><td>{{ t.maxRole or "-" }}</td><td>{{ t.createdAt }}</td><td>{{ t.expiresAt or "-" }}</td><td>{{ t.lastUsedAt or "-" }}</td>
+<td><form method="post" action="/console/tokens/{{ t.id }}/revoke"><input type="hidden" name="csrf" value="{{ csrf }}"><button>Revoke</button></form></td></tr>
+{% else %}<tr><td colspan="7">No tokens.</td></tr>{% endfor %}
+</table>
+<h2>Create token</h2>
+<form method="post" action="/console/tokens">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>Name <input name="name" maxlength="100" required></label>
+  <label>Project (optional) <input name="projectId"></label>
+  <label>Max role <select name="maxRole"><option value="">no cap</option><option>viewer</option><option>triager</option><option>maintainer</option></select></label>
+  <label>Expires (optional, e.g. 2027-01-01T00:00:00Z) <input name="expiresAt"></label>
+  <button>Create</button>
+</form>
+{% endblock %}

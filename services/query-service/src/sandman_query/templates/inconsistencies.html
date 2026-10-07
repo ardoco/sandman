@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Inconsistencies of {{ project }}{% endblock %}
+{% block body %}
+<h1>Inconsistencies of {{ project }}</h1>
+<p>{% for status, n in counts.items() %}{{ status }}: {{ n }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+<form method="get">
+  <label>Status
+    <select name="status"><option value="">any</option>
+    {% for s in statuses %}<option value="{{ s }}" {% if s == f.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Severity
+    <select name="severity"><option value="">any</option>
+    {% for s in ["info", "warning", "error"] %}<option value="{{ s }}" {% if s == f.severity %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Type <input name="type" value="{{ f.type }}"></label>
+  <label>Artifact id <input name="artifactId" value="{{ f.artifactId }}"></label>
+  <label>Sort
+    <select name="sort">
+    {% for s in ["severity", "updated"] %}<option value="{{ s }}" {% if s == f.sort %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+  <button>Filter</button>
+</form>
+<table>
+<tr><th>Title</th><th>Type</th><th>Severity</th><th>Status</th><th>Detector</th><th>Updated</th></tr>
+{% for i in items %}
+<tr {% if i.is_new %}class="new"{% endif %}>
+  <td><a href="/console/inconsistencies/{{ i.id }}">{{ i.title }}</a></td>
+  <td>{{ i.type }}</td><td>{{ i.severity }}</td><td>{{ i.status }}</td><td>{{ i.detector }}</td><td>{{ i.updatedAt }}</td>
+</tr>
+{% else %}
+<tr><td colspan="6">Nothing found.</td></tr>
+{% endfor %}
+</table>
+{% if next_cursor %}<p><a href="?{{ next_query }}">Next page</a></p>{% endif %}
+{% endblock %}

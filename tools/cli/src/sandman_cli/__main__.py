@@ -46,11 +46,16 @@ def kind_of(path: str, rules: Sequence[dict[str, str]]) -> str:
 
 
 def scan(root: Path) -> dict[str, Path]:
-    """Relative POSIX path -> file, sorted; skips dot-files/-dirs (.git, ...) and sandman.yaml."""
+    """Relative POSIX path -> file, sorted; skips symlinks, dot-files/-dirs (.git, ...) and sandman.yaml."""
     files = {}
     for p in sorted(root.rglob("*")):
         rel = p.relative_to(root)
-        if p.is_file() and rel.as_posix() != CONFIG and not any(part.startswith(".") for part in rel.parts):
+        if (
+            p.is_file()
+            and not p.is_symlink()
+            and rel.as_posix() != CONFIG
+            and not any(part.startswith(".") for part in rel.parts)
+        ):
             files[rel.as_posix()] = p
     return files
 

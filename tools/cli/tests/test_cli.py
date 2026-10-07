@@ -142,3 +142,13 @@ def test_http_error_exits_nonzero() -> None:
     transport = httpx.MockTransport(lambda r: httpx.Response(403, json={"title": "Forbidden"}))
     with pytest.raises(SystemExit, match="403"):
         main(["export", "--project", "mini", "inconsistencies"], transport)
+
+
+def test_scan_skips_symlinks(tmp_path: Path) -> None:
+    outside = tmp_path / "secret.txt"
+    outside.write_text("secret")
+    root = tmp_path / "proj"
+    root.mkdir()
+    (root / "a.md").write_text("x")
+    (root / "link.txt").symlink_to(outside)
+    assert list(scan(root)) == ["a.md"]

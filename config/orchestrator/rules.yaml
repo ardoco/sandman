@@ -1,0 +1,10 @@
+# Orchestrator rule configuration (Stage 2 §1.6); rules themselves are fixed in code (Stage 1 §6).
+debounceSeconds: 10
+maxConcurrentPerAgent: 2
+timeouts: { extract-artifact-versions: 15m, recover-trace-links: 60m, detect-inconsistencies: 30m }
+poll: { initial: 30s, max: 2m }   # GetTask only detects failures; steps complete on their event
+retry: { maxAttempts: 3, backoff: [30s, 2m, 10m] }
+tlr:
+  kindPairs:                     # which pairs to link after changes; approaches per pair
+    - { source: requirements, target: code, approaches: [stub-name-match] }
+    - { source: architecture-doc, target: architecture-model, approaches: [stub-name-match] }

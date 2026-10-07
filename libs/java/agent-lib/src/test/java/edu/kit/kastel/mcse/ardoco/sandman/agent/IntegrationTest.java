@@ -2,6 +2,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.agent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.nats.client.Connection;
 import io.nats.client.JetStream;
@@ -75,6 +76,24 @@ class IntegrationTest {
                     .stream()
                     .collect(Collectors.toMap(r -> r.get("id"), r -> r.get("s")));
             assertEquals(Map.of(done, "completed", stale, "failed"), status);
+        }
+    }
+
+    @Test
+    void initSchemaIsIdempotentAndMemoryLimitIsNotRetried() {
+        try (KgClient kg = kg()) {
+            var initFile = Settings.defaultContractsDir().resolve("kg/init.cypher");
+            kg.initSchema(initFile);
+            kg.initSchema(initFile);
+            var info = kg.runAutoCommit("SHOW STORAGE INFO", Map.of());
+            assertTrue(info.stream().anyMatch(r -> "memory_res".equals(r.get("storage info"))));
+            long started = System.nanoTime();
+            assertThrows(
+                    KgClient.MemoryLimitException.class,
+                    () -> kg.read(
+                            "UNWIND range(1, 2000000) AS i WITH collect(i) AS l RETURN size(l) QUERY MEMORY LIMIT 1 MB",
+                            Map.of()));
+            assertTrue((System.nanoTime() - started) / 1_000_000_000L < 5, "memory-limit error must not be retried");
         }
     }
 

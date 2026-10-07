@@ -3,7 +3,15 @@ name = "sandman-query-service"
 version = "0.1.0"
 description = "Query service and console."
 requires-python = ">=3.13,<3.14"
-dependencies = ["sandman-agent"]
+dependencies = [
+    "antlr4-python3-runtime>=4.13.2",
+    "argon2-cffi>=25.1.0",
+    "fastapi>=0.142.2",
+    "jinja2>=3.1.6",
+    "python-multipart>=0.0.32",
+    "sandman-agent",
+    "uvicorn>=0.54.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]

@@ -9,8 +9,14 @@ Date: 2026-10-06/07. Scripts: `spikes/T0.4/` (`memgraph_checks.py`, `gateway_che
 |---|---|---|---|---|
 | 1 | Bifrost v2.2.6 starts with read-only `config.json`, keys from env | PASS | governance active, 6 budgets and 2 rate limits loaded, healthy after ~10 s | – |
 | 2 | Inference without key / with wrong key | PASS (401 both) | `curl` on `/openai/chat/completions` | – |
-| 2 | Inference with a virtual key | **PENDING** | needs read access to `deploy/secrets/llm_key_query` | run `gateway_checks.py` |
-| 3–6, 12, 18 | SDK features, routes, budget, request log/`traceparent`, `-local` key on cloud routes, OpenRouter privacy | **PENDING** | same | run `gateway_checks.py`; check 5 manual (README) |
+| 2 | Inference with a virtual key | PASS | resolved model `gpt-4.1-nano-2025-04-14` (`gateway-results.txt`) | – |
+| 3 | OpenAI Python SDK via base URL `…/openai`: tool calling, structured output (`json_schema`), streaming, embeddings | PASS | all four; embeddings 1536 dims | V-2/A2-3 closed for Python; Java uses LangChain4j (T2.2) |
+| 4 | Routes `openai/…`, `openrouter/<vendor>/<model>` | PASS | OpenRouter resolved `openai/gpt-4.1-nano`; Ollama route not run (profile `local-llm` off) | V-18/V-20 nested names closed; Ollama still open |
+| 5 | Budget exhaustion, rate limit | **OPEN (manual)** | README step | – |
+| 6 | Request log and `traceparent` | PASS / INFO | log via management API with admin auth; **`traceparent` is not stored in the request log** | correlate LLM calls via OpenTelemetry and `user` = runId, not the gateway log |
+| V-36 | Bifrost `/metrics` with admin Basic auth | PASS | 20 `bifrost_*` metrics incl. `cost_total`, `input/output_tokens_total`, `error_requests_total`, latency histograms | dashboard LLM statistics feasible (T1.9) |
+| 12 | `-local` virtual key on a cloud route | PASS | HTTP 403 `provider_blocked` | gateway enforces `local-only` (R-035) |
+| 18 | OpenRouter privacy setting (V-32) | **OPEN** | account setting, see `TODO.md` | – |
 | 7 | Neo4j Python driver 6.4 ↔ Memgraph 3.13.1 | PASS | connects; Java driver 6.3 also passes (agent-lib integration tests) | V-6 closed |
 | 7 | `execute_read` rejects writes | PASS | `Accessor type READ and query type WRITE are misaligned!` | primary write guard holds (ADR-0009) |
 | 7 | Auto-commit query in a session with `READ` access mode | **FAIL** | write accepted, node created | never rely on the session access mode; read paths must use read **transactions** (libraries do) |
@@ -39,4 +45,5 @@ Date: 2026-10-06/07. Scripts: `spikes/T0.4/` (`memgraph_checks.py`, `gateway_che
 
 ## Still open
 
-Checks 2 (with key), 3, 4, 5, 6, 12, 18 and V-36 need the virtual keys and the gateway admin password (`gateway_checks.py`).
+- Check 5 (budget exhaustion and rate limit; manual, `spikes/T0.4/README.md`), check 18 (OpenRouter account privacy setting), Ollama route (profile `local-llm`).
+- ADR-0004 (Bifrost) can move to `accepted` once check 5 passes; all other confirmation criteria hold (governance in the OSS build, admin auth, `-local` keys, keyless start).

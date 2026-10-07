@@ -1,0 +1,10 @@
+# uv run python spikes/T0.4/gateway_checks.py  (2026-10-07, run by the user; keys never printed)
+[PASS] 2 inference with virtual key: gpt-4.1-nano-2025-04-14
+[PASS] 3 tool calling: {"city":"Karlsruhe"}
+[PASS] 3 structured output (json_schema): {'answer': 'Yes.'}
+[PASS] 3 streaming: ok
+[PASS] 3 embeddings: 1536
+[PASS] 4 OpenRouter route: openai/gpt-4.1-nano
+[PASS] 12 local-only key rejected on cloud route: HTTP 403 provider_blocked
+[PASS] 6/V-36 metrics with admin auth: 20 bifrost_* metrics: bifrost_active_requests, bifrost_cost_total, bifrost_error_requests_total, bifrost_input_tokens_total, bifrost_output_tokens_total, bifrost_provider_key_up, bifrost_request_retries_*, bifrost_stream_first_token_latency_seconds_*, ...
+[PASS] 6 request log via management API: 10399 bytes; traceparent present: False

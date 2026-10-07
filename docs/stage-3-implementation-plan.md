@@ -39,7 +39,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T0.6 | TLR-agent stub (`stub-name-match`, approach SPI, `/v1/approaches`) | M | T0.3 | [T0.6](tasks/T0.6-tlr-agent-stub.md) |
 | T0.7 | Inconsistency-agent stub with **real** lifecycle, fingerprinting, triage API, plugin client | L | T0.3 | [T0.7](tasks/T0.7-inconsistency-agent-stub.md) |
 | T0.8 | Orchestrator (rule engine, SQLite state, event-driven step completion, per-project pipeline lock, failure polling, retries, REST) | L | T0.2 | [T0.8](tasks/T0.8-orchestrator.md) |
-| T0.9 | Query-service stub (users/roles, per-service token verification, forwarding, parse-tree scope guard for Cypher (D-2, V-28), NL intents, minimal console with session security) | L+S | T0.2 | (spec after T0.2) |
+| T0.9 | Query-service stub (users/roles, per-service token verification, forwarding, parse-tree scope guard for Cypher (D-2, V-28), NL intents, minimal console with session security) | L+S | T0.2 | [T0.9](tasks/T0.9-query-service.md) |
 | T0.10 | Plugin stubs (extract via A2A — reference for the code-extraction team, Q-19; detect via HTTP), plugin-author kit (`docs/plugins.md`: contracts, Agent Card template, contract tests, obligations of external plugins: no egress, gateway keys, `llmPolicy`, token pair; D-9), fixtures `mini/`, `sandman` CLI (`ingest`, `workflows`, `export`) | M | T0.2 | – |
 | T0.11 | Dockerfiles, Compose integration, walking-skeleton e2e test, CI `compose` and `e2e` jobs | M | T0.5–T0.10, T0.13, T0.14 | – |
 | T0.12 | ArDoCo spike: build branch at pinned commit, run `InconsistencyDetection` on fixtures, analyze sentence/model id mapping and whether external trace links can be fed in (V-16, V-17, V-27; ADR-0015) | S | T0.1 | – |

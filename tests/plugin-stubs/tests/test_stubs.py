@@ -117,6 +117,9 @@ async def test_detect_auth_validation_and_manifest() -> None:
         assert (await c.post("/v1/detect", json=DETECT)).status_code == 401
         assert (await c.post("/v1/detect", json=DETECT, headers={"Authorization": "Bearer x"})).status_code == 401
         assert (await c.post("/v1/detect", json={"projectId": "mini"}, headers=INBOUND)).status_code == 400
+        for raw in (b"{bad", b""):
+            resp = await c.post("/v1/detect", content=raw, headers=INBOUND)
+            assert resp.status_code == 400 and resp.headers["content-type"] == "application/problem+json"
         assert (await c.get("/manifest")).status_code == 401
         manifest = (await c.get("/manifest", headers=INBOUND)).json()
         assert manifest["id"] == "plugin-stubs" and manifest["operations"] == ["detect"]

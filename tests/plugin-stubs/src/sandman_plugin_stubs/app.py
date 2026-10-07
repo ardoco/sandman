@@ -9,11 +9,11 @@ import logging
 import os
 import re
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Any
+from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
-from fastapi import Body, Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import JSONResponse
 from sandman_agent import ContractError, Contracts, Settings, SkillContext, SkillError, SkillResult, serve
 from starlette.applications import Starlette
@@ -144,7 +144,11 @@ def create_detect_app(
         return {"id": PLUGIN_ID, "version": __version__, "operations": ["detect"], "types": [], "usesLlm": False}
 
     @app.post("/v1/detect", dependencies=[Depends(owner)], response_model=None)
-    async def detect(body: Annotated[Any, Body()]) -> dict[str, Any] | JSONResponse:
+    async def detect(request: Request) -> dict[str, Any] | JSONResponse:
+        try:
+            body = await request.json()
+        except ValueError as e:
+            return _problem(400, f"invalid JSON body: {e}")
         try:
             contracts.validate("skills.schema.json#/$defs/PluginDetectInput", body)
         except ContractError as e:

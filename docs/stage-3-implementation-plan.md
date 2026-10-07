@@ -229,7 +229,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-28 | A maintained openCypher parser usable from Python (e.g. the openCypher ANTLR grammar with `antlr4-python3-runtime`) that parses the allowlisted subset incl. pattern comprehensions and existential subqueries (T0.9). |
 | V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming. **ArDoCo answered (T0.12):** non-streaming `ChatModel`, but configured only by process-wide env/`.env` (`OLLAMA_GENERIC`, `OLLAMA_TOKEN`, `OLLAMA_HOST`); per-project keys need an upstream change accepting a `ChatModel`. LiSSA still open (T2.2). |
 | V-30 | Memgraph `--memory-limit` unit (MiB) and behavior when reached (query abort vs. process kill) (T0.4). |
-| V-31 | A bridge network with `com.docker.network.bridge.enable_ip_masquerade=false` still serves ports published to `127.0.0.1` and blocks outbound traffic of its containers (T0.4). |
+| V-31 | **Answered (T0.4):** disabling IP masquerading does not block egress on Docker Desktop; replaced by `edge-proxy` in front of internal-only services (verified: published port works, internal service has no egress). |
 | V-32 | OpenRouter account-level privacy setting excluding providers that train on prompts; whether Bifrost can pass provider preferences (`data_collection: deny`) (T0.4). |
 | V-33 | Bifrost: `governance.auth_config` protects the management API (not only the UI) against unauthenticated calls from other containers; a virtual key with only the Ollama provider is rejected on OpenAI/OpenRouter routes; log retention configuration (T0.4). |
 | V-34 | Bifrost starts healthy with empty provider keys (keyless walking skeleton; see review R-040). |

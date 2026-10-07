@@ -8,7 +8,7 @@ Status: revision 4 (Stage 4 review decisions and the system overview dashboard i
 2. **One contract version (0.3.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`).
 3. **Monorepo**: uv workspace (Python 3.13) and Maven multi-module build (Java 21, Quarkus for A2A servers) side by side; root-level contracts; one Compose file.
 4. **Docker:** multi-stage images with the repository root as build context (libraries and contracts are copied in); non-root runtime users; the ArDoCo inconsistency branch is built from a pinned commit inside the Java image build.
-5. **Reference Compose file** [deploy/docker-compose.yml](../deploy/docker-compose.yml) with four networks (internal without egress, egress, edge without masquerading, llm-local), health-gated startup, per-service file secrets, memory limits, the `llm-replay` proxy, profiles `obs`, `local-llm`, `stubs`, and a dev overlay. Validated with `docker compose config`.
+5. **Reference Compose file** [deploy/docker-compose.yml](../deploy/docker-compose.yml) with four networks (internal without egress, egress, edge with only a reverse proxy, llm-local), health-gated startup, per-service file secrets, memory limits, the `llm-replay` proxy, profiles `obs`, `local-llm`, `stubs`, and a dev overlay. Validated with `docker compose config`.
 6. **Stubs** implement the real contracts, auth, events and lifecycle; only the "intelligence" (extraction depth, TLR, detection, NL→Cypher) is trivial. The **walking skeleton** runs without any LLM provider key and exercises two ingestions, links, detection, triage and auto-resolution.
 
 ## 1. Contract-first interfaces
@@ -321,7 +321,7 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 
 [deploy/docker-compose.yml](../deploy/docker-compose.yml), [deploy/docker-compose.dev.yml](../deploy/docker-compose.dev.yml), [deploy/gateway/config.json](../deploy/gateway/config.json), [deploy/gen-secrets.sh](../deploy/gen-secrets.sh), [deploy/.env.example](../deploy/.env.example).
 
-- **Networks:** `internal` (`internal: true`, all SANDMAN services), `egress` (gateway incl. its admin port, Ollama model pulls), `edge` (query-service, Grafana; ports bound to `127.0.0.1`; IP masquerading disabled so these containers have no outbound traffic, V-31), `llm-local` (`internal: true`, gateway and Ollama only).
+- **Networks:** `internal` (`internal: true`, all SANDMAN services), `egress` (gateway incl. its admin port, Ollama model pulls), `edge` (only `edge-proxy`, a Caddy 2.11 reverse proxy publishing query-service `127.0.0.1:8080`, dashboard `127.0.0.1:8090` and Grafana `127.0.0.1:3001` from the internal network; the published services themselves have no egress — disabling IP masquerading does not block egress on Docker Desktop, spike T0.4 check 13), `llm-local` (`internal: true`, gateway and Ollama only).
 - **Startup order:** `memgraph`, `nats`, `llm-gateway` healthy → `llm-replay` → agents healthy (`/readyz`) → `orchestrator` → `query-service`.
 - **Healthchecks:** Memgraph via `mgconsole`; NATS `/healthz?js-enabled-only=true` (monitoring port enabled by `-m 8222`); Bifrost `/health`; Python services via `python -c urllib…/readyz`; Java via `curl /readyz`; Ollama via `ollama list`; otel-lgtm built-in.
 - **Secrets:** file secrets for all SANDMAN services; each service mounts only its own token (`svc_token_<name>`), the hash file `svc_tokens_verify`, its LLM keys and, for plugin callers, the plugin's inbound token. Two deliberate exceptions, because the images read credentials from environment variables only: `secrets/gateway.env` (provider keys, Bifrost encryption key, admin password, virtual key values `VK_*`) and `secrets/memgraph.env` (`MEMGRAPH_USER`, `MEMGRAPH_PASSWORD`). `gen-secrets.sh` creates matching values (each `llm_key_<component>[_local]` equals its `VK_*`; virtual keys carry Bifrost's required `sk-bf-` prefix; plugin token pairs for the names in `PLUGINS`).
@@ -335,10 +335,11 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 | tlr-agent | 5 GB | inconsistency-agent | 5 GB |
 | query-service | 1 GB | llm-gateway | 1 GB |
 | orchestrator, llm-replay, nats, plugin-stubs, dashboard | 0.5 GB each | otel-lgtm (obs) | 2 GB |
+| edge-proxy | 0.125 GB | | |
 | cadvisor (resources) | 0.25 GB | | |
 
   Total core ≈ 27 GB (incl. dashboard); Ollama (local-llm) is sized separately. Memgraph memory is monitored with `SHOW STORAGE INFO`.
-- **Dashboard** (ADR-0016): port `127.0.0.1:8090`, networks `internal` + `edge`, depends only on Memgraph and NATS (not on the services it monitors), secrets `svc_token_dashboard`, `dashboard_admin_password`, `dashboard_session_secret`, `memgraph_password`, `gateway_admin_password`; volume `dashboard-data`. cAdvisor runs in the opt-in profile `resources` with read-only host mounts (V-37).
+- **Dashboard** (ADR-0016): port `127.0.0.1:8090` via `edge-proxy`, network `internal` only, depends only on Memgraph and NATS (not on the services it monitors), secrets `svc_token_dashboard`, `dashboard_admin_password`, `dashboard_session_secret`, `memgraph_password`, `gateway_admin_password`; volume `dashboard-data`. cAdvisor runs in the opt-in profile `resources` with read-only host mounts (V-37).
 - **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the walking skeleton.
 
 ### 3.3 Local development workflow

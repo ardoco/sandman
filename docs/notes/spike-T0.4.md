@@ -41,7 +41,7 @@ Date: 2026-10-06/07. Scripts: `spikes/T0.4/` (`memgraph_checks.py`, `gateway_che
 - **Java `agent-lib-a2a` (T0.3):** `a2a.authorization.required=false` plus our bearer filter; route the card's path `/a2a` to a2a-java's `POST /` (or move the cards' interface URL to `/`); normalize integral doubles in data parts; send `A2A-Extensions` and `A2A-Version: 1.0` from the Java client.
 - **Callers:** do not assume the first state after `SendMessage` (Java returns `REJECTED` directly, Python `SUBMITTED` first).
 - **ArDoCo + LiSSA in one agent:** pin LangChain4j explicitly, exclude LiSSA's `slf4j-simple`, align `model-provider`; image grows by ~640 MB, ~1.7 GB RSS after two ArDoCo runs (memory budget of 5 GB per Java agent holds).
-- **Deployment (decision needed):** egress blocking via `enable_ip_masquerade=false` does not work on Docker Desktop.
+- **Deployment (decided 2026-10-07):** query-service, dashboard and Grafana moved to the internal network only; a Caddy `edge-proxy` (`deploy/proxy/Caddyfile`) publishes their ports. Verified with a throwaway project: host → proxy → internal service HTTP 200, internal service has no egress.
 
 ## Still open
 

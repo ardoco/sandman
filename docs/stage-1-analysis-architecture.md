@@ -273,8 +273,9 @@ flowchart TB
   subgraph host["Single server · docker compose project 'sandman'"]
     direction TB
     subgraph core["profile: default"]
-      qs["query-service :8000<br/>host 127.0.0.1:8080"]
-      dash["dashboard :8000<br/>host 127.0.0.1:8090"]
+      proxy["edge-proxy (Caddy)<br/>host 127.0.0.1:8080 / :8090 / :3001"]
+      qs["query-service :8000"]
+      dash["dashboard :8000"]
       orch[orchestrator :8000]
       ext[extraction-agent :8000]
       tlr[tlr-agent :8080]
@@ -285,7 +286,7 @@ flowchart TB
       rp["llm-replay :8000"]
     end
     subgraph obs["profile: obs"]
-      lgtm["otel-lgtm :4317/:4318<br/>Grafana host 127.0.0.1:3001"]
+      lgtm["otel-lgtm :4317/:4318<br/>Grafana :3000 via edge-proxy"]
     end
     subgraph llm["profile: local-llm"]
       ollama["ollama :11434"]
@@ -316,13 +317,14 @@ flowchart TB
   gw -->|egress network| internet
   rp --> gw
   gw -->|llm-local network| ollama
+  proxy -->|internal| qs & dash & lgtm
 ```
 
 | Network | Type | Members | Purpose |
 |---|---|---|---|
 | `internal` | bridge, `internal: true` (no egress) | all services | service-to-service traffic; agents cannot reach the internet, which **enforces gateway-only LLM access**, including for libraries inside approaches |
 | `egress` | bridge | `llm-gateway` (also publishes its admin port), `ollama` (model pulls) | outbound provider calls |
-| `edge` | bridge without IP masquerading (no outbound traffic, to verify V-31) | `query-service`, `otel-lgtm` | published ports, all bound to `127.0.0.1` (remote access via SSH tunnel or a TLS reverse proxy added later) |
+| `edge` | bridge | `edge-proxy` only (Caddy reverse proxy) | publishes query-service (`127.0.0.1:8080`), dashboard (`127.0.0.1:8090`) and Grafana (`127.0.0.1:3001`), which stay on `internal` without egress (spike T0.4 check 13: disabling IP masquerading does not block egress on Docker Desktop); remote access via SSH tunnel, TLS can be added in the proxy |
 | `llm-local` | bridge, `internal: true` | `llm-gateway`, `ollama` | local models reachable only through the gateway (keys, budgets, logs) |
 
 | Volume | Mounted by | Content |
@@ -1193,7 +1195,7 @@ A separate service `dashboard` for **global admins** (operators). It is independ
 - **Services → Memgraph:** one database user with password (Community has users, but roles/read-only users are Enterprise). Plugins get no Bolt credentials; they read through the query-service. Write discipline is enforced by the single-writer rule and code review; the read path is enforced by read transactions (Section 7).
 - **Services → LLM:** per-component virtual keys with provider/model allowlists and budgets; `-local` keys restricted to Ollama enforce `local-only` in the gateway.
 - **Dashboard:** admins log in with the dashboard's own password; it calls services with its own service token (accepted by the orchestrator for workflow cancel and dead-event replay, recorded as `service:dashboard`).
-- **Network:** internal network without egress; `edge` (published ports, only on `127.0.0.1`) without IP masquerading; Ollama only on a network shared with the gateway.
+- **Network:** internal network without egress for all SANDMAN services; web UIs are published only through `edge-proxy` on `127.0.0.1`; Ollama only on a network shared with the gateway.
 
 ### 11.3 Observability
 - **Logs:** JSON lines on stdout with `ts, level, service, msg, traceId, spanId, workflowId, taskId, runId, projectId, actor`; optional file sink (`SANDMAN_LOG_FILE`, rotated by size) on `./data/logs`.

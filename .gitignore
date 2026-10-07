@@ -8,3 +8,4 @@ __pycache__/
 .ruff_cache/
 target/
 TODO.md
+CLAUDE.local.md

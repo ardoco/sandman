@@ -204,6 +204,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 - Follow the contracts in `contracts/` exactly; never change them inside an implementation task.
 - No agent frameworks (LangChain, LangGraph, DeepAgents, LlamaIndex, CrewAI, AutoGen, LangChain4j in agent code).
 - One language per service; Python 3.13 or Java 21. Build tools are fixed: all Java parts use Maven (no Gradle), all Python parts use uv (no pip, Poetry, PDM or Hatch for dependency management; `pyproject.toml` + `uv.lock`).
+- Java naming is fixed: Maven groupId `io.github.ardoco` (artifactIds prefixed `sandman-`, e.g. `sandman-agent-lib`), Java packages start with `edu.kit.kastel.mcse.ardoco` (SANDMAN code under `edu.kit.kastel.mcse.ardoco.sandman`).
 - Commits follow Conventional Commits, are small, and carry no AI attribution.
 - Every non-trivial logic path has a test; CI must be green.
 

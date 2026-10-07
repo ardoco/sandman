@@ -4,7 +4,7 @@ Agent-based system for Software Architecture kNowledge Description and MANagemen
 ## Development
 
 Requirements: [uv](https://docs.astral.sh/uv/) (Python 3.13), JDK 21+ with Maven 3.9+, Docker with Compose.
-Python parts are managed with uv only, Java parts are built with Maven only.
+Python parts are managed with uv only, Java parts are built with Maven only. Java naming is fixed: Maven groupId `io.github.ardoco` (artifactIds prefixed `sandman-`, e.g. `sandman-agent-lib`), Java packages start with `edu.kit.kastel.mcse.ardoco` (SANDMAN code under `edu.kit.kastel.mcse.ardoco.sandman`).
 
 ```sh
 uv sync            # Python workspace (libs/python, services, tools/cli, tests/plugin-stubs)

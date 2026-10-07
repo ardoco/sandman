@@ -1265,7 +1265,7 @@ Review decisions of Stage 4 are recorded as dated `Amendments` in ADR-0002…000
 | A-9 | Runtime versions: Python 3.13 (uv), Java 21 (ArDoCo targets 21), Quarkus 3.x LTS for Java agents, Maven for Java builds. |
 | A-10 | Pinned protocol versions: A2A 1.0.x (JSON-RPC binding), CloudEvents 1.0 structure, OpenAI Chat Completions API. |
 | A-11 | Human triage never blocks workflows; trace link review is prepared in the schema but not built initially. |
-| A-12 | Java package/groupId and Python package names are placeholders (`edu.kit.kastel.sandman`, `sandman_agent`). |
+| A-12 | Naming (decided 2026-10-07): Maven groupId `io.github.ardoco` with artifactIds prefixed `sandman-`; Java packages under `edu.kit.kastel.mcse.ardoco.sandman`; Python packages `sandman_*`. |
 | A-13 | Content-addressed artifact store on a shared volume is sufficient on one server (ceiling: switch to HTTP/MinIO for multi-host). |
 | A-14 | The KG stores bounded excerpts (`text`), not full artifact content; full content stays in the artifact store. |
 | A-15 | ArDoCo (MIT per POM) and LiSSA (MIT) can be used as libraries; licenses are compatible with the AGPL-3.0 repository. |

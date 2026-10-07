@@ -75,6 +75,7 @@ paths:
                     description: Counts per status for the project (ignores filters).
                     additionalProperties: { type: integer }
                   nextCursor: { type: string }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
         "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
   /v1/inconsistencies/{inconsistencyId}:
     parameters:

@@ -155,13 +155,15 @@ components:
         llmPolicy: { $ref: "../common.schema.json#/$defs/LlmPolicy" }
       additionalProperties: false
     Project:
-      allOf:
-        - $ref: "#/components/schemas/ProjectSpec"
-        - type: object
-          required: [id, createdAt]
-          properties:
-            id: { $ref: "../common.schema.json#/$defs/ProjectId" }
-            createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+      type: object
+      description: ProjectSpec plus id and createdAt (standalone, because ProjectSpec forbids additional properties).
+      required: [id, name, llmPolicy, createdAt]
+      properties:
+        id: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        llmPolicy: { $ref: "../common.schema.json#/$defs/LlmPolicy" }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+      additionalProperties: false
     Manifest:
       type: object
       required: [mode, files]

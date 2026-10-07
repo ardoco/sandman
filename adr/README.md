@@ -29,7 +29,7 @@ Status values:
 | [0001](0001-language-per-component.md) | Implementation language per component | accepted |
 | [0002](0002-use-a2a-for-agent-commands.md) | Use A2A for commands to agents | accepted |
 | [0003](0003-nats-jetstream-event-bus.md) | NATS JetStream as event bus | accepted |
-| [0004](0004-llm-gateway.md) | LLM gateway: Bifrost, LiteLLM as fallback | proposed |
+| [0004](0004-llm-gateway.md) | LLM gateway: Bifrost, LiteLLM as fallback | accepted |
 | [0005](0005-kg-schema-provenance-versioning.md) | KG schema, provenance and artifact versioning | accepted |
 | [0006](0006-rule-based-orchestration.md) | Rule-based orchestration with optional LLM planner | accepted |
 | [0007](0007-inconsistency-lifecycle.md) | Inconsistency lifecycle and re-detection | accepted |

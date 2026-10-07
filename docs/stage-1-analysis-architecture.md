@@ -1234,7 +1234,7 @@ ADRs are in [`adr/`](../adr/README.md) (MADR 4 format). Status `proposed` = depe
 | [0001](../adr/0001-language-per-component.md) | Python for orchestrator/extraction/query, Java for TLR/inconsistency | accepted | Q-1, Q-2 answered |
 | [0002](../adr/0002-use-a2a-for-agent-commands.md) | A2A 1.0 (JSON-RPC) for commands to agents, not for events/queries | accepted | – |
 | [0003](../adr/0003-nats-jetstream-event-bus.md) | NATS JetStream as event bus with CloudEvents envelope | accepted | – |
-| [0004](../adr/0004-llm-gateway.md) | Bifrost as LLM gateway, LiteLLM as fallback | proposed | M0 smoke test (V-1, V-2) |
+| [0004](../adr/0004-llm-gateway.md) | Bifrost as LLM gateway, LiteLLM as fallback | accepted | smoke test T0.4 passed (2026-10-07) |
 | [0005](../adr/0005-kg-schema-provenance-versioning.md) | Reified links, Run-based provenance, immutable version snapshots | accepted | – |
 | [0006](../adr/0006-rule-based-orchestration.md) | Rule-based orchestration, optional LLM planner for NL requests | accepted | – |
 | [0007](../adr/0007-inconsistency-lifecycle.md) | Inconsistency status model and re-detection by fingerprint | accepted | – |

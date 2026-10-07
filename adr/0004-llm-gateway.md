@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-10-06
 ---
 
@@ -91,3 +91,4 @@ Smoke test with Python and Java clients: chat, tools, streaming, embeddings, Ope
 * 2026-10-06, review decision D-4: admin plane secured with `governance.auth_config` (admin password from `BIFROST_ADMIN_PASSWORD`, Bifrost policy ≥ 12 chars with upper/lower/digit/special); the admin password never enters agent containers. Per LLM-using component a second virtual key `<component>-local` restricted to the Ollama provider, so the `local-only` policy is enforced by the gateway. No cross-provider fallbacks. Ollama sits on a dedicated internal network shared only with the gateway. OpenRouter is used only for `cloud-allowed` projects, with the account-level privacy setting that excludes providers which train on data (to verify, V-32). Gateway request logs are retained 30 days (mechanism to verify, V-15).
 * Additional confirmation criteria (T0.4): management API rejects unauthenticated calls from an agent container; a `-local` key cannot reach OpenAI/OpenRouter routes. If admin authentication cannot be enforced, switch to LiteLLM (master key protects admin routes).
 * 2026-10-06, review decision D-3: all callers reach the gateway through the `llm-replay` proxy (ADR-0010 amendment).
+* 2026-10-07, accepted after spike T0.4 (`docs/notes/spike-T0.4.md`): virtual keys, budgets (HTTP 402 `budget_exceeded`) and rate limits (HTTP 429 `request_limited`) work in the open-source build; admin plane and `/metrics` require the admin login; `-local` keys are refused on cloud routes (403); Bifrost starts without provider keys. Budgets are changed in `config.json` (the UI fails to edit standalone budgets in v2.2.6). The request log does not keep `traceparent`.

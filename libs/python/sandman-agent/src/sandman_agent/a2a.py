@@ -44,6 +44,7 @@ from sandman_agent import auth, telemetry
 from sandman_agent.config import Settings
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.events import EventSink
+from sandman_agent.llm import BudgetExceededError
 from sandman_agent.status import StatusTracker, status_route
 
 log = logging.getLogger(__name__)
@@ -199,6 +200,8 @@ class _Executor(AgentExecutor):
             result = await skill.run(ctx, input)
         except SkillError as e:
             return await self._end(updater, e, False)
+        except BudgetExceededError as e:  # orchestrator blocks the workflow until a user acts
+            return await self._end(updater, SkillError("BUDGET_EXCEEDED", str(e), False), False)
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001 - unexpected failures are reported as retryable INTERNAL

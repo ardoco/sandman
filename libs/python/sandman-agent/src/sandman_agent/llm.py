@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Literal, Protocol
 
 import yaml
-from openai import AsyncOpenAI
+from openai import APIStatusError, AsyncOpenAI
 
 from sandman_agent import telemetry
 
@@ -15,6 +15,15 @@ LOCAL_ONLY = "local-only"
 
 class PolicyError(Exception):
     """A route is not allowed under the project's LLM policy."""
+
+
+class BudgetExceededError(Exception):
+    """The gateway budget of the virtual key is exhausted (Bifrost: HTTP 402, spike T0.4 check 5)."""
+
+
+def _gateway_error(e: APIStatusError) -> Exception:
+    # 402 = budget exhausted (blocks the workflow); 429 = rate limited, already retried by the SDK
+    return BudgetExceededError(str(e)) if e.status_code == 402 else e
 
 
 @dataclass(frozen=True)
@@ -107,7 +116,10 @@ class OpenAiLlmClient:
         for key, value in (("seed", req.seed), ("max_tokens", req.max_tokens), ("user", req.user)):
             if value is not None:
                 kwargs[key] = value
-        resp = await self._sdk().chat.completions.create(**kwargs)
+        try:
+            resp = await self._sdk().chat.completions.create(**kwargs)
+        except APIStatusError as e:
+            raise _gateway_error(e) from e
         choice = resp.choices[0]
         usage = Usage(resp.usage.prompt_tokens, resp.usage.completion_tokens) if resp.usage else Usage()
         return ChatResponse(
@@ -116,9 +128,12 @@ class OpenAiLlmClient:
 
     async def embed(self, model: str, texts: Sequence[str]) -> list[list[float]]:
         """Embeddings for texts."""
-        resp = await self._sdk().embeddings.create(
-            model=self._model(model), input=list(texts), extra_headers=telemetry.trace_headers()
-        )
+        try:
+            resp = await self._sdk().embeddings.create(
+                model=self._model(model), input=list(texts), extra_headers=telemetry.trace_headers()
+            )
+        except APIStatusError as e:
+            raise _gateway_error(e) from e
         return [d.embedding for d in resp.data]
 
 

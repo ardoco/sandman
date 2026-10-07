@@ -141,3 +141,17 @@ def test_artifact_store_is_content_addressed(tmp_path: Path) -> None:
             store.path_for(bad)
     with pytest.raises(ValueError):
         store.put("../x", b"")
+
+
+async def test_gateway_402_becomes_budget_exceeded(tmp_path: Path) -> None:
+    import httpx2 as httpx  # the openai SDK uses httpx2
+    from openai import AsyncOpenAI
+    from sandman_agent.llm import BudgetExceededError, OpenAiLlmClient
+
+    body = {"type": "budget_exceeded", "status_code": 402, "error": {"message": "Budget exceeded"}}
+    transport = httpx.MockTransport(lambda request: httpx.Response(402, json=body))
+    client = OpenAiLlmClient("http://gw/openai", "k", {"chat-default": "openai/m"})
+    client._client = AsyncOpenAI(base_url="http://gw/openai", api_key="k", max_retries=0,
+                                 http_client=httpx.AsyncClient(transport=transport))  # fmt: skip
+    with pytest.raises(BudgetExceededError):
+        await client.chat(ChatRequest("chat-default", [ChatMessage("user", "hi")]))

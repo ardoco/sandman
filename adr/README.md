@@ -42,3 +42,4 @@ Status values:
 | [0014](0014-graph-database.md) | Graph database: Memgraph Community | accepted |
 | [0015](0015-ardoco-integration.md) | ArDoCo integration | proposed |
 | [0016](0016-system-overview-dashboard.md) | System overview dashboard | accepted |
+| [0017](0017-additional-agent-languages.md) | Additional agent languages: TypeScript, Go, Rust | proposed |

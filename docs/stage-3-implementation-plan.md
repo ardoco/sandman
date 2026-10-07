@@ -25,6 +25,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M4 NL-to-Cypher** | LLM generation with validation and repair; evaluation set; console evidence views | Execution accuracy ≥ target (Q-16) on the held-out split; security suite green |
 | **M5 Continuous use** | GitHub Action for ingesting user projects, retention/prune skills, backup/restore drill, performance budget | 30-day soak on an evolving project without manual intervention; restore drill passes |
 | **M6 (optional)** | LLM planner with approval gate; trace-link review in console | Planner plans validated against skill schemas; no unapproved execution |
+| **MX (on demand)** | Agent kits for TypeScript, Go (tier 1) and Rust (tier 2), built when the first agent in that language is planned (ADR-0017) | Kit passes all conformance vectors, Memgraph/NATS integration tests and the interop test with the Python orchestrator and a Java agent |
 
 ### 1.2 Tasks
 
@@ -79,6 +80,10 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T5.3 | Backup/restore scripts + drill | S | T0.11 | |
 | T5.4 | Performance budget (ingest 1 000 changed files, detection latency, Memgraph query latency and memory against the budget; ADR-0014 fallback only if it fails) and fixes | M | M3 | |
 | T5.5 | Soak test on an evolving open-source project (30 days, nightly ingest) | M | T5.1 | |
+| **MX** | | | | |
+| TX.1 | TypeScript agent kit (`@a2a-js/sdk` 1.x, `nats.js` v3, `neo4j-driver` 6, `openai`, Ajv 2020, `canonicalize`, OTel): skill server convention, auth, status, completion events, KG client (auto-commit, memory-limit), run provenance, ids/keys/fingerprints, contract validation; CI job, Dockerfile template | M–L | M0 | |
+| TX.2 | Go agent kit (`a2a-go` v2, `nats.go`, `neo4j-go-driver` v6, `openai-go`, `santhosh-tekuri/jsonschema` v6, cyberphone JCS, OTel); same scope | M–L | M0 | |
+| TX.3 | Rust agent kit (`a2a-lf`, `async-nats`, `neo4rs` or `rsmgclient` after V-40, `async-openai`, `jsonschema`, `serde_json_canonicalizer`, OTel); same scope; start after `a2a-lf` 1.0 or with RK-23 accepted | L | M0, V-40 | |
 
 ### 1.3 Dependency graph and recommended order
 
@@ -194,6 +199,8 @@ Threats to validity to track: benchmark contamination of LLMs (benchmark project
 | RK-20 | The dashboard is a privileged component (Memgraph and gateway admin credentials, orchestrator token, cAdvisor host mounts) | M | H | Admins only, own login, localhost-only port, KG access in read transactions only, cAdvisor opt-in on the internal network, secrets mounted only there (ADR-0016) | M1 |
 | RK-21 | Large graphs overwhelm the browser graph view | M | L | At most 500 nodes per view, expand on demand, server-side filters | M1 |
 | RK-22 | `named-architecture-entity-recognition` 2.1.0-SNAPSHOT is unpublished and depends on ArDoCo itself (cycle); LangChain4j and old CoreNLP dependencies conflict with the Quarkus BOM (protobuf 3→4, JNA) | M | M | Bootstrap build with two pinned commits; publish the snapshot / break the cycle upstream; T3.3 equivalence test on the Quarkus classpath | M0–M3 |
+| RK-23 | Rust kit depends on pre-1.0 (`a2a-lf` 0.4) and community components (`neo4rs` RC, `async-openai`) | M | M | Tier 2: build only on demand; pin versions; V-40 Memgraph check first; Go/TS preferred for new agents meanwhile | MX |
+| RK-24 | Each additional language multiplies library maintenance (three more kits, CI jobs, update bots) | M | M | Kits only on demand, minimal scope, shared conformance vectors and interop test as the gate (ADR-0017) | MX |
 
 L = likelihood, I = impact (H/M/L).
 
@@ -203,7 +210,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 
 - Follow the contracts in `contracts/` exactly; never change them inside an implementation task.
 - No agent frameworks (LangChain, LangGraph, DeepAgents, LlamaIndex, CrewAI, AutoGen, LangChain4j in agent code).
-- One language per service; Python 3.13 or Java 21. Build tools are fixed: all Java parts use Maven (no Gradle), all Python parts use uv (no pip, Poetry, PDM or Hatch for dependency management; `pyproject.toml` + `uv.lock`).
+- One language per service; Python 3.13 or Java 21 (TypeScript, Go, Rust once their kit exists, ADR-0017). Build tools are fixed: all Java parts use Maven (no Gradle), all Python parts use uv (no pip, Poetry, PDM or Hatch for dependency management; `pyproject.toml` + `uv.lock`).
 - Java naming is fixed: Maven groupId `io.github.ardoco` (artifactIds prefixed `sandman-`, e.g. `sandman-agent-lib`), Java packages start with `edu.kit.kastel.mcse.ardoco` (SANDMAN code under `edu.kit.kastel.mcse.ardoco.sandman`).
 - Commits follow Conventional Commits, are small, and carry no AI attribution.
 - Every non-trivial logic path has a test; CI must be green.
@@ -238,9 +245,13 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-37 | cAdvisor v0.60.x image registry, required mounts and metrics on Docker Desktop (macOS) and Linux; license Apache-2.0 (T1.11). |
 | V-38 | Memgraph syntax for path queries between two nodes (e.g. BFS `[*BFS ..n]`) and `QUERY MEMORY LIMIT` in the dashboard's Cypher box (T1.9). |
 | V-39 | Versions and licenses of the vendored front-end libraries (Cytoscape.js 3.34.x MIT, uPlot 1.6.x MIT, htmx) and offline use without a CDN (T1.9). |
+| V-40 | Rust Bolt drivers against Memgraph 3.13: `neo4rs` 0.9 (Bolt 4.4/5.x, read transactions rejecting writes, auto-commit for schema statements) vs. Memgraph's `rsmgclient` (TX.3). |
+| V-41 | Availability of the npm scope `@ardoco`, Go module path `github.com/ArDoCo/sandman`, crate names `sandman-*` (Q-22). |
 
 ## 8. Open questions
 
 Answered 2026-10-06: Q-16 default (80 % execution accuracy) · Q-17 default (TEAMMATES or JabRef) · Q-18 TLR (M2) before inconsistency detection (M3), because detection uses TLR information · Q-19 code-extraction plugin by a separate team; A2A is demoed first (plugin stub + plugin-author kit in T0.10) · Q-20 links from all approaches: ArDoCo and other approaches write their links to the KG, and inconsistency detection uses them (T3.1, ADR-0015).
+
+Open (2026-10-07, ADR-0017): **Q-21** — which components should be written in TypeScript, Go or Rust, and when (default: none of the existing agents moves; kits are built when the first new agent in a language is planned). **Q-22** — naming and registries for the kits (default: npm `@ardoco/sandman-*`, Go module `github.com/ArDoCo/sandman/libs/go/...`, crates `sandman-*`; unpublished until needed).
 
 Review decisions D-8 (evaluation protocol, §3.3) and D-10 (M0 = 13 weeks, §1.3) were taken on 2026-10-06; no review decision is open ([stage-4-review.md](stage-4-review.md) §4).

@@ -206,9 +206,12 @@ sandman/
 ├── contracts/                          (Section 1) + config/ schemas from M0
 ├── libs/
 │   ├── python/sandman-agent/           package sandman_agent (+ tests/)
-│   └── java/
-│       ├── agent-lib/                  plain Java 21
-│       └── agent-lib-a2a/              Quarkus/CDI glue for a2a-java
+│   ├── java/
+│   │   ├── agent-lib/                  plain Java 21
+│   │   └── agent-lib-a2a/              Quarkus/CDI glue for a2a-java
+│   ├── typescript/sandman-agent/       agent kit, when the first TS agent is planned (ADR-0017)
+│   ├── go/sandman-agent/               agent kit, when the first Go agent is planned (ADR-0017)
+│   └── rust/sandman-agent/             agent kit, tier 2 (ADR-0017)
 ├── services/
 │   ├── orchestrator/                   Python (FastAPI app + rule engine + SQLite)
 │   ├── llm-replay/                     Python (OpenAI-compatible record/replay proxy)
@@ -241,6 +244,8 @@ sandman/
 | Tests | `pytest`, Testcontainers (`testcontainers[neo4j]` image override to Memgraph, NATS container) | JUnit 5, Testcontainers, Quarkus test |
 | Framework guard | CI check: no imports of `langchain*`, `langgraph`, `deepagents`, `llama_index`, `crewai`, `autogen` under `libs/` and `services/` | `maven-enforcer` `bannedDependencies` for agent frameworks; `dev.langchain4j:*` allowed only as transitive dependency of the ArDoCo/LiSSA adapter packages (Q-2) |
 | Updates | Renovate (grouped weekly; A2A SDKs pinned, manual) | same |
+
+Further languages (ADR-0017, on demand): TypeScript on Node.js LTS with npm workspaces (`package-lock.json`), Go modules, Rust Cargo workspace (`Cargo.lock`); each kit has its own CI job (lint, tests, conformance vectors, Testcontainers) and a framework guard (no LangChain.js/LangGraph.js/LlamaIndex/Mastra, LangChainGo/Eino, langchain-rust/rig).
 
 ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…`) together with its unpublished dependency `named-architecture-entity-recognition` (pinned `d631a70…`); the two repositories depend on each other, so they are built in a bootstrap order (spike T0.12, `spikes/T0.12/bootstrap.sh`) — in the Docker build stage and via `make ardoco` for local development — until both are published.
 

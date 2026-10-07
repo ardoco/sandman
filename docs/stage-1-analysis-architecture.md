@@ -37,6 +37,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 | Q-20 links for detection | Detectors use the active links of all approaches (5.4, ADR-0015). |
 | D-8 evaluation protocol (R-038, R-043, R-044) | Pre-registered protocol in `experiments/PROTOCOL.md` (Stage 3 §3.3); 11.6. |
 | D-10 M0 re-baseline (R-003) | M0 planned at 13 weeks (Stage 3 §1.3). |
+| Additional agent languages (2026-10-07) | TypeScript, Go and Rust agents are feasible; minimal agent kits per language on demand, TS/Go tier 1, Rust tier 2 (ADR-0017, Stage 3 milestone MX) |
 | Spike T0.12 (applied 2026-10-06) | ArDoCo sentences mapped by an adapter-controlled one-sentence-per-line rendering instead of text matching; two pinned commits; V-27 workaround; V-29 needs upstream change (5.4, ADR-0015) |
 
 ### 0.3 Changelog revision 5 (system overview, 2026-10-06)
@@ -94,7 +95,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 | ID | Requirement |
 |---|---|
 | NFR-1 | Each agent/service is deployable as one Docker container; one Compose file starts the whole system on one server. |
-| NFR-2 | Each agent is implemented in exactly one language (Python or Java); the number of languages stays minimal. |
+| NFR-2 | Each agent is implemented in exactly one language: Python or Java today; TypeScript, Go and Rust become admissible once their agent kit passes the conformance vectors and the interop test (ADR-0017). The number of languages in use stays minimal. |
 | NFR-3 | No agent frameworks (LangChain, LangGraph, DeepAgents, …); agents call LLM APIs directly through the gateway using a minimal shared agent library per language. |
 | NFR-4 | Python and Java libraries implement the same documented contracts (behavioral parity, checked by shared contract tests). |
 | NFR-5 | Contracts are stable: replacing a stub with a real implementation requires no contract change. |
@@ -1249,6 +1250,7 @@ ADRs are in [`adr/`](../adr/README.md) (MADR 4 format). Status `proposed` = depe
 | [0014](../adr/0014-graph-database.md) | Memgraph Community as graph database | accepted | Q-11 answered |
 | [0015](../adr/0015-ardoco-integration.md) | ArDoCo integration: links of all approaches, adapter-controlled sentence rendering, two pinned commits | proposed | upstream changes (spike T0.12) |
 | [0016](../adr/0016-system-overview-dashboard.md) | System overview dashboard: separate admin-only service | accepted | decided 2026-10-06 |
+| [0017](../adr/0017-additional-agent-languages.md) | Additional agent languages TypeScript, Go, Rust via minimal agent kits | proposed | Q-21, Q-22 |
 
 Review decisions of Stage 4 are recorded as dated `Amendments` in ADR-0002…0007, 0009, 0010, 0012…0014.
 

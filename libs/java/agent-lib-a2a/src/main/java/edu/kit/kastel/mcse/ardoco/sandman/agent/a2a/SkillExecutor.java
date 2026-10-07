@@ -1,0 +1,231 @@
+package edu.kit.kastel.mcse.ardoco.sandman.agent.a2a;
+
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.ServiceAuth;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.StatusTracker;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.a2aproject.sdk.server.agentexecution.AgentExecutor;
+import org.a2aproject.sdk.server.agentexecution.RequestContext;
+import org.a2aproject.sdk.server.tasks.AgentEmitter;
+import org.a2aproject.sdk.spec.DataPart;
+import org.a2aproject.sdk.spec.Message;
+import org.a2aproject.sdk.spec.TextPart;
+import org.a2aproject.sdk.transport.jsonrpc.context.JSONRPCContextKeys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+
+/**
+ * SANDMAN skill invocation convention (Stage 2 §1.3): skill id in message.metadata['sandman.skill'], input = one data
+ * part, result = artifact 'result' with one data part, errors in status message metadata 'sandman.error'. Agent skills
+ * publish exactly one completion event (causationid = request messageId) after the output was validated and before the
+ * task completes; plugin skills publish none.
+ */
+@ApplicationScoped
+public class SkillExecutor implements AgentExecutor {
+
+    public static final String EXTENSION = "https://sandman.invalid/a2a/extensions/skill-invocation/v1";
+    public static final String SKILL_KEY = "sandman.skill";
+    public static final String WORKFLOW_KEY = "sandman.workflowId";
+    public static final String ACTOR_KEY = "sandman.actor";
+    public static final String ERROR_KEY = "sandman.error";
+
+    private static final Logger LOG = LoggerFactory.getLogger(SkillExecutor.class);
+
+    @Inject
+    A2aServer server;
+
+    @Inject
+    Contracts contracts;
+
+    @Inject
+    StatusTracker status;
+
+    @Inject
+    Instance<Skill> skillBeans;
+
+    @Inject
+    Instance<EventSink> events;
+
+    private final Map<String, SkillContext> running = new ConcurrentHashMap<>();
+    private Map<String, Skill> skills;
+
+    @PostConstruct
+    void init() {
+        skills = skillBeans.stream().collect(Collectors.toMap(Skill::id, Function.identity()));
+        List<String> missing = skills.keySet().stream()
+                .filter(id -> !server.schemas().containsKey(id))
+                .toList();
+        if (!missing.isEmpty()) {
+            throw new IllegalStateException("skills without schemas in the agent card: " + missing);
+        }
+    }
+
+    @Override
+    public void execute(RequestContext context, AgentEmitter emitter) {
+        if (context.getTask() == null) {
+            emitter.submit();
+        }
+        Message message = context.getMessage();
+        Map<String, Object> metadata = message.metadata() == null ? Map.of() : message.metadata();
+        String caller = Objects.requireNonNullElse(server.authenticate(authorization(context)), "");
+        if (!(metadata.get(SKILL_KEY) instanceof String skillId)) {
+            end(emitter, new SkillException("INVALID_INPUT", "metadata " + SKILL_KEY + " missing", false), true);
+            return;
+        }
+        Skill skill = skills.get(skillId);
+        if (skill == null) {
+            end(emitter, new SkillException("UNKNOWN_SKILL", "unknown skill " + skillId, false), true);
+            return;
+        }
+        List<DataPart> data = message.parts().stream()
+                .filter(DataPart.class::isInstance)
+                .map(DataPart.class::cast)
+                .toList();
+        if (data.size() != 1) {
+            end(emitter, new SkillException("INVALID_INPUT", "expected exactly one data part", false), true);
+            return;
+        }
+        JsonNode input = toJson(data.get(0).data());
+        try {
+            contracts.validate(server.schemas().get(skillId).get("inputSchema"), input);
+        } catch (Contracts.ContractException e) {
+            end(emitter, new SkillException("INVALID_INPUT", e.getMessage(), false), true);
+            return;
+        }
+        SkillContext ctx = new SkillContext(
+                context.getTaskId(),
+                message.messageId(),
+                metadata.get(WORKFLOW_KEY) instanceof String w ? w : null,
+                caller,
+                ServiceAuth.actorFromMetadata(caller, metadata),
+                emitter);
+        running.put(ctx.taskId(), ctx);
+        try (var active = status.track()) {
+            emitter.startWork();
+            run(skill, ctx, input, emitter);
+        } finally {
+            running.remove(ctx.taskId());
+        }
+    }
+
+    private void run(Skill skill, SkillContext ctx, JsonNode input, AgentEmitter emitter) {
+        SkillResult result;
+        try {
+            result = skill.run(ctx, input);
+        } catch (SkillException e) {
+            end(emitter, e, false);
+            return;
+        } catch (RuntimeException e) { // unexpected failures are reported as retryable INTERNAL
+            LOG.error("skill {} failed", skill.id(), e);
+            end(
+                    emitter,
+                    new SkillException("INTERNAL", e.getClass().getSimpleName() + ": " + e.getMessage(), true),
+                    false);
+            return;
+        }
+        if (ctx.cancelled()) {
+            return; // cancel() already moved the task to CANCELED
+        }
+        try {
+            contracts.validate(server.schemas().get(skill.id()).get("outputSchema"), result.output());
+        } catch (Contracts.ContractException e) {
+            end(emitter, new SkillException("INTERNAL", "invalid output: " + e.getMessage(), false), false);
+            return;
+        }
+        if (result.eventType() != null) {
+            if (!events.isResolvable() || result.eventData() == null) {
+                end(emitter, new SkillException("INTERNAL", "completion event without event sink", false), false);
+                return;
+            }
+            try {
+                events.get()
+                        .publish(
+                                result.eventType(),
+                                input.path("projectId").asString(""),
+                                result.eventData(),
+                                ctx.workflowId(),
+                                ctx.messageId(),
+                                null);
+            } catch (RuntimeException e) { // KG is committed; the retried task republishes
+                LOG.error("publishing completion event failed", e);
+                end(emitter, new SkillException("DEPENDENCY_UNAVAILABLE", e.toString(), true), false);
+                return;
+            }
+        }
+        Object output = JsonMapper.shared().convertValue(result.output(), Object.class);
+        emitter.addArtifact(List.of(new DataPart(output)), null, "result", null);
+        emitter.complete();
+    }
+
+    private static void end(AgentEmitter emitter, SkillException error, boolean reject) {
+        Map<String, Object> json =
+                Map.of("code", error.code(), "message", error.getMessage(), "retryable", error.retryable());
+        Message msg = emitter.newAgentMessage(List.of(new TextPart(error.getMessage())), Map.of(ERROR_KEY, json));
+        if (reject) {
+            emitter.reject(msg);
+        } else {
+            emitter.fail(msg);
+        }
+    }
+
+    @Override
+    public void cancel(RequestContext context, AgentEmitter emitter) {
+        SkillContext ctx = running.get(context.getTaskId());
+        if (ctx != null) {
+            ctx.cancel();
+        }
+        emitter.cancel();
+    }
+
+    private static String authorization(RequestContext context) {
+        if (context.getCallContext() == null
+                || !(context.getCallContext().getState().get(JSONRPCContextKeys.HEADERS_KEY)
+                        instanceof Map<?, ?> headers)) {
+            return null;
+        }
+        for (Map.Entry<?, ?> h : headers.entrySet()) {
+            if ("authorization".equalsIgnoreCase(String.valueOf(h.getKey()))) {
+                return String.valueOf(h.getValue());
+            }
+        }
+        return null;
+    }
+
+    /** Data part value as JSON, integral doubles back to integers (protobuf Struct widens every number, W-4). */
+    static JsonNode toJson(Object value) {
+        return JsonMapper.shared().valueToTree(jsonValue(value));
+    }
+
+    static Object jsonValue(Object v) {
+        if (v instanceof Double d && d == Math.rint(d) && Math.abs(d) <= 0x1p53) { // exact integers only
+            long l = d.longValue();
+            return l == (int) l ? (Object) (int) l : l; // same node types as parsed JSON
+        }
+        if (v instanceof Map<?, ?> m) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            m.forEach((k, x) -> out.put((String) k, jsonValue(x)));
+            return out;
+        }
+        if (v instanceof List<?> l) {
+            return l.stream().map(SkillExecutor::jsonValue).toList();
+        }
+        return v;
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> T cast(Object o) {
+        return (T) o;
+    }
+}

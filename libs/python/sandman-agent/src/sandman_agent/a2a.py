@@ -344,7 +344,10 @@ class A2aClient:
 
     def __init__(self, token: str, transport: httpx.AsyncBaseTransport | None = None, timeout: float = 30.0) -> None:
         self._http = httpx.AsyncClient(
-            headers={"Authorization": f"Bearer {token}"}, transport=transport, timeout=timeout
+            # a2a-java rejects calls that do not list the card's required extension (spike T0.4)
+            headers={"Authorization": f"Bearer {token}", "A2A-Extensions": INVOCATION_EXTENSION},
+            transport=transport,
+            timeout=timeout,
         )
         self._clients: dict[str, Client] = {}
 

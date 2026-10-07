@@ -39,6 +39,15 @@ http-server = [
 ]
 
 [[package]]
+name = "annotated-doc"
+version = "0.0.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/8e/38aa427ed5402449e226975b649c5dc73ccadfefeb95e6aecb8f8ea4b6b6/annotated_doc-0.0.5.tar.gz", hash = "sha256:c7e58ce09192557605d8bbd92836d7e1d520ac9580096042c0bfd197efacf1bb", size = 10758, upload-time = "2026-07-28T13:50:58.129Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/30/e900b21425a860e195f32e37657aa1f7c7f2b1bfb26f03ca209b90933c06/annotated_doc-0.0.5-py3-none-any.whl", hash = "sha256:117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101", size = 5302, upload-time = "2026-07-28T13:50:57.239Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -273,6 +282,23 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/88/7f/731ff914b0255d3d065f45fd4e626d4b8c95dbcbaada049f337a6ac16410/docker-7.2.0.tar.gz", hash = "sha256:cebb93773d334f778e023a7ee352a8d6e13ab1bd3b863a4d4a59dec897df43ac", size = 118731, upload-time = "2026-07-09T14:53:46.39Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/23/529140fe1aab80fc6992f93a706deec709140a6397439139a054e1515c45/docker-7.2.0-py3-none-any.whl", hash = "sha256:a3f45fdeb9165e2d25d9a1d02ddf3bc70fb572cf5ebbf9b58558c22caf29b71f", size = 148775, upload-time = "2026-07-09T14:53:45.224Z" },
+]
+
+[[package]]
+name = "fastapi"
+version = "0.142.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "annotated-doc" },
+    { name = "opentelemetry-api" },
+    { name = "pydantic" },
+    { name = "starlette" },
+    { name = "typing-extensions" },
+    { name = "typing-inspection" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/56/4f/f7c30a73127e0a8bbffe788369b8359e530b01ae06e2757936fa35bc5e6d/fastapi-0.142.2.tar.gz", hash = "sha256:06366626f2e70576367714d9ab2fe8472e6c8456dba69b399f9f797ab5e92570", size = 466721, upload-time = "2026-09-30T09:51:11.277Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/b6/78aaf9141fb46742928c113f3cf6ef2259d538cb02b604b7656c1dc9883c/fastapi-0.142.2-py3-none-any.whl", hash = "sha256:bd5f4d81f1e93a88bcd77caf4dfe3c2dbffc3805407a0007e9a114c18b3a670b", size = 144409, upload-time = "2026-09-30T09:51:09.8Z" },
 ]
 
 [[package]]
@@ -936,6 +962,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-multipart"
+version = "0.0.32"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5b/42/55c32bb9b12693c092ad250a0e82edb5b31ddeda6eb772de5f308b3804ad/python_multipart-0.0.32.tar.gz", hash = "sha256:be54b7f3fa167bb83e4fcd936b887b708f4e57fe75911c02aebf53efaf8d938e", size = 46881, upload-time = "2026-06-04T16:18:58.647Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/04/e8135ebd1ad02c56ec633277529b2602ff99ff634be76cdba5744cf554fd/python_multipart-0.0.32-py3-none-any.whl", hash = "sha256:ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23", size = 30042, upload-time = "2026-06-04T16:18:57.319Z" },
+]
+
+[[package]]
 name = "pytz"
 version = "2026.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1180,22 +1215,34 @@ name = "sandman-cli"
 version = "0.1.0"
 source = { editable = "tools/cli" }
 dependencies = [
+    { name = "httpx" },
     { name = "sandman-agent" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "sandman-agent", editable = "libs/python/sandman-agent" }]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "sandman-agent", editable = "libs/python/sandman-agent" },
+]
 
 [[package]]
 name = "sandman-extraction-agent"
 version = "0.1.0"
 source = { editable = "services/extraction-agent" }
 dependencies = [
+    { name = "fastapi" },
+    { name = "python-multipart" },
     { name = "sandman-agent" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "sandman-agent", editable = "libs/python/sandman-agent" }]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.142.2" },
+    { name = "python-multipart", specifier = ">=0.0.32" },
+    { name = "sandman-agent", editable = "libs/python/sandman-agent" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
+]
 
 [[package]]
 name = "sandman-llm-replay"
@@ -1221,22 +1268,36 @@ name = "sandman-orchestrator"
 version = "0.1.0"
 source = { editable = "services/orchestrator" }
 dependencies = [
+    { name = "fastapi" },
+    { name = "rfc8785" },
     { name = "sandman-agent" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "sandman-agent", editable = "libs/python/sandman-agent" }]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.142.2" },
+    { name = "rfc8785", specifier = ">=0.1.4" },
+    { name = "sandman-agent", editable = "libs/python/sandman-agent" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
+]
 
 [[package]]
 name = "sandman-plugin-stubs"
 version = "0.1.0"
 source = { editable = "tests/plugin-stubs" }
 dependencies = [
+    { name = "fastapi" },
     { name = "sandman-agent" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "sandman-agent", editable = "libs/python/sandman-agent" }]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.142.2" },
+    { name = "sandman-agent", editable = "libs/python/sandman-agent" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
+]
 
 [[package]]
 name = "sandman-query-service"

@@ -61,6 +61,7 @@ printf '%s}' "$VERIFY" > secrets/svc_tokens_verify.json   # regenerated on every
 echo "wrote   secrets/svc_tokens_verify.json"
 
 write admin_bootstrap_password "$(rand)"
+write e2e_admin_password "$(rand)"
 write session_secret "$(rand)"
 write dashboard_admin_password "$(rand)"
 write dashboard_session_secret "$(rand)"

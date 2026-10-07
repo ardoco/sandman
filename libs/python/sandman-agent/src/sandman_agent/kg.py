@@ -2,14 +2,33 @@
 
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any, LiteralString, TypeVar, cast
 
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction
+from neo4j.exceptions import Neo4jError
 
 from sandman_agent.ids import new_run_id
 from sandman_agent.llm import Usage
 
 T = TypeVar("T")
+
+
+class MemoryLimitError(Exception):
+    """Memgraph aborted the query at its memory limit; not retried (Memgraph reports it as transient, spike T0.4)."""
+
+
+def _no_retry_on_memory_limit[R](fn: Callable[[AsyncManagedTransaction], Awaitable[R]]) -> Callable[..., Awaitable[R]]:
+    # the driver retries TransientError; re-raising as a plain exception stops the retry loop
+    async def guarded(tx: AsyncManagedTransaction) -> R:
+        try:
+            return await fn(tx)
+        except Neo4jError as e:
+            if "memory limit exceeded" in (e.message or "").lower():
+                raise MemoryLimitError(e.message) from e
+            raise
+
+    return guarded
 
 
 def now() -> str:
@@ -35,7 +54,7 @@ class KgClient:
             return [r.data() async for r in await tx.run(cypher, params)]
 
         async with self._driver.session() as session:
-            return await session.execute_read(work)
+            return await session.execute_read(_no_retry_on_memory_limit(work))
 
     async def write(self, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:
         """Run a write query; transient errors are retried by the driver."""
@@ -44,12 +63,25 @@ class KgClient:
             return [r.data() async for r in await tx.run(cypher, params)]
 
         async with self._driver.session() as session:
-            return await session.execute_write(work)
+            return await session.execute_write(_no_retry_on_memory_limit(work))
 
     async def write_tx(self, fn: Callable[[AsyncManagedTransaction], Awaitable[T]]) -> T:
         """Run several statements in one write transaction."""
         async with self._driver.session() as session:
-            return cast(T, await session.execute_write(fn))
+            return cast(T, await session.execute_write(_no_retry_on_memory_limit(fn)))
+
+    async def run_autocommit(self, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:
+        """Auto-commit query; Memgraph requires it for schema statements and SHOW STORAGE INFO (spike T0.4)."""
+        async with self._driver.session() as session:
+            return [r.data() async for r in await session.run(cypher, params)]
+
+    async def init_schema(self, cypher_file: Path) -> None:
+        """Run contracts/kg/init.cypher statement by statement (idempotent)."""
+        code = "\n".join(
+            line for line in cypher_file.read_text(encoding="utf-8").splitlines() if not line.lstrip().startswith("//")
+        )
+        for statement in filter(None, (s.strip() for s in code.split(";"))):
+            await self.run_autocommit(statement)
 
 
 class RunRecorder:

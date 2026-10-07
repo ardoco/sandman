@@ -136,3 +136,21 @@ async def test_publish_consume_round_trip_with_deduplication(nats_url: str, cont
         assert (await js.stream_info(events.STREAM)).state.messages == 1
     finally:
         await nc.close()
+
+
+async def test_init_schema_is_idempotent_and_memory_limit_is_not_retried(memgraph: str) -> None:
+    from sandman_agent.config import DEFAULT_CONTRACTS_DIR
+    from sandman_agent.kg import MemoryLimitError
+
+    kg = KgClient(memgraph, None, None)
+    try:
+        await kg.init_schema(DEFAULT_CONTRACTS_DIR / "kg/init.cypher")
+        await kg.init_schema(DEFAULT_CONTRACTS_DIR / "kg/init.cypher")
+        info = await kg.run_autocommit("SHOW STORAGE INFO")
+        assert "memory_res" in {row["storage info"] for row in info}
+        started = time.monotonic()
+        with pytest.raises(MemoryLimitError):
+            await kg.read("UNWIND range(1, 2000000) AS i WITH collect(i) AS l RETURN size(l) QUERY MEMORY LIMIT 1 MB")
+        assert time.monotonic() - started < 5, "memory-limit error must not be retried"
+    finally:
+        await kg.close()

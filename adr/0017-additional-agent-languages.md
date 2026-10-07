@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-10-07
 ---
 
@@ -39,10 +39,10 @@ Result: **feasible**. TypeScript and Go have official, stable building blocks th
 
 ## Decision Outcome
 
-Proposed: **B**. Python and Java remain the languages of the existing agents (ADR-0001 unchanged). A new language is admitted for an agent once its kit exists and passes the conformance vectors and the interop test against the Python orchestrator and a Java agent. Plugins remain possible in any language.
+Chosen: **B** (accepted 2026-10-07). Python and Java remain the languages of the existing agents (ADR-0001 unchanged). A new language is admitted for an agent once its kit exists and passes the conformance vectors and the interop test against the Python orchestrator and a Java agent. Plugins remain possible in any language.
 
 * Layout: `libs/typescript/sandman-agent`, `libs/go/sandman-agent`, `libs/rust/sandman-agent`; services as today under `services/<name>`.
-* Build tools (binding, like uv/Maven): TypeScript npm workspaces with `package-lock.json`, Go modules, Rust Cargo workspace with `Cargo.lock`. Naming: npm scope `@ardoco/sandman-*`, Go module `github.com/ArDoCo/sandman/...`, Rust crates `sandman-*` (to confirm).
+* Build tools (binding, like uv/Maven): TypeScript npm workspaces with `package-lock.json`, Go modules, Rust Cargo workspace with `Cargo.lock`. Naming: npm scope `@ardoco/sandman-*`, Go module `github.com/ArDoCo/sandman/...`, Rust crates `sandman-*` (Q-22: default confirmed; unpublished until needed).
 * Framework guard per language: ban LangChain(.js)/LangGraph(.js)/LlamaIndex/Mastra (TS), LangChainGo/Eino (Go), langchain-rust/rig (Rust) in agent code.
 * The kits do not include the cut modules (tool loop, record/replay — `llm-replay` covers it).
 
@@ -76,5 +76,6 @@ Per kit: conformance vectors (`stableId`, `sectionKey`, `sentenceKey`, `fingerpr
 
 ## More Information
 
-* Open questions: Q-21 (which agents/when), Q-22 (naming and registry choices) in Stage 3 §8.
+* Q-21 decided 2026-10-07: none of the current agents is moved or planned in these languages; the kits are for future agents only (MX stays on demand).
+* Q-22 decided 2026-10-07: proposed default naming (npm `@ardoco/sandman-*`, Go module `github.com/ArDoCo/sandman/libs/go/...`, crates `sandman-*`), unpublished until needed.
 * Related: ADR-0001, ADR-0002, ADR-0010, ADR-0012.

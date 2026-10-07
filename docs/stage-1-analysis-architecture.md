@@ -1250,7 +1250,7 @@ ADRs are in [`adr/`](../adr/README.md) (MADR 4 format). Status `proposed` = depe
 | [0014](../adr/0014-graph-database.md) | Memgraph Community as graph database | accepted | Q-11 answered |
 | [0015](../adr/0015-ardoco-integration.md) | ArDoCo integration: links of all approaches, adapter-controlled sentence rendering, two pinned commits | proposed | upstream changes (spike T0.12) |
 | [0016](../adr/0016-system-overview-dashboard.md) | System overview dashboard: separate admin-only service | accepted | decided 2026-10-06 |
-| [0017](../adr/0017-additional-agent-languages.md) | Additional agent languages TypeScript, Go, Rust via minimal agent kits | proposed | Q-21, Q-22 |
+| [0017](../adr/0017-additional-agent-languages.md) | Additional agent languages TypeScript, Go, Rust via minimal agent kits | accepted | – |
 
 Review decisions of Stage 4 are recorded as dated `Amendments` in ADR-0002…0007, 0009, 0010, 0012…0014.
 

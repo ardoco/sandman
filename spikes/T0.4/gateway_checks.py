@@ -25,7 +25,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from openai import OpenAI
+from openai import APIStatusError, OpenAI
 
 GW = os.environ.get("GW_URL", "http://127.0.0.1:8081")
 results: list[tuple[str, str]] = []
@@ -49,6 +49,10 @@ def attempt(check: str, fn) -> None:  # type: ignore[no-untyped-def]
 
 
 def main() -> None:
+    try:
+        urllib.request.urlopen(f"{GW}/health", timeout=5).close()
+    except OSError as e:
+        sys.exit(f"gateway not reachable at {GW} ({e}); start it: docker compose -f deploy/docker-compose.yml up -d llm-gateway")
     key = secret("KEY_FILE", "deploy/secrets/llm_key_query")
     local_key = secret("LOCAL_KEY_FILE", "deploy/secrets/llm_key_query_local")
     chat_model = os.environ.get("CHAT_MODEL", "openai/gpt-4.1-nano")
@@ -83,8 +87,11 @@ def main() -> None:
     try:
         local.chat.completions.create(model=chat_model, messages=hello, max_tokens=5)
         record("12 local-only key rejected on cloud route", False, "cloud call succeeded with the -local key")
+    except APIStatusError as e:  # only a gateway refusal counts, not connection errors
+        record("12 local-only key rejected on cloud route", e.status_code in (400, 401, 403, 404),
+               f"HTTP {e.status_code}: {str(e)[:120]}")
     except Exception as e:  # noqa: BLE001
-        record("12 local-only key rejected on cloud route", True, f"{type(e).__name__}: {str(e)[:120]}")
+        record("12 local-only key rejected on cloud route", False, f"{type(e).__name__}: {str(e)[:120]}")
 
     admin = base64.b64encode(f"admin:{secret('ADMIN_PW_FILE', 'deploy/secrets/gateway_admin_password')}".encode()).decode()
     for path in ("/metrics", "/api/logs?limit=5"):
@@ -99,6 +106,8 @@ def main() -> None:
                 record("6 request log via management API", True, f"{len(body)} bytes; traceparent present: {traceparent in body}")
         except urllib.error.HTTPError as e:
             record(f"6 {path}", False, f"HTTP {e.code}")
+        except OSError as e:
+            record(f"6 {path}", False, f"{type(e).__name__}: {e}")
     print("\nSUMMARY " + " ".join(f"{c}={v}" for c, v in results))
 
 

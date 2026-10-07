@@ -56,9 +56,12 @@ class Extract:
 
         def read(storage_path: str) -> str:
             path = Path(storage_path).resolve()
-            if not path.is_relative_to(store):
+            if not Path(storage_path).is_absolute() or not path.is_relative_to(store):
                 raise SkillError("INVALID_INPUT", f"{storage_path} is outside the artifact store", False)
-            return path.read_text(encoding="utf-8", errors="replace")
+            try:
+                return path.read_text(encoding="utf-8", errors="replace")
+            except OSError as e:  # missing file, directory, ...: not retryable
+                raise SkillError("INVALID_INPUT", f"cannot read {storage_path}: {e.strerror}", False) from e
 
         known: dict[str, dict[str, str]] = {}  # qualified name -> locator, across all current artifacts
         for a in [*input["context"]["currentArtifacts"], *input["artifacts"]]:
@@ -131,7 +134,7 @@ def create_detect_app(
 
     def owner(authorization: str | None = Header(None)) -> None:
         token = authorization[7:].strip() if authorization and authorization.lower().startswith("bearer ") else ""
-        if not token or not hmac.compare_digest(token, inbound):
+        if not token or not hmac.compare_digest(token.encode(), inbound.encode()):
             raise HTTPException(401, "missing or invalid token")
 
     app.add_api_route("/healthz", healthz, methods=["GET"])
@@ -147,7 +150,11 @@ def create_detect_app(
         except ContractError as e:
             return _problem(400, str(e))
         hint = body.get("queryServiceUrl")
-        if hint is not None and _origin(hint) != _origin(query_url):
+        try:
+            mismatch = hint is not None and _origin(hint) != _origin(query_url)
+        except ValueError:  # invalid port
+            mismatch = True
+        if mismatch:
             return _problem(400, "queryServiceUrl does not match the configured query-service")
         project = body["projectId"]
         try:

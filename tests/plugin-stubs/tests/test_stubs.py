@@ -149,3 +149,18 @@ async def test_detect_uses_configured_query_service_url(monkeypatch: pytest.Monk
         assert (await c.post("/v1/detect", json=DETECT, headers=INBOUND)).status_code == 400
     [req] = requests
     assert str(req.url) == "http://qs.internal:9000/v1/query/cypher"
+
+
+async def test_extract_rejects_relative_and_unreadable_paths() -> None:
+    for storage in (Path("src/main/java/mini/MediaCache.java"), MINI / "missing.java", MINI):
+        with pytest.raises(PluginError) as e:
+            await plugin_client().extract(extract_input(artifact(CODE, "code", storage=storage)))
+        assert not e.value.retryable
+
+
+async def test_detect_non_ascii_token_and_bad_port_are_client_errors() -> None:
+    async with await detect_client(fake_query_service([])) as c:
+        resp = await c.post("/v1/detect", json=DETECT, headers={"Authorization": "Bearer é".encode("latin-1")})
+        assert resp.status_code == 401
+        resp = await c.post("/v1/detect", json={**DETECT, "queryServiceUrl": "http://x:99999"}, headers=INBOUND)
+        assert resp.status_code == 400

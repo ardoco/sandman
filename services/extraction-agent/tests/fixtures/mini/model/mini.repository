@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repository:Repository xmlns:repository="http://palladiosimulator.org/PalladioComponentModel/Repository/5.2" id="_repo" entityName="mini">
+  <components__Repository id="_mediacache" entityName="MediaCache"/>
+  <components__Repository id="_userdb" entityName="UserDB"/>
+</repository:Repository>

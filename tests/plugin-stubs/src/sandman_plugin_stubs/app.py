@@ -6,9 +6,11 @@ artifact store, and read the KG through the query-service with their own token (
 
 import hmac
 import logging
+import os
 import re
 from pathlib import Path, PurePosixPath
 from typing import Annotated, Any
+from urllib.parse import urlsplit
 
 import httpx
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
@@ -111,6 +113,11 @@ def _problem(status: int, detail: str) -> JSONResponse:
     return JSONResponse(body, status_code=status, media_type="application/problem+json")
 
 
+def _origin(url: str) -> tuple[str, str, int | None]:
+    u = urlsplit(url.strip())
+    return u.scheme.lower(), (u.hostname or "").lower(), u.port or {"http": 80, "https": 443}.get(u.scheme.lower())
+
+
 def create_detect_app(
     settings: Settings, contracts: Contracts | None = None, transport: httpx.AsyncBaseTransport | None = None
 ) -> FastAPI:
@@ -118,6 +125,7 @@ def create_detect_app(
     settings.require("plugin_inbound_token", "service_token")
     inbound, outbound = str(settings.plugin_inbound_token), str(settings.service_token)
     contracts = contracts or Contracts(settings.contracts_dir)
+    query_url = os.environ.get("SANDMAN_QUERY_SERVICE_URL", "http://query-service:8000").rstrip("/")
     query_service = httpx.AsyncClient(headers={"Authorization": f"Bearer {outbound}"}, transport=transport, timeout=30)
     app = FastAPI(title=PLUGIN_ID, version=__version__)
 
@@ -138,10 +146,13 @@ def create_detect_app(
             contracts.validate("skills.schema.json#/$defs/PluginDetectInput", body)
         except ContractError as e:
             return _problem(400, str(e))
+        hint = body.get("queryServiceUrl")
+        if hint is not None and _origin(hint) != _origin(query_url):
+            return _problem(400, "queryServiceUrl does not match the configured query-service")
         project = body["projectId"]
         try:
             resp = await query_service.post(
-                body["queryServiceUrl"].rstrip("/") + "/v1/query/cypher", json={"projectId": project, "cypher": COUNT}
+                query_url + "/v1/query/cypher", json={"projectId": project, "cypher": COUNT}
             )
             resp.raise_for_status()
             count = resp.json()["rows"][0][0]

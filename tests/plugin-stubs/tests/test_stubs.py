@@ -93,7 +93,7 @@ async def detect_client(transport: httpx.MockTransport) -> httpx.AsyncClient:
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://plugin-stubs:8001")
 
 
-DETECT = {"projectId": "mini", "llmPolicy": "local-only", "queryServiceUrl": "http://query-service:8080"}
+DETECT = {"projectId": "mini", "llmPolicy": "local-only", "queryServiceUrl": "http://query-service:8000/"}
 INBOUND = {"Authorization": "Bearer inbound"}
 
 
@@ -106,7 +106,7 @@ async def test_detect_counts_elements_via_query_service_with_own_token() -> None
     CONTRACTS.validate("skills.schema.json#/$defs/PluginDetectOutput", out)
     assert out["findings"] == [] and "7 elements" in out["warnings"][0]
     [req] = requests
-    assert str(req.url) == "http://query-service:8080/v1/query/cypher"
+    assert str(req.url) == "http://query-service:8000/v1/query/cypher"
     assert req.headers["authorization"] == "Bearer outbound"
     assert json.loads(req.content) == {"projectId": "mini", "cypher": COUNT}
 
@@ -129,3 +129,23 @@ async def test_detect_query_service_failure_is_503() -> None:
     async with await detect_client(transport) as c:
         resp = await c.post("/v1/detect", json=DETECT, headers=INBOUND)
     assert resp.status_code == 503 and resp.headers["content-type"] == "application/problem+json"
+
+
+async def test_detect_rejects_foreign_query_service_url_without_outbound_call() -> None:
+    requests: list[httpx.Request] = []
+    async with await detect_client(fake_query_service(requests)) as c:
+        resp = await c.post("/v1/detect", json={**DETECT, "queryServiceUrl": "http://evil:8000"}, headers=INBOUND)
+    assert resp.status_code == 400
+    assert resp.headers["content-type"].startswith("application/problem+json")
+    assert requests == []
+
+
+async def test_detect_uses_configured_query_service_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SANDMAN_QUERY_SERVICE_URL", "http://qs.internal:9000")
+    requests: list[httpx.Request] = []
+    async with await detect_client(fake_query_service(requests)) as c:
+        hint = {**DETECT, "queryServiceUrl": "http://QS.internal:9000/"}
+        assert (await c.post("/v1/detect", json=hint, headers=INBOUND)).status_code == 200
+        assert (await c.post("/v1/detect", json=DETECT, headers=INBOUND)).status_code == 400
+    [req] = requests
+    assert str(req.url) == "http://qs.internal:9000/v1/query/cypher"

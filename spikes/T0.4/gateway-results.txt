@@ -8,3 +8,11 @@
 [PASS] 12 local-only key rejected on cloud route: HTTP 403 provider_blocked
 [PASS] 6/V-36 metrics with admin auth: 20 bifrost_* metrics: bifrost_active_requests, bifrost_cost_total, bifrost_error_requests_total, bifrost_input_tokens_total, bifrost_output_tokens_total, bifrost_provider_key_up, bifrost_request_retries_*, bifrost_stream_first_token_latency_seconds_*, ...
 [PASS] 6 request log via management API: 10399 bytes; traceparent present: False
+
+# bash spikes/T0.4/budget_check.sh  (check 5, 2026-10-07, run by the user)
+A budget (b-query = 0.000001 USD): call 1 HTTP 200 (spending is counted after the call); calls 2-3:
+  HTTP 402 {"type":"budget_exceeded","status_code":402,"error":{"message":"Budget exceeded: vk query budget exceeded: 0.0000 >= 0.0000 dollars"},"extra_fields":{...,"error_type":"policy_budget_exceeded"}}
+B rate limit (rl-heavy = 2 requests/1m, tlr key): calls 1-2 HTTP 200; call 3:
+  HTTP 429 {"type":"request_limited","status_code":429,"error":{"message":"Rate limit exceeded: rate limit violated forvk tlr: [request limit exceeded (2/2, resets every 1m)]"},"extra_fields":{...,"error_type":"policy_rate_limited"}}
+  no Retry-After header; the X-Ratelimit-* headers on successful calls are OpenAI's upstream headers, not Bifrost's limits.
+UI: editing a standalone VK budget (budget object with virtual_key_id) fails with "invalid reset duration format:" (empty value sent by the form); config.json "1M" itself is valid.

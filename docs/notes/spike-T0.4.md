@@ -12,7 +12,7 @@ Date: 2026-10-06/07. Scripts: `spikes/T0.4/` (`memgraph_checks.py`, `gateway_che
 | 2 | Inference with a virtual key | PASS | resolved model `gpt-4.1-nano-2025-04-14` (`gateway-results.txt`) | – |
 | 3 | OpenAI Python SDK via base URL `…/openai`: tool calling, structured output (`json_schema`), streaming, embeddings | PASS | all four; embeddings 1536 dims | V-2/A2-3 closed for Python; Java uses LangChain4j (T2.2) |
 | 4 | Routes `openai/…`, `openrouter/<vendor>/<model>` | PASS | OpenRouter resolved `openai/gpt-4.1-nano`; Ollama route not run (profile `local-llm` off) | V-18/V-20 nested names closed; Ollama still open |
-| 5 | Budget exhaustion, rate limit | **OPEN (manual)** | README step | – |
+| 5 | Budget exhaustion, rate limit | PASS | `budget_check.sh` on a throwaway gateway: budget → **HTTP 402** `budget_exceeded` (first call still served; spending counted afterwards); rate limit → **HTTP 429** `request_limited`, no `Retry-After` header. UI bug: editing a standalone VK budget fails ("invalid reset duration format:") | Python `OpenAiLlmClient` maps 402 → `BudgetExceededError` → `SkillError BUDGET_EXCEEDED` (workflow BLOCKED); 429 stays retryable (SDK retries). Java adapters (LangChain4j) map the same in T2.2/T3.2. Change budgets via `config.json` + volume reset, not the UI |
 | 6 | Request log and `traceparent` | PASS / INFO | log via management API with admin auth; **`traceparent` is not stored in the request log** | correlate LLM calls via OpenTelemetry and `user` = runId, not the gateway log |
 | V-36 | Bifrost `/metrics` with admin Basic auth | PASS | 20 `bifrost_*` metrics incl. `cost_total`, `input/output_tokens_total`, `error_requests_total`, latency histograms | dashboard LLM statistics feasible (T1.9) |
 | 12 | `-local` virtual key on a cloud route | PASS | HTTP 403 `provider_blocked` | gateway enforces `local-only` (R-035) |
@@ -45,5 +45,5 @@ Date: 2026-10-06/07. Scripts: `spikes/T0.4/` (`memgraph_checks.py`, `gateway_che
 
 ## Still open
 
-- Check 5 (budget exhaustion and rate limit; manual, `spikes/T0.4/README.md`), check 18 (OpenRouter account privacy setting), Ollama route (profile `local-llm`).
-- ADR-0004 (Bifrost) can move to `accepted` once check 5 passes; all other confirmation criteria hold (governance in the OSS build, admin auth, `-local` keys, keyless start).
+- Check 18 (OpenRouter account privacy setting), Ollama route (profile `local-llm`).
+- ADR-0004 (Bifrost) accepted on 2026-10-07: all confirmation criteria hold (governance and budgets in the OSS build, admin auth, `-local` keys, keyless start).

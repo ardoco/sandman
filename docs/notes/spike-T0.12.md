@@ -223,3 +223,41 @@ LangChain4j and Netty are not in that BOM. a2a-java's own transitive versions we
 * Plan: T1.1 drops "sentenceIndex compatible with ArDoCo's splitting". T3.1 owns the rendering and the `PreprocessingData` injection.
   RK-3 likelihood M → L. RK-18 stays M with the mitigation "workaround now, upstream extension". Add a risk for the unpublished NAER
   snapshot / cross-repo cycle.
+
+## Update 2026-10-07: NAER 2.1.0 published
+
+`io.github.ardoco:named-architecture-entity-recognition:2.1.0` is on Maven Central (it depends on the released ArDoCo 2.1.0 artifacts).
+The cyclic two-pass bootstrap (§1, V-17) is no longer needed: the branch builds in **one pass** and there is no NAER clone.
+
+`spikes/T0.12/bootstrap.sh` (rewritten): clone ArDoCo, check out `0d1f22b`, `sed` the NAER `<version>2.1.0-SNAPSHOT</version>` → `2.1.0`
+(only inside the NAER `<dependency>` block), then `mvn -B -Dmaven.repo.local=$WORK/m2 install -DskipTests` with JDK 21, `WORK=/private/tmp/claude-501/ardoco-naer210`.
+The hard-coded version is in **two** poms, not one: `core/framework/common/pom.xml` and `tlr/stages-tlr/artemis/pom.xml` (patching only
+`common` fails at `artemis` with "Could not find ... named-architecture-entity-recognition:2.1.0-SNAPSHOT"). `git diff` of the clone: 2 files, 1 line each.
+
+| Check | Result |
+|---|---|
+| `./bootstrap.sh` (JDK 21.0.12, Maven 3.9) | `BUILD SUCCESS`, 29 s for the ArDoCo build (the Maven repo was partly warm from a first failed attempt, which took 42 s up to `artemis`), 30 s script wall time |
+| Maven repo size | 747 MB (`$WORK/m2`) |
+| `mvn dependency:tree` (all 24 reactor modules) | NAER resolves to `2.1.0`, `_remote.repositories` shows `mavenCentral`. No `-SNAPSHOT` besides the 2.1.0-SNAPSHOT modules of the reactor itself (`io.github.ardoco.{core,tlr,id}:*`); no third-party snapshots. |
+| Cycle | Gone. NAER 2.1.0 declares `core:common:2.1.0` (release), which Maven mediates to the branch's reactor `core:common:2.1.0-SNAPSHOT` (nearest wins), so both resolve to one `common` on the classpath. The release `common-2.1.0.jar` is still downloaded into the local repo but not on the classpath. |
+| Spike `detect` on MediaStore (PCM) | `RUN internal`: 6 `ModelEntityAbsentFromText` + 36 `TextEntityAbsentFromModel` = **42 findings**, as before. The other variants also match §3/§5 (self-similar 44, self-sentence 6, self-internal+similar 42, gold-similar 45, gold-sentence 4, gold-internal+similar 45). Run time 5.5 s first run. |
+
+Commands:
+
+```sh
+spikes/T0.12/bootstrap.sh
+WORK=/private/tmp/claude-501/ardoco-naer210; B=$WORK/ardoco/core/tests-base/src/main/resources/benchmark
+(cd spikes/T0.12 && mvn -B -q -Dmaven.repo.local=$WORK/m2 compile exec:java \
+  -Dexec.args="detect $B/mediastore/text_2016/mediastore.txt $B/mediastore/model_2016/pcm/ms.repository $WORK/out-ms $B/mediastore/goldstandards/goldstandard_sad_2016-sam_2016.csv")
+(cd $WORK/ardoco && mvn -B -Dmaven.repo.local=$WORK/m2 dependency:tree)
+```
+
+The spike's `pom.xml` needed no change (`ardoco.version` stays `2.1.0-SNAPSHOT`, the version of the branch build).
+
+Remaining issues:
+
+* The pin still has to be patched: the branch's poms hard-code `2.1.0-SNAPSHOT` for NAER in two places. Ask upstream to switch
+  `core/framework/common` and `tlr/stages-tlr/artemis` to `2.1.0` (or to merge the branch onto a base that does), then B1 needs no `sed` and only one pinned commit.
+* The branch itself is still `2.1.0-SNAPSHOT`, so it is not on Central. B1 still builds ArDoCo from source at a pinned commit (or waits for a release containing the inconsistency work).
+* The sandman Docker stage / `make ardoco` should copy the new `bootstrap.sh`; the follow-up "risk for the unpublished NAER snapshot / cross-repo cycle" above can be dropped.
+* Not re-run: sentences/presplit modes and the UML model (only the MediaStore PCM `detect` was repeated).

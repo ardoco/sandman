@@ -2,13 +2,16 @@
 
 Throwaway code. Findings: `docs/notes/spike-T0.12.md`.
 
+`bootstrap.sh` patches the NAER version in two poms of the scratch clone only (`core/framework/common`, `tlr/stages-tlr/artemis`); the ArDoCo
+commit itself is unchanged. The spike's `pom.xml` is unchanged (`ardoco.version` = the branch's `2.1.0-SNAPSHOT`, installed by the bootstrap).
+
 Requires JDK 21 (JDK 26 also builds), Maven 3.9, network for the first build. Everything lands in `$WORK`
-(default `/private/tmp/claude-501/ardoco-spike`), not in `~/.m2`.
+(default `/private/tmp/claude-501/ardoco-naer210`), not in `~/.m2`.
 
 ```sh
-./bootstrap.sh                       # clone + build ArDoCo @0d1f22b and NAER @d631a70 (~2 min, ~650 MB deps)
+./bootstrap.sh                       # clone ArDoCo @0d1f22b, NAER 2.1.0-SNAPSHOT -> 2.1.0 (Maven Central), one-pass build (~1 min, ~750 MB deps)
 
-WORK=/private/tmp/claude-501/ardoco-spike
+WORK=/private/tmp/claude-501/ardoco-naer210
 B=$WORK/ardoco/core/tests-base/src/main/resources/benchmark
 run() { mvn -B -q -Dmaven.repo.local=$WORK/m2 compile exec:java -Dexec.args="$*"; }
 

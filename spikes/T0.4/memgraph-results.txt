@@ -1,0 +1,15 @@
+[PASS] 7 driver: neo4j-python 6.4.0 connects to memgraph/memgraph:3.13.1
+[PASS] 7 execute_read rejects writes: Memgraph.ClientError.MemgraphError.MemgraphError: Accessor type READ and query type WRITE are misaligned!
+[FAIL] 7 auto-commit in READ access mode: write accepted, 1 node(s) created
+[PASS] 8 init.cypher (auto-commit; rejected in explicit transactions): 25 statements, failures: none
+[PASS] 8 Stage 1 §4.4 statements: 10 statements, failures: none
+[INFO] 8 EXPLAIN unknown label/property: MATCH (n:NoSuchLabel) RETURN n… accepted, 4 plan rows (no error)
+[INFO] 8 EXPLAIN unknown label/property: MATCH (n:Element) WHERE n.nope =… accepted, 4 plan rows (no error)
+[PASS] 8 QUERY MEMORY LIMIT syntax: accepted:  QUERY MEMORY LIMIT 10 MB
+[PASS] 8 QUERY MEMORY LIMIT syntax: accepted:  QUERY MEMORY LIMIT 10MB
+[PASS] 8 QUERY MEMORY LIMIT enforced: Memory limit exceeded! Attempting to allocate a chunk of 160.00MiB which would put the current use t
+[PASS] V-38 path query: (a:P {id: 'a'})-[*BFS ..5]-(c:P {i… -> length 2
+[INFO] V-38 path query: shortestPath((a:P {id: 'a'})-[*..5… rejected: Error on line 1 position 11. The underlying parsing error is extraneou
+[PASS] 10 mgconsole exit code without server: exit=1
+[PASS] 15 write conflict retried by execute_write: 8 concurrent writers -> n=8, attempts=20 (retries=12), errors=[]
+[PASS] 14 --memory-limit=512 enforced: query aborted (Memory limit exceeded! Current use is 512.02MiB, while the maximum all); server alive, memory_tracked=513.89MiB, limit=None

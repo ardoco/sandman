@@ -1,0 +1,42 @@
+# Spike T0.4 — gateway, Memgraph, A2A interoperability
+
+Date: 2026-10-06/07. Scripts: `spikes/T0.4/` (`memgraph_checks.py`, `gateway_checks.py`, `java-a2a/`). Detailed A2A results:
+`spikes/T0.4/java-a2a/RESULT.md`.
+
+## Results
+
+| # | Check | Result | Evidence | Consequence |
+|---|---|---|---|---|
+| 1 | Bifrost v2.2.6 starts with read-only `config.json`, keys from env | PASS | governance active, 6 budgets and 2 rate limits loaded, healthy after ~10 s | – |
+| 2 | Inference without key / with wrong key | PASS (401 both) | `curl` on `/openai/chat/completions` | – |
+| 2 | Inference with a virtual key | **PENDING** | needs read access to `deploy/secrets/llm_key_query` | run `gateway_checks.py` |
+| 3–6, 12, 18 | SDK features, routes, budget, request log/`traceparent`, `-local` key on cloud routes, OpenRouter privacy | **PENDING** | same | run `gateway_checks.py`; check 5 manual (README) |
+| 7 | Neo4j Python driver 6.4 ↔ Memgraph 3.13.1 | PASS | connects; Java driver 6.3 also passes (agent-lib integration tests) | V-6 closed |
+| 7 | `execute_read` rejects writes | PASS | `Accessor type READ and query type WRITE are misaligned!` | primary write guard holds (ADR-0009) |
+| 7 | Auto-commit query in a session with `READ` access mode | **FAIL** | write accepted, node created | never rely on the session access mode; read paths must use read **transactions** (libraries do) |
+| 8 | `init.cypher` (25 statements) | PASS **only as auto-commit** | in explicit transactions: `Constraint manipulation is not allowed in multicommand transactions` | both libraries need an auto-commit method (`KgClient.run_autocommit`) for schema setup and `SHOW STORAGE INFO` |
+| 8 | Stage 1 §4.4 statements (10) | PASS | incl. `FOREACH`-free version activation, `MERGE … ON CREATE SET`, link finalization | V-7 closed |
+| 8 | `QUERY MEMORY LIMIT` | PASS | `… QUERY MEMORY LIMIT 10 MB` and `10MB` accepted; 1 MB limit aborts a large `collect` | syntax confirmed for the query-service guard |
+| 8 | `EXPLAIN` with unknown label/property | INFO | accepted without error (plan returned) | `EXPLAIN` catches syntax errors only; schema checks must come from the scope guard / schema contract |
+| V-38 | Path query | PASS / INFO | `[*BFS ..5]` works; `shortestPath()` is rejected by the parser | dashboard uses BFS syntax |
+| 10 | `mgconsole` without server | PASS | exit code 1 | healthcheck works |
+| 11 | Gateway management API, logs, `/metrics` without credentials | PASS (401) | from the host and from a container on `internal` | R-034 closed for Bifrost |
+| 13 | `edge` bridge with `enable_ip_masquerade=false` | **FAIL on Docker Desktop (macOS)** | published port served (200), but the container still reaches the internet and resolves DNS | the D-4 egress control does not hold on Docker Desktop; Linux unverified. Proposal: query-service and dashboard only on `internal`, a small reverse proxy on `edge` publishes their ports (R-035 alternative) |
+| 14 | Memgraph `--memory-limit` (MiB) | PASS | query aborted, server alive | **the error is a `TransientError`**: drivers retry it up to ~30 s; libraries must not retry memory-limit errors |
+| 15 | Concurrent writes on one node | PASS | 8 writers → correct result, 11 automatic retries (`Cannot resolve conflicting transactions`, transient) | per-batch retry by the driver works (R-016) |
+| 9 | Python ↔ Java A2A | PASS with one change | Java server requires the card's `required` extension in the `A2A-Extensions` header; added to the Python `A2aClient` | see W-1–W-4 in `java-a2a/RESULT.md` |
+| 16 | Java A2A runtime (D-6) | **PASS: keep a2a-java on Quarkus 3.33.4** | custom executor with all 4 skill-invocation vectors; ArDoCo + LiSSA on the Quarkus classpath, ArDoCo MediaStore = 42 findings as in T0.12 | ADR-0002 amendment; T0.3 `agent-lib-a2a` settings below |
+| 17 | Bifrost with empty provider keys | PASS | healthy, no errors | keyless walking skeleton works (R-040, V-34) |
+
+## Consequences for implementation
+
+- **Both libraries:** add an auto-commit `KgClient` call for schema setup and storage info; classify Memgraph "Memory limit exceeded" as non-retryable; Java `Contracts` now uses `Locale.ROOT` (messages were German on this machine).
+- **Python `A2aClient`:** sends `A2A-Extensions: <skill-invocation extension>` (done).
+- **Java `agent-lib-a2a` (T0.3):** `a2a.authorization.required=false` plus our bearer filter; route the card's path `/a2a` to a2a-java's `POST /` (or move the cards' interface URL to `/`); normalize integral doubles in data parts; send `A2A-Extensions` and `A2A-Version: 1.0` from the Java client.
+- **Callers:** do not assume the first state after `SendMessage` (Java returns `REJECTED` directly, Python `SUBMITTED` first).
+- **ArDoCo + LiSSA in one agent:** pin LangChain4j explicitly, exclude LiSSA's `slf4j-simple`, align `model-provider`; image grows by ~640 MB, ~1.7 GB RSS after two ArDoCo runs (memory budget of 5 GB per Java agent holds).
+- **Deployment (decision needed):** egress blocking via `enable_ip_masquerade=false` does not work on Docker Desktop.
+
+## Still open
+
+Checks 2 (with key), 3, 4, 5, 6, 12, 18 and V-36 need the virtual keys and the gateway admin password (`gateway_checks.py`).

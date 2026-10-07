@@ -227,9 +227,7 @@ services:
       - query-data:/data
     secrets: [memgraph_password, svc_tokens_verify, svc_token_query-service, llm_key_query, llm_key_query_local,
               admin_bootstrap_password, session_secret]
-    networks: [internal, edge]
-    ports:
-      - "127.0.0.1:8080:8000"                    # console + user/agent API
+    networks: [internal]                         # published via edge-proxy (127.0.0.1:8080)
     mem_limit: 1g
     depends_on:
       memgraph: { condition: service_healthy }
@@ -260,14 +258,24 @@ services:
       - ../data/logs:/logs
     secrets: [svc_token_dashboard, dashboard_admin_password, dashboard_session_secret, memgraph_password,
               gateway_admin_password]
-    networks: [internal, edge]
-    ports:
-      - "127.0.0.1:8090:8000"                    # system overview (admins)
+    networks: [internal]                         # published via edge-proxy (127.0.0.1:8090)
     mem_limit: 512m
     depends_on:                                  # deliberately not on agents: it must show them when they are down
       memgraph: { condition: service_healthy }
       nats: { condition: service_healthy }
     healthcheck: *py-health
+    restart: unless-stopped
+
+  edge-proxy:                                  # publishes internal-only web services (spike T0.4 check 13)
+    image: caddy:2.11.7-alpine
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+    networks: [internal, edge]
+    ports:
+      - "127.0.0.1:8080:8080"                    # console + user/agent API (query-service)
+      - "127.0.0.1:8090:8090"                    # system overview (dashboard, admins)
+      - "127.0.0.1:3001:3001"                    # Grafana (profile obs)
+    mem_limit: 128m
     restart: unless-stopped
 
   # ---------------------------------------------------------------- optional profiles
@@ -303,9 +311,7 @@ services:
     image: grafana/otel-lgtm:0.35.0
     volumes:
       - otel-data:/data
-    networks: [internal, edge]
-    ports:
-      - "127.0.0.1:3001:3000"                    # Grafana
+    networks: [internal]                         # Grafana published via edge-proxy (127.0.0.1:3001)
     mem_limit: 2g
     restart: unless-stopped
 
@@ -339,9 +345,7 @@ networks:
   internal:
     internal: true          # no egress: agents reach LLMs only through llm-replay -> llm-gateway
   egress: {}
-  edge:                     # published ports only; no outbound traffic (V-31)
-    driver_opts:
-      com.docker.network.bridge.enable_ip_masquerade: "false"
+  edge: {}                  # only edge-proxy; services behind it have no egress (internal network)
   llm-local:
     internal: true          # gateway <-> ollama only
 

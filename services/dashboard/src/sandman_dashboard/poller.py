@@ -5,6 +5,7 @@ Pages read only this cache. Upstream error bodies and request headers are never 
 
 import asyncio
 import logging
+import time
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
@@ -17,6 +18,7 @@ from sandman_dashboard.gateway import GatewayClient, GatewaySnapshot
 log = logging.getLogger(__name__)
 
 TIMEOUT = 2.0
+COUNT_INTERVAL = 60.0
 STATES = ("working", "idle")
 MAX_DETAILS = 30
 MAX_TEXT = 300
@@ -88,6 +90,8 @@ class Poller:
         self.kg, self.nats_url, self.gateway = kg, (nats_monitor_url or "").rstrip("/"), gateway
         self.entries: dict[str, Entry] = {}
         self.gateway_snapshot: GatewaySnapshot | None = None
+        self._counts: dict[str, Any] | None = None
+        self._counts_at = 0.0
         self._task: asyncio.Task[None] | None = None
 
     def start(self) -> None:
@@ -118,6 +122,8 @@ class Poller:
             jobs.append(("llm-gateway", "infra", self._gateway))
         results = await asyncio.gather(*(self._run(n, k, fn) for n, k, fn in jobs))
         self.entries = {e.name: e for e in results}
+        if self.gateway and self.entries["llm-gateway"].health != "up":
+            self.gateway_snapshot = None
 
     async def _run(self, name: str, kind: str, check: Callable[[Entry], Awaitable[None]]) -> Entry:
         previous = self.entries.get(name)
@@ -176,11 +182,13 @@ class Poller:
         assert self.kg
         async with asyncio.timeout(TIMEOUT):
             await self.kg.read("RETURN 1 AS ok")
-            nodes = await self.kg.read("MATCH (n) RETURN count(n) AS c")
-            edges = await self.kg.read("MATCH ()-[r]->() RETURN count(r) AS c")
+            if self._counts is None or time.monotonic() - self._counts_at >= COUNT_INTERVAL:
+                nodes = await self.kg.read("MATCH (n) RETURN count(n) AS c")
+                edges = await self.kg.read("MATCH ()-[r]->() RETURN count(r) AS c")
+                self._counts, self._counts_at = {"nodes": nodes[0]["c"], "edges": edges[0]["c"]}, time.monotonic()
             rows = await self.kg.run_autocommit("SHOW STORAGE INFO")
         info = {r.get("storage info"): r.get("value") for r in rows}
-        entry.details = {"nodes": nodes[0]["c"], "edges": edges[0]["c"]}
+        entry.details = dict(self._counts)
         entry.details |= {label: clean(info[key]) for key, label in STORAGE_KEYS.items() if key in info}
         entry.health = "up"
 
@@ -198,14 +206,19 @@ class Poller:
 
     async def _gateway(self, entry: Entry) -> None:
         assert self.gateway
-        health = await self._get(f"{self.gateway.url}/health")
-        if health.status_code != 200:
-            entry.health, entry.reason = "down", "not healthy"
+        health, stats = await asyncio.gather(
+            self._get(f"{self.gateway.url}/health"),
+            self.gateway.fetch(self.gateway_snapshot),
+            return_exceptions=True,
+        )
+        if isinstance(health, BaseException) or health.status_code != 200:
+            entry.health = "down"
+            entry.reason = _reason(health) if isinstance(health, BaseException) else "not healthy"
             return
         entry.health = "up"
-        try:
-            self.gateway_snapshot = await self.gateway.fetch(self.gateway_snapshot)
-        except (httpx.HTTPError, ValueError, TimeoutError):
+        if isinstance(stats, GatewaySnapshot):
+            self.gateway_snapshot = stats
+        else:
             self.gateway_snapshot = None
             log.warning("gateway statistics unavailable")
 

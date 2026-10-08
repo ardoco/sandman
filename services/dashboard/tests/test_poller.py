@@ -149,3 +149,52 @@ def test_parse_targets() -> None:
 def test_nats_details_ignores_other_shapes() -> None:
     assert nats_details({}) == {} and nats_details("x") == {}
     assert nats_details({"account_details": [{"stream_detail": [{"name": "OTHER"}]}]}) == {}
+
+
+async def test_gateway_outage_clears_snapshot_and_rates() -> None:
+    upstream = Upstream()
+    poller = make(upstream)
+    await poller.poll_once()
+    assert poller.gateway_snapshot is not None
+    upstream.down.add("gateway")
+    await poller.poll_once()
+    assert poller.entries["llm-gateway"].health == "down" and poller.gateway_snapshot is None
+    upstream.down.clear()
+    await poller.poll_once()
+    assert poller.gateway_snapshot is not None
+    assert all(v is None for r in poller.gateway_snapshot.rows for v in r.rates.values())
+
+
+async def test_slow_but_healthy_gateway_is_up(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(poller_module, "TIMEOUT", 0.5)
+    upstream = Upstream()
+
+    async def hook(request: httpx.Request) -> httpx.Response | None:
+        if request.url.host == "gateway" and request.url.path != "/health":
+            await asyncio.sleep(0.3)
+        return None
+
+    upstream.hook = hook
+    poller = make(upstream)
+    await poller.poll_once()
+    assert poller.entries["llm-gateway"].health == "up" and poller.gateway_snapshot is not None
+
+
+async def test_memgraph_counts_are_refreshed_at_a_lower_cadence(monkeypatch: pytest.MonkeyPatch) -> None:
+    kg = FakeKg()
+    calls: list[str] = []
+    original = kg.read
+
+    async def counting(cypher: str, **params: object) -> list[dict[str, object]]:
+        calls.append(cypher)
+        return await original(cypher, **params)
+
+    kg.read = counting  # type: ignore[method-assign]
+    poller = make(Upstream(), kg)
+    await poller.poll_once()
+    await poller.poll_once()
+    assert sum("count(n)" in c for c in calls) == 1
+    assert poller.entries["memgraph"].details["nodes"] == 12
+    monkeypatch.setattr(poller_module, "COUNT_INTERVAL", 0.0)
+    await poller.poll_once()
+    assert sum("count(n)" in c for c in calls) == 2

@@ -1,5 +1,6 @@
 """LLM gateway statistics: Bifrost /metrics (Prometheus text, own small parser) and budgets (management API)."""
 
+import asyncio
 import re
 import time
 from collections import defaultdict
@@ -188,9 +189,15 @@ class GatewayClient:
         self.url, self.client, self.auth = url.rstrip("/"), client, httpx.BasicAuth(user, password)
 
     async def fetch(self, previous: GatewaySnapshot | None) -> GatewaySnapshot:
-        resp = await self.client.get(f"{self.url}/metrics", auth=self.auth, timeout=2.0)
-        resp.raise_for_status()
-        samples = parse_metrics(resp.text)
+        metrics, budget_doc = await asyncio.gather(
+            self.client.get(f"{self.url}/metrics", auth=self.auth, timeout=2.0),
+            self.client.get(f"{self.url}/api/governance/budgets", auth=self.auth, timeout=2.0),
+            return_exceptions=True,
+        )
+        if isinstance(metrics, BaseException):
+            raise metrics
+        metrics.raise_for_status()
+        samples = parse_metrics(metrics.text)
         rows = summarize(samples)
         taken = time.monotonic()
         add_rates(rows, previous, taken)
@@ -200,10 +207,9 @@ class GatewayClient:
             if "virtual_key_id" in s.labels
         }
         budgets: list[Budget] | None = None
-        try:
-            resp = await self.client.get(f"{self.url}/api/governance/budgets", auth=self.auth, timeout=2.0)
-            if resp.status_code == 200:
-                budgets = parse_budgets(resp.json(), names)
-        except (httpx.HTTPError, ValueError):
-            budgets = None
+        if isinstance(budget_doc, httpx.Response) and budget_doc.status_code == 200:
+            try:
+                budgets = parse_budgets(budget_doc.json(), names)
+            except ValueError:
+                budgets = None
         return GatewaySnapshot(taken, rows, budgets)

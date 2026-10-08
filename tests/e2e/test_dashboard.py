@@ -5,8 +5,8 @@ Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_RESOURCES=1 when the compose 
 SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
 SANDMAN_E2E_DASHBOARD_PASSWORD (default: content of $SANDMAN_E2E_SECRETS/dashboard_admin_password, secrets dir default
 deploy/secrets). The test stops and restarts tlr-agent with `docker compose -p <project>` (SANDMAN_E2E_PROJECT, else
-COMPOSE_PROJECT_NAME, else "deploy"). With a non-default SANDMAN_E2E_URL or SANDMAN_E2E_DASHBOARD_URL the project
-must be set explicitly, otherwise the test fails before touching docker.
+COMPOSE_PROJECT_NAME, else "sandman" as named in deploy/docker-compose.yml). With a non-default SANDMAN_E2E_URL or
+SANDMAN_E2E_DASHBOARD_URL the project must be set explicitly, otherwise the test fails before touching docker.
 """
 
 import os
@@ -45,7 +45,7 @@ def compose_command() -> list[str]:
         scratch = URL != DEFAULT_URL or skeleton_url != "http://127.0.0.1:8080"
         if scratch:
             pytest.fail("set COMPOSE_PROJECT_NAME (or SANDMAN_E2E_PROJECT) to the project of the stack under test")
-        project = "deploy"
+        project = "sandman"
     return [
         "docker",
         "compose",

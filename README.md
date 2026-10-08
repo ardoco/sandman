@@ -3,7 +3,7 @@ Agent-based system for Software Architecture kNowledge Description and MANagemen
 
 SANDMAN ingests a project snapshot (requirements, documentation, architecture models, code), lets plugin agents extract knowledge into a graph (Memgraph), derive trace links and detect inconsistencies, and exposes the results through a query service with a web console and an API. Agents talk A2A over NATS; LLM calls go through a gateway.
 
-Status: M0 (walking skeleton, plugin stubs) is done; M1 (real extractors, dashboard) is in preparation. Plan: [docs/stage-3-implementation-plan.md](docs/stage-3-implementation-plan.md). Plugin authors: [docs/plugins.md](docs/plugins.md).
+Status: M0 (walking skeleton, plugin stubs) is done; M1 (real extractors, dashboard) is in preparation. Plan: [docs/stage-3-implementation-plan.md](docs/stage-3-implementation-plan.md). Plugin authors: [docs/plugins.md](docs/plugins.md). Using a running system (operators, project users): [docs/user/](docs/user/README.md).
 
 ## Components
 

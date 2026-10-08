@@ -29,13 +29,13 @@ Everything is published on `127.0.0.1` only.
 
 Memgraph and NATS have no host ports. `make infra` starts only Memgraph, NATS and the gateway with development ports (Bolt `7687`, NATS `4222`, NATS monitoring `8222`) for developers.
 
-The containers share an internal network without internet access. Only the LLM gateway has internet access (to the providers you configured keys for).
+The containers share an internal network without internet access. The `document-converter` (Docling) is reachable only inside it, mounts the artifact store read-only and accepts conversion requests only from the extraction agent; if it is down, PDF and DOCX artifacts fall back to file-level elements (`partial`). Only the LLM gateway has internet access (to the providers you configured keys for).
 
 ## Compose profiles
 
 | Profile | Adds | Start |
 |---|---|---|
-| (default) | Memgraph, NATS, LLM gateway, replay proxy, extraction, TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
+| (default) | Memgraph, NATS, LLM gateway, replay proxy, extraction, document converter (PDF/DOCX), TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
 | `stubs` | `plugin-stubs`: stub code extractor and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
 | `obs` | Grafana/OpenTelemetry backend on `:3001`; services export telemetry when `OTEL_SDK_DISABLED=false` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318` are set in the shell that runs compose | `... --profile obs up -d` |
 | `resources` | cAdvisor container metrics, for the dashboard (privileged read-only host mounts) | `... --profile resources up -d` |

@@ -1,7 +1,7 @@
-# Third-party components of the extraction-agent image (T1.4, V-13)
+# Third-party components of the document-converter image (T1.4, V-13)
 
 All licenses allow redistribution in a Docker image. Re-check on every Docling upgrade (models, pins in
-`src/sandman_extraction/prefetch.py`, lock in `uv.lock`).
+`src/sandman_document_converter/prefetch.py`, lock in `uv.lock`).
 
 ## Models (fetched at image build, pinned commit and sha256, no OCR)
 

@@ -8,6 +8,7 @@ Status: M0 (walking skeleton, plugin stubs) is done; M1 (real extractors, dashbo
 ## Components
 
 - `services/extraction-agent` (Python): information extraction agent
+- `services/document-converter` (Python): PDF/DOCX to Markdown with Docling, called by the extraction agent
 - `services/tlr-agent`, `services/inconsistency-agent` (Java, Quarkus): traceability link recovery and inconsistency detection agents
 - `services/orchestrator` (Python): rule-based orchestrator
 - `services/query-service` (Python): API and console

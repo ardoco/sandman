@@ -1,0 +1,8 @@
+﻿ID,Title,Text,Type
+FR-1,Cache media,"Media files are cached
+after the first download.",functional
+FR-2,,Users can upload audio files.,
+,No id,This row has no id.,functional
+FR-1,Duplicate,Second definition of FR-1.,functional
+
+NFR-1.1,Encrypt passwords,"Passwords are stored ""encrypted"".",quality

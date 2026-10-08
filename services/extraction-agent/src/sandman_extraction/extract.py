@@ -160,7 +160,7 @@ class ExtractSkill:
             try:
                 if use_builtin:
                     elements[v["id"]], rels = await asyncio.to_thread(
-                        builtin.extract, v["path"], v["kind"], v["format"], content
+                        builtin.extract, v["path"], v["kind"], v["format"], content, warnings
                     )
                     relations[v["id"]].extend(rels)
                 else:
@@ -239,22 +239,24 @@ class ExtractSkill:
         for vid, els in elements.items():
             element_count += await self._write_elements(pid, meta[vid]["art"], vid, producer[vid], els)
         # links and relations after all element sets, so references into this run's other versions resolve
-        targets: dict[str, list[str]] = defaultdict(list)
+        targets: dict[str, list[tuple[str, str]]] = defaultdict(list)
         for r in await svc.kg.read(
-            "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v)-[:HAS_ELEMENT]->(e) "
+            "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v)-[:HAS_ELEMENT]->(e:Requirement) "
             "RETURN e.id AS id, e.key AS key "
-            "UNION MATCH (v:ArtifactVersion)-[:HAS_ELEMENT]->(e) WHERE v.id IN $vids RETURN e.id AS id, e.key AS key",
+            "UNION MATCH (v:ArtifactVersion)-[:HAS_ELEMENT]->(e:Requirement) WHERE v.id IN $vids "
+            "RETURN e.id AS id, e.key AS key",
             p=pid, vids=list(meta),
         ):  # fmt: skip
-            targets[r["key"].split("#", 1)[1]].append(r["id"])
+            targets[r["key"].split("#", 1)[1]].append((r["id"], r["key"]))
         version_of = {c["path"]: c["id"] for c in current} | {v["path"]: v["id"] for v in meta.values()}
         link_count = 0
         for vid in elements:
             links = {}
             for ref in refs[vid]:
                 referrer = stable_id("el", vid, ref["source"])
-                for referenced in targets.get(ref["text"], []):
-                    if referenced != referrer:  # link runs from the referenced element to the referring one
+                for referenced, key in targets.get(ref["text"], []):
+                    if referenced != referrer and key != f"{meta[vid]['art']}#{ref['source']}":
+                        # link runs from the referenced requirement to the referring element, never to its definition
                         lid = stable_id("tl", APPROACH, APPROACH_VERSION, svc.config_hash, referenced, referrer)
                         links[lid] = {"id": lid, "source": referenced, "target": referrer, "linkType": ref["linkType"]}
             rels = defaultdict(list)

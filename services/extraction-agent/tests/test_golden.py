@@ -10,10 +10,10 @@ from sandman_extraction.text import render_sentences
 
 TESTS = Path(__file__).parent
 FIXTURES, GOLDEN = TESTS / "fixtures", TESTS / "golden"
-TEXT_SUFFIXES = (".md", ".txt")
+TEXT_SUFFIXES = (".md", ".txt", ".csv")
 CASES = sorted(
     p.relative_to(FIXTURES).as_posix()
-    for root in ("mini", "benchmark", "text")
+    for root in ("mini", "benchmark", "text", "requirements")
     for p in (FIXTURES / root).rglob("*")
     if p.suffix in TEXT_SUFFIXES and p.name != "SOURCES.txt"
 )
@@ -25,8 +25,10 @@ def kind_of(path: str) -> str:
 
 @pytest.mark.parametrize("case", CASES)
 def test_golden(case: str) -> None:
-    elements, relations = builtin.extract(case, kind_of(case), None, (FIXTURES / case).read_bytes())
-    actual = json.dumps({"elements": elements, "relations": relations}, indent=1, sort_keys=True, ensure_ascii=False)
+    warnings: list[str] = []
+    elements, relations = builtin.extract(case, kind_of(case), None, (FIXTURES / case).read_bytes(), warnings)
+    result = {"elements": elements, "relations": relations} | ({"warnings": warnings} if warnings else {})
+    actual = json.dumps(result, indent=1, sort_keys=True, ensure_ascii=False)
     golden = GOLDEN / f"{case}.json"
     if os.environ.get("SANDMAN_UPDATE_GOLDEN"):
         golden.parent.mkdir(parents=True, exist_ok=True)

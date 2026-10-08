@@ -1,0 +1,49 @@
+{
+ "elements": [
+  {
+   "endLine": 8,
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "requirements.csv",
+   "qualifiedName": "requirements/requirements.csv",
+   "startLine": 1,
+   "text": "ID,Title,Text,Type\nFR-1,Cache media,\"Media files are cached\nafter the first download.\",functional\nFR-2,,Users can upload audio files.,\n,No id,This row has no id.,functional\nFR-1,Duplicate,Second definition of FR-1.,functional\n\nNFR-1.1,Encrypt passwords,\"Passwords are stored \"\"encrypted\"\".\",quality\n"
+  },
+  {
+   "endLine": 3,
+   "kind": "functional",
+   "label": "Requirement",
+   "localKey": "FR-1",
+   "name": "Cache media",
+   "parent": "file",
+   "startLine": 2,
+   "text": "Media files are cached\nafter the first download."
+  },
+  {
+   "endLine": 4,
+   "kind": "requirement",
+   "label": "Requirement",
+   "localKey": "FR-2",
+   "name": "Users can upload audio files.",
+   "parent": "file",
+   "startLine": 4,
+   "text": "Users can upload audio files."
+  },
+  {
+   "endLine": 8,
+   "kind": "quality",
+   "label": "Requirement",
+   "localKey": "NFR-1.1",
+   "name": "Encrypt passwords",
+   "parent": "file",
+   "startLine": 8,
+   "text": "Passwords are stored \"encrypted\"."
+  }
+ ],
+ "relations": [],
+ "warnings": [
+  "requirements/requirements.csv:5: row without usable id skipped",
+  "requirements/requirements.csv:6: duplicate requirement id FR-1 skipped"
+ ]
+}

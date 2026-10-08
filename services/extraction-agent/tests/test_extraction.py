@@ -310,6 +310,54 @@ async def test_builtin_sections_sentences_and_reextraction(env: Any) -> None:
     assert [r["text"] for r in cur] == ["The MediaCache component caches media files.", "A new sentence appears."]
 
 
+async def test_requirement_references_direction_and_idempotence(env: Any) -> None:
+    await env.put_project()
+    csv_path, doc_path = "requirements/more.csv", "docs/extra.md"
+    files = env.mini() | {
+        csv_path: b"id,text\nREQ-7,Refines REQ-1 and mentions itself as REQ-7.\nREQ-8,Unrelated REQ-99.\n",
+        doc_path: b"# Extra\n\nThe design realizes REQ-3 and REQ-8.\n",
+    }
+    ing = await created(env, files)
+    task = await env.extract(ing["createdVersionIds"])
+    assert task.state == "TASK_STATE_COMPLETED", task
+
+    def el(path: str, key: str) -> str:
+        return stable_id("el", ver(env.project, path, files[path]), key)
+
+    sentence = (
+        await cypher(
+            env,
+            "MATCH (:ArtifactVersion {id: $v})-[:HAS_ELEMENT]->(e:TextUnit {kind: 'sentence'}) RETURN e.id AS id",
+            v=ver(env.project, doc_path, files[doc_path]),
+        )
+    )[0]["id"]
+    expected = {
+        (el(REQ, "REQ-1"), el(TEST, "MediaCacheTest")),
+        (el(REQ, "REQ-1"), el(csv_path, "REQ-7")),
+        (el(REQ, "REQ-3"), sentence),
+        (el(csv_path, "REQ-8"), sentence),
+    }
+    query = (
+        "MATCH (s:Requirement)<-[:SOURCE]-(l:TraceLink {active: true, projectId: $p})-[:TARGET]->(t) "
+        "RETURN s.id AS s, t.id AS t, l.id AS id"
+    )
+    found = await cypher(env, query, p=env.project)
+    assert {(r["s"], r["t"]) for r in found} == expected
+    for r in found:
+        assert r["id"] == stable_id("tl", "explicit-reference", "0", env.config_hash, r["s"], r["t"])
+    versions = [
+        r["id"]
+        for r in await cypher(
+            env, "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v) RETURN v.id AS id", p=env.project
+        )
+    ]
+    await env.extract(versions)
+    assert {(r["s"], r["t"]) for r in await cypher(env, query, p=env.project)} == expected
+    assert (await cypher(env, "MATCH (l:TraceLink {projectId: $p}) RETURN count(l) AS n", p=env.project))[0][
+        "n"
+    ] == len(expected)
+
+
 async def test_builtin_disabled_reproduces_stub(env: Any) -> None:
     env.svc.config["builtin"] = {"enabled": False}
     files, result = await extract_mini(env)

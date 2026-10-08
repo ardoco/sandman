@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Projects{% endblock %}
+{% block body %}
+<h1>Projects</h1>
+<p>Figures of the current state; cached for 60 s.</p>
+<div class="scroll">
+<table>
+<thead><tr><th>Project</th><th>Name</th><th>Artifacts (current / deleted)</th><th>Versions</th><th>Elements</th><th>Active links</th><th>Inconsistencies</th><th>Last ingestion</th></tr></thead>
+<tbody>
+{% for p, s in rows %}
+<tr>
+  <td><a href="/projects/{{ p.id }}">{{ p.id }}</a></td><td>{{ p.name }}</td>
+  <td>{{ s.artifacts_current | num }} / {{ s.artifacts_deleted | num }}</td>
+  <td>{{ s.versions | num }}</td>
+  <td>{{ s.elements_total | num }}</td>
+  <td>{{ s.links_total | num }}</td>
+  <td>{{ s.inconsistencies_total | num }}</td>
+  <td>{% if s.ingestion is none %}n/a{% elif s.ingestion %}#{{ s.ingestion.seq }} {{ s.ingestion.createdAt }}{% else %}none{% endif %}</td>
+</tr>
+{% else %}
+<tr><td colspan="8">No projects.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

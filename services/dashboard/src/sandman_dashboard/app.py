@@ -31,12 +31,15 @@ from sandman_agent.telemetry import setup_logging
 from sandman_query.auth import RateLimiter
 from starlette.exceptions import HTTPException
 
-from sandman_dashboard import __version__, ops
+from sandman_dashboard import __version__, insights, ops
 from sandman_dashboard.events_view import EventViewer
 from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.graph import GraphError, GraphService, schema_names
 from sandman_dashboard.orchestrator import OrchestratorClient
 from sandman_dashboard.poller import Poller, parse_targets
+from sandman_dashboard.projects import ProjectStats
+from sandman_dashboard.resources import Cadvisor
+from sandman_dashboard.sampler import Sampler
 from sandman_dashboard.store import SessionStore
 
 COOKIE = "sandman_dashboard_session"
@@ -147,6 +150,7 @@ def _step_duration(step: Mapping[str, Any]) -> str:
 
 TEMPLATES.filters.update(num=_number, ago=_ago, pretty=_pretty, pjson=_pjson, step_duration=_step_duration)
 TEMPLATES.filters["seconds"] = lambda v: "n/a" if v is None else f"{v * 1000:,.0f} ms" if v < 1 else f"{v:,.2f} s"
+TEMPLATES.filters["mib"] = lambda v: "n/a" if v is None else f"{v / 2**20:,.0f} MiB"
 TEMPLATES.filters["cost"] = lambda v: "n/a" if v is None else f"${v:,.4f}"
 TEMPLATES.filters["percent"] = lambda v: f"{v * 100:,.0f} %"
 
@@ -161,7 +165,10 @@ def create_app(
     nats_monitor_url: str | None = None,
     gateway_url: str | None = None,
     gateway_password: str | None = None,
+    cadvisor_url: str | None = None,
     poll_interval: float = 5.0,
+    sample_interval: float = 30.0,
+    history_days: float = 14.0,
     http: httpx.AsyncClient | None = None,
     kg: KgClient | None = None,
     graph: GraphService | None = None,
@@ -201,6 +208,7 @@ def create_app(
         gateway=gateway,
         orchestrator=orchestrator,
     )
+    sampler = Sampler(store.db, poller, interval=sample_interval, retention_days=history_days)
     secret_values = [admin_password, settings.service_token, settings.kg_password, gateway_password]
 
     @contextlib.asynccontextmanager
@@ -208,10 +216,12 @@ def create_app(
         setup_logging(settings.service_name, settings.log_file)
         if start_poller:
             poller.start()
+            sampler.start()
             if viewer is not None:
                 viewer.start()
         yield
         await poller.stop()
+        await sampler.stop()
         if viewer is not None:
             await viewer.stop()
         if http is None:
@@ -229,6 +239,7 @@ def create_app(
         openapi_url=None,
     )
     app.state.poller, app.state.store, app.state.secrets = poller, store, secret_values
+    app.state.sampler = sampler
     assert graph is not None and kg is not None
     graph_service, kg_client = graph, kg
 
@@ -410,6 +421,17 @@ def create_app(
         read_form=read_form,
     )
 
+    insights.register(
+        app,
+        graph=graph_service,
+        stats=ProjectStats(graph_service),
+        db=store.db,
+        cadvisor=Cadvisor(cadvisor_url, client),
+        poller=poller,
+        session=Session,
+        page=page,
+    )
+
     # --------------------------------------------------------------------- API
 
     @app.get("/api/services")
@@ -481,9 +503,9 @@ def create_app(
 
 def build(env: Mapping[str, str] | None = None) -> FastAPI:
     """App from SANDMAN_* settings, SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE, SANDMAN_STATE_DB, SANDMAN_COOKIE_SECURE,
-    SANDMAN_POLL_INTERVAL, SANDMAN_TARGETS, SANDMAN_NATS_MONITOR_URL, SANDMAN_GATEWAY_URL and
-    SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE, SANDMAN_TRUSTED_PROXIES (host names or IPs allowed to set X-Forwarded-For,
-    default edge-proxy)."""
+    SANDMAN_POLL_INTERVAL, SANDMAN_SAMPLE_INTERVAL, SANDMAN_HISTORY_DAYS, SANDMAN_CADVISOR_URL, SANDMAN_TARGETS,
+    SANDMAN_NATS_MONITOR_URL, SANDMAN_GATEWAY_URL and SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE,
+    SANDMAN_TRUSTED_PROXIES (host names or IPs allowed to set X-Forwarded-For, default edge-proxy)."""
     env = os.environ if env is None else env
     settings = Settings.from_env(env)
 
@@ -503,6 +525,9 @@ def build(env: Mapping[str, str] | None = None) -> FastAPI:
         nats_monitor_url=env.get("SANDMAN_NATS_MONITOR_URL") or None,
         gateway_url=env.get("SANDMAN_GATEWAY_URL") or None,
         gateway_password=secret("SANDMAN_GATEWAY_ADMIN_PASSWORD"),
+        cadvisor_url=env.get("SANDMAN_CADVISOR_URL") or None,
         poll_interval=float(env.get("SANDMAN_POLL_INTERVAL", "5")),
+        sample_interval=float(env.get("SANDMAN_SAMPLE_INTERVAL", "30")),
+        history_days=float(env.get("SANDMAN_HISTORY_DAYS", "14")),
         trusted_proxies=[h.strip() for h in env.get("SANDMAN_TRUSTED_PROXIES", "edge-proxy").split(",") if h.strip()],
     )

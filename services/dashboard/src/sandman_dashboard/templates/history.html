@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/uplot.min.css">{% endblock %}
+{% block body %}
+<h1>History</h1>
+<nav class="ranges" aria-label="Range">
+  {% for r in ranges %}<a href="/history?range={{ r }}" {% if r == range %}aria-current="page"{% endif %}>{{ r }}</a> {% endfor %}
+</nav>
+<div id="history-status" role="status"></div>
+<div id="history" data-range="{{ range }}">
+  <div class="chart" id="chart-health"></div>
+  <div class="chart" id="chart-tasks"></div>
+  <div class="chart" id="chart-requests"></div>
+  <div class="chart" id="chart-tokens"></div>
+  <div class="chart" id="chart-cost"></div>
+  <div class="chart" id="chart-errors"></div>
+  <div class="chart" id="chart-memgraph"></div>
+</div>
+<script src="/static/uplot.min.js"></script>
+<script src="/static/history.js"></script>
+{% endblock %}

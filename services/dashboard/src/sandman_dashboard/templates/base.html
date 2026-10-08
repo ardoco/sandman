@@ -14,10 +14,13 @@
   {% if user %}
   <nav>
     <a href="/" {% if path == "/" %}aria-current="page"{% endif %}>Services</a>
+    <a href="/projects" {% if path.startswith("/projects") %}aria-current="page"{% endif %}>Projects</a>
     <a href="/graph" {% if path == "/graph" %}aria-current="page"{% endif %}>Knowledge graph</a>
     <a href="/gateway" {% if path == "/gateway" %}aria-current="page"{% endif %}>LLM gateway</a>
     <a href="/workflows" {% if path.startswith("/workflows") %}aria-current="page"{% endif %}>Workflows</a>
     <a href="/events" {% if path.startswith("/events") %}aria-current="page"{% endif %}>Events</a>
+    <a href="/history" {% if path == "/history" %}aria-current="page"{% endif %}>History</a>
+    <a href="/resources" {% if path == "/resources" %}aria-current="page"{% endif %}>Resources</a>
     <a href="/experiments" {% if path == "/experiments" %}aria-current="page"{% endif %}>Experiments</a>
   </nav>
   <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><span>{{ user }}</span> <button>Log out</button></form>

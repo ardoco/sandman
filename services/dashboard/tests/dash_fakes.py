@@ -46,9 +46,20 @@ class FakeGraph:
 
     def __init__(self) -> None:
         self.statements: list[str] = []
+        self.fixed_rows: dict[str, list[list[Any]]] = {}
+        self.fixed_error = False
 
     async def projects(self) -> list[dict[str, Any]]:
         return [{"id": "demo", "name": "<script>alert(1)</script>"}]
+
+    async def fixed(self, cypher: str, params: dict[str, Any], max_rows: int | None = None) -> list[list[Any]]:
+        self.statements.append(cypher)
+        if self.fixed_error:
+            raise GraphError("query timed out")
+        for marker, rows in self.fixed_rows.items():
+            if marker in cypher:
+                return rows
+        return []
 
     async def start(self, project: str | None, label: str | None, labels: list[str] | None = None) -> dict[str, Any]:
         return {"elements": [], "truncated": False}

@@ -179,7 +179,8 @@ class GraphService:
         except OSError:
             raise GraphError("knowledge graph unavailable", 503) from None
 
-    async def _fixed(self, cypher: str, params: Mapping[str, Any], max_rows: int | None = None) -> list[list[Any]]:
+    async def fixed(self, cypher: str, params: Mapping[str, Any], max_rows: int | None = None) -> list[list[Any]]:
+        """Rows of a fixed, parameterized statement in a read transaction with the query memory limit."""
         return (await self.run(f"{cypher} QUERY MEMORY LIMIT {self.memory_limit}", params, max_rows=max_rows))[1]
 
     # ------------------------------------------------------------ exploration
@@ -204,7 +205,7 @@ class GraphService:
         return int(value)
 
     async def projects(self) -> list[dict[str, Any]]:
-        rows = await self._fixed("MATCH (p:Project) RETURN p.id AS id, p.name AS name ORDER BY p.id", {})
+        rows = await self.fixed("MATCH (p:Project) RETURN p.id AS id, p.name AS name ORDER BY p.id", {})
         return [{"id": r[0], "name": r[1]} for r in rows]
 
     async def _result(
@@ -221,7 +222,7 @@ class GraphService:
         nodes = dict(list(nodes.items())[:limit])
         ids = [int(i) for i in nodes]
         if ids:
-            edge_rows = await self._fixed(
+            edge_rows = await self.fixed(
                 "UNWIND $ids AS i MATCH (a) WHERE id(a) = i MATCH (a)-[r]->(b) "
                 "WHERE id(b) IN $ids AND ($types IS NULL OR type(r) IN $types) RETURN r",
                 {"ids": ids, "types": types},
@@ -245,7 +246,7 @@ class GraphService:
         if label is not None:
             self._filters([label], None)
         wanted, _ = self._filters(labels, None)
-        rows = await self._fixed(
+        rows = await self.fixed(
             f"MATCH (n) WHERE {in_project('n')} "
             "AND ($label IS NULL OR $label IN labels(n)) "
             "AND ($labels IS NULL OR any(l IN labels(n) WHERE l IN $labels)) RETURN n LIMIT $limit",
@@ -259,7 +260,7 @@ class GraphService:
         if not needle:
             raise GraphError("empty search")
         wanted, _ = self._filters(labels, None)
-        rows = await self._fixed(
+        rows = await self.fixed(
             f"MATCH (n) WHERE {in_project('n')} "
             "AND ($labels IS NULL OR any(l IN labels(n) WHERE l IN $labels)) "
             "AND (toLower(n.key) CONTAINS $q OR toLower(n.name) CONTAINS $q OR toLower(n.id) CONTAINS $q) "
@@ -273,7 +274,7 @@ class GraphService:
     ) -> dict[str, Any]:
         project = self._project(project)
         wanted, wanted_types = self._filters(labels, types)
-        rows = await self._fixed(
+        rows = await self.fixed(
             "MATCH (n)-[r]-(m) WHERE id(n) = $id AND ($types IS NULL OR type(r) IN $types) "
             f"AND {in_project('m')} "
             "AND ($labels IS NULL OR any(l IN labels(m) WHERE l IN $labels)) RETURN n, r, m LIMIT $limit",
@@ -285,7 +286,7 @@ class GraphService:
     async def path(self, source: str, target: str, hops: int = MAX_HOPS) -> dict[str, Any]:
         if not 1 <= hops <= 12:
             raise GraphError("max hops must be between 1 and 12")
-        rows = await self._fixed(
+        rows = await self.fixed(
             f"MATCH p = (a)-[*BFS ..{int(hops)}]-(b) WHERE id(a) = $a AND id(b) = $b RETURN p LIMIT 1",
             {"a": self._node_id(source), "b": self._node_id(target)},
         )

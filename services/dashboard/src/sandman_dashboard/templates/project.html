@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Project{% endblock %}
+{% block body %}
+<p><a href="/projects">All projects</a></p>
+{% if project and s %}
+<h1>{{ project.id }}{% if project.name %} ({{ project.name }}){% endif %}</h1>
+<h2>Artifacts</h2>
+<dl><dt>Current</dt><dd>{{ s.artifacts_current | num }}</dd><dt>Deleted</dt><dd>{{ s.artifacts_deleted | num }}</dd><dt>Versions</dt><dd>{{ s.versions | num }}</dd></dl>
+<h2>Elements of current versions</h2>
+{% if s.elements is none %}<p>n/a</p>{% else %}
+<table><thead><tr><th>Label</th><th>Elements</th></tr></thead><tbody>
+{% for label, n in s.elements.items() %}<tr><td>{{ label }}</td><td>{{ n | num }}</td></tr>{% else %}<tr><td colspan="2">none</td></tr>{% endfor %}
+</tbody></table>
+{% endif %}
+<h2>Active trace links (both endpoints current)</h2>
+{% if s.links is none %}<p>n/a</p>{% else %}
+<table><thead><tr><th>Approach</th><th>Links</th></tr></thead><tbody>
+{% for approach, n in s.links.items() %}<tr><td>{{ approach }}</td><td>{{ n | num }}</td></tr>{% else %}<tr><td colspan="2">none</td></tr>{% endfor %}
+</tbody></table>
+{% endif %}
+<h2>Inconsistencies</h2>
+{% if s.inconsistency_status is none %}<p>n/a</p>{% else %}
+<div class="scroll"><table><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>
+{% for status, n in s.inconsistency_status.items() | sort %}<tr><td>{{ status }}</td><td>{{ n | num }}</td></tr>{% else %}<tr><td colspan="2">none</td></tr>{% endfor %}
+</tbody></table>
+<table><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>
+{% for type, n in s.inconsistency_type.items() | sort %}<tr><td>{{ type }}</td><td>{{ n | num }}</td></tr>{% else %}<tr><td colspan="2">none</td></tr>{% endfor %}
+</tbody></table></div>
+{% endif %}
+<h2>Last ingestion</h2>
+{% if s.ingestion is none %}<p>n/a</p>{% elif not s.ingestion %}<p>none</p>{% else %}
+<dl>
+  <dt>Sequence</dt><dd>{{ s.ingestion.seq }}</dd>
+  <dt>Created</dt><dd>{{ s.ingestion.createdAt }}</dd>
+  <dt>Source revision</dt><dd>{{ s.ingestion.sourceRevision or "" }}</dd>
+  <dt>Activated versions</dt><dd>{{ s.ingestion.activated | num }}</dd>
+  <dt>Deleted artifacts</dt><dd>{{ s.ingestion.deleted | num }}</dd>
+</dl>
+{% endif %}
+{% endif %}
+{% endblock %}

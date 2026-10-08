@@ -37,7 +37,8 @@ def parse_size(value: Any) -> float | None:
 
 
 def memory_ratio(details: Mapping[str, Any]) -> float | None:
-    used, limit = parse_size(details.get("memory")), parse_size(details.get("memoryLimit"))
+    used = parse_size(details.get("memoryTracked", details.get("memory")))
+    limit = parse_size(details.get("memoryLimit"))
     return used / limit if used is not None and limit else None
 
 

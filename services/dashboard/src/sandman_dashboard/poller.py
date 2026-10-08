@@ -24,7 +24,12 @@ COUNT_INTERVAL = 60.0
 STATES = ("working", "idle")
 MAX_DETAILS = 30
 MAX_TEXT = 300
-STORAGE_KEYS = {"memory_res": "memory", "memory_limit": "memoryLimit", "disk_usage": "disk"}
+STORAGE_KEYS = {
+    "memory_res": "memory",
+    "memory_tracked": "memoryTracked",
+    "memory_limit": "memoryLimit",
+    "disk_usage": "disk",
+}
 
 
 @dataclass

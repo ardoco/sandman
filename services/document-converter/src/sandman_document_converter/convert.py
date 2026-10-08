@@ -30,7 +30,11 @@ _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 
 
 class ConversionError(Exception):
-    """Conversion failed, timed out or exceeded a limit."""
+    """Conversion failed, timed out or exceeded a limit; `reason` is a short class safe to show to callers."""
+
+    def __init__(self, message: str, reason: str = "failed") -> None:
+        super().__init__(message)
+        self.reason = reason
 
 
 @dataclass(frozen=True)
@@ -67,23 +71,27 @@ async def _read(stream: asyncio.StreamReader | None, cap: int, tail: bool = Fals
     return bytes(buf)
 
 
-async def to_markdown(path: Path, limits: Limits | None = None, command: list[str] | None = None) -> str:
+async def to_markdown(
+    path: Path, limits: Limits | None = None, command: list[str] | None = None, fd: int | None = None
+) -> str:
     """Markdown rendering of a PDF/DOCX; raises ConversionError on crash, timeout, limit or oversized input.
 
-    `command` replaces the worker command (the path is appended); for tests.
+    With `fd` (an open regular file) the worker reads `/dev/fd/<fd>` instead of re-resolving `path`, so the file
+    cannot be swapped after validation. `command` replaces the worker command (the path is appended); for tests.
     """
     limits = limits or Limits()
-    size = path.stat().st_size
+    size = os.fstat(fd).st_size if fd is not None else path.stat().st_size
     if size > limits.max_file_bytes:
-        raise ConversionError(f"{path.name} has {size} bytes, limit is {limits.max_file_bytes}")
+        raise ConversionError(f"{path.name} has {size} bytes, limit is {limits.max_file_bytes}", "file too large")
     command = command or [
         sys.executable, "-m", "sandman_document_converter.worker", "--max-pages", str(limits.max_pages),
         "--cpu-seconds", str(int(limits.timeout_seconds * 2)),  # CPU time sums all threads; wall clock is the timeout
         "--memory-bytes", str(limits.memory_bytes),
     ]  # fmt: skip
     proc = await asyncio.create_subprocess_exec(
-        *command, str(path), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.DEVNULL, env=worker_env(), start_new_session=True,
+        *command, str(path) if fd is None else f"/dev/fd/{fd}",
+        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, stdin=asyncio.subprocess.DEVNULL,
+        env=worker_env(), start_new_session=True, pass_fds=() if fd is None else (fd,),
     )  # fmt: skip
     try:
         out, err, _ = await asyncio.wait_for(
@@ -91,14 +99,16 @@ async def to_markdown(path: Path, limits: Limits | None = None, command: list[st
             limits.timeout_seconds,
         )
     except TimeoutError:
-        raise ConversionError(f"conversion of {path.name} timed out after {limits.timeout_seconds:g}s") from None
+        raise ConversionError(
+            f"conversion of {path.name} timed out after {limits.timeout_seconds:g}s", "timeout"
+        ) from None
     finally:
         with contextlib.suppress(ProcessLookupError):
             os.killpg(proc.pid, signal.SIGKILL)  # also grandchildren; the group id outlives the leader
         await proc.wait()
     if proc.returncode != 0:
         detail = _CONTROL.sub(" ", err.decode("utf-8", errors="replace").strip().rpartition("\n")[2])[:ERROR_MAX]
-        raise ConversionError(f"converter exited with {proc.returncode}: {detail}")
+        raise ConversionError(f"converter exited with {proc.returncode}: {detail}", "worker failed")
     if len(out) > MAX_MARKDOWN_BYTES:
-        raise ConversionError(f"rendering of {path.name} exceeds {MAX_MARKDOWN_BYTES} bytes")
+        raise ConversionError(f"rendering of {path.name} exceeds {MAX_MARKDOWN_BYTES} bytes", "output too large")
     return out.decode("utf-8", errors="replace")

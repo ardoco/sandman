@@ -9,9 +9,11 @@ secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
 
 infra:              ## memgraph, nats, llm-gateway with dev ports on localhost
+	deploy/check-env.sh
 	$(COMPOSE_DEV) up -d memgraph nats llm-gateway
 
 up:                 ## whole system
+	deploy/check-env.sh
 	$(COMPOSE) up -d --build
 
 images:             ## build all M0 images
@@ -43,6 +45,7 @@ contracts:
 	uv run python scripts/validate_contracts.py
 
 e2e: secrets        ## walking skeleton: stack with plugin stubs up, then the e2e test
+	deploy/check-env.sh
 	$(COMPOSE) --profile stubs up -d --build --wait --wait-timeout 300
 	SANDMAN_E2E=1 uv run pytest tests/e2e -q
 

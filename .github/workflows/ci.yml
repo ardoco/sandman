@@ -120,6 +120,7 @@ jobs:
       - name: build images, start the stack, wait for health
         run: |
           deploy/gen-secrets.sh > /dev/null
+          deploy/check-env.sh
           docker compose -f deploy/docker-compose.yml --profile stubs up -d --build --wait --wait-timeout 300
       - name: logs
         if: failure()

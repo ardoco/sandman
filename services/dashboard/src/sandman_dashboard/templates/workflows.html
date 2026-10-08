@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Workflows{% endblock %}
+{% block body %}
+<h1>Workflows</h1>
+<form method="get" action="/workflows" class="filters">
+  <label>Project <input name="projectId" value="{{ project }}" maxlength="63" pattern="[a-z0-9][a-z0-9\-]{1,62}"></label>
+  <label>Status
+    <select name="status">
+      <option value="">any</option>
+      {% for s in statuses %}<option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <button>Filter</button>
+</form>
+<div class="scroll">
+<table>
+<thead><tr><th>Workflow</th><th>Project</th><th>Status</th><th>Trigger</th><th>Created</th><th>Updated</th></tr></thead>
+<tbody>
+{% for w in items %}
+<tr>
+  <td><a href="/workflows/{{ w.id }}">{{ w.id }}</a></td>
+  <td>{{ w.projectId }}</td>
+  <td class="status-{{ w.status }}">{{ w.status }}</td>
+  <td>{{ w.trigger.kind }}{% if w.trigger.eventType %} {{ w.trigger.eventType }}{% endif %}{% if w.trigger.actor %} ({{ w.trigger.actor }}){% endif %}</td>
+  <td>{{ w.createdAt }}</td><td>{{ w.updatedAt | ago }}</td>
+</tr>
+{% else %}
+<tr><td colspan="6">No workflows.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% if next_cursor %}<p><a href="/workflows?{{ {'projectId': project, 'status': status_filter, 'cursor': next_cursor} | urlencode }}">Next page</a></p>{% endif %}
+<h2 id="dead-events">Dead events</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Event</th><th>Type</th><th>Error</th><th>Received</th><th></th></tr></thead>
+<tbody>
+{% for d in dead %}
+<tr>
+  <td>{{ d.eventId }}</td><td>{{ d.type }}</td><td>{{ d.error }}</td><td>{{ d.receivedAt }}</td>
+  <td>
+    <form method="post" action="/dead-events/replay" hx-post="/dead-events/replay" hx-confirm="Replay this dead event?" hx-select="main" hx-target="main" hx-swap="outerHTML">
+      <input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="eventId" value="{{ d.eventId }}">
+      <button>Replay</button>
+    </form>
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="5">No dead events.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

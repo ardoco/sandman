@@ -1,0 +1,39 @@
+{% if not workflow %}{% if fragment and message %}<div class="msg error" role="alert">{{ message }}</div>{% endif %}{% else %}
+<div id="wf" {% if workflow.status in ("PENDING", "RUNNING") %}hx-get="/fragments/workflows/{{ workflow.id }}" hx-trigger="every 5s" hx-swap="outerHTML"{% endif %}>
+<dl>
+  <dt>Id</dt><dd>{{ workflow.id }}</dd>
+  <dt>Project</dt><dd>{{ workflow.projectId }}</dd>
+  <dt>Status</dt><dd class="status-{{ workflow.status }}">{{ workflow.status }}</dd>
+  <dt>Trigger</dt><dd>{{ workflow.trigger | pretty }}</dd>
+  <dt>Created</dt><dd>{{ workflow.createdAt }}</dd>
+  <dt>Updated</dt><dd>{{ workflow.updatedAt }}</dd>
+</dl>
+{% if workflow.status in ("PENDING", "RUNNING", "BLOCKED") %}
+<form method="post" action="/workflows/{{ workflow.id }}/cancel" hx-post="/workflows/{{ workflow.id }}/cancel" hx-confirm="Cancel this workflow?" hx-select="main" hx-target="main" hx-swap="outerHTML">
+  <input type="hidden" name="csrf" value="{{ csrf }}"><button>Cancel workflow</button>
+</form>
+{% endif %}
+<h2>Steps</h2>
+<div class="scroll">
+<table>
+<thead><tr><th>Step</th><th>Agent</th><th>Skill</th><th>Status</th><th>Attempts</th><th>A2A task</th><th>Started</th><th>Ended</th><th>Duration</th><th>Error</th><th>Data</th></tr></thead>
+<tbody>
+{% for s in workflow.steps %}
+<tr>
+  <td>{{ s.id }}</td><td>{{ s.agent }}</td><td>{{ s.skill }}</td><td class="status-{{ s.status }}">{{ s.status }}</td>
+  <td>{{ s.attempts }}</td><td>{{ s.a2aTaskId or "" }}</td><td>{{ s.startedAt or "" }}</td><td>{{ s.endedAt or "" }}</td>
+  <td>{{ s | step_duration }}</td>
+  <td>{% if s.error %}{{ s.error.code }}: {{ s.error.message }}{% if s.error.retryable %} (retryable){% endif %}{% endif %}</td>
+  <td>
+    {% if s.input is defined %}<details><summary>input</summary><pre>{{ s.input | pjson }}</pre></details>{% endif %}
+    {% if s.result is defined %}<details><summary>result</summary><pre>{{ s.result | pjson }}</pre></details>{% endif %}
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="11">No steps.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+{% endif %}

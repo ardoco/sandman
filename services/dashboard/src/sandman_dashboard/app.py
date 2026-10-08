@@ -31,9 +31,10 @@ from sandman_agent.telemetry import setup_logging
 from sandman_query.auth import RateLimiter
 from starlette.exceptions import HTTPException
 
-from sandman_dashboard import __version__
+from sandman_dashboard import __version__, ops
 from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.graph import GraphError, GraphService, schema_names
+from sandman_dashboard.orchestrator import OrchestratorClient
 from sandman_dashboard.poller import Poller, parse_targets
 from sandman_dashboard.store import SessionStore
 
@@ -127,7 +128,23 @@ def _pretty(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
 
-TEMPLATES.filters.update(num=_number, ago=_ago, pretty=_pretty)
+MAX_JSON = 64 * 1024
+
+
+def _pjson(value: Any) -> str:
+    text = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True, default=str)
+    return text if len(text) <= MAX_JSON else text[:MAX_JSON] + "\n... truncated"
+
+
+def _step_duration(step: Mapping[str, Any]) -> str:
+    try:
+        seconds = (datetime.fromisoformat(step["endedAt"]) - datetime.fromisoformat(step["startedAt"])).total_seconds()
+    except (KeyError, TypeError, ValueError):
+        return ""
+    return f"{seconds * 1000:,.0f} ms" if seconds < 1 else f"{seconds:,.1f} s"
+
+
+TEMPLATES.filters.update(num=_number, ago=_ago, pretty=_pretty, pjson=_pjson, step_duration=_step_duration)
 TEMPLATES.filters["seconds"] = lambda v: "n/a" if v is None else f"{v * 1000:,.0f} ms" if v < 1 else f"{v:,.2f} s"
 TEMPLATES.filters["cost"] = lambda v: "n/a" if v is None else f"${v:,.4f}"
 TEMPLATES.filters["percent"] = lambda v: f"{v * 100:,.0f} %"
@@ -174,6 +191,11 @@ def create_app(
         kg=kg,
         nats_monitor_url=nats_monitor_url,
         gateway=gateway,
+    )
+    orchestrator = (
+        OrchestratorClient(targets["orchestrator"], settings.service_token or "", client)
+        if "orchestrator" in (targets or {})
+        else None
     )
     secret_values = [admin_password, settings.service_token, settings.kg_password, gateway_password]
 
@@ -363,6 +385,10 @@ def create_app(
             request, ctx, "graph.html", projects=projects, labels=graph_service.labels,
             rel_types=graph_service.rel_types, message=message, error=message is not None,
         )  # fmt: skip
+
+    ops.register(
+        app, orchestrator=orchestrator, session=Session, page=page, verify_csrf=verify_csrf, read_form=read_form
+    )
 
     # --------------------------------------------------------------------- API
 

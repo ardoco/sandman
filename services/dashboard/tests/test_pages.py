@@ -5,7 +5,16 @@ from pathlib import Path
 import pytest
 from dash_fakes import SECRETS, Env
 
-PAGES = ["/", "/graph", "/gateway", "/fragments/services", "/fragments/gateway"]
+PAGES = [
+    "/",
+    "/graph",
+    "/gateway",
+    "/fragments/services",
+    "/fragments/gateway",
+    "/workflows",
+    "/workflows/wf_" + "a" * 32,
+    "/fragments/workflows/wf_" + "a" * 32,
+]
 APIS = [
     "/api/services",
     "/api/gateway",

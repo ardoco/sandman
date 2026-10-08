@@ -8,6 +8,7 @@ from typing import Any, LiteralString, TypeVar, cast
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction
 from neo4j.exceptions import Neo4jError
 
+from sandman_agent import telemetry
 from sandman_agent.ids import new_run_id
 from sandman_agent.llm import Usage
 
@@ -53,8 +54,9 @@ class KgClient:
         async def work(tx: AsyncManagedTransaction) -> list[dict[str, Any]]:
             return [r.data() async for r in await tx.run(cypher, params)]
 
-        async with self._driver.session() as session:
-            return await session.execute_read(_no_retry_on_memory_limit(work))
+        with telemetry.kg_span("read", cypher):
+            async with self._driver.session() as session:
+                return await session.execute_read(_no_retry_on_memory_limit(work))
 
     async def write(self, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:
         """Run a write query; transient errors are retried by the driver."""
@@ -62,13 +64,15 @@ class KgClient:
         async def work(tx: AsyncManagedTransaction) -> list[dict[str, Any]]:
             return [r.data() async for r in await tx.run(cypher, params)]
 
-        async with self._driver.session() as session:
-            return await session.execute_write(_no_retry_on_memory_limit(work))
+        with telemetry.kg_span("write", cypher):
+            async with self._driver.session() as session:
+                return await session.execute_write(_no_retry_on_memory_limit(work))
 
     async def write_tx(self, fn: Callable[[AsyncManagedTransaction], Awaitable[T]]) -> T:
         """Run several statements in one write transaction."""
-        async with self._driver.session() as session:
-            return cast(T, await session.execute_write(_no_retry_on_memory_limit(fn)))
+        with telemetry.kg_span("write_tx"):
+            async with self._driver.session() as session:
+                return cast(T, await session.execute_write(_no_retry_on_memory_limit(fn)))
 
     async def run_autocommit(self, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:
         """Auto-commit query; Memgraph requires it for schema statements and SHOW STORAGE INFO (spike T0.4)."""

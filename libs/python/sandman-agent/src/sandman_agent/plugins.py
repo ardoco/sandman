@@ -7,6 +7,7 @@ from typing import Any
 
 import httpx
 
+from sandman_agent import telemetry
 from sandman_agent.a2a import A2aClient
 from sandman_agent.contracts import Contracts
 
@@ -43,6 +44,10 @@ class A2aPluginClient:
     async def extract(self, input: Mapping[str, Any]) -> dict[str, Any]:
         """Run sandman.plugin.extract and wait for its result (CancelTask on timeout)."""
         self._contracts.validate("skills.schema.json#/$defs/PluginExtractInput", dict(input))
+        with telemetry.client_span(telemetry.SPAN_PLUGIN_EXTRACT):
+            return await self._extract(input)
+
+    async def _extract(self, input: Mapping[str, Any]) -> dict[str, Any]:
         try:
             task = await self._client.submit(self._url, EXTRACT_SKILL, input)
             deadline, delay = time.monotonic() + self._timeout, self._poll[0]

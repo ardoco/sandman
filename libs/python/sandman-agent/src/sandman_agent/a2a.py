@@ -163,18 +163,22 @@ class _Executor(AgentExecutor):
         metadata = _struct(message.metadata)
         skill_id = metadata.get(SKILL_KEY)
         if not isinstance(skill_id, str):
-            return await self._end(updater, SkillError("INVALID_INPUT", f"metadata {SKILL_KEY} missing", False), True)
+            await self._end(updater, SkillError("INVALID_INPUT", f"metadata {SKILL_KEY} missing", False), True)
+            return
         skill = self._skills.get(skill_id)
         if skill is None or skill_id not in self._schemas:
-            return await self._end(updater, SkillError("UNKNOWN_SKILL", f"unknown skill {skill_id}", False), True)
+            await self._end(updater, SkillError("UNKNOWN_SKILL", f"unknown skill {skill_id}", False), True)
+            return
         data_parts = [p for p in message.parts if p.HasField("data")]
         if len(data_parts) != 1:
-            return await self._end(updater, SkillError("INVALID_INPUT", "expected exactly one data part", False), True)
+            await self._end(updater, SkillError("INVALID_INPUT", "expected exactly one data part", False), True)
+            return
         input = json_value(MessageToDict(data_parts[0].data))
         try:
             self._contracts.validate(self._schemas[skill_id]["inputSchema"], input)
         except ContractError as e:
-            return await self._end(updater, SkillError("INVALID_INPUT", str(e), False), True)
+            await self._end(updater, SkillError("INVALID_INPUT", str(e), False), True)
+            return
 
         ctx = SkillContext(
             task_id=context.task_id,
@@ -187,15 +191,17 @@ class _Executor(AgentExecutor):
         )
         self._running[context.task_id] = ctx
         token = telemetry.bind(taskId=ctx.task_id, workflowId=ctx.workflow_id, actor=ctx.actor)
+        headers = context.call_context.state.get("headers", {})
         try:
-            async with self._status.track():
-                await updater.start_work()
-                await self._run(skill, ctx, input, updater)
+            with telemetry.a2a_task_span(self._settings.service_name, skill_id, ctx.task_id, headers) as span:
+                async with self._status.track():
+                    await updater.start_work()
+                    span["outcome"] = await self._run(skill, ctx, input, updater)
         finally:
             self._running.pop(context.task_id, None)
             telemetry.reset(token)
 
-    async def _run(self, skill: Skill, ctx: SkillContext, input: dict[str, Any], updater: TaskUpdater) -> None:
+    async def _run(self, skill: Skill, ctx: SkillContext, input: dict[str, Any], updater: TaskUpdater) -> str:
         try:
             result = await skill.run(ctx, input)
         except SkillError as e:
@@ -230,10 +236,12 @@ class _Executor(AgentExecutor):
                 return await self._end(updater, SkillError("DEPENDENCY_UNAVAILABLE", str(e), True), False)
         await updater.add_artifact([new_data_part(output)], name="result")
         await updater.complete()
+        return "completed"
 
-    async def _end(self, updater: TaskUpdater, error: SkillError, reject: bool) -> None:
+    async def _end(self, updater: TaskUpdater, error: SkillError, reject: bool) -> str:
         msg = updater.new_agent_message([new_text_part(error.message)], metadata={ERROR_KEY: error.to_json()})
         await (updater.reject(msg) if reject else updater.failed(msg))
+        return "rejected" if reject else "failed"
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         ctx = self._running.get(context.task_id or "")
@@ -351,6 +359,7 @@ class A2aClient:
             headers={"Authorization": f"Bearer {token}", "A2A-Extensions": INVOCATION_EXTENSION},
             transport=transport,
             timeout=timeout,
+            event_hooks={"request": [telemetry.inject_request]},
         )
         self._clients: dict[str, Client] = {}
 
@@ -407,16 +416,20 @@ class A2aClient:
         request = ParseDict(
             {"message": dict(message), "configuration": {"returnImmediately": True}}, SendMessageRequest()
         )
-        client = await self._client(agent_url)
-        async for response in client.send_message(request):
-            if response.HasField("task"):
-                return snapshot(response.task)
+        skill = _struct(request.message.metadata).get(SKILL_KEY, "")
+        with telemetry.client_span(f"{telemetry.SPAN_A2A_CLIENT} send {skill}", **{telemetry.ATTR_SKILL: skill}):
+            client = await self._client(agent_url)
+            async for response in client.send_message(request):
+                if response.HasField("task"):
+                    return snapshot(response.task)
         raise RuntimeError(f"{agent_url} returned no task")
 
     async def get(self, agent_url: str, task_id: str) -> TaskSnapshot:
         """Current state, result and error of a task."""
-        return snapshot(await (await self._client(agent_url)).get_task(GetTaskRequest(id=task_id)))
+        with telemetry.client_span(f"{telemetry.SPAN_A2A_CLIENT} get", **{telemetry.ATTR_TASK_ID: task_id}):
+            return snapshot(await (await self._client(agent_url)).get_task(GetTaskRequest(id=task_id)))
 
     async def cancel(self, agent_url: str, task_id: str) -> TaskSnapshot:
         """Request cancellation."""
-        return snapshot(await (await self._client(agent_url)).cancel_task(CancelTaskRequest(id=task_id)))
+        with telemetry.client_span(f"{telemetry.SPAN_A2A_CLIENT} cancel", **{telemetry.ATTR_TASK_ID: task_id}):
+            return snapshot(await (await self._client(agent_url)).cancel_task(CancelTaskRequest(id=task_id)))

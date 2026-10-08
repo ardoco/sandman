@@ -141,18 +141,22 @@ class EventPublisher:
         event_id: str | None = None,
     ) -> Event:
         """Validate, publish and await the JetStream ack."""
-        event = build_event(self._contracts, self._source, type, subject, data, correlation_id, causation_id, event_id)
-        payload = json.dumps(event.to_json(), ensure_ascii=False).encode()
-        for attempt, delay in enumerate((*self._backoff, None)):
-            try:
-                await self._js.publish(type, payload, headers={"Nats-Msg-Id": event.id})
-                return event
-            except Exception as e:  # noqa: BLE001 - any transport error is retried, then surfaced
-                if delay is None:
-                    raise PublishError(f"publishing {type} {event.id} failed after {attempt + 1} attempts") from e
-                log.warning("publish failed, retrying", extra={"fields": {"event": type, "attempt": attempt + 1}})
-                await asyncio.sleep(delay)
-        raise AssertionError("unreachable")
+        with telemetry.event_publish_span(type):
+            event = build_event(
+                self._contracts, self._source, type, subject, data, correlation_id, causation_id, event_id
+            )
+            payload = json.dumps(event.to_json(), ensure_ascii=False).encode()
+            for attempt, delay in enumerate((*self._backoff, None)):
+                try:
+                    await self._js.publish(type, payload, headers={"Nats-Msg-Id": event.id})
+                    telemetry.event_published(type)
+                    return event
+                except Exception as e:  # noqa: BLE001 - any transport error is retried, then surfaced
+                    if delay is None:
+                        raise PublishError(f"publishing {type} {event.id} failed after {attempt + 1} attempts") from e
+                    log.warning("publish failed, retrying", extra={"fields": {"event": type, "attempt": attempt + 1}})
+                    await asyncio.sleep(delay)
+            raise AssertionError("unreachable")
 
 
 async def ensure_stream(js: JetStreamContext) -> None:
@@ -201,7 +205,8 @@ async def handle_message(msg: Any, handler: Handler) -> None:
     """Ack after the handler succeeded; nak with the next backoff delay otherwise."""
     try:
         event = Event.from_json(json.loads(msg.data))
-        await handler(event)
+        with telemetry.event_consume_span(event.type, event.id, event.traceparent):
+            await handler(event)
     except Exception:
         delivered = getattr(getattr(msg, "metadata", None), "num_delivered", 1) or 1
         delay = CONSUMER_BACKOFF[min(delivered, len(CONSUMER_BACKOFF)) - 1]

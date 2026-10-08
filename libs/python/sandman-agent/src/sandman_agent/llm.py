@@ -106,7 +106,6 @@ class OpenAiLlmClient:
             "model": self._model(req.model),
             "messages": [{"role": m.role, "content": m.content} for m in req.messages],
             "temperature": req.temperature,
-            "extra_headers": telemetry.trace_headers(),
         }
         if req.response_schema is not None:
             kwargs["response_format"] = {
@@ -116,24 +115,32 @@ class OpenAiLlmClient:
         for key, value in (("seed", req.seed), ("max_tokens", req.max_tokens), ("user", req.user)):
             if value is not None:
                 kwargs[key] = value
-        try:
-            resp = await self._sdk().chat.completions.create(**kwargs)
-        except APIStatusError as e:
-            raise _gateway_error(e) from e
-        choice = resp.choices[0]
-        usage = Usage(resp.usage.prompt_tokens, resp.usage.completion_tokens) if resp.usage else Usage()
+        with telemetry.llm_span("chat", req.model, kwargs["model"]) as span:
+            kwargs["extra_headers"] = telemetry.trace_headers()
+            try:
+                resp = await self._sdk().chat.completions.create(**kwargs)
+            except APIStatusError as e:
+                raise _gateway_error(e) from e
+            choice = resp.choices[0]
+            usage = Usage(resp.usage.prompt_tokens, resp.usage.completion_tokens) if resp.usage else Usage()
+            span.update(response_model=resp.model, input_tokens=usage.input_tokens, output_tokens=usage.output_tokens)
         return ChatResponse(
             ChatMessage("assistant", choice.message.content or ""), choice.finish_reason, usage, resp.model
         )
 
     async def embed(self, model: str, texts: Sequence[str]) -> list[list[float]]:
         """Embeddings for texts."""
-        try:
-            resp = await self._sdk().embeddings.create(
-                model=self._model(model), input=list(texts), extra_headers=telemetry.trace_headers()
-            )
-        except APIStatusError as e:
-            raise _gateway_error(e) from e
+        gateway_model = self._model(model)
+        with telemetry.llm_span("embeddings", model, gateway_model) as span:
+            try:
+                resp = await self._sdk().embeddings.create(
+                    model=gateway_model, input=list(texts), extra_headers=telemetry.trace_headers()
+                )
+            except APIStatusError as e:
+                raise _gateway_error(e) from e
+            span.update(response_model=resp.model)
+            if resp.usage:
+                span.update(input_tokens=resp.usage.prompt_tokens)
         return [d.embedding for d in resp.data]
 
 

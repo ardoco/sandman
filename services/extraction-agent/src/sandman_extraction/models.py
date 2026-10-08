@@ -12,7 +12,6 @@ repeated identical relations are merged, duplicate ids keep the first element.
 Other root elements or dialects raise ValueError so the caller falls back to the file-level element.
 """
 
-import logging
 from collections.abc import Iterator
 from pathlib import PurePosixPath
 from typing import Any
@@ -21,8 +20,6 @@ from xml.etree.ElementTree import Element, TreeBuilder
 from defusedxml.ElementTree import XMLParser
 
 from sandman_extraction.stub import FILE_KEY
-
-log = logging.getLogger(__name__)
 
 MAX_XML_BYTES = 10 * 1024 * 1024
 TEXT_MAX = 500
@@ -101,11 +98,12 @@ def _uml_items(root: Element) -> Iterator[Item]:
 
 
 def extract(
-    path: str, content: bytes, model: str, max_bytes: int = MAX_XML_BYTES
+    path: str, content: bytes, model: str, max_bytes: int = MAX_XML_BYTES, warnings: list[str] | None = None
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """File element, one element per component and interface, and PROVIDES/REQUIRES relations from components."""
     if len(content) > max_bytes:
         raise ValueError(f"{path} has {len(content)} bytes, limit is {max_bytes}")
+    warnings = [] if warnings is None else warnings
     root, lines = _parse(content)
     expected, items = ("Repository", _pcm_items) if model == PCM else ("Model", _uml_items)
     if _local(root.tag) != expected:
@@ -126,10 +124,10 @@ def extract(
     for el, kind, pcm_type, provided, required in found:
         key = _attr(el, "id")
         if not key:
-            log.warning("model element without id skipped", extra={"fields": {"path": path, "line": lines.first[el]}})
+            warnings.append(f"{path}:{lines.first[el]}: model element without id skipped")
             continue
         if key in seen:
-            log.warning("duplicate model id skipped", extra={"fields": {"path": path, "id": key}})
+            warnings.append(f"{path}:{lines.first[el]}: duplicate model id {key} skipped")
             continue
         seen.add(key)
         name = names[key]
@@ -152,8 +150,7 @@ def extract(
         for rel, refs in (("PROVIDES", provided), ("REQUIRES", required)):
             for ref in refs:
                 if ref not in interfaces:
-                    log.warning("relation to unknown interface skipped",
-                                extra={"fields": {"path": path, "source": key, "target": ref}})  # fmt: skip
+                    warnings.append(f"{path}: relation {rel} from {key} to unknown interface {ref} skipped")
                 elif (rel, key, ref) not in done:
                     done.add((rel, key, ref))
                     relations.append({"type": rel, "source": {"path": path, "localKey": key},

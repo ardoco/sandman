@@ -1,6 +1,5 @@
 """PCM and UML extractors: benchmark id sets, snippets, hostile XML (T1.2)."""
 
-import logging
 import re
 from pathlib import Path
 from xml.etree.ElementTree import ParseError
@@ -91,24 +90,24 @@ def test_pcm_roles_and_types() -> None:
     assert c["parent"] == "file" and c["startLine"] == 1
 
 
-def test_pcm_missing_interface_warns_without_relation(caplog: pytest.LogCaptureFixture) -> None:
+def test_pcm_missing_interface_warns_without_relation() -> None:
     body = (
         '<components__Repository id="c" entityName="C">'
         '<providedRoles_InterfaceProvidingEntity providedInterface__OperationProvidedRole="gone"/>'
         "</components__Repository>"
     )
-    with caplog.at_level(logging.WARNING):
-        elements, relations = extract("a.repository", pcm(body), PCM)
+    warnings: list[str] = []
+    elements, relations = extract("a.repository", pcm(body), PCM, warnings=warnings)
     assert keys(elements) == ["c"] and relations == []
-    assert "unknown interface" in caplog.text
+    assert len(warnings) == 1 and "unknown interface gone" in warnings[0]
 
 
-def test_duplicate_ids_first_wins(caplog: pytest.LogCaptureFixture) -> None:
+def test_duplicate_ids_first_wins() -> None:
     body = '<components__Repository id="c" entityName="First"/><components__Repository id="c" entityName="Second"/>'
-    with caplog.at_level(logging.WARNING):
-        elements, _ = extract("a.repository", pcm(body), PCM)
+    warnings: list[str] = []
+    elements, _ = extract("a.repository", pcm(body), PCM, warnings=warnings)
     assert [e["name"] for e in elements[1:]] == ["First"]
-    assert "duplicate" in caplog.text
+    assert len(warnings) == 1 and "duplicate model id c" in warnings[0]
 
 
 def test_uml_snippet_and_foreign_elements() -> None:
@@ -137,7 +136,7 @@ def test_size_limit() -> None:
     with pytest.raises(ValueError, match="limit"):
         extract("a.repository", pcm(""), PCM, max_bytes=10)
     with pytest.raises(ValueError, match="limit"):
-        builtin.extract("a.repository", "architecture-model", None, pcm(""), 10)
+        builtin.extract("a.repository", "architecture-model", None, pcm(""), max_xml_bytes=10)
 
 
 HOSTILE = {

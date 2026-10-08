@@ -6,7 +6,7 @@ from typing import Any
 from sandman_extraction import models, requirements, text
 from sandman_extraction.stub import LABEL_BY_KIND, stub_elements
 
-TOOL, TOOL_VERSION = "builtin-extractor", "1"
+TOOL, TOOL_VERSION = "builtin-extractor", "2"
 FORMAT_BY_SUFFIX = {".md": "markdown", ".markdown": "markdown", ".txt": "text", ".csv": "csv",
                     ".repository": "pcm-repository", ".uml": "uml", ".xmi": "uml"}  # fmt: skip
 TEXT_FORMATS = ("markdown", "text")
@@ -33,7 +33,9 @@ def extract(
         elements[0]["label"] = LABEL_BY_KIND[kind]
         return elements, []
     if fmt in MODEL_FORMATS:
-        elements, relations = models.extract(path, content, MODEL_FORMATS[fmt], max_xml_bytes)
+        elements, relations = models.extract(
+            path, content, MODEL_FORMATS[fmt], max_xml_bytes, [] if warnings is None else warnings
+        )
         elements[0]["label"] = LABEL_BY_KIND[kind]
         return elements, relations
     return stub_elements(path, kind, content), []

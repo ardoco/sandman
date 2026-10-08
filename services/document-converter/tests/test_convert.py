@@ -9,6 +9,8 @@ from pathlib import Path
 import pytest
 from sandman_document_converter import convert as documents
 from sandman_document_converter.convert import ConversionError, Limits
+from sandman_extraction import builtin
+from sandman_extraction.text import extract, render_sentences
 
 TESTS = Path(__file__).parent
 EXTRACTION_TESTS = TESTS.parents[1] / "extraction-agent" / "tests"
@@ -158,7 +160,6 @@ def test_limits_from_env() -> None:
 @needs_models
 @pytest.mark.parametrize("case", CASES)
 async def test_golden_documents(case: str) -> None:
-    builtin = pytest.importorskip("sandman_extraction.builtin")
     markdown = await documents.to_markdown(DOCS / case)
     elements = builtin.extract_document(case, "architecture-doc", markdown.encode())
     builtin.drop_lines(elements)
@@ -178,9 +179,6 @@ async def test_golden_documents(case: str) -> None:
 @needs_models
 @pytest.mark.parametrize("case", ["teastore.pdf", "teastore.docx"])
 async def test_sentence_keys_match_text_extraction(case: str, capsys: pytest.CaptureFixture[str]) -> None:
-    builtin = pytest.importorskip("sandman_extraction.builtin")
-    text = pytest.importorskip("sandman_extraction.text")
-    extract, render_sentences = text.extract, text.render_sentences
     ref = extract("teastore.txt", TEASTORE.read_bytes())
     markdown = await documents.to_markdown(DOCS / case)
     got = builtin.extract_document(case, "architecture-doc", markdown.encode())
@@ -195,8 +193,6 @@ async def test_sentence_keys_match_text_extraction(case: str, capsys: pytest.Cap
 @docling
 @needs_models
 async def test_docx_headings_equal_markdown_sections() -> None:
-    builtin = pytest.importorskip("sandman_extraction.builtin")
-    extract = pytest.importorskip("sandman_extraction.text").extract
     markdown = (
         "# Architecture\n\nThe system has two components. The first stores media.\n\n"
         "## Components\n\n- The Cache keeps hot items.\n- The Store persists all items.\n\n"

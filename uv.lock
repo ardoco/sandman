@@ -2190,6 +2190,11 @@ dependencies = [
     { name = "uvicorn" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "sandman-extraction-agent" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "docling", specifier = "==2.135.0" },
@@ -2202,6 +2207,9 @@ requires-dist = [
     { name = "torchvision", marker = "sys_platform == 'linux'", specifier = "==0.29.1", index = "https://download.pytorch.org/whl/cpu" },
     { name = "uvicorn", specifier = ">=0.54.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "sandman-extraction-agent", editable = "services/extraction-agent" }]
 
 [[package]]
 name = "sandman-extraction-agent"

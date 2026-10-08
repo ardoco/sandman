@@ -13,6 +13,9 @@ dependencies = [
     "uvicorn>=0.54.0",
 ]
 
+[dependency-groups]
+dev = ["sandman-extraction-agent"]  # golden tests run the extraction on the rendered Markdown
+
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]
 build-backend = "uv_build"
@@ -22,6 +25,7 @@ module-name = "sandman_document_converter"
 
 [tool.uv.sources]
 sandman-agent = { workspace = true }
+sandman-extraction-agent = { workspace = true }
 torch = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
 torchvision = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
 

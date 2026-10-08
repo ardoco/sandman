@@ -11,6 +11,7 @@ from neo4j.exceptions import Neo4jError
 from sandman_agent import events
 from sandman_agent.contracts import Contracts
 from sandman_agent.kg import KgClient, RunRecorder
+from sandman_agent.llm import Usage
 from testcontainers.core.container import DockerContainer
 
 
@@ -104,6 +105,22 @@ async def test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(memgr
         assert ids == [{"id": "keep"}]
         status = await kg.read("MATCH (r:Run) WHERE r.id IN [$a, $b] RETURN r.id AS id, r.status AS s", a=done, b=stale)
         assert {r["id"]: r["s"] for r in status} == {done: "completed", stale: "failed"}
+    finally:
+        await kg.close()
+
+
+async def test_run_records_prompt_ids_and_resolved_model(memgraph: str) -> None:
+    kg = KgClient(memgraph, None, None)
+    runs = RunRecorder(kg, "test-agent", "0")
+    try:
+        rid = await runs.start(
+            project_id="mini", skill="s", tool="llm-enrichment", tool_version="0", input_key="k2",
+            model="chat-local", prompt_ids=["prompts/a.txt@0123456789ab"],
+        )  # fmt: skip
+        await runs.complete(rid, Usage(3, 4), resolved_model="qwen3:1.7b")
+        row = (await kg.read("MATCH (r:Run {id: $r}) RETURN properties(r) AS p", r=rid))[0]["p"]
+        assert row["promptIds"] == ["prompts/a.txt@0123456789ab"]
+        assert (row["resolvedModel"], row["inputTokens"], row["outputTokens"]) == ("qwen3:1.7b", 3, 4)
     finally:
         await kg.close()
 

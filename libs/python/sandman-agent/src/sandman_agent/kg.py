@@ -110,6 +110,7 @@ class RunRecorder:
         task_id: str | None = None,
         triggered_by: str | None = None,
         replay_mode: str = "live",
+        prompt_ids: Sequence[str] = (),
     ) -> str:
         """Create a running Run and USED edges; return its id."""
         run_id = new_run_id()
@@ -118,6 +119,7 @@ class RunRecorder:
             "skill": skill, "tool": tool, "toolVersion": tool_version, "inputKey": input_key, "model": model,
             "params": params, "configHash": config_hash, "workflowId": workflow_id, "a2aTaskId": task_id,
             "triggeredBy": triggered_by, "replayMode": replay_mode, "status": "running", "startedAt": now(),
+            "promptIds": list(prompt_ids) or None,
         }  # fmt: skip
         await self._kg.write(
             "CREATE (r:Run) SET r = $props "
@@ -127,12 +129,14 @@ class RunRecorder:
         )
         return run_id
 
-    async def complete(self, run_id: str, usage: Usage | None = None, status: str = "completed") -> None:
-        """Mark a run completed (or partial) with token usage."""
+    async def complete(
+        self, run_id: str, usage: Usage | None = None, status: str = "completed", resolved_model: str | None = None
+    ) -> None:
+        """Mark a run completed (or partial) with token usage and the model the gateway resolved."""
         await self._kg.write(
             "MATCH (r:Run {id: $id}) SET r.status = $status, r.endedAt = $now, "
-            "r.inputTokens = $inp, r.outputTokens = $out",
-            id=run_id, status=status, now=now(),
+            "r.inputTokens = $inp, r.outputTokens = $out, r.resolvedModel = $resolved",
+            id=run_id, status=status, now=now(), resolved=resolved_model,
             inp=usage.input_tokens if usage else None, out=usage.output_tokens if usage else None,
         )  # fmt: skip
 

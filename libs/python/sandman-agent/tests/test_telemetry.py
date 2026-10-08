@@ -228,3 +228,35 @@ def test_continued_span_joins_stored_trace() -> None:
     with telemetry.continued_span("later", stored):
         pass
     assert by_name("later")[0].context.trace_id == by_name("origin")[0].context.trace_id
+
+
+def test_exception_messages_and_urls_stay_out_of_spans() -> None:
+    with pytest.raises(ValueError):
+        with telemetry.client_span("failing"):
+            raise ValueError("SECRET-MESSAGE")
+    span = by_name("failing")[0]
+    assert span.status.status_code.name == "ERROR" and span.status.description == "ValueError"
+    assert not span.events and "SECRET" not in json.dumps(dict(span.attributes or {}))
+
+    with telemetry.tracer().start_as_current_span("http", attributes={"url.full": "http://x/a?token=SECRET#f"}) as http:
+        telemetry.strip_query(http, httpx.Request("GET", "http://x/a?token=SECRET#f"))
+    assert by_name("http")[0].attributes["url.full"] == "http://x/a"
+
+
+async def test_event_handler_error_message_not_exported() -> None:
+    event = events.build_event(
+        Contracts(DEFAULT_CONTRACTS_DIR), "x", "sandman.tracelinks.updated", "mini", EVENT_DATA, None, "m-1", None
+    )
+
+    async def boom(e: events.Event) -> None:
+        raise RuntimeError("SECRET-HANDLER")
+
+    await events.handle_message(FakeMsg(json.dumps(event.to_json()).encode()), boom)
+    span = by_name("event.consume")[0]
+    assert span.status.description == "RuntimeError" and not span.events
+
+
+def test_kg_statement_is_truncated() -> None:
+    with telemetry.kg_span("read", "X" * 5000):
+        pass
+    assert len(by_name("kg read")[0].attributes["db.query.text"]) == telemetry.MAX_STATEMENT_CHARS

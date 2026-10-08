@@ -44,6 +44,8 @@ public final class Telemetry {
     public static final AttributeKey<String> ATTR_DB_STATEMENT = AttributeKey.stringKey("db.query.text");
     public static final AttributeKey<String> ATTR_DB_OPERATION = AttributeKey.stringKey("db.operation.name");
 
+    public static final int MAX_STATEMENT_CHARS = 2000;
+
     public static final String METRIC_A2A_TASK_DURATION = "sandman.a2a.task.duration";
     public static final String METRIC_EVENTS_PUBLISHED = "sandman.events.published";
     public static final String METRIC_EVENTS_CONSUMED = "sandman.events.consumed";
@@ -152,7 +154,6 @@ public final class Telemetry {
         try (Scope ignored = span.makeCurrent()) {
             return body.run();
         } catch (Exception e) {
-            span.recordException(e);
             span.setStatus(StatusCode.ERROR, e.getClass().getSimpleName());
             throw e;
         } finally {
@@ -168,7 +169,9 @@ public final class Telemetry {
     public static SpanBuilder kgSpan(String operation, String statement) {
         var attrs = Attributes.builder().put(ATTR_DB_SYSTEM, "memgraph").put(ATTR_DB_OPERATION, operation);
         if (statement != null) {
-            attrs.put(ATTR_DB_STATEMENT, statement);
+            attrs.put(
+                    ATTR_DB_STATEMENT,
+                    statement.length() > MAX_STATEMENT_CHARS ? statement.substring(0, MAX_STATEMENT_CHARS) : statement);
         }
         return span(SPAN_KG + " " + operation, SpanKind.CLIENT, attrs.build());
     }
@@ -224,7 +227,7 @@ public final class Telemetry {
             outcome = body.run();
             return outcome;
         } catch (RuntimeException e) {
-            span.recordException(e);
+            outcome = "failed";
             throw e;
         } finally {
             span.setAttribute(ATTR_OUTCOME, outcome);

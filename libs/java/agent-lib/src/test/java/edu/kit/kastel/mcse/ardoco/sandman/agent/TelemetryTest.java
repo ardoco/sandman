@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.agent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.nats.client.impl.Headers;
@@ -138,5 +139,31 @@ class TelemetryTest {
         assertEquals("CREATE (n {id: $id})", span("kg write").getAttributes().get(Telemetry.ATTR_DB_STATEMENT));
         assertNull(span("kg write_tx").getAttributes().get(Telemetry.ATTR_DB_STATEMENT));
         assertFalse(SPANS.getFinishedSpanItems().toString().contains("SECRET"));
+    }
+
+    @Test
+    void failuresExportOnlyTheExceptionType() {
+        assertThrows(
+                IllegalStateException.class,
+                () -> Telemetry.inSpan(
+                        Telemetry.span(
+                                "failing",
+                                io.opentelemetry.api.trace.SpanKind.INTERNAL,
+                                io.opentelemetry.api.common.Attributes.empty()),
+                        () -> {
+                            throw new IllegalStateException("SECRET-MESSAGE");
+                        }));
+        SpanData failing = span("failing");
+        assertEquals("IllegalStateException", failing.getStatus().getDescription());
+        assertTrue(failing.getEvents().isEmpty());
+        assertFalse(SPANS.getFinishedSpanItems().toString().contains("SECRET"));
+    }
+
+    @Test
+    void longStatementsAreTruncated() {
+        Telemetry.inSpan(Telemetry.kgSpan("read", "X".repeat(5000)), () -> null);
+        assertEquals(
+                Telemetry.MAX_STATEMENT_CHARS,
+                span("kg read").getAttributes().get(Telemetry.ATTR_DB_STATEMENT).length());
     }
 }

@@ -64,6 +64,7 @@ _llm_input = _meter.create_counter(METRIC_LLM_INPUT_TOKENS, unit="{token}", desc
 _llm_output = _meter.create_counter(METRIC_LLM_OUTPUT_TOKENS, unit="{token}", description="LLM output tokens")
 _llm_duration = _meter.create_histogram(METRIC_LLM_DURATION, unit="s", description="LLM call duration")
 
+MAX_STATEMENT_CHARS = 2000
 FASTAPI_TELEMETRY: dict[str, Any] = {"auto_configure": False, "operation_spans": False}
 
 CONTEXT_FIELDS = ("workflowId", "taskId", "runId", "projectId", "actor")
@@ -141,7 +142,16 @@ def _setup_otel(service: str) -> None:
     trace.set_tracer_provider(provider)
     reader = PeriodicExportingMetricReader(OTLPMetricExporter(), export_interval_millis=15_000)
     metrics.set_meter_provider(MeterProvider(resource=resource, metric_readers=[reader]))
-    HTTPXClientInstrumentor().instrument()
+    HTTPXClientInstrumentor().instrument(request_hook=strip_query, async_request_hook=strip_query)
+
+
+def strip_query(span: Span, request: Any) -> None:
+    """httpx instrumentation hook: URLs without query string (it may carry tokens or search terms)."""
+    url = str(request.url.copy_with(query=None, fragment=None))
+    present = getattr(span, "attributes", None) or {}
+    for key in ("url.full", "http.url"):
+        if key in present:
+            span.set_attribute(key, url)
 
 
 def _trace_ids() -> dict[str, str]:
@@ -174,12 +184,28 @@ def context_from_traceparent(traceparent: str | None) -> Context | None:
 
 
 @contextmanager
+def _span(
+    name: str, *, kind: SpanKind = SpanKind.INTERNAL, attributes: Mapping[str, Any] | None = None,
+    context: Context | None = None,
+) -> Iterator[Span]:  # fmt: skip
+    """Current span without exception messages: failures set ERROR with the exception type name only."""
+    with tracer().start_as_current_span(
+        name, context=context, kind=kind, attributes=attributes, record_exception=False, set_status_on_exception=False
+    ) as span:
+        try:
+            yield span
+        except BaseException as e:
+            span.set_status(Status(StatusCode.ERROR, type(e).__name__))
+            raise
+
+
+@contextmanager
 def a2a_task_span(agent: str, skill: str, task_id: str, headers: Mapping[str, str]) -> Iterator[dict[str, str]]:
     """Server span of one A2A task, child of the caller's traceparent; the body sets result['outcome']."""
     result = {"outcome": "completed"}
     start = time.monotonic()
     attrs = {ATTR_AGENT: agent, ATTR_SKILL: skill, ATTR_TASK_ID: task_id}
-    with tracer().start_as_current_span(
+    with _span(
         f"{SPAN_A2A_TASK} {skill}", context=context_from(headers), kind=SpanKind.SERVER, attributes=attrs
     ) as span:
         try:
@@ -195,28 +221,26 @@ def a2a_task_span(agent: str, skill: str, task_id: str, headers: Mapping[str, st
 
 def continued_span(name: str, traceparent: str | None) -> Any:
     """Internal span continuing a stored traceparent (a new trace without one)."""
-    return tracer().start_as_current_span(name, context=context_from_traceparent(traceparent))
+    return _span(name, context=context_from_traceparent(traceparent))
 
 
 def client_span(name: str, **attributes: str) -> Any:
     """Client span context manager."""
-    return tracer().start_as_current_span(name, kind=SpanKind.CLIENT, attributes=attributes)
+    return _span(name, kind=SpanKind.CLIENT, attributes=attributes)
 
 
 def kg_span(operation: str, statement: str | None = None) -> Any:
     """Memgraph span; the statement text only, never parameters."""
     attrs = {ATTR_DB_SYSTEM: "memgraph", ATTR_DB_OPERATION: operation}
     if statement is not None:
-        attrs[ATTR_DB_STATEMENT] = statement
-    return tracer().start_as_current_span(f"{SPAN_KG} {operation}", kind=SpanKind.CLIENT, attributes=attrs)
+        attrs[ATTR_DB_STATEMENT] = statement[:MAX_STATEMENT_CHARS]
+    return _span(f"{SPAN_KG} {operation}", kind=SpanKind.CLIENT, attributes=attrs)
 
 
 def event_publish_span(event_type: str) -> Any:
     """Producer span around building and publishing one event."""
     attrs = {ATTR_MESSAGING_SYSTEM: "nats", ATTR_EVENT_TYPE: event_type}
-    return tracer().start_as_current_span(
-        f"{SPAN_EVENT_PUBLISH} {event_type}", kind=SpanKind.PRODUCER, attributes=attrs
-    )
+    return _span(f"{SPAN_EVENT_PUBLISH} {event_type}", kind=SpanKind.PRODUCER, attributes=attrs)
 
 
 def event_published(event_type: str) -> None:
@@ -230,7 +254,7 @@ def event_consume_span(event_type: str, event_id: str, traceparent: str | None) 
     start = time.monotonic()
     attrs = {ATTR_MESSAGING_SYSTEM: "nats", ATTR_EVENT_TYPE: event_type, ATTR_EVENT_ID: event_id}
     outcome = "ok"
-    with tracer().start_as_current_span(
+    with _span(
         f"{SPAN_EVENT_CONSUME} {event_type}",
         context=context_from_traceparent(traceparent),
         kind=SpanKind.CONSUMER,
@@ -254,7 +278,7 @@ def llm_span(operation: str, route: str, request_model: str) -> Iterator[dict[st
     out: dict[str, Any] = {}
     attrs = {ATTR_GENAI_OPERATION: operation, ATTR_GENAI_PROVIDER: "openai", ATTR_GENAI_REQUEST_MODEL: request_model}
     error: BaseException | None = None
-    with tracer().start_as_current_span(f"{operation} {request_model}", kind=SpanKind.CLIENT, attributes=attrs) as span:
+    with _span(f"{operation} {request_model}", kind=SpanKind.CLIENT, attributes=attrs) as span:
         try:
             yield out
         except BaseException as e:

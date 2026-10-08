@@ -146,3 +146,27 @@ def test_migrations_apply_once(tmp_path) -> None:
     for _ in range(2):
         Orchestrator(tmp_path / "m.db", RULES, None, None, AGENTS, None).close()  # type: ignore[arg-type]
     assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 2
+
+
+def test_upgrade_from_v1_keeps_rows_and_is_atomic(tmp_path) -> None:
+    from pathlib import Path
+
+    import sandman_orchestrator
+    from sandman_orchestrator.orchestrator import Orchestrator
+
+    migrations = Path(sandman_orchestrator.__file__).parent / "migrations"
+    path = tmp_path / "v1.db"
+    old = sqlite3.connect(path)
+    old.executescript((migrations / "001_init.sql").read_text() + "; PRAGMA user_version = 1;")
+    old.execute("INSERT INTO workflows VALUES ('wf_1', 'mini', '{}', 'RUNNING', 't', 't')")
+    old.execute(
+        "INSERT INTO steps (id, workflow_id, project_id, agent, skill, input_json, action_key, mergeable, status, "
+        "next_attempt_at) VALUES ('step_1', 'wf_1', 'mini', 'a', 's', '{}', 'k', 0, 'PENDING', 0)"
+    )
+    old.commit()
+    old.close()
+    orch = Orchestrator(path, RULES, None, None, AGENTS, None)  # type: ignore[arg-type]
+    row = orch.db.execute("SELECT id, traceparent FROM steps").fetchone()
+    assert (row["id"], row["traceparent"]) == ("step_1", None)
+    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 2
+    orch.close()

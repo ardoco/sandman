@@ -68,7 +68,11 @@ class Orchestrator:
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
         for n, script in enumerate(sorted((Path(__file__).parent / "migrations").glob("*.sql")), 1):
             if n > version:
-                self.db.executescript(f"{script.read_text()}; PRAGMA user_version = {n};")
+                try:
+                    self.db.executescript(f"{script.read_text()}; PRAGMA user_version = {n};")
+                except Exception:
+                    self.db.rollback()
+                    raise
                 self.db.commit()
 
     def close(self) -> None:

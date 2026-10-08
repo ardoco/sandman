@@ -58,8 +58,13 @@ def test_one_trace_spans_all_services(grafana: httpx.Client) -> None:
 
 
 def test_a2a_metric_is_queryable(grafana: httpx.Client) -> None:
-    resp = grafana.get(
-        "/api/datasources/proxy/uid/prometheus/api/v1/query",
-        params={"query": "sum(sandman_a2a_task_duration_seconds_count)"},
-    )
-    assert resp.json()["data"]["result"]
+    deadline = time.monotonic() + 120
+    while time.monotonic() < deadline:
+        resp = grafana.get(
+            "/api/datasources/proxy/uid/prometheus/api/v1/query",
+            params={"query": "sum(sandman_a2a_task_duration_seconds_count)"},
+        )
+        if resp.status_code == 200 and resp.json()["data"]["result"]:
+            return
+        time.sleep(5)
+    pytest.fail("sandman_a2a_task_duration_seconds_count not in Prometheus")

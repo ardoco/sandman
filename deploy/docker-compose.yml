@@ -159,7 +159,7 @@ services:
       SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_tlr-agent
       SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_tlr
       SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_tlr_local
-      QUARKUS_OTEL_SDK_DISABLED: ${OTEL_EXPORTER_OTLP_ENDPOINT:+${OTEL_SDK_DISABLED:-true}}   # Quarkus ignores OTEL_*; stays off without endpoint
+      QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
     volumes:
@@ -187,7 +187,7 @@ services:
       SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_inconsistency
       SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_inconsistency_local
       SANDMAN_QUERY_SERVICE_URL: http://query-service:8000
-      QUARKUS_OTEL_SDK_DISABLED: ${OTEL_EXPORTER_OTLP_ENDPOINT:+${OTEL_SDK_DISABLED:-true}}   # Quarkus ignores OTEL_*; stays off without endpoint
+      QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
     volumes:

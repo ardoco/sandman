@@ -5,12 +5,14 @@ from pathlib import Path
 SCRIPT = Path(__file__).parents[2] / "deploy" / "check-env.sh"
 
 
-def run(tmp_path: Path, env: str | None) -> int:
-    (tmp_path / "secrets").mkdir()
+def run(tmp_path: Path, env: str | None, environ: dict[str, str] | None = None) -> int:
+    (tmp_path / "secrets").mkdir(exist_ok=True)
     shutil.copy(SCRIPT, tmp_path / "check-env.sh")
     if env is not None:
         (tmp_path / "secrets" / "gateway.env").write_text(env)
-    return subprocess.run(["sh", str(tmp_path / "check-env.sh")], capture_output=True).returncode
+    return subprocess.run(
+        ["sh", str(tmp_path / "check-env.sh")], capture_output=True, env={"PATH": "/usr/bin:/bin", **(environ or {})}
+    ).returncode
 
 
 def test_empty_url_ok(tmp_path):
@@ -31,3 +33,17 @@ def test_https_with_key_ok(tmp_path):
 
 def test_missing_file_fails(tmp_path):
     assert run(tmp_path, None) == 1
+
+
+def test_telemetry_on_without_endpoint_fails(tmp_path):
+    ok = "SELFHOSTED_LLM_URL=\n"
+    assert run(tmp_path, ok, {"OTEL_SDK_DISABLED": "false"}) == 1
+
+
+def test_telemetry_on_with_endpoint_or_off_ok(tmp_path):
+    ok = "SELFHOSTED_LLM_URL=\n"
+    assert (
+        run(tmp_path, ok, {"OTEL_SDK_DISABLED": "false", "OTEL_EXPORTER_OTLP_ENDPOINT": "http://otel-lgtm:4318"}) == 0
+    )
+    assert run(tmp_path, ok, {"OTEL_SDK_DISABLED": "true"}) == 0
+    assert run(tmp_path, ok) == 0

@@ -137,3 +137,41 @@ def test_stopped_agent_is_shown_down_and_recovers(dashboard: httpx.Client) -> No
             capture_output=True,
         )
     wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "up", 60, "tlr-agent up again")
+
+
+def e2e_project(http: httpx.Client) -> str:
+    projects = [p["id"] for p in http.get("/api/graph/projects").json()["projects"]]
+    e2e = [p for p in projects if p.startswith("e2e-")]
+    assert e2e, f"no e2e project in {projects}"
+    return e2e[-1]
+
+
+def test_workflows_page_lists_succeeded_workflows(dashboard: httpx.Client) -> None:
+    project = e2e_project(dashboard)
+    page = dashboard.get("/workflows", params={"projectId": project})
+    assert page.status_code == 200 and "orchestrator unreachable" not in page.text
+    rows = re.findall(r'<td><a href="/workflows/(wf_[0-9a-f]{32})">', page.text)
+    assert rows and 'class="status-SUCCEEDED">SUCCEEDED' in page.text
+    detail = dashboard.get(f"/workflows/{rows[0]}")
+    assert detail.status_code == 200 and "Cancel workflow" not in detail.text and "-agent" in detail.text
+
+
+def test_events_page_shows_the_ingestion_event(dashboard: httpx.Client) -> None:
+    project = e2e_project(dashboard)
+
+    def seen() -> bool:
+        return "sandman.ingestion.completed" in dashboard.get("/events", params={"project": project}).text
+
+    wait_for(seen, 30, "ingestion event in the viewer")
+    page = dashboard.get("/events", params={"project": project, "type": "sandman.ingestion.completed"})
+    seq = re.search(r'<a href="/events/(\d+)">', page.text)
+    assert seq and project in dashboard.get(f"/events/{seq[1]}").text
+
+
+def test_experiments_page_shows_live_mode(dashboard: httpx.Client) -> None:
+    assert "<th>Mode</th><td>live</td>" in dashboard.get("/experiments").text
+
+
+def test_state_changing_requests_need_csrf(dashboard: httpx.Client) -> None:
+    assert dashboard.post(f"/workflows/wf_{'0' * 32}/cancel", data={"csrf": "x"}).status_code == 403
+    assert dashboard.post("/dead-events/replay", data={"eventId": "x"}).status_code == 403

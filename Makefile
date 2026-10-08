@@ -44,10 +44,11 @@ guard:              ## no agent frameworks in Python code (NFR-3)
 contracts:
 	uv run python scripts/validate_contracts.py
 
-e2e: secrets        ## walking skeleton: stack with plugin stubs up, then the e2e test
+e2e: secrets        ## walking skeleton and dashboard: stack with plugin stubs and dashboard up, then the e2e tests
 	deploy/check-env.sh
-	$(COMPOSE) --profile stubs up -d --build --wait --wait-timeout 300
-	SANDMAN_E2E=1 uv run pytest tests/e2e -q
+	$(COMPOSE) --profile stubs --profile dashboard up -d --build --wait --wait-timeout 300
+	SANDMAN_E2E=1 uv run pytest tests/e2e/test_walking_skeleton.py -q
+	SANDMAN_E2E=1 uv run pytest tests/e2e/test_dashboard.py -q
 
 backup:
 	@echo "not implemented (T5.3)"; exit 1

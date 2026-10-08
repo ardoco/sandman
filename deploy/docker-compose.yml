@@ -235,7 +235,7 @@ services:
     healthcheck: *py-health
     restart: unless-stopped
 
-  dashboard:                                   # system overview for admins (ADR-0016); image arrives in M1 (T1.9)
+  dashboard:                                   # system overview for admins (ADR-0016)
     profiles: [dashboard]
     build: { context: .., dockerfile: services/dashboard/Dockerfile }
     environment:

@@ -1,0 +1,131 @@
+"""Dashboard (T1.9) against a running stack: `make e2e` runs it after the walking-skeleton test (it needs its project).
+
+Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
+SANDMAN_E2E_DASHBOARD_PASSWORD (default: content of $SANDMAN_E2E_SECRETS/dashboard_admin_password, secrets dir default
+deploy/secrets). The test stops and restarts tlr-agent with `docker compose` (COMPOSE_PROJECT_NAME is honored).
+"""
+
+import os
+import re
+import subprocess
+import time
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import Any
+
+import httpx
+import pytest
+
+pytestmark = pytest.mark.skipif(not os.environ.get("SANDMAN_E2E"), reason="set SANDMAN_E2E=1 with the stack running")
+
+ROOT = Path(__file__).resolve().parents[2]
+URL = os.environ.get("SANDMAN_E2E_DASHBOARD_URL", "http://127.0.0.1:8090")
+CSRF = re.compile(r'name="csrf" value="([^"]+)"')
+TARGETS = {"extraction-agent", "tlr-agent", "inconsistency-agent", "orchestrator", "query-service", "llm-replay"}
+INFRASTRUCTURE = {"memgraph", "nats", "llm-gateway"}
+COMPOSE = [
+    "docker",
+    "compose",
+    "-f",
+    str(ROOT / "deploy" / "docker-compose.yml"),
+    "--profile",
+    "stubs",
+    "--profile",
+    "dashboard",
+]
+
+
+def password() -> str:
+    if value := os.environ.get("SANDMAN_E2E_DASHBOARD_PASSWORD"):
+        return value
+    secrets_dir = Path(os.environ.get("SANDMAN_E2E_SECRETS", ROOT / "deploy" / "secrets"))
+    return (secrets_dir / "dashboard_admin_password").read_text().strip()
+
+
+@pytest.fixture(scope="module")
+def dashboard() -> Iterator[httpx.Client]:
+    http = httpx.Client(base_url=URL, timeout=30)
+    assert http.get("/readyz").status_code == 200, f"dashboard not ready at {URL}"
+    page = http.get("/login")
+    csrf = CSRF.search(page.text)
+    assert csrf
+    login = http.post("/login", data={"csrf": csrf[1], "username": "admin", "password": password()})
+    assert login.status_code == 303 and login.headers["location"] == "/", login.text
+    yield http
+    http.close()
+
+
+def services(http: httpx.Client) -> dict[str, dict[str, Any]]:
+    resp = http.get("/api/services")
+    assert resp.status_code == 200, resp.text
+    return {s["name"]: s for s in resp.json()["services"]}
+
+
+def wait_for(check: Callable[[], bool], timeout: float, what: str) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if check():
+            return
+        time.sleep(1)
+    pytest.fail(f"timeout waiting for {what}")
+
+
+def test_protected_without_session() -> None:
+    anonymous = httpx.Client(base_url=URL, timeout=30)
+    assert anonymous.get("/").headers["location"] == "/login"
+    assert anonymous.get("/api/services").status_code == 401
+
+
+def test_everything_is_up(dashboard: httpx.Client) -> None:
+    def all_up() -> bool:
+        found = services(dashboard)
+        return (TARGETS | INFRASTRUCTURE) <= found.keys() and all(found[n]["health"] == "up" for n in found)
+
+    wait_for(all_up, 90, "all targets and infrastructure up")
+    found = services(dashboard)
+    assert set(found) == TARGETS | INFRASTRUCTURE
+    assert "ollama" not in found
+    assert found["nats"]["details"].get("stream", {}).get("messages") is not None
+    assert found["memgraph"]["details"]["nodes"] > 0
+    page = dashboard.get("/")
+    assert page.status_code == 200 and "tlr-agent" in page.text and "llm-gateway" in page.text
+
+
+def test_graph_of_the_e2e_project_and_read_only(dashboard: httpx.Client) -> None:
+    projects = [p["id"] for p in dashboard.get("/api/graph/projects").json()["projects"]]
+    e2e = [p for p in projects if p.startswith("e2e-")]
+    assert e2e, f"no e2e project in {projects}"
+    graph = dashboard.get("/api/graph/start", params={"project": e2e[-1], "label": "Requirement"}).json()
+    nodes = [e for e in graph["elements"] if e["group"] == "nodes"]
+    assert len(nodes) >= 3 and not graph["truncated"]
+    assert all("Requirement" in n["data"]["labels"] for n in nodes)
+
+    page = dashboard.get("/graph")
+    csrf = CSRF.search(page.text)
+    assert csrf
+    headers = {"x-csrf-token": csrf[1]}
+    write = dashboard.post("/api/cypher", json={"cypher": "CREATE (n:E2eEvil) RETURN n"}, headers=headers)
+    assert write.status_code == 422, write.text
+    check = dashboard.post("/api/cypher", json={"cypher": "MATCH (n:E2eEvil) RETURN count(n) AS c"}, headers=headers)
+    assert check.status_code == 200 and check.json()["rows"] == [[0]]
+    assert dashboard.post("/api/cypher", json={"cypher": "RETURN 1"}).status_code == 403
+
+
+def test_gateway_page_renders(dashboard: httpx.Client) -> None:
+    assert dashboard.get("/gateway").status_code == 200
+    assert dashboard.get("/api/gateway").json()["available"] is True
+
+
+def test_stopped_agent_is_shown_down_and_recovers(dashboard: httpx.Client) -> None:
+    subprocess.run([*COMPOSE, "stop", "tlr-agent"], check=True, cwd=ROOT, capture_output=True)
+    try:
+        wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "down", 30, "tlr-agent down")
+        assert services(dashboard)["orchestrator"]["health"] == "up"
+    finally:
+        subprocess.run(
+            [*COMPOSE, "up", "-d", "--no-build", "--wait", "--wait-timeout", "180", "tlr-agent"],
+            check=True,
+            cwd=ROOT,
+            capture_output=True,
+        )
+    wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "up", 60, "tlr-agent up again")

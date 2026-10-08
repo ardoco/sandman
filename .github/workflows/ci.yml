@@ -35,6 +35,7 @@ jobs:
               - 'services/orchestrator/**'
               - 'services/extraction-agent/**'
               - 'services/query-service/**'
+              - 'services/dashboard/**'
               - 'services/llm-replay/**'
               - 'tools/**'
               - 'tests/plugin-stubs/**'
@@ -113,7 +114,7 @@ jobs:
           cp -R deploy "$tmp/deploy"
           cd "$tmp/deploy"
           ./gen-secrets.sh > /dev/null
-          for profiles in "" "--profile stubs --profile obs"; do
+          for profiles in "" "--profile stubs --profile obs" "--profile dashboard --profile resources"; do
             docker compose $profiles config -q
           done
           docker compose -f docker-compose.yml -f docker-compose.dev.yml config -q

@@ -87,6 +87,7 @@ jobs:
           python-version: "3.13"
       - run: uv sync --locked
       - run: make lint
+      - run: uv run python -m sandman_extraction.prefetch
       - run: uv run pytest
 
   java:

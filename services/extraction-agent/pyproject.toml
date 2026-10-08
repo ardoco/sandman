@@ -12,6 +12,7 @@ dependencies = [
     "python-multipart>=0.0.32",
     "sandman-agent",
     "torch==2.14.1",
+    "torchvision==0.29.1",
     "uvicorn>=0.54.0",
 ]
 
@@ -25,6 +26,7 @@ module-name = "sandman_extraction"
 [tool.uv.sources]
 sandman-agent = { workspace = true }
 torch = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+torchvision = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

@@ -1,4 +1,5 @@
 FROM python:3.13-slim-bookworm AS build
+RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libxcb1 libgomp1 && rm -rf /var/lib/apt/lists/*  # opencv, torch
 COPY --from=ghcr.io/astral-sh/uv:0.12.5 /uv /uvx /bin/
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
@@ -14,6 +15,7 @@ RUN uv sync --frozen --no-dev --no-editable --package sandman-extraction-agent
 RUN SANDMAN_MODELS_DIR=/models .venv/bin/python -m sandman_extraction.prefetch
 
 FROM python:3.13-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libxcb1 libgomp1 && rm -rf /var/lib/apt/lists/*  # opencv, torch
 RUN useradd --uid 10001 --create-home sandman && install -d -o sandman /artifacts
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv

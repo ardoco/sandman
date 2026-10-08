@@ -162,7 +162,8 @@ class ExtractSkill:
             content = b"" if document else svc.store.open(v["uri"]).read()
             try:
                 if document:
-                    markdown = await documents.to_markdown(svc.converter, svc.store.path_for(v["uri"]), document)
+                    stored = svc.store.path_for(v["uri"]).relative_to(svc.store.root)
+                    markdown = await documents.to_markdown(svc.converter, stored, document)
                     content = markdown.encode()
                     elements[v["id"]] = await asyncio.to_thread(builtin.extract_document, v["path"], v["kind"], content)
                 elif use_builtin:

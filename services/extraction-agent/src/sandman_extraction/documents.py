@@ -28,7 +28,7 @@ def converter_client(
 
 
 async def to_markdown(client: httpx.AsyncClient | None, path: Path, fmt: str) -> str:
-    """Markdown rendering of the stored PDF/DOCX at `path`; raises ConversionError on any failure."""
+    """Markdown of the stored PDF/DOCX at `path` (relative to the store root); ConversionError on any failure."""
     if client is None:
         raise ConversionError("document converter is not configured (SANDMAN_CONVERTER_URL)")
     try:

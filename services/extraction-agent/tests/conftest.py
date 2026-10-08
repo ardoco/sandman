@@ -129,7 +129,8 @@ class FakePlugin:
 class FakeConverter:
     """document-converter stand-in: renders the stored blob as the Markdown Docling produced for the real fixture."""
 
-    def __init__(self) -> None:
+    def __init__(self, root: Path) -> None:
+        self.root = root
         self.calls: list[tuple[dict[str, Any], str | None]] = []
         self.status = 200
         self.error: Exception | None = None
@@ -141,7 +142,7 @@ class FakeConverter:
             raise self.error
         if self.status != 200:
             return httpx.Response(self.status, json={"detail": "converter says no"})
-        name = "teastore" if b"teastore" in Path(body["path"]).read_bytes() else "structure"
+        name = "teastore" if b"teastore" in (self.root / body["path"]).read_bytes() else "structure"
         return httpx.Response(200, json={"markdown": (RENDERED / f"{name}.md").read_text(encoding="utf-8")})
 
 
@@ -251,7 +252,7 @@ class Env:
 @pytest.fixture
 async def env(memgraph: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Env]:
     monkeypatch.setenv("SANDMAN_CONVERTER_URL", "http://document-converter:8000")
-    converter = FakeConverter()
+    converter = FakeConverter(tmp_path / "store")
     (tmp_path / "token").write_text("inbound")
     config = {
         "plugins": [{"id": "code-extractor", "transport": "a2a", "url": "http://plugin:8000",

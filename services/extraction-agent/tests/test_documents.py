@@ -31,8 +31,8 @@ async def test_posts_path_and_format_with_the_service_token() -> None:
         seen.append(request)
         return httpx.Response(200, json={"markdown": "# T\n"})
 
-    assert await documents.to_markdown(client(handler), Path("/artifacts/p/abc"), "pdf") == "# T\n"
-    assert json.loads(seen[0].content) == {"path": "/artifacts/p/abc", "format": "pdf"}
+    assert await documents.to_markdown(client(handler), Path("p/abc"), "pdf") == "# T\n"
+    assert json.loads(seen[0].content) == {"path": "p/abc", "format": "pdf"}
     assert seen[0].headers["authorization"] == "Bearer tok" and seen[0].url.path == "/v1/convert"
 
 
@@ -106,7 +106,7 @@ async def test_pdf_and_docx_through_the_skill(env: Any) -> None:
         assert all(r["start"] is None and r["end"] is None for r in rows)
     formats = sorted((c["format"], auth) for c, auth in env.converter.calls)
     assert formats == [("docx", "Bearer ea-token"), ("pdf", "Bearer ea-token")]
-    assert all(c["path"].startswith(str(env.svc.store.root)) for c, _ in env.converter.calls)
+    assert all(not Path(c["path"]).is_absolute() and ".." not in c["path"] for c, _ in env.converter.calls)
 
 
 async def test_converter_rejection_falls_back_and_others_extract(env: Any) -> None:

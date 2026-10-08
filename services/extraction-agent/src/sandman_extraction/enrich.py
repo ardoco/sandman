@@ -43,6 +43,7 @@ class EnrichConfig:
     max_concepts: int = 8
     max_tokens: int = 512
     seed: int = 42
+    reasoning_effort: tuple[tuple[str, str], ...] = ()
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> "EnrichConfig":
@@ -58,6 +59,7 @@ class EnrichConfig:
             max_concepts=int(raw.get("maxConceptsPerElement", defaults.max_concepts)),
             max_tokens=int(raw.get("maxTokens", defaults.max_tokens)),
             seed=int(raw.get("seed", defaults.seed)),
+            reasoning_effort=tuple((str(k), str(v)) for k, v in raw.get("reasoningEffort", {}).items()),
         )
 
 
@@ -98,19 +100,20 @@ class Answer:
 async def ask(
     client: LlmClient, route: str, prompt: str, schema: dict[str, Any], cfg: EnrichConfig, run_id: str
 ) -> Answer:
-    """One structured call, retried once on non-JSON or schema-invalid output."""
+    """One structured call, retried once (next seed) on non-JSON, truncated or schema-invalid output."""
     validator = Draft202012Validator(schema)
-    request = ChatRequest(
-        model=route,
-        messages=[ChatMessage("user", prompt)],
-        response_schema=schema,
-        temperature=0.0,
-        seed=cfg.seed,
-        max_tokens=cfg.max_tokens,
-        user=run_id,
-    )
     total, resolved = Usage(), None
-    for _ in range(ATTEMPTS):
+    for attempt in range(ATTEMPTS):
+        request = ChatRequest(
+            model=route,
+            messages=[ChatMessage("user", prompt)],
+            response_schema=schema,
+            temperature=0.0,
+            seed=cfg.seed + attempt,
+            max_tokens=cfg.max_tokens,
+            user=run_id,
+            reasoning_effort=dict(cfg.reasoning_effort).get(route),
+        )
         resp = await client.chat(request)
         total = Usage(total.input_tokens + resp.usage.input_tokens, total.output_tokens + resp.usage.output_tokens)
         resolved = resolved or resp.resolved_model

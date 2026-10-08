@@ -43,7 +43,7 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 
 | Area | Today | Planned |
 |---|---|---|
-| Extraction | Markdown, plain text, requirements (Markdown/CSV), PCM repository, UML/XMI, file-level elements for everything else | PDF and DOCX (T1.4), LLM enrichment (T1.5) |
+| Extraction | Markdown, plain text, requirements (Markdown/CSV), PCM repository, UML/XMI, file-level elements for everything else, optional LLM enrichment (summaries and concepts of requirements and document sections) | PDF and DOCX (T1.4) |
 | Trace links | `explicit-reference` (built in), `stub-name-match` (token overlap, for pipeline checks) | real approaches such as LiSSA and ArDoCo (disabled in `config/tlr/approaches.yaml`) |
 | Findings | `stub-untraced` (requirement without active link) | further detectors |
 | Natural language questions | five fixed question patterns, no LLM | LLM-based translation |

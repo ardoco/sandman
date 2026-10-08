@@ -61,6 +61,8 @@ docker compose -f deploy/docker-compose.yml restart extraction-agent
 | File | Controls |
 |---|---|
 | `config/extraction/plugins.yaml` | extraction plugins, explicit reference patterns, `builtin.enabled` (`false` falls back to file-level extraction only) |
+| `config/extraction/enrichment.yaml` | LLM enrichment (summaries, concepts): `enabled`, enriched element kinds, element limit per run, concurrency, `maxSummaryChars`, `maxConceptsPerElement` |
+| `config/llm/models.yaml` | logical LLM routes (`chat-default`, `chat-alt`, `embed-default` need provider keys; `chat-local`, `embed-local` use the self-hosted models) |
 | `config/inconsistency/plugins.yaml` | enabled detectors and detector plugins |
 | `config/tlr/approaches.yaml` | enabled trace link approaches and their parameters |
 | `config/orchestrator/rules.yaml` | debounce, concurrency, timeouts, retries, kind pairs for link recovery |

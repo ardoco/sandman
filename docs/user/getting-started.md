@@ -46,6 +46,8 @@ SELFHOSTED_LLM_URL=https://<open-webui-host>/ollama
 SELFHOSTED_LLM_KEY=<the Open WebUI API key>
 ```
 
+For an instance at `<your-open-webui-host>` the value is `SELFHOSTED_LLM_URL=https://<your-open-webui-host>/ollama`. Do not use the `/api` base of its OpenAI-compatible API: the gateway appends `/v1/chat/completions` and `/v1/embeddings` to the URL, and Open WebUI serves those paths only below `/ollama` (its `/api` API has `/api/chat/completions` without `/v1`). Models served from other backends of Open WebUI (OpenAI connections) are not reachable this way; `chat-local` and `embed-local` must be models of its Ollama.
+
 The gateway sends the key as bearer token to `<url>/v1/chat/completions` and `<url>/v1/embeddings`, which Open WebUI serves under `/ollama`. The models used by `models.yaml` must exist on that Ollama.
 
 `deploy/check-env.sh` enforces: any URL other than exactly `http://ollama:11434` must start with `https://`, and `SELFHOSTED_LLM_KEY` must then not be empty. `make up`, `make infra` and `make e2e` run it first. A violation stops the command with one of these messages:

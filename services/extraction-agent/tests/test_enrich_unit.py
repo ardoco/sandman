@@ -52,6 +52,7 @@ async def test_invalid_output_is_retried_once_then_skipped(bad: str) -> None:
 async def test_retry_recovers() -> None:
     client = ScriptedLlmClient([reply("oops"), reply(json.dumps({"summary": "ok"}))])
     assert (await ask(client)).data == {"summary": "ok"}
+    assert [r.seed for r in client.requests] == [42, 43]
 
 
 async def test_truncated_output_is_invalid() -> None:

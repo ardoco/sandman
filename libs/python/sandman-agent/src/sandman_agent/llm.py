@@ -53,6 +53,7 @@ class ChatRequest:
     seed: int | None = None
     max_tokens: int | None = None
     user: str | None = None  # run id for attribution
+    reasoning_effort: str | None = None  # e.g. "none" switches thinking off on self-hosted reasoning models
 
 
 @dataclass(frozen=True)
@@ -112,7 +113,12 @@ class OpenAiLlmClient:
                 "type": "json_schema",
                 "json_schema": {"name": "response", "schema": dict(req.response_schema), "strict": True},
             }
-        for key, value in (("seed", req.seed), ("max_tokens", req.max_tokens), ("user", req.user)):
+        for key, value in (
+            ("seed", req.seed),
+            ("max_tokens", req.max_tokens),
+            ("user", req.user),
+            ("reasoning_effort", req.reasoning_effort),
+        ):
             if value is not None:
                 kwargs[key] = value
         with telemetry.llm_span("chat", req.model, kwargs["model"]) as span:

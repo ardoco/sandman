@@ -234,14 +234,16 @@ class Env:
         finally:
             await nc.close()
 
-    async def extract(self, version_ids: list[str], options: dict[str, Any] | None = None) -> TaskSnapshot:
+    async def extract(
+        self, version_ids: list[str], options: dict[str, Any] | None = None, timeout: float = 30
+    ) -> TaskSnapshot:
         client = A2aClient(TOKENS["orchestrator"], transport=httpx.ASGITransport(app=self.app))
         try:
             payload: dict[str, Any] = {"projectId": self.project, "artifactVersionIds": version_ids}
             if options is not None:
                 payload["options"] = options
             task = await client.submit(URL, "extract-artifact-versions", payload)
-            for _ in range(300):
+            for _ in range(int(timeout * 10)):
                 if task.terminal:
                     return task
                 await asyncio.sleep(0.1)

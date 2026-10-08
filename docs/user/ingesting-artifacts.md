@@ -110,6 +110,12 @@ Errors end the command with `sandman: <METHOD> <path>: <status> <body>`: `403` (
 
 Console alternative: **Projects**, then **Upload** (maintainers and admins). Choose a `tar.gz` or `zip` archive (paths relative to the project root), the mode, an optional revision, and kind rules one per line as `glob = kind[:format]` (the textarea is pre-filled with the default layout above). The result JSON is shown on the page.
 
+### LLM enrichment
+
+After extraction, requirements and document sections get a short `summary` and `Concept` nodes (`MENTIONS` edges with a confidence). This is a separate `Run` with the tool `llm-enrichment`. It uses `chat-default` for `cloud-allowed` projects and the self-hosted `chat-local` for `local-only` projects (see [getting-started.md](getting-started.md) for the models). Settings are in `config/extraction/enrichment.yaml`; `enabled: false` or the request option `llmEnrichment: false` switches it off.
+
+Enrichment is optional: if the model is not reachable or the policy forbids the route, the extraction result stays and the result contains a warning. Responses that do not match the schema are retried once and then skipped for that element. An exhausted gateway budget blocks the workflow like any other budget stop. Unchanged elements of a new version reuse the earlier summary and concepts without a model call.
+
 ## 3. Versions, re-ingestion and deletions
 
 - A file whose SHA-256 equals the current version is unchanged (`unchangedCount`); nothing happens.

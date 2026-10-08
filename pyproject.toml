@@ -16,6 +16,8 @@ dependencies = [
 
 [tool.uv]
 package = false
+# no OCR/GUI: the headless wheel avoids libgl/libxcb in the extraction-agent image
+override-dependencies = ["opencv-python; sys_platform == 'never'", "opencv-python-headless>=4.6"]
 
 [tool.uv.sources]
 sandman-agent = { workspace = true }

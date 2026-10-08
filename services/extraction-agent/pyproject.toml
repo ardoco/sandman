@@ -8,6 +8,7 @@ dependencies = [
     "docling==2.135.0",
     "fastapi>=0.142.2",
     "markdown-it-py>=4.2.0",
+    "opencv-python-headless>=4.6",
     "pysbd>=0.3.4",
     "python-multipart>=0.0.32",
     "sandman-agent",

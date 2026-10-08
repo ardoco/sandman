@@ -429,7 +429,7 @@ def create_app(
         return await graph_service.cypher(statement)
 
     if trusted_proxies:
-        app.add_middleware(ProxyHeaders, hosts=trusted_proxies)  # type: ignore[arg-type]
+        app.add_middleware(ProxyHeaders, hosts=trusted_proxies)
     return app
 
 

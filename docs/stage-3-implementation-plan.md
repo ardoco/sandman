@@ -47,7 +47,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T0.13 | `llm-replay` proxy (standalone Python, no `sandman_agent`): OpenAI-compatible pass-through/record/replay for chat and embeddings, cassette format and key per contracts (D-3) | S | T0.1 | – |
 | T0.14 | `GET /v1/status` (`ServiceStatus`, working/idle) in both agent libraries and `llm-replay` (mode, experiment, hits/misses/recordings) | S | T0.2, T0.3, T0.13 | – |
 | **M1** | | | | |
-| T1.1 | Markdown/text extractor (sections, sentences with content-based keys and `sentenceIndex`; also one-sentence-per-line rendering stored per version for ArDoCo, ADR-0015) | M | T0.5, T0.12 | [T1.1](tasks/T1.1-markdown-text-extractor.md) |
+| T1.1 | Markdown/text extractor (sections, sentences with content-based keys and `sentenceIndex`; `render_sentences` as reference for the one-sentence-per-line ArDoCo rendering, which T3.1 builds from the KG; nothing stored, ADR-0015, R-025) | M | T0.5, T0.12 | [T1.1](tasks/T1.1-markdown-text-extractor.md) |
 | T1.2 | PCM and UML model extractors (ids preserved, `PROVIDES`/`REQUIRES`) | M | T0.5 | [T1.2](tasks/T1.2-model-extractors.md) |
 | T1.3 | Requirements extractor (Markdown/CSV) + explicit references | S | T0.5 | [T1.3](tasks/T1.3-requirements-extractor.md) |
 | T1.4 | PDF/DOCX via Docling, offline prefetch | M | T0.5 | [T1.4](tasks/T1.4-pdf-docx-docling.md) |

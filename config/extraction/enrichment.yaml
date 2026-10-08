@@ -1,0 +1,13 @@
+# LLM enrichment of extracted elements: summaries and concepts (T1.5). Separate from plugins.yaml on purpose:
+# its hash is the configHash of the enrichment run and must not change the ids of explicit-reference links.
+# Model routes come from config/llm/models.yaml; the project's llmPolicy picks chat-default or chat-local.
+enabled: true                 # false: no LLM call, no enrichment run (also per request: options.llmEnrichment = false)
+elements:                     # which elements are enriched
+  - { label: Requirement }
+  - { label: TextUnit, kind: section }
+maxElementsPerRun: 200        # per skill call, elements beyond the limit are skipped with a warning
+concurrency: 4                # parallel LLM calls
+maxSummaryChars: 400
+maxConceptsPerElement: 8
+maxTokens: 512                # per LLM response
+seed: 42

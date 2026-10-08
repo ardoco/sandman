@@ -6,7 +6,7 @@ Run: uvicorn --factory sandman_extraction.app:create_app --host 0.0.0.0 --port 8
 import logging
 import os
 import re
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
 from http import HTTPStatus
 from pathlib import Path
@@ -37,10 +37,12 @@ from sandman_agent import (
 )
 from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
+from sandman_agent.llm import LOCAL_ONLY, LlmClient, ModelSelector
 from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_extraction import documents, ingest
+from sandman_extraction.enrich import EnrichConfig
 from sandman_extraction.extract import ExtractSkill
 
 log = logging.getLogger(__name__)
@@ -73,6 +75,17 @@ class Service:
         raw = ((settings.config_dir or DEFAULT_CONFIG_DIR) / "extraction" / "plugins.yaml").read_bytes()
         self.config: dict[str, Any] = yaml.safe_load(raw) or {}
         self.config_hash = sha256_hex(raw)
+        config_dir = settings.config_dir or DEFAULT_CONFIG_DIR
+        enrichment_file = config_dir / "extraction" / "enrichment.yaml"
+        enrichment_raw = enrichment_file.read_bytes() if enrichment_file.is_file() else b""
+        self.enrichment = EnrichConfig.from_dict(yaml.safe_load(enrichment_raw) or {})
+        self.enrichment_hash = sha256_hex(enrichment_raw)
+        self.selector: ModelSelector | None = None
+        if settings.llm_models_file and settings.llm_base_url and settings.llm_key:
+            self.selector = ModelSelector(
+                settings.llm_models_file, settings.llm_base_url, settings.llm_key, settings.llm_local_key
+            )
+        self.llm_factory: Callable[[str], LlmClient] | None = None  # tests inject scripted or replay clients
         self.status = StatusTracker(settings.service_name)
         self.max_archive_bytes = max_archive_bytes or int(os.environ.get("SANDMAN_MAX_ARCHIVE_BYTES", 1 << 30))
         self.converter = documents.converter_client(
@@ -84,6 +97,21 @@ class Service:
         self.kg = KgClient(settings.kg_uri, settings.kg_user, settings.kg_password)  # type: ignore[arg-type]
         self.events: Any = None
         self._nc: Any = None
+
+    @property
+    def llm_configured(self) -> bool:
+        return self.selector is not None or self.llm_factory is not None
+
+    def chat_route(self, policy: str) -> str:
+        """Logical chat route of the project's LLM policy."""
+        return "chat-local" if policy == LOCAL_ONLY else "chat-default"
+
+    def llm_client(self, policy: str) -> LlmClient:
+        """Client with the cloud or local-only virtual key; PolicyError if the policy cannot be served."""
+        if self.llm_factory is not None:
+            return self.llm_factory(policy)
+        assert self.selector is not None
+        return self.selector.client(policy)
 
     async def start(self) -> None:
         """Schema init, stream, re-publish of pending ingestion events."""

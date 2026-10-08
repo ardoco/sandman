@@ -28,6 +28,7 @@ from testcontainers.core.container import DockerContainer
 
 FIXTURE = Path(__file__).parent / "fixtures" / "mini"
 RENDERED = Path(__file__).parent / "fixtures" / "rendered"
+LLM_MODELS = Path(__file__).parents[3] / "config" / "llm" / "models.yaml"
 URL = "http://extraction-agent:8000"
 TOKENS = {"orchestrator": "orch-token", "query-service": "query-token", "cli": "cli-token"}
 KIND_RULES = [
@@ -233,12 +234,13 @@ class Env:
         finally:
             await nc.close()
 
-    async def extract(self, version_ids: list[str]) -> TaskSnapshot:
+    async def extract(self, version_ids: list[str], options: dict[str, Any] | None = None) -> TaskSnapshot:
         client = A2aClient(TOKENS["orchestrator"], transport=httpx.ASGITransport(app=self.app))
         try:
-            task = await client.submit(
-                URL, "extract-artifact-versions", {"projectId": self.project, "artifactVersionIds": version_ids}
-            )
+            payload: dict[str, Any] = {"projectId": self.project, "artifactVersionIds": version_ids}
+            if options is not None:
+                payload["options"] = options
+            task = await client.submit(URL, "extract-artifact-versions", payload)
             for _ in range(300):
                 if task.terminal:
                     return task
@@ -263,6 +265,7 @@ async def env(memgraph: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.
     (tmp_path / "config" / "extraction").mkdir(parents=True)
     raw = yaml.safe_dump(config).encode()
     (tmp_path / "config" / "extraction" / "plugins.yaml").write_bytes(raw)
+    (tmp_path / "config" / "extraction" / "enrichment.yaml").write_text("enabled: false\nmaxElementsPerRun: 50\n")
     plugin = FakePlugin()
     plugin_app = serve(
         DEFAULT_CONTRACTS_DIR / "agent-cards" / "plugin-extract.template.json",
@@ -276,6 +279,10 @@ async def env(memgraph: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.
         artifact_store=tmp_path / "store",
         service_token="ea-token",
         config_dir=tmp_path / "config",
+        llm_models_file=LLM_MODELS,
+        llm_base_url="http://llm-replay:8000/openai",
+        llm_key="cloud-key",
+        llm_local_key="local-key",
         service_verify={name: hashlib.sha256(t.encode()).hexdigest() for name, t in TOKENS.items()},
     )
     app = create_app(settings, httpx.ASGITransport(app=plugin_app), converter_transport=httpx.MockTransport(converter))

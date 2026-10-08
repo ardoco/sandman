@@ -1,6 +1,6 @@
 """Dashboard (T1.9) against a running stack: `make e2e` runs it after the walking-skeleton test (it needs its project).
 
-Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
+Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_RESOURCES=1 when the compose profile `resources` runs, SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
 SANDMAN_E2E_DASHBOARD_PASSWORD (default: content of $SANDMAN_E2E_SECRETS/dashboard_admin_password, secrets dir default
 deploy/secrets). The test stops and restarts tlr-agent with `docker compose` (COMPOSE_PROJECT_NAME is honored).
 """
@@ -175,3 +175,36 @@ def test_experiments_page_shows_live_mode(dashboard: httpx.Client) -> None:
 def test_state_changing_requests_need_csrf(dashboard: httpx.Client) -> None:
     assert dashboard.post(f"/workflows/wf_{'0' * 32}/cancel", data={"csrf": "x"}).status_code == 403
     assert dashboard.post("/dead-events/replay", data={"eventId": "x"}).status_code == 403
+
+
+def test_projects_page_shows_the_e2e_project_figures(dashboard: httpx.Client) -> None:
+    project = e2e_project(dashboard)
+    row = re.search(rf'<a href="/projects/{project}">.*?</tr>', dashboard.get("/projects").text, re.S)
+    assert row, "project row missing"
+    cells = re.findall(r"<td>([^<]*)</td>", row[0])
+    artifacts = re.match(r"(\d+) / (\d+)", cells[1])
+    assert artifacts and int(artifacts[1]) > 0
+    assert all(cells[i].replace(",", "").isdigit() and int(cells[i].replace(",", "")) > 0 for i in (2, 3, 4, 5)), cells
+    detail = dashboard.get(f"/projects/{project}").text
+    assert "<td>Requirement</td>" in detail and "n/a" not in detail
+
+
+def test_history_has_a_sample_per_service(dashboard: httpx.Client) -> None:
+    expected = TARGETS | INFRASTRUCTURE
+
+    def sampled() -> bool:
+        health = dashboard.get("/api/history", params={"range": "1h"}).json()["series"]["health"]
+        return expected <= health.keys()
+
+    wait_for(sampled, 120, "one health sample per service")
+    assert dashboard.get("/history").status_code == 200
+
+
+def test_resources_page(dashboard: httpx.Client) -> None:
+    page = dashboard.get("/resources")
+    assert page.status_code == 200
+    if not os.environ.get("SANDMAN_E2E_RESOURCES"):
+        assert "not active" in page.text or "<td>orchestrator</td>" in page.text
+        return
+    for service in ("memgraph", "nats", "orchestrator", "dashboard", "cadvisor"):
+        assert f"<td>{service}</td>" in page.text, service

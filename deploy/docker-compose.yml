@@ -131,7 +131,7 @@ services:
     secrets: [memgraph_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_plugin-stubs,
               llm_key_extraction, llm_key_extraction_local]
     networks: [internal]
-    mem_limit: 1g
+    mem_limit: 2g                                # large ingests hold archive and files in memory
     depends_on: *depends-core                    # not on the converter: documents fall back to file-level elements
     healthcheck: *py-health
     restart: unless-stopped

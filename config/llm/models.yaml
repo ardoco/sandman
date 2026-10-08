@@ -3,4 +3,4 @@ routes:
   chat-alt: openrouter/anthropic/claude-3.5-haiku    # cloud: needs OPENROUTER_API_KEY
   embed-default: openai/text-embedding-3-small       # cloud: needs OPENAI_API_KEY
   chat-local: ollama/qwen3:1.7b                      # self-hosted (Apache-2.0); upgrade: ollama/qwen3:4b when Docker memory >= 12 GiB
-  embed-local: ollama/nomic-embed-text               # self-hosted (Apache-2.0)
+  embed-local: ollama/nomic-embed-text:v1.5          # self-hosted (Apache-2.0)

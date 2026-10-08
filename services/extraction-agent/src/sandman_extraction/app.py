@@ -37,7 +37,7 @@ from sandman_agent import (
 )
 from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
-from sandman_agent.telemetry import setup_logging
+from sandman_agent.telemetry import instrument_app, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_extraction import documents, ingest
@@ -137,6 +137,7 @@ def create_app(
             await svc.stop()
 
     app = FastAPI(title="sandman-extraction-agent", lifespan=lifespan)
+    instrument_app(app)
     app.state.service = svc
     Caller = Annotated[str, Depends(require_service(TokenVerifier(settings.service_verify)))]
 

@@ -28,6 +28,7 @@ from sandman_agent import (
     trusted_actor,
 )
 from sandman_agent.events import handle_message
+from sandman_agent.telemetry import instrument_app
 from starlette.exceptions import HTTPException
 
 from sandman_orchestrator import __version__
@@ -64,6 +65,7 @@ def create_app(
     ready: Callable[[], dict[str, str]] = dict,
 ) -> FastAPI:
     app = FastAPI(title="SANDMAN orchestrator", version=__version__, lifespan=lifespan)
+    instrument_app(app)
     tracker = StatusTracker("orchestrator")
     caller = Depends(require_service(verifier))
 

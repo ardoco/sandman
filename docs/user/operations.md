@@ -38,7 +38,7 @@ The containers share an internal network without internet access. The `document-
 | (default) | Memgraph, NATS, LLM gateway, replay proxy, extraction, document converter (PDF/DOCX), TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
 | `stubs` | `plugin-stubs`: stub code extractor and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
 | `obs` | Grafana/OpenTelemetry backend on `:3001`; services export telemetry when `OTEL_SDK_DISABLED=false` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318` are set in the shell that runs compose | `... --profile obs up -d` |
-| `resources` | cAdvisor container metrics, for the dashboard (privileged read-only host mounts) | `... --profile resources up -d` |
+| `resources` | cAdvisor container metrics for the dashboard. **Security: grants root-equivalent access to the host through the Docker socket (read-only socket proxy plus host mounts); off by default, not for production.** | `... --profile resources up -d` |
 | `dashboard` | system overview for admins | `... --profile dashboard up -d --build` |
 
 Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos and tests, not to a production setup; the shipped plugin entries in `config/` point to it (see below).
@@ -47,7 +47,7 @@ Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos 
 
 With profile `dashboard`, `http://127.0.0.1:8090` shows (log in as `admin` with `deploy/secrets/dashboard_admin_password`): services and infrastructure health, projects (current-state statistics from the knowledge graph), the knowledge graph, the LLM gateway, workflows (with cancel), dead events (with replay), the event stream (last 500 events, read-only), history charts (health, activity and LLM usage, sampled every 30 s and kept for 14 days; `SANDMAN_SAMPLE_INTERVAL`, `SANDMAN_HISTORY_DAYS`), record/replay status (experiments) and resource usage. Cancel and replay ask for confirmation and are written to the dashboard log as `event=admin_action`. Alerts (service down for more than 30 s, failed or blocked workflows of the last 24 h, dead events, gateway budget at 80 % or more, Memgraph memory at 80 % of its limit) appear as a banner on every page and as `event=alert` log lines; they are kept in memory and cleared when the condition ends.
 
-The Resources page needs profile `resources` (cAdvisor, read-only host mounts); without it the page says so and everything else keeps working. See `docs/notes/cadvisor.md` for platform notes.
+The Resources page needs profile `resources` (cAdvisor behind a read-only Docker socket proxy on its own internal network, shared only with the dashboard). Enabling it gives these containers root-equivalent visibility of the host; use it for development and diagnosis only, never in production. Without it the page says so and everything else keeps working. On Docker Desktop add `-f deploy/docker-compose.resources-desktop.yml` (mounts the containerd socket, same warning). See `docs/notes/cadvisor.md` for platform notes.
 
 ## Configuration
 

@@ -6,19 +6,23 @@ Result of T1.11, verified 2026-10-09.
 
 `gcr.io/cadvisor/cadvisor:v0.60.6` does not exist: the gcr.io repository stops at v0.49.x. The release image is `ghcr.io/google/cadvisor:v0.60.6` (multi-arch, pulled successfully).
 
-## Mounts and flags (profile `resources`)
+## Security
 
-Read-only: `/` (as `/rootfs`), `/var/run/docker.sock`, `/run/containerd`, `/sys`, `/var/lib/docker`. Flags: `--docker_only=true --housekeeping_interval=10s` (the default 1 s housekeeping used about one core). The container is on the `internal` network only and publishes no port; the dashboard calls `POST /api/v1.3/docker/` with `{"num_stats": 2}` (the default would return 60+ samples per container, about 0.5 MB for 13 containers even with two) and maps containers by the label `com.docker.compose.service`, restricted to the Compose project of the cAdvisor container itself.
+The `resources` profile is opt-in, off by default and not for production. cAdvisor needs read access to host paths (`/`, `/sys`, `/var/lib/docker`) and to container metadata, which is root-equivalent visibility of the host. Mitigations in `deploy/docker-compose.yml`: cAdvisor does not mount the Docker socket; a pinned (digest) `tecnativa/docker-socket-proxy` mounts it read-only and only allows `GET` on `CONTAINERS`, `INFO`, `VERSION`, `PING` (`POST=0`); both run on a dedicated `internal: true` network `resources` shared only with the dashboard (cAdvisor is not on `internal`); `cap_drop: [ALL]` with only `DAC_READ_SEARCH` re-added (without it layer filesystem stats fail), `no-new-privileges`, image pinned by digest, no published ports.
 
-## Docker Desktop (macOS, engine 29, containerd image store)
+## Image, mounts and flags
 
-- With the originally planned mount `/var/run:/var/run:ro` cAdvisor did not find a Docker socket (`/var/run/docker.sock: no such file`), registered no Docker factory and reported no containers. The dashboard then shows "not available on this host".
-- With `/var/run/docker.sock` mounted instead, cAdvisor additionally needed `/run/containerd` (containerd client for the containerd image store). With both mounts the Docker factory registers and the Resources page lists all 13 running containers of the stack with working set, `mem_limit` (as `spec.memory.limit`) and CPU rate.
-- Not available on Docker Desktop: OOM events (`/dev/kmsg` is missing in the VM; harmless, only the OOM metric is lost) and the machine id warnings.
+`gcr.io/cadvisor/cadvisor:v0.60.6` does not exist (gcr.io stops at v0.49.x); the image is `ghcr.io/google/cadvisor:v0.60.6` (digest pinned). Flags: `--docker=tcp://docker-socket-proxy:2375 --docker_only=true --housekeeping_interval=10s` (default 1 s housekeeping used about one core). The dashboard calls `POST /api/v1.3/docker/` with `{"num_stats": 2}` and maps containers by the label `com.docker.compose.service`, restricted to the Compose project of the cAdvisor container.
+
+## Docker Desktop (macOS, containerd image store)
+
+- Mounting `/var/run` did not expose a Docker socket to cAdvisor; the TCP endpoint through the socket proxy works.
+- cAdvisor additionally needs the containerd socket (`/run/containerd`). This is only mounted by the override `deploy/docker-compose.resources-desktop.yml` (`-f docker-compose.yml -f docker-compose.resources-desktop.yml`); the containerd socket is root-equivalent access to the Docker Desktop VM, development use only. Without the override the dashboard shows "not available on this host".
+- With the override the Resources page lists all running containers with working set, `mem_limit` and CPU rate. `/dev/kmsg` is missing in the VM, so OOM events are lost.
 
 ## Linux
 
-Not run in this session (no Linux host). The mounts are the ones from the cAdvisor documentation (`/`, `/var/run` or the socket, `/sys`, `/var/lib/docker`); `/run/containerd` is created empty on the host if it does not exist. Verify with the CI `compose` job extension or on the first Linux host: `docker compose --profile dashboard --profile resources up --wait`, then the Resources page must list every running SANDMAN container. In CI the profile is only validated with `docker compose config` (decision of 2026-10-08); the parser is tested against a recorded cAdvisor document shape.
+Not run in this session (no Linux host). The base file mounts only what the cAdvisor documentation lists (`/`, `/sys`, `/var/lib/docker`) and uses the socket proxy. Verify with the CI `compose` job extension or on the first Linux host: `docker compose --profile dashboard --profile resources up --wait`, then the Resources page must list every running SANDMAN container. In CI the profile is only validated with `docker compose config` (decision of 2026-10-08); the parser is tested against a recorded cAdvisor document shape.
 
 ## Dashboard behavior
 

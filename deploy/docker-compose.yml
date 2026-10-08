@@ -1,7 +1,7 @@
 # SANDMAN reference deployment (single server).
 #   cd deploy && ./gen-secrets.sh && docker compose up -d --build
 # Profiles: (default) core system · dashboard: system overview (M1) · obs: OpenTelemetry backend · stubs: plugin stubs for the walking skeleton
-#           resources: cAdvisor container metrics for the dashboard (privileged read-only host mounts, opt-in)
+#           resources: cAdvisor for the dashboard; grants root-equivalent host access via the Docker socket, opt-in, not for production
 # Dev ports (Bolt, NATS monitoring): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 # Memory limits assume a 32 GB host (A-7); initial values, tuned in T5.4.
 name: sandman
@@ -275,7 +275,7 @@ services:
       - ../data/logs:/logs
     secrets: [svc_token_dashboard, dashboard_admin_password, dashboard_session_secret, memgraph_password,
               gateway_admin_password]
-    networks: [internal]                         # published via edge-proxy (127.0.0.1:8090)
+    networks: [internal, resources]              # published via edge-proxy (127.0.0.1:8090)
     mem_limit: 512m
     depends_on:                                  # deliberately not on agents: it must show them when they are down
       memgraph: { condition: service_healthy }
@@ -296,17 +296,37 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------- optional profiles
+  # resources profile: WARNING, grants root-equivalent read access to the host through the Docker socket (proxy) and
+  # host mounts; opt-in, never enable in production. Own internal network shared only with the dashboard.
+  docker-socket-proxy:
+    profiles: [resources]
+    image: tecnativa/docker-socket-proxy:0.3.0@sha256:9e4b9e7517a6b660f2cc903a19b257b1852d5b3344794e3ea334ff00ae677ac2
+    environment:
+      CONTAINERS: "1"
+      INFO: "1"
+      VERSION: "1"
+      PING: "1"
+      POST: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [resources]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 64m
+    restart: unless-stopped
+
   cadvisor:
     profiles: [resources]
-    image: ghcr.io/google/cadvisor:v0.60.6       # gcr.io/cadvisor stops at v0.49 (V-37, docs/notes/cadvisor.md)
-    command: ["--docker_only=true", "--housekeeping_interval=10s"]
+    image: ghcr.io/google/cadvisor:v0.60.6@sha256:b8e7d1093144fd088f425ff003d75a4aa405de075db78dae3bc563730b1bd07a
+    command: ["--docker=tcp://docker-socket-proxy:2375", "--docker_only=true", "--housekeeping_interval=10s"]
     volumes:
       - /:/rootfs:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /run/containerd:/run/containerd:ro        # needed on Docker Desktop, harmless on Linux
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    networks: [internal]
+    networks: [resources]
+    cap_drop: [ALL]
+    cap_add: [DAC_READ_SEARCH]                  # fs stats of container layers; re-add nothing else
+    security_opt: ["no-new-privileges:true"]
+    depends_on: [docker-socket-proxy]
     mem_limit: 256m
     restart: unless-stopped
 
@@ -345,6 +365,8 @@ networks:
   internal:
     internal: true          # no egress: agents reach LLMs only through llm-replay -> llm-gateway
   egress: {}
+  resources:
+    internal: true          # profile resources: cAdvisor and its docker-socket-proxy, shared only with the dashboard
   edge: {}                  # only edge-proxy; services behind it have no egress (internal network)
 
 volumes:

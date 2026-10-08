@@ -1,0 +1,7 @@
+# Docker Desktop (containerd image store) only: cAdvisor additionally needs the containerd socket.
+# WARNING: the containerd socket grants root-equivalent access to the Docker Desktop VM. Development use only.
+#   docker compose -f docker-compose.yml -f docker-compose.resources-desktop.yml --profile dashboard --profile resources up -d
+services:
+  cadvisor:
+    volumes:
+      - /run/containerd:/run/containerd:ro

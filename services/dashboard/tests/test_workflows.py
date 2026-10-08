@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -203,3 +204,16 @@ async def test_orchestrator_down_or_5xx_renders_message(env: Env, orch: FakeOrch
         assert resp.status_code == 200 and "orchestrator unreachable" in resp.text
         resp = await env.http.post("/dead-events/replay", data={"eventId": "e", "csrf": token})
         assert resp.status_code == 200 and "orchestrator unreachable" in resp.text
+
+
+async def test_failed_workflow_and_dead_event_raise_alerts_after_poll(env: Env, orch: FakeOrchestrator) -> None:
+    orch.workflows[WF2] = workflow(WF2, "FAILED", updatedAt=datetime.now(UTC).isoformat(), steps=[])
+    await env.login()
+    await env.app.state.poller.poll_once()
+    banner = (await env.http.get("/fragments/alerts")).text
+    assert (
+        f'href="/workflows/{WF2}"' in banner and "1 dead events" in banner and 'href="/workflows#dead-events"' in banner
+    )
+    orch.down = True
+    await env.app.state.poller.poll_once()
+    assert f"/workflows/{WF2}" in (await env.http.get("/fragments/alerts")).text

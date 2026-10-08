@@ -26,3 +26,5 @@ pre { max-height: 20rem; overflow: auto; background: #fff; border: 1px solid #d0
 .status-FAILED, .status-BLOCKED { color: #b42318; font-weight: 600; }
 .status-SUCCEEDED { color: #1a7f37; }
 .status-RUNNING, .status-PENDING { color: #9a6700; }
+.alerts { margin: 0; padding: .5rem 1rem; list-style: none; background: #ffebe9; border-bottom: 1px solid #b42318; }
+.alerts a { color: #b42318; font-weight: 600; }

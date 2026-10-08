@@ -13,7 +13,9 @@ from typing import Any
 import httpx
 from sandman_agent.kg import KgClient, now
 
+from sandman_dashboard.alerts import AlertEngine
 from sandman_dashboard.gateway import GatewayClient, GatewaySnapshot
+from sandman_dashboard.orchestrator import OrchestratorClient, Unreachable
 
 log = logging.getLogger(__name__)
 
@@ -85,10 +87,15 @@ class Poller:
         kg: KgClient | None = None,
         nats_monitor_url: str | None = None,
         gateway: GatewayClient | None = None,
+        orchestrator: OrchestratorClient | None = None,
+        alerts: AlertEngine | None = None,
     ) -> None:
         self.targets, self.client, self.token, self.interval = dict(targets), client, token, interval
         self.kg, self.nats_url, self.gateway = kg, (nats_monitor_url or "").rstrip("/"), gateway
+        self.orchestrator, self.alerts = orchestrator, alerts or AlertEngine()
         self.entries: dict[str, Entry] = {}
+        self.problem_workflows: list[dict[str, Any]] | None = None
+        self.dead_events: list[Any] | None = None
         self.gateway_snapshot: GatewaySnapshot | None = None
         self._counts: dict[str, Any] | None = None
         self._counts_at = 0.0
@@ -124,6 +131,25 @@ class Poller:
         self.entries = {e.name: e for e in results}
         if self.gateway and self.entries["llm-gateway"].health != "up":
             self.gateway_snapshot = None
+        await self._orchestrator_state()
+        budgets = self.gateway_snapshot.budgets if self.gateway_snapshot else None
+        self.alerts.evaluate(self.entries, self.problem_workflows, self.dead_events, budgets)
+
+    async def _orchestrator_state(self) -> None:
+        """FAILED and BLOCKED workflows and dead events for the alerts; None when the orchestrator cannot tell."""
+        client = self.orchestrator
+        if client is None:
+            return
+        try:
+            async with asyncio.timeout(TIMEOUT * 2):
+                replies = [await client.list_workflows(status=s, limit=100) for s in ("FAILED", "BLOCKED")]
+                dead = await client.dead_events()
+        except (Unreachable, TimeoutError):
+            self.problem_workflows = self.dead_events = None
+            return
+        ok = all(r.ok and isinstance(r.body, dict) for r in [*replies, dead])
+        self.problem_workflows = [w for r in replies for w in r.body.get("items", [])] if ok else None
+        self.dead_events = dead.body.get("items", []) if ok else None
 
     async def _run(self, name: str, kind: str, check: Callable[[Entry], Awaitable[None]]) -> Entry:
         previous = self.entries.get(name)

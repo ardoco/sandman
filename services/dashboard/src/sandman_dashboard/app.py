@@ -185,6 +185,12 @@ def create_app(
             graph = GraphService(driver, labels, rel_types)
     client = http or httpx.AsyncClient()
     gateway = GatewayClient(gateway_url, gateway_password or "", client) if gateway_url else None
+    viewer = events or (EventViewer(settings.nats_url) if settings.nats_url and start_poller else None)
+    orchestrator = (
+        OrchestratorClient(targets["orchestrator"], settings.service_token or "", client)
+        if "orchestrator" in (targets or {})
+        else None
+    )
     poller = Poller(
         targets or {},
         client,
@@ -193,12 +199,7 @@ def create_app(
         kg=kg,
         nats_monitor_url=nats_monitor_url,
         gateway=gateway,
-    )
-    viewer = events or (EventViewer(settings.nats_url) if settings.nats_url and start_poller else None)
-    orchestrator = (
-        OrchestratorClient(targets["orchestrator"], settings.service_token or "", client)
-        if "orchestrator" in (targets or {})
-        else None
+        orchestrator=orchestrator,
     )
     secret_values = [admin_password, settings.service_token, settings.kg_password, gateway_password]
 
@@ -249,6 +250,7 @@ def create_app(
             "csrf": ctx.csrf if ctx else "",
             "path": request.url.path,
             "status": status,
+            "alerts": list(poller.alerts.active.values()) if ctx else [],
         }
         return HTMLResponse(TEMPLATES.get_template(template).render(**{**base, **data}), status)
 
@@ -372,6 +374,10 @@ def create_app(
     @app.get("/fragments/services")
     async def services_fragment(request: Request, ctx: Session) -> HTMLResponse:
         return page(request, ctx, "_services.html", rows=service_rows(), waiting=not poller.entries)
+
+    @app.get("/fragments/alerts")
+    async def alerts_fragment(request: Request, ctx: Session) -> HTMLResponse:
+        return page(request, ctx, "_alerts.html")
 
     @app.get("/gateway")
     async def gateway_page(request: Request, ctx: Session) -> HTMLResponse:

@@ -161,3 +161,22 @@ async def test_cartesian_product_hits_the_memory_limit(driver: AsyncDriver) -> N
     graph = service(driver, memory_limit="1 MB")
     with pytest.raises(GraphError, match="memory limit"):
         await graph.cypher("MATCH (a), (b), (c) RETURN count(*) AS c ORDER BY c")
+
+
+async def test_large_cells_and_payload_are_capped(driver: AsyncDriver) -> None:
+    graph = service(driver)
+    result = await graph.cypher("RETURN reduce(s = '', i IN range(1, 10000) | s + 'abcdefgh') AS big")
+    cell = result["rows"][0][0]  # type: ignore[index]
+    assert len(cell) < 2100 and cell.endswith("[truncated]")
+    wide = "reduce(s = '', j IN range(1, 1000) | s + 'x')"
+    many = await graph.cypher(f"UNWIND range(1, 600) AS i RETURN {wide} AS a, {wide} AS b, {wide} AS c, {wide} AS d")
+    assert many["truncated"] is True and len(many["rows"]) < 500  # type: ignore[arg-type]
+
+
+async def test_database_errors_are_mapped_to_short_messages(driver: AsyncDriver) -> None:
+    graph = service(driver, guard=lambda text, scoped: Checked(text, True))
+    with pytest.raises(GraphError, match="read-only"):
+        await graph.cypher("CREATE (n:Evil) RETURN n")
+    with pytest.raises(GraphError) as e:
+        await graph.cypher("RETURN toInteger('x') + 'y' + {a: 1}.a.b.c AS v, 1/0")
+    assert len(str(e.value)) < 80

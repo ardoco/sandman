@@ -5,6 +5,8 @@ Exploration queries are fixed and parameterized; labels and relationship types o
 """
 
 import asyncio
+import json
+import logging
 import re
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
@@ -24,9 +26,19 @@ MAX_ROWS = 500
 TIMEOUT = 10.0
 MAX_HOPS = 6
 MAX_TEXT = 5000
+MAX_CELL = 2000
+MAX_PAYLOAD = 2_000_000
+CLIENT_ERRORS = (
+    ("accessor type", "write statements are not allowed (read-only)"),
+    ("misaligned", "write statements are not allowed (read-only)"),
+    ("syntax", "syntax error in the statement"),
+    ("unbound variable", "unbound variable in the statement"),
+    ("not allowed", "the statement is not allowed in a read transaction"),
+)
 MEMORY_LIMIT = "100 MB"
 NODE_ID = re.compile(r"^[0-9]{1,18}$")
 PROJECT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+log = logging.getLogger(__name__)
 DISPLAY = ("name", "key", "id", "path")
 
 
@@ -40,6 +52,17 @@ class GraphError(Exception):
     def __init__(self, message: str, status: int = 422) -> None:
         super().__init__(message)
         self.status = status
+
+
+def cap(value: Any) -> Any:
+    """Table cell with every string cut to MAX_CELL characters."""
+    if isinstance(value, str):
+        return value if len(value) <= MAX_CELL else value[:MAX_CELL] + "... [truncated]"
+    if isinstance(value, list):
+        return [cap(v) for v in value]
+    if isinstance(value, dict):
+        return {k: cap(v) for k, v in value.items()}
+    return value
 
 
 def schema_names(contracts_dir: Path) -> tuple[list[str], list[str]]:
@@ -144,7 +167,11 @@ class GraphService:
         except TimeoutError:
             raise GraphError("query timed out") from None
         except ClientError as e:
-            raise GraphError(f"query rejected by the database: {(e.message or '')[:300]}") from None
+            message = (e.message or "").lower()
+            log.warning("query rejected", extra={"fields": {"detail": (e.message or "")[:300]}})
+            raise GraphError(
+                next((text for key, text in CLIENT_ERRORS if key in message), "query rejected by the database")
+            ) from None
         except Neo4jError as e:
             if "timeout" in (e.message or "").lower() or "aborted" in (e.message or "").lower():
                 raise GraphError("query timed out") from None
@@ -283,7 +310,15 @@ class GraphService:
         truncated = len(rows) > MAX_ROWS
         rows = rows[:MAX_ROWS]
         graph = await self._result(rows, MAX_NODES)
-        table = [[jsonable(v) for v in row] for row in rows]
+        table: list[list[Any]] = []
+        size = 0
+        for row in rows:
+            cells = [cap(jsonable(v)) for v in row]
+            size += len(json.dumps(cells, default=str))
+            if size > MAX_PAYLOAD:
+                truncated = True
+                break
+            table.append(cells)
         return {
             "columns": columns,
             "rows": table,

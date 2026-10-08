@@ -45,9 +45,10 @@ Pitfall: the kind of a path is fixed when the artifact is first created. Changin
 | Requirements, CSV | `.csv` | `requirements` | a file element and one `Requirement` per row |
 | PCM repository | `.repository` | `architecture-model` | components and interfaces, `PROVIDES`/`REQUIRES` relations |
 | UML (XMI) | `.uml`, `.xmi` | `architecture-model` | components and interfaces, `PROVIDES`/`REQUIRES` relations |
-| everything else | e.g. `.java`, `.pdf`, `.docx` | any | one file-level element (name, first 500 characters of text) |
+| PDF, DOCX | `.pdf`, `.docx` | any except `requirements` | as Markdown (file, sections, sentences) via Docling, without line numbers; no OCR, so scanned documents yield little or no text |
+| everything else | e.g. `.java` | any | one file-level element (name, first 500 characters of text) |
 
-Code and test files get file-level elements from the built-in extractor. Richer code elements come from the `code-extractor` plugin, which the stub profile provides in the demo setup ([getting-started.md](getting-started.md), [plugins.md](../plugins.md)). PDF and DOCX extraction is planned (T1.4).
+Code and test files get file-level elements from the built-in extractor. Richer code elements come from the `code-extractor` plugin, which the stub profile provides in the demo setup ([getting-started.md](getting-started.md), [plugins.md](../plugins.md)). PDF and DOCX are converted by Docling in a resource-limited subprocess (limits under `builtin.docling` in `config/extraction/plugins.yaml`: 120 s, 300 pages, 50 MiB, 8 GiB address space). If a conversion fails or exceeds a limit, the document gets a file-level element and the extraction finishes with status `partial` and a warning.
 
 ### Requirements
 

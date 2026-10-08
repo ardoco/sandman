@@ -1,0 +1,23 @@
+{% if not configured %}<p>No NATS connection configured.</p>
+{% else %}
+{% if not connected %}<div class="msg error">Not connected to NATS; showing the last known events.</div>{% endif %}
+<dl class="inline">
+  <dt>Stream</dt><dd>{{ nats.get("stream", {}).get("messages") | num }} messages, {{ nats.get("stream", {}).get("bytes") | num }} bytes</dd>
+  <dt>Orchestrator consumer</dt><dd>pending {{ nats.get("consumer", {}).get("pending") | num }}, ack pending {{ nats.get("consumer", {}).get("ackPending") | num }}, redelivered {{ nats.get("consumer", {}).get("redelivered") | num }}</dd>
+</dl>
+<div class="scroll">
+<table>
+<thead><tr><th>Seq</th><th>Id</th><th>Type</th><th>Subject</th><th>Time</th><th>Source</th><th>Correlation id</th></tr></thead>
+<tbody>
+{% for r in records %}
+<tr>
+  <td><a href="/events/{{ r.seq }}">{{ r.seq }}</a></td><td>{{ r.id }}</td><td>{{ r.type }}</td><td>{{ r.subject }}</td>
+  <td>{{ r.time }}</td><td>{{ r.source }}</td><td>{{ r.correlation_id }}</td>
+</tr>
+{% else %}
+<tr><td colspan="7">No events.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}

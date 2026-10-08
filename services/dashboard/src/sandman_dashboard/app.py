@@ -32,6 +32,7 @@ from sandman_query.auth import RateLimiter
 from starlette.exceptions import HTTPException
 
 from sandman_dashboard import __version__, ops
+from sandman_dashboard.events_view import EventViewer
 from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.graph import GraphError, GraphService, schema_names
 from sandman_dashboard.orchestrator import OrchestratorClient
@@ -164,6 +165,7 @@ def create_app(
     http: httpx.AsyncClient | None = None,
     kg: KgClient | None = None,
     graph: GraphService | None = None,
+    events: EventViewer | None = None,
     start_poller: bool = True,
     limiter: RateLimiter | None = None,
     trusted_proxies: list[str] | None = None,
@@ -192,6 +194,7 @@ def create_app(
         nats_monitor_url=nats_monitor_url,
         gateway=gateway,
     )
+    viewer = events or (EventViewer(settings.nats_url) if settings.nats_url and start_poller else None)
     orchestrator = (
         OrchestratorClient(targets["orchestrator"], settings.service_token or "", client)
         if "orchestrator" in (targets or {})
@@ -204,8 +207,12 @@ def create_app(
         setup_logging(settings.service_name, settings.log_file)
         if start_poller:
             poller.start()
+            if viewer is not None:
+                viewer.start()
         yield
         await poller.stop()
+        if viewer is not None:
+            await viewer.stop()
         if http is None:
             await client.aclose()
         if driver is not None:
@@ -390,6 +397,7 @@ def create_app(
         app,
         orchestrator=orchestrator,
         poller=poller,
+        events=viewer,
         session=Session,
         page=page,
         verify_csrf=verify_csrf,

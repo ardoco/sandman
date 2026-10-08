@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Event{% endblock %}
+{% block body %}
+<p><a href="/events">All events</a></p>
+<h1>Event {{ e.seq }}</h1>
+<dl>
+  <dt>Id</dt><dd>{{ e.id }}</dd>
+  <dt>Type</dt><dd>{{ e.type }}</dd>
+  <dt>Subject</dt><dd>{{ e.subject }}</dd>
+  <dt>Time</dt><dd>{{ e.time }}</dd>
+  <dt>Source</dt><dd>{{ e.source }}</dd>
+  <dt>Correlation id</dt><dd>{{ e.correlation_id }}</dd>
+</dl>
+<h2>Payload</h2>
+<pre class="payload">{{ e.payload }}</pre>
+{% endblock %}

@@ -12,6 +12,10 @@ PAGES = [
     "/fragments/services",
     "/fragments/gateway",
     "/workflows",
+    "/events",
+    "/fragments/events",
+    "/experiments",
+    "/fragments/experiments",
     "/workflows/wf_" + "a" * 32,
     "/fragments/workflows/wf_" + "a" * 32,
 ]

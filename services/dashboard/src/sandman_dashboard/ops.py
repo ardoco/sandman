@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from starlette.exceptions import HTTPException
 
+from sandman_dashboard.events_view import EventViewer
 from sandman_dashboard.orchestrator import (
     CURSOR,
     PROJECT_ID,
@@ -41,6 +42,7 @@ def register(
     *,
     orchestrator: OrchestratorClient | None,
     poller: Any,
+    events: EventViewer | None,
     session: Any,
     page: Callable[..., HTMLResponse],
     verify_csrf: Callable[[Any, str], None],
@@ -155,3 +157,30 @@ def register(
     @app.get("/fragments/experiments")
     async def experiments_fragment(request: Request, ctx: Session) -> HTMLResponse:
         return experiment(request, ctx, "_experiments.html")
+
+    def event_list(request: Request, ctx: Any, template: str) -> HTMLResponse:
+        type_, project = (request.query_params.get(k, "")[:200] for k in ("type", "project"))
+        records = events.listing(type_, project) if events else []
+        nats = poller.entries.get("nats")
+        return page(
+            request, ctx, template, configured=events is not None, connected=bool(events and events.connected),
+            records=records, type_=type_, project=project,
+            types=sorted({r.type for r in events.buffer}) if events else [],
+            projects=sorted({r.subject for r in events.buffer}) if events else [],
+            nats=nats.details if nats and nats.health == "up" else {},
+        )  # fmt: skip
+
+    @app.get("/events")
+    async def events_page(request: Request, ctx: Session) -> HTMLResponse:
+        return event_list(request, ctx, "events.html")
+
+    @app.get("/fragments/events")
+    async def events_fragment(request: Request, ctx: Session) -> HTMLResponse:
+        return event_list(request, ctx, "_events.html")
+
+    @app.get("/events/{seq}")
+    async def event_page(request: Request, ctx: Session, seq: int) -> HTMLResponse:
+        found = events.find(seq) if events else None
+        if found is None:
+            raise HTTPException(404, "event not in the buffer")
+        return page(request, ctx, "event.html", e=found)

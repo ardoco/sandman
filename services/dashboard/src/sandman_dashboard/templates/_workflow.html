@@ -25,8 +25,8 @@
   <td>{{ s | step_duration }}</td>
   <td>{% if s.error %}{{ s.error.code }}: {{ s.error.message }}{% if s.error.retryable %} (retryable){% endif %}{% endif %}</td>
   <td>
-    {% if s.input is defined %}<details><summary>input</summary><pre>{{ s.input | pjson }}</pre></details>{% endif %}
-    {% if s.result is defined %}<details><summary>result</summary><pre>{{ s.result | pjson }}</pre></details>{% endif %}
+    {% if s.input is defined %}<details><summary>input</summary><pre>{{ redact(s.input | pjson) }}</pre></details>{% endif %}
+    {% if s.result is defined %}<details><summary>result</summary><pre>{{ redact(s.result | pjson) }}</pre></details>{% endif %}
   </td>
 </tr>
 {% else %}

@@ -12,5 +12,5 @@
   <dt>Correlation id</dt><dd>{{ e.correlation_id }}</dd>
 </dl>
 <h2>Payload</h2>
-<pre class="payload">{{ e.payload }}</pre>
+<pre class="payload">{{ redact(e.payload) }}</pre>
 {% endblock %}

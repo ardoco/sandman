@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 import pytest
-from dash_fakes import SERVICE_TOKEN, Env
+from dash_fakes import ADMIN_PASSWORD, SERVICE_TOKEN, Env
 
 WF = "wf_" + "a" * 32
 WF2 = "wf_" + "b" * 32
@@ -217,3 +217,10 @@ async def test_failed_workflow_and_dead_event_raise_alerts_after_poll(env: Env, 
     orch.down = True
     await env.app.state.poller.poll_once()
     assert f"/workflows/{WF2}" in (await env.http.get("/fragments/alerts")).text
+
+
+async def test_secrets_in_step_data_are_redacted(env: Env, orch: FakeOrchestrator) -> None:
+    orch.workflows[WF]["steps"] = [{**STEP, "input": {"t": SERVICE_TOKEN}, "result": {"p": ADMIN_PASSWORD}}]
+    await env.login()
+    text = (await env.http.get(f"/workflows/{WF}")).text
+    assert SERVICE_TOKEN not in text and ADMIN_PASSWORD not in text and "[redacted]" in text

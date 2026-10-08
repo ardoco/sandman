@@ -255,6 +255,12 @@ def create_app(
 
     app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 
+    def redact(text: str) -> str:
+        for value in secret_values:
+            if value:
+                text = text.replace(value, "[redacted]")
+        return text
+
     def page(request: Request, ctx: Ctx | None, template: str, status: int = 200, **data: Any) -> HTMLResponse:
         base = {
             "user": ctx.username if ctx else None,
@@ -262,6 +268,7 @@ def create_app(
             "path": request.url.path,
             "status": status,
             "alerts": list(poller.alerts.active.values()) if ctx else [],
+            "redact": redact,
         }
         return HTMLResponse(TEMPLATES.get_template(template).render(**{**base, **data}), status)
 

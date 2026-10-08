@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator, Iterator
 import httpx
 import nats
 import pytest
-from dash_fakes import Env, FakeGraph, FakeKg, Upstream, make_app
+from dash_fakes import SERVICE_TOKEN, Env, FakeGraph, FakeKg, Upstream, make_app
 from sandman_agent import ensure_stream
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.contracts import Contracts
@@ -70,6 +70,14 @@ async def test_payload_is_escaped_and_truncated(viewer_env: tuple[Env, EventView
     bad = await env.http.get("/events/3")
     assert "(invalid)" in (await env.http.get("/events")).text and "&lt;script&gt;alert(2)" in bad.text
     assert (await env.http.get("/events/99")).status_code == 404
+
+
+async def test_secrets_in_payload_are_redacted(viewer_env: tuple[Env, EventViewer]) -> None:
+    env, viewer = viewer_env
+    await env.login()
+    viewer.add(1, envelope(1, note=SERVICE_TOKEN))
+    text = (await env.http.get("/events/1")).text
+    assert SERVICE_TOKEN not in text and "[redacted]" in text
 
 
 async def test_requires_session(viewer_env: tuple[Env, EventViewer]) -> None:

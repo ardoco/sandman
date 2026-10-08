@@ -8,7 +8,7 @@ Status: revision 5 (system overview dashboard added: T0.14, T1.9–T1.11, ADR-00
 2. **Replacement order:** extraction first, because every later result depends on element quality. Then TLR (ArDoCo first, LiSSA second), because inconsistency detection uses TLR information (Q-18). Then ArDoCo inconsistency detection, then NL-to-Cypher. The ArDoCo mapping risk is reduced early by the M0 spike T0.12.
 3. **Every replacement is a configuration switch.** Stubs stay selectable (`enabled` flags), so a real component can be compared with or rolled back to its stub without changing contracts.
 4. **Testing:** contract tests and conformance vectors are written once in M0 and never change during replacement. Tests that depend on LLM output run on recorded cassettes. Quality is measured on benchmark gold standards with fixed protocols and repeated runs.
-5. **Task specs:** the first eight M0 tasks are written as self-contained specs in [docs/tasks/](tasks/), ready to hand to a coding assistant.
+5. **Task specs:** the M0 tasks T0.1–T0.9 and the M1 tasks are written as self-contained specs in [docs/tasks/](tasks/), ready to hand to a coding assistant.
 
 ## 1. Work breakdown
 
@@ -47,16 +47,16 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T0.13 | `llm-replay` proxy (standalone Python, no `sandman_agent`): OpenAI-compatible pass-through/record/replay for chat and embeddings, cassette format and key per contracts (D-3) | S | T0.1 | – |
 | T0.14 | `GET /v1/status` (`ServiceStatus`, working/idle) in both agent libraries and `llm-replay` (mode, experiment, hits/misses/recordings) | S | T0.2, T0.3, T0.13 | – |
 | **M1** | | | | |
-| T1.1 | Markdown/text extractor (sections, sentences with content-based keys and `sentenceIndex`; also one-sentence-per-line rendering stored per version for ArDoCo, ADR-0015) | M | T0.5, T0.12 | |
-| T1.2 | PCM and UML model extractors (ids preserved, `PROVIDES`/`REQUIRES`) | M | T0.5 | |
-| T1.3 | Requirements extractor (Markdown/CSV) + explicit references | S | T0.5 | |
-| T1.4 | PDF/DOCX via Docling, offline prefetch | M | T0.5 | |
-| T1.5 | LLM enrichment (concepts, summaries) with schemas, replay tests | M | T1.1 | |
-| T1.6 | Record/replay end to end through `llm-replay` (experiment manifest, cassette dirs), replay determinism test on a canonical KG export without ids and timestamps; `ORDER BY` in prompt-building reads | M | T0.11, T0.13 | |
-| T1.7 | Observability: OTel in both libraries, `obs` profile dashboards (A2A, events, LLM tokens) | S | T0.11 | |
-| T1.9 | Dashboard core (Stage 1 §10.1): admin login, services page (health + working/idle, Memgraph/NATS/gateway), KG graph view with Cytoscape.js incl. extras (Cypher box in read transactions, paths, PNG/JSON export), LLM gateway statistics and budgets, Dockerfile + Compose | L | T0.11, T0.14 | |
-| T1.10 | Dashboard operations: workflow monitor with cancel and dead-event replay, event stream viewer, alerts (banner + `event=alert` log), record/replay status page | M | T1.9 | |
-| T1.11 | Dashboard insights: project statistics, history charts (SQLite samples, uPlot), resource usage via cAdvisor (profile `resources`) | M | T1.9 | |
+| T1.1 | Markdown/text extractor (sections, sentences with content-based keys and `sentenceIndex`; also one-sentence-per-line rendering stored per version for ArDoCo, ADR-0015) | M | T0.5, T0.12 | [T1.1](tasks/T1.1-markdown-text-extractor.md) |
+| T1.2 | PCM and UML model extractors (ids preserved, `PROVIDES`/`REQUIRES`) | M | T0.5 | [T1.2](tasks/T1.2-model-extractors.md) |
+| T1.3 | Requirements extractor (Markdown/CSV) + explicit references | S | T0.5 | [T1.3](tasks/T1.3-requirements-extractor.md) |
+| T1.4 | PDF/DOCX via Docling, offline prefetch | M | T0.5 | [T1.4](tasks/T1.4-pdf-docx-docling.md) |
+| T1.5 | LLM enrichment (concepts, summaries) with schemas, replay tests | M | T1.1 | [T1.5](tasks/T1.5-llm-enrichment.md) |
+| T1.6 | Record/replay end to end through `llm-replay` (experiment manifest, cassette dirs), replay determinism test on a canonical KG export without ids and timestamps; `ORDER BY` in prompt-building reads | M | T0.11, T0.13 | [T1.6](tasks/T1.6-record-replay-e2e.md) |
+| T1.7 | Observability: OTel in both libraries, `obs` profile dashboards (A2A, events, LLM tokens) | S | T0.11 | [T1.7](tasks/T1.7-observability.md) |
+| T1.9 | Dashboard core (Stage 1 §10.1): admin login, services page (health + working/idle, Memgraph/NATS/gateway), KG graph view with Cytoscape.js incl. extras (Cypher box in read transactions, paths, PNG/JSON export), LLM gateway statistics and budgets, Dockerfile + Compose | L | T0.11, T0.14 | [T1.9](tasks/T1.9-dashboard-core.md) |
+| T1.10 | Dashboard operations: workflow monitor with cancel and dead-event replay, event stream viewer, alerts (banner + `event=alert` log), record/replay status page | M | T1.9 | [T1.10](tasks/T1.10-dashboard-operations.md) |
+| T1.11 | Dashboard insights: project statistics, history charts (SQLite samples, uPlot), resource usage via cAdvisor (profile `resources`) | M | T1.9 | [T1.11](tasks/T1.11-dashboard-insights.md) |
 | **M2** | | | | |
 | T2.1 | ArDoCo TLR approach adapter(s) (SAD↔SAM, SAD↔code) | L | T1.1, T1.2, T0.6 | |
 | T2.2 | LiSSA adapter (LangChain4j configured via `LlmAccess` to `llm-replay`/gateway with the policy-dependent key; embeddings likewise) | L | T0.6 | |

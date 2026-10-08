@@ -45,13 +45,13 @@ class SessionStore:
         )
         return sid, csrf
 
-    def get(self, sid: str) -> sqlite3.Row | None:
-        """Live session (absolute and idle expiry); touches last_seen."""
+    def get(self, sid: str, touch: bool = True) -> sqlite3.Row | None:
+        """Live session (absolute and idle expiry); touches last_seen unless `touch` is false (background polling)."""
         row: sqlite3.Row | None = self.db.execute(
             "SELECT * FROM sessions WHERE id_sha256 = ? AND expires_at > ? AND last_seen > ?",
             (sha256(sid), now(), _later(-SESSION_IDLE)),
         ).fetchone()
-        if row:
+        if row and touch:
             self.db.execute("UPDATE sessions SET last_seen = ? WHERE id_sha256 = ?", (now(), row["id_sha256"]))
         return row
 

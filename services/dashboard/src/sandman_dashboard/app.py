@@ -6,14 +6,17 @@ Run: python -m sandman_dashboard
 import asyncio
 import contextlib
 import hmac
+import ipaddress
 import json
 import os
 import secrets
+import time
 from collections.abc import AsyncIterator, Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
+from urllib.parse import parse_qsl
 
 import httpx
 import jinja2
@@ -38,9 +41,59 @@ COOKIE = "sandman_dashboard_session"
 LOGIN_CSRF = "sandman_dashboard_login_csrf"
 ADMIN = "admin"
 HERE = Path(__file__).parent
+MAX_FORM = 16 * 1024
+CSP = "default-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'"
 TEMPLATES = jinja2.Environment(
     loader=jinja2.FileSystemLoader(HERE / "templates"), autoescape=jinja2.select_autoescape(["html"])
 )
+
+
+class ProxyHeaders:
+    """Client address from X-Forwarded-For, only when the TCP peer is one of the trusted proxies (resolved by name)."""
+
+    def __init__(self, app: Any, hosts: list[str], ttl: float = 30.0) -> None:
+        self.app, self.hosts, self.ttl = app, hosts, ttl
+        self._ips: set[str] = set()
+        self._at = float("-inf")
+
+    async def _trusted(self) -> set[str]:
+        if time.monotonic() - self._at >= self.ttl:
+            ips: set[str] = set()
+            for host in self.hosts:
+                with contextlib.suppress(OSError):
+                    ips |= {str(i[4][0]) for i in await asyncio.get_running_loop().getaddrinfo(host, None)}
+            self._ips, self._at = ips, time.monotonic()
+        return self._ips
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if (
+            scope["type"] == "http"
+            and self.hosts
+            and scope.get("client")
+            and scope["client"][0] in await self._trusted()
+        ):
+            forwarded = dict(scope["headers"]).get(b"x-forwarded-for")
+            if forwarded:
+                candidate = forwarded.decode("latin-1").split(",")[-1].strip()
+                with contextlib.suppress(ValueError):
+                    scope = {**scope, "client": (str(ipaddress.ip_address(candidate)), 0)}
+        await self.app(scope, receive, send)
+
+
+async def read_form(request: Request) -> dict[str, str]:
+    """urlencoded form body of at most MAX_FORM bytes (413 beyond)."""
+    try:
+        declared = int(request.headers.get("content-length") or 0)
+    except ValueError:
+        raise HTTPException(400, "invalid Content-Length") from None
+    if declared > MAX_FORM:
+        raise HTTPException(413, "request body too large")
+    body = bytearray()
+    async for chunk in request.stream():
+        body += chunk
+        if len(body) > MAX_FORM:
+            raise HTTPException(413, "request body too large")
+    return dict(parse_qsl(body.decode("utf-8", "replace"), keep_blank_values=True))
 
 
 @dataclass
@@ -96,6 +149,7 @@ def create_app(
     graph: GraphService | None = None,
     start_poller: bool = True,
     limiter: RateLimiter | None = None,
+    trusted_proxies: list[str] | None = None,
 ) -> FastAPI:
     """ASGI app; http, kg and graph let tests run without network."""
     settings.require("service_token")
@@ -151,7 +205,8 @@ def create_app(
     @app.middleware("http")
     async def headers(request: Request, call_next: Any) -> Response:
         response: Response = await call_next(request)
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        response.headers["Content-Security-Policy"] = CSP
+        response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
         if not request.url.path.startswith("/static"):
             response.headers["Cache-Control"] = "no-store"
@@ -190,7 +245,7 @@ def create_app(
 
     def session(request: Request) -> Ctx:
         sid = request.cookies.get(COOKIE)
-        row = store.get(sid) if sid else None
+        row = store.get(sid, touch=not request.url.path.startswith("/fragments/")) if sid else None
         if row is None:
             if request.url.path.startswith(("/api/", "/fragments/")):
                 raise HTTPException(401, "authentication required")
@@ -240,7 +295,7 @@ def create_app(
 
     @app.post("/login")
     async def login(request: Request) -> Response:
-        data = await request.form()
+        data = await read_form(request)
         token = request.cookies.get(LOGIN_CSRF, "")
         verify_csrf(data.get("csrf"), token)
         username, password = str(data.get("username", "")), str(data.get("password", ""))
@@ -268,7 +323,7 @@ def create_app(
 
     @app.post("/logout")
     async def logout(request: Request, ctx: Session) -> Response:
-        verify_csrf((await request.form()).get("csrf"), ctx.csrf)
+        verify_csrf((await read_form(request)).get("csrf"), ctx.csrf)
         store.revoke(ctx.sid)
         response = RedirectResponse("/login", 303)
         response.delete_cookie(COOKIE, path="/")
@@ -373,13 +428,16 @@ def create_app(
             raise HTTPException(422, "cypher statement required (at most 20000 characters)")
         return await graph_service.cypher(statement)
 
+    if trusted_proxies:
+        app.add_middleware(ProxyHeaders, hosts=trusted_proxies)  # type: ignore[arg-type]
     return app
 
 
 def build(env: Mapping[str, str] | None = None) -> FastAPI:
     """App from SANDMAN_* settings, SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE, SANDMAN_STATE_DB, SANDMAN_COOKIE_SECURE,
     SANDMAN_POLL_INTERVAL, SANDMAN_TARGETS, SANDMAN_NATS_MONITOR_URL, SANDMAN_GATEWAY_URL and
-    SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE."""
+    SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE, SANDMAN_TRUSTED_PROXIES (host names or IPs allowed to set X-Forwarded-For,
+    default edge-proxy)."""
     env = os.environ if env is None else env
     settings = Settings.from_env(env)
 
@@ -400,4 +458,5 @@ def build(env: Mapping[str, str] | None = None) -> FastAPI:
         gateway_url=env.get("SANDMAN_GATEWAY_URL") or None,
         gateway_password=secret("SANDMAN_GATEWAY_ADMIN_PASSWORD"),
         poll_interval=float(env.get("SANDMAN_POLL_INTERVAL", "5")),
+        trusted_proxies=[h.strip() for h in env.get("SANDMAN_TRUSTED_PROXIES", "edge-proxy").split(",") if h.strip()],
     )

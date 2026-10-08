@@ -1,6 +1,10 @@
+from collections.abc import AsyncIterator
+from datetime import UTC, datetime, timedelta
+
 import httpx
 import pytest
-from dash_fakes import ADMIN_PASSWORD, Env, FakeGraph, FakeKg, Upstream, make_app
+from dash_fakes import ADMIN_PASSWORD, CSRF, Env, FakeGraph, FakeKg, Upstream, make_app
+from sandman_dashboard.app import CSP
 from sandman_dashboard.store import SessionStore
 
 HTML_ROUTES = ["/", "/graph", "/gateway"]
@@ -137,7 +141,63 @@ async def test_only_hash_of_session_id_is_stored(env: Env) -> None:
 async def test_security_headers(env: Env) -> None:
     for path in ("/login", "/static/htmx.min.js", "/healthz"):
         resp = await env.http.get(path)
-        assert resp.headers["content-security-policy"] == "default-src 'self'"
+        assert resp.headers["content-security-policy"] == CSP
         assert resp.headers["x-content-type-options"] == "nosniff"
+        assert resp.headers["x-frame-options"] == "DENY"
     await env.login()
-    assert (await env.http.get("/")).headers["content-security-policy"] == "default-src 'self'"
+    assert (await env.http.get("/")).headers["content-security-policy"] == CSP
+    assert "frame-ancestors 'none'" in CSP and "form-action 'self'" in CSP and "base-uri 'none'" in CSP
+
+
+async def test_fragment_polling_does_not_extend_the_idle_session(env: Env) -> None:
+    await env.login()
+    store: SessionStore = env.app.state.store
+    store.db.execute("UPDATE sessions SET last_seen = '2000-01-01T00:00:00Z'")
+    assert (await env.http.get("/fragments/services")).status_code == 401
+    assert (await env.http.get("/api/services")).status_code == 401
+    await env.login()
+    soon = (datetime.now(UTC) - timedelta(minutes=119)).isoformat(timespec="seconds").replace("+00:00", "Z")
+    store.db.execute("UPDATE sessions SET last_seen = ?", (soon,))
+    assert (await env.http.get("/fragments/services")).status_code == 200
+    assert store.db.execute("SELECT last_seen FROM sessions").fetchone()[0] == soon
+    assert (await env.http.get("/")).status_code == 200
+    assert store.db.execute("SELECT last_seen FROM sessions").fetchone()[0] > soon
+
+
+async def test_login_body_is_capped(env: Env) -> None:
+    page = await env.http.get("/login")
+    token = CSRF.search(page.text)
+    assert token
+    big = {"csrf": token[1], "username": "admin", "password": "x" * 20000}
+    assert (await env.http.post("/login", data=big)).status_code == 413
+
+    async def chunks() -> AsyncIterator[bytes]:
+        for _ in range(5):
+            yield b"a=" + b"x" * 5000 + b"&"
+
+    assert (await env.http.post("/login", content=chunks())).status_code == 413
+    assert (await env.login()).status_code == 303
+    assert (await env.http.post("/logout", data={"csrf": "x" * 20000})).status_code == 413
+
+
+async def test_rate_limit_keys_on_forwarded_client_of_trusted_proxy() -> None:
+    upstream, graph = Upstream(), FakeGraph()
+    app, _ = make_app(upstream, FakeKg(), graph, trusted_proxies=["10.0.0.5"])
+
+    async def attempt(peer: str, forwarded: str | None, user: str) -> int:
+        transport = httpx.ASGITransport(app=app, client=(peer, 1))
+        headers = {"x-forwarded-for": forwarded} if forwarded else {}
+        async with httpx.AsyncClient(transport=transport, base_url="http://dashboard", headers=headers) as http:
+            token = CSRF.search((await http.get("/login")).text)
+            assert token
+            resp = await http.post("/login", data={"csrf": token[1], "username": user, "password": "wrong"})
+            return resp.status_code
+
+    for i in range(5):
+        assert await attempt("10.0.0.5", "203.0.113.7", f"user{i}") == 401
+    assert await attempt("10.0.0.5", "203.0.113.7", "other") == 429
+    assert await attempt("10.0.0.5", "203.0.113.8", "other") == 401
+    assert await attempt("10.0.0.5", "spoofed, 203.0.113.9", "other2") == 401
+    for i in range(5):
+        assert await attempt("192.0.2.1", f"198.51.100.{i}", f"u{i}") == 401
+    assert await attempt("192.0.2.1", "198.51.100.99", "late") == 429

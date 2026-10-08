@@ -14,6 +14,10 @@ ArDoCo/Benchmark) when set and is skipped otherwise; the 37/37 result is therefo
 TeaStore was taken from Benchmark HEAD e60ddb2, not from the pinned ArDoCo commit.
 
 Vendored ArDoCo benchmark models (T1.2); MIT license, see LICENSE-Benchmark (covers models and gold standards).
+The benchmark READMEs (teastore, mediastore) state no separate model license; the MIT note only says texts and diagrams follow
+the upstream projects. teastore models describe the Apache-2.0 TeaStore and are listed in teastore/NOTICE as a precaution.
+mediastore models describe the Palladio MediaStore example (Palladio Approach book); no model license is stated upstream beyond
+the benchmark MIT license - provenance of that model is unclear and is reported, not resolved.
 Taken unmodified from the ArDoCo/Benchmark repository, HEAD e60ddb2676358048131178c925e86a5b33ec38f2:
   mediastore/pcm/ms.repository     <- mediastore/model_2016/pcm/ms.repository
   mediastore/uml/ms.uml            <- mediastore/model_2016/uml/ms.uml

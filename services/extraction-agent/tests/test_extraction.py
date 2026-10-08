@@ -11,6 +11,7 @@ import pytest
 from sandman_agent import Contracts, PublishError, stable_id
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_extraction import ingest
+from sandman_extraction.extract import APPROACH, APPROACH_VERSION
 from starlette.exceptions import HTTPException
 
 REQ = "requirements/requirements.md"
@@ -344,7 +345,7 @@ async def test_requirement_references_direction_and_idempotence(env: Any) -> Non
     found = await cypher(env, query, p=env.project)
     assert {(r["s"], r["t"]) for r in found} == expected
     for r in found:
-        assert r["id"] == stable_id("tl", "explicit-reference", "0", env.config_hash, r["s"], r["t"])
+        assert r["id"] == stable_id("tl", APPROACH, APPROACH_VERSION, env.config_hash, r["s"], r["t"])
     versions = [
         r["id"]
         for r in await cypher(
@@ -394,3 +395,20 @@ async def test_incremental_ingestion_of_1000_files_under_60s(env: Any) -> None:
     task = await env.extract(ing["createdVersionIds"])
     assert task.state == "TASK_STATE_COMPLETED"
     assert time.monotonic() - start < 60
+
+
+async def test_reference_equal_to_non_requirement_key_creates_no_link(env: Any) -> None:
+    await env.put_project()
+    model = (
+        b'<repository:Repository xmlns:repository="r" xmlns:xsi="x" id="r" entityName="r">'
+        b'<components__Repository id="REQ-9" entityName="Nine"/></repository:Repository>'
+    )
+    files = env.mini() | {"model/nine.repository": model, "docs/nine.md": b"# Nine\n\nThe design realizes REQ-9.\n"}
+    ing = await created(env, files)
+    task = await env.extract(ing["createdVersionIds"])
+    assert task.state == "TASK_STATE_COMPLETED", task
+    query = (
+        "MATCH (l:TraceLink {projectId: $p})-[:SOURCE|TARGET]->(e) "
+        "WHERE e.name = 'Nine' OR e.text CONTAINS 'REQ-9' RETURN count(l) AS n"
+    )
+    assert (await cypher(env, query, p=env.project))[0]["n"] == 0

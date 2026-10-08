@@ -50,3 +50,44 @@ async def test_model_relations_and_reextraction(env: Any) -> None:
     after = await current(env)
     assert "Packaging" not in after and "IPackaging" in after
     assert components(after) == 13
+
+
+REQUIREMENTS = "MATCH (r:Requirement {projectId: $p}) RETURN count(r) AS n"
+
+
+async def requirement_count(env: Any) -> int:
+    return (await env.svc.kg.read(REQUIREMENTS, p=env.project))[0]["n"]
+
+
+async def test_hostile_xml_falls_back_to_file_element(env: Any) -> None:
+    await env.put_project()
+    hostile = b'<?xml version="1.0"?><!DOCTYPE r [<!ENTITY x "boom">]><repository:Repository xmlns:repository="r"/>'
+    result = await extract(env, env.mini() | {MODEL: hostile})
+    assert result["status"] == "partial"
+    assert any(f"built-in extractor failed for {MODEL}" in w for w in result["warnings"])
+    assert await current(env) == {"ms.repository": ("file", 0, 0)}
+    assert await requirement_count(env) > 0
+
+
+async def test_csv_without_id_column_warns(env: Any) -> None:
+    await env.put_project()
+    result = await extract(env, env.mini() | {"requirements/bad.csv": b"title,text\nx,y\n"})
+    assert result["status"] == "partial"
+    assert any("bad.csv" in w and "missing CSV column" in w for w in result["warnings"])
+    assert await requirement_count(env) > 0
+
+
+async def test_model_warnings_do_not_make_run_partial(env: Any) -> None:
+    await env.put_project()
+    body = (
+        b'<repository:Repository xmlns:repository="r" xmlns:xsi="x" id="r" entityName="r">'
+        b'<components__Repository id="c" entityName="C">'
+        b'<providedRoles_InterfaceProvidingEntity providedInterface__OperationProvidedRole="gone"/>'
+        b"</components__Repository>"
+        b'<components__Repository id="c" entityName="Again"/></repository:Repository>'
+    )
+    result = await extract(env, env.mini() | {MODEL: body})
+    assert result["status"] == "completed"
+    assert any("duplicate model id c" in w for w in result["warnings"])
+    assert any("unknown interface gone" in w for w in result["warnings"])
+    assert await current(env) == {"ms.repository": ("file", 0, 0), "C": ("component", 0, 0)}

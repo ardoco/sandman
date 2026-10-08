@@ -2,3 +2,7 @@ teastore.txt is extracted from the TeaStore wiki (https://github.com/DescartesRe
 Apache License, Version 2.0: https://www.apache.org/licenses/LICENSE-2.0
 Copyright (c) the TeaStore authors (Descartes Research Group). Modified: captions removed and explicit links replaced
 with "link" (ArDoCo benchmark text adaptation).
+
+teastore/pcm/teastore.repository and teastore/uml/teastore.uml are architecture models of TeaStore taken from the ArDoCo
+benchmark (MIT, see LICENSE-Benchmark). As they describe TeaStore, they are listed here as a precaution; the benchmark states
+no separate license for them.

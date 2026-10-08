@@ -1,5 +1,6 @@
 """PDF/DOCX extraction (T1.4): subprocess wrapper with fake converters; Docling tests carry the `docling` marker."""
 
+import asyncio
 import json
 import os
 import sys
@@ -71,10 +72,81 @@ async def test_unbounded_output_is_cut(blob: Path, monkeypatch: pytest.MonkeyPat
 
 @pytest.mark.skipif(sys.platform != "linux", reason="RLIMIT_AS is only enforced on Linux")
 async def test_memory_limit(blob: Path) -> None:
+    code = "from sandman_extraction.docling_worker import apply_limits as a; a(60, 512 * 1024**2); bytearray(1024**3)"
     with pytest.raises(ConversionError, match="exited with"):
-        await documents.to_markdown(
-            blob, Limits(memory_bytes=512 * 1024**2), command=fake("x = bytearray(1024**3); print('ok')")
-        )
+        await documents.to_markdown(blob, command=fake(code))
+
+
+async def test_converter_env_has_no_secrets(blob: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SANDMAN_SERVICE_TOKEN_FILE", "/run/secrets/x")
+    monkeypatch.setenv("HF_TOKEN", "hf_secret")
+    monkeypatch.setenv("SANDMAN_MODELS_DIR", "/models")
+    out = await documents.to_markdown(blob, command=fake("import os; print(sorted(os.environ))"))
+    assert "SANDMAN_SERVICE_TOKEN_FILE" not in out and "HF_TOKEN" not in out
+    assert "SANDMAN_MODELS_DIR" in out and "HF_HUB_OFFLINE" in out
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX process groups")
+async def test_timeout_kills_grandchildren(blob: Path, tmp_path: Path) -> None:
+    pidfile = tmp_path / "pid"
+    code = (
+        "import subprocess, sys, time; "
+        f"p = subprocess.Popen(['sleep', '60']); open({str(pidfile)!r}, 'w').write(str(p.pid)); time.sleep(60)"
+    )
+    with pytest.raises(ConversionError, match="timed out"):
+        await documents.to_markdown(blob, Limits(timeout_seconds=1.5), command=fake(code))
+    pid = int(pidfile.read_text())
+    for _ in range(50):
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return
+        await asyncio.sleep(0.1)
+    pytest.fail("grandchild survived the timeout")
+
+
+def pdf_pages(n: int) -> bytes:
+    """Minimal PDF with n text pages."""
+    objs = ["<< /Type /Catalog /Pages 2 0 R >>",
+            f"<< /Type /Pages /Kids [{' '.join(f'{4 + 2 * i} 0 R' for i in range(n))}] /Count {n} >>",
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]  # fmt: skip
+    for i in range(n):
+        text = f"BT /F1 12 Tf 72 720 Td (Page {i + 1} has one sentence.) Tj ET"
+        objs.append(f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents {5 + 2 * i} 0 R "
+                    "/Resources << /Font << /F1 3 0 R >> >> >>")  # fmt: skip
+        objs.append(f"<< /Length {len(text)} >>\nstream\n{text}\nendstream")
+    out, offsets = bytearray(b"%PDF-1.4\n"), []
+    for i, o in enumerate(objs, 1):
+        offsets.append(len(out))
+        out += f"{i} 0 obj\n{o}\nendobj\n".encode()
+    xref = len(out)
+    out += f"xref\n0 {len(objs) + 1}\n0000000000 65535 f \n".encode()
+    out += b"".join(f"{o:010d} 00000 n \n".encode() for o in offsets)
+    out += f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    return bytes(out)
+
+
+@docling
+@needs_models
+async def test_page_limit_with_real_multipage_pdf(tmp_path: Path) -> None:
+    path = tmp_path / "three.pdf"
+    path.write_bytes(pdf_pages(3))
+    assert "Page 3" in await documents.to_markdown(path, Limits(max_pages=3))
+    with pytest.raises(ConversionError, match="exited with 1"):
+        await documents.to_markdown(path, Limits(max_pages=2))
+
+
+def test_prefetch_verify_rejects_tampered_and_extra_files(tmp_path: Path) -> None:
+    from sandman_extraction import prefetch
+
+    (tmp_path / "a").write_bytes(b"x")
+    good = {"a": prefetch.sha256(tmp_path / "a")}
+    prefetch.verify(tmp_path, good)
+    with pytest.raises(SystemExit, match="differs from pinned"):
+        prefetch.verify(tmp_path, {"a": "0" * 64})
+    (tmp_path / "extra").write_bytes(b"y")
+    with pytest.raises(SystemExit, match="differ from pinned"):
+        prefetch.verify(tmp_path, good)
 
 
 def test_limits_from_config() -> None:

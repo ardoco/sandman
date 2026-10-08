@@ -1,23 +1,30 @@
 """PDF/DOCX to Markdown with Docling in a resource-limited subprocess (T1.4, R-029).
 
-`python -m sandman_extraction.documents [--max-pages N] <path>` prints the Markdown rendering; `to_markdown` runs it
-with timeout, CPU/address-space limits and bounded output. Docling is imported only in the subprocess, offline,
-without OCR; its models are read from `SANDMAN_MODELS_DIR` (see `prefetch`).
+`to_markdown` runs `docling_worker` (the only module importing Docling) in its own session with a minimal environment,
+a wall-clock timeout, CPU/address-space limits set by the worker itself, bounded output, and kills the whole process
+group on any exit. Docling runs offline (HF offline mode, models from `SANDMAN_MODELS_DIR`) and without OCR.
+Limits: OS-level network isolation is NOT provided here; a compromised converter could still open sockets unless the
+container is run without network (the deployment's job). Offline mode only stops the Hugging Face client.
 """
 
-import argparse
 import asyncio
+import contextlib
 import os
 import re
+import signal
 import sys
-from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-MODELS_ENV = "SANDMAN_MODELS_DIR"
+from sandman_extraction.docling_worker import DEFAULT_MAX_PAGES, MODELS_ENV, models_dir
+
+__all__ = ["ConversionError", "Limits", "models_dir", "to_markdown"]
+
 MAX_MARKDOWN_BYTES = 5 * 1024 * 1024
 ERROR_MAX = 300
+ENV_PASSTHROUGH = ("PATH", "HOME", "LANG", "LC_ALL", "TMPDIR", MODELS_ENV, "HF_HOME", "HF_HUB_CACHE",
+                   "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")  # fmt: skip
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 
 
@@ -31,7 +38,7 @@ class Limits:
     memory_bytes: int = (
         8 * 1024**3
     )  # address space: torch and docling-parse reserve ~6 GiB; RAM is bounded by the container
-    max_pages: int = 300
+    max_pages: int = DEFAULT_MAX_PAGES
     max_file_bytes: int = 50 * 1024**2
 
     @classmethod
@@ -41,20 +48,10 @@ class Limits:
         return cls(**{names[k]: v for k, v in config.items() if k in names})
 
 
-def models_dir() -> Path:
-    return Path(os.environ.get(MODELS_ENV) or Path.home() / ".cache" / "sandman-models")
-
-
-def _limiter(limits: Limits) -> Callable[[], None]:
-    def apply() -> None:
-        import resource
-
-        cpu = int(limits.timeout_seconds * 2)  # CPU time of all threads; wall-clock is bounded by the timeout
-        resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu))
-        if sys.platform == "linux":  # RLIMIT_AS is not enforced elsewhere
-            resource.setrlimit(resource.RLIMIT_AS, (limits.memory_bytes, limits.memory_bytes))
-
-    return apply
+def worker_env() -> dict[str, str]:
+    """Minimal environment of the converter: no service secrets or tokens."""
+    env = {k: os.environ[k] for k in ENV_PASSTHROUGH if k in os.environ}
+    return env | {"HF_HUB_OFFLINE": "1", "HF_HUB_DISABLE_TELEMETRY": "1"}
 
 
 async def _read(stream: asyncio.StreamReader | None, cap: int, tail: bool = False) -> bytes:
@@ -69,17 +66,20 @@ async def _read(stream: asyncio.StreamReader | None, cap: int, tail: bool = Fals
 async def to_markdown(path: Path, limits: Limits | None = None, command: list[str] | None = None) -> str:
     """Markdown rendering of a PDF/DOCX; raises ConversionError on crash, timeout, limit or oversized input.
 
-    `command` replaces the Docling subprocess command (the path is appended); for tests.
+    `command` replaces the worker command (the path is appended); for tests.
     """
     limits = limits or Limits()
     size = path.stat().st_size
     if size > limits.max_file_bytes:
         raise ConversionError(f"{path.name} has {size} bytes, limit is {limits.max_file_bytes}")
-    command = command or [sys.executable, "-m", "sandman_extraction.documents", "--max-pages", str(limits.max_pages)]
+    command = command or [
+        sys.executable, "-m", "sandman_extraction.docling_worker", "--max-pages", str(limits.max_pages),
+        "--cpu-seconds", str(int(limits.timeout_seconds * 2)),  # CPU time sums all threads; wall clock is the timeout
+        "--memory-bytes", str(limits.memory_bytes),
+    ]  # fmt: skip
     proc = await asyncio.create_subprocess_exec(
         *command, str(path), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.DEVNULL, preexec_fn=_limiter(limits),
-        env={**os.environ, "HF_HUB_OFFLINE": "1", "HF_HUB_DISABLE_TELEMETRY": "1"},
+        stdin=asyncio.subprocess.DEVNULL, env=worker_env(), start_new_session=True,
     )  # fmt: skip
     try:
         out, err, _ = await asyncio.wait_for(
@@ -89,43 +89,12 @@ async def to_markdown(path: Path, limits: Limits | None = None, command: list[st
     except TimeoutError:
         raise ConversionError(f"conversion of {path.name} timed out after {limits.timeout_seconds:g}s") from None
     finally:
-        if proc.returncode is None:
-            proc.kill()
-            await proc.wait()
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(proc.pid, signal.SIGKILL)  # also grandchildren; the group id outlives the leader
+        await proc.wait()
     if proc.returncode != 0:
         detail = _CONTROL.sub(" ", err.decode("utf-8", errors="replace").strip().rpartition("\n")[2])[:ERROR_MAX]
         raise ConversionError(f"converter exited with {proc.returncode}: {detail}")
     if len(out) > MAX_MARKDOWN_BYTES:
         raise ConversionError(f"rendering of {path.name} exceeds {MAX_MARKDOWN_BYTES} bytes")
     return out.decode("utf-8", errors="replace")
-
-
-def converter() -> Any:
-    """Docling converter for PDF and DOCX: no OCR, no enrichment, models from the local models dir only."""
-    from docling.datamodel.base_models import InputFormat
-    from docling.datamodel.pipeline_options import PdfPipelineOptions
-    from docling.document_converter import DocumentConverter, PdfFormatOption
-
-    options = PdfPipelineOptions(artifacts_path=models_dir(), do_ocr=False, enable_remote_services=False)
-    return DocumentConverter(
-        allowed_formats=[InputFormat.PDF, InputFormat.DOCX],
-        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=options)},
-    )
-
-
-def convert(path: Path, max_pages: int = Limits.max_pages) -> str:
-    return str(converter().convert(path, max_num_pages=max_pages).document.export_to_markdown())
-
-
-def main(argv: list[str] | None = None) -> None:
-    os.environ["HF_HUB_OFFLINE"] = "1"
-    parser = argparse.ArgumentParser(prog="sandman_extraction.documents")
-    parser.add_argument("--max-pages", type=int, default=Limits.max_pages)
-    parser.add_argument("path", type=Path)
-    args = parser.parse_args(argv)
-    stdout, sys.stdout = sys.stdout, sys.stderr  # libraries must not pollute the rendering
-    stdout.buffer.write(convert(args.path, args.max_pages).encode("utf-8"))
-
-
-if __name__ == "__main__":
-    main()

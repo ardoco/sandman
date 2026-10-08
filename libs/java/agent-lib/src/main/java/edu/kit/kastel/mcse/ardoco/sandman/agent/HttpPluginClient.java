@@ -1,5 +1,7 @@
 package edu.kit.kastel.mcse.ardoco.sandman.agent;
 
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanKind;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -7,6 +9,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -52,11 +56,20 @@ public final class HttpPluginClient {
     /** Validates the input, calls the plugin and returns validated PluginDetectOutput. */
     public JsonNode detect(JsonNode input) {
         contracts.validate(INPUT, input);
-        HttpRequest request = HttpRequest.newBuilder(detectUri)
+        return Telemetry.inSpan(
+                Telemetry.span(Telemetry.SPAN_PLUGIN_DETECT, SpanKind.CLIENT, Attributes.empty()), () -> call(input));
+    }
+
+    private JsonNode call(JsonNode input) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder(detectUri)
                 .timeout(timeout)
                 .header("Authorization", "Bearer " + inboundToken)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofByteArray(JsonMapper.shared().writeValueAsBytes(input)))
+                .header("Content-Type", "application/json");
+        Map<String, String> trace = new HashMap<>();
+        Telemetry.inject(trace);
+        trace.forEach(builder::header);
+        HttpRequest request = builder.POST(HttpRequest.BodyPublishers.ofByteArray(
+                        JsonMapper.shared().writeValueAsBytes(input)))
                 .build();
         HttpResponse<byte[]> response;
         try {

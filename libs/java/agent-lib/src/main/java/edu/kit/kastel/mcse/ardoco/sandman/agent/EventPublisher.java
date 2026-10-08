@@ -42,12 +42,20 @@ public final class EventPublisher {
     /** Validates, publishes and waits for the JetStream ack; nullable ids are omitted or generated. */
     public Event publish(
             String type, String subject, JsonNode data, String correlationId, String causationId, String eventId) {
+        return Telemetry.inSpan(
+                Telemetry.publishSpan(type),
+                () -> publishInSpan(type, subject, data, correlationId, causationId, eventId));
+    }
+
+    private Event publishInSpan(
+            String type, String subject, JsonNode data, String correlationId, String causationId, String eventId) {
         Event event = Event.build(contracts, serviceName, type, subject, data, correlationId, causationId, eventId);
         byte[] payload = JsonMapper.shared().writeValueAsBytes(event.toJson());
         Headers headers = new Headers().add("Nats-Msg-Id", event.id());
         for (int attempt = 0; ; attempt++) {
             try {
                 js.publish(type, headers, payload);
+                Telemetry.eventPublished(type);
                 return event;
             } catch (Exception e) { // any transport error is retried, then surfaced
                 if (attempt == backoff.size()) {

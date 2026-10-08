@@ -38,7 +38,7 @@ public record Event(
                 data,
                 correlationId,
                 causationId,
-                null);
+                Telemetry.traceparent());
         contracts.validate("events.schema.json", event.toJson());
         return event;
     }

@@ -75,7 +75,11 @@ public final class EventConsumer {
     /** Acks after the handler succeeded; naks with the backoff delay for the delivery count otherwise. */
     static void handle(Message msg, Handler handler) {
         try {
-            handler.handle(Event.fromJson(JsonMapper.shared().readTree(msg.getData())));
+            Event event = Event.fromJson(JsonMapper.shared().readTree(msg.getData()));
+            Telemetry.consume(event, () -> {
+                handler.handle(event);
+                return null;
+            });
         } catch (Exception e) {
             long delivered = msg.isJetStream() ? Math.max(1, msg.metaData().deliveredCount()) : 1;
             LOG.error("event handler failed (delivered {})", delivered, e);

@@ -39,29 +39,40 @@ public final class KgClient implements AutoCloseable {
 
     /** Runs a read query; rows as maps. */
     public List<Map<String, Object>> read(String cypher, Map<String, Object> params) {
-        try (Session session = driver.session()) {
-            return session.executeRead(
-                    noRetryOnMemoryLimit(tx -> tx.run(cypher, params).list(Record::asMap)));
-        }
+        return Telemetry.inSpan(Telemetry.kgSpan("read", cypher), () -> {
+            try (Session session = driver.session()) {
+                return session.executeRead(
+                        noRetryOnMemoryLimit(tx -> tx.run(cypher, params).list(Record::asMap)));
+            }
+        });
     }
 
     /** Runs a write query; transient errors are retried by the driver. */
     public List<Map<String, Object>> write(String cypher, Map<String, Object> params) {
-        return writeTx(tx -> tx.run(cypher, params).list(Record::asMap));
+        return Telemetry.inSpan(Telemetry.kgSpan("write", cypher), () -> {
+            try (Session session = driver.session()) {
+                return session.executeWrite(
+                        noRetryOnMemoryLimit(tx -> tx.run(cypher, params).list(Record::asMap)));
+            }
+        });
     }
 
     /** Runs several statements in one write transaction. */
     public <T> T writeTx(TransactionCallback<T> work) {
-        try (Session session = driver.session()) {
-            return session.executeWrite(noRetryOnMemoryLimit(work));
-        }
+        return Telemetry.inSpan(Telemetry.kgSpan("write_tx", null), () -> {
+            try (Session session = driver.session()) {
+                return session.executeWrite(noRetryOnMemoryLimit(work));
+            }
+        });
     }
 
     /** Auto-commit query; Memgraph requires it for schema statements and SHOW STORAGE INFO (spike T0.4). */
     public List<Map<String, Object>> runAutoCommit(String cypher, Map<String, Object> params) {
-        try (Session session = driver.session()) {
-            return session.run(cypher, params).list(Record::asMap);
-        }
+        return Telemetry.inSpan(Telemetry.kgSpan("autocommit", cypher), () -> {
+            try (Session session = driver.session()) {
+                return session.run(cypher, params).list(Record::asMap);
+            }
+        });
     }
 
     /** Runs contracts/kg/init.cypher statement by statement (idempotent). */

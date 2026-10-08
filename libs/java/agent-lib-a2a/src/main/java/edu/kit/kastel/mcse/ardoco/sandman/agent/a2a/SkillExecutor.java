@@ -2,7 +2,9 @@ package edu.kit.kastel.mcse.ardoco.sandman.agent.a2a;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ServiceAuth;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Settings;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.StatusTracker;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Telemetry;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
@@ -45,6 +47,9 @@ public class SkillExecutor implements AgentExecutor {
 
     @Inject
     A2aServer server;
+
+    @Inject
+    Settings settings;
 
     @Inject
     Contracts contracts;
@@ -113,41 +118,40 @@ public class SkillExecutor implements AgentExecutor {
                 emitter);
         running.put(ctx.taskId(), ctx);
         try (var active = status.track()) {
-            emitter.startWork();
-            run(skill, ctx, input, emitter);
+            Telemetry.a2aTask(settings.serviceName(), skillId, ctx.taskId(), headers(context), () -> {
+                emitter.startWork();
+                return run(skill, ctx, input, emitter);
+            });
         } finally {
             running.remove(ctx.taskId());
         }
     }
 
-    private void run(Skill skill, SkillContext ctx, JsonNode input, AgentEmitter emitter) {
+    private String run(Skill skill, SkillContext ctx, JsonNode input, AgentEmitter emitter) {
         SkillResult result;
         try {
             result = skill.run(ctx, input);
         } catch (SkillException e) {
-            end(emitter, e, false);
-            return;
+            return end(emitter, e, false);
         } catch (RuntimeException e) { // unexpected failures are reported as retryable INTERNAL
             LOG.error("skill {} failed", skill.id(), e);
-            end(
+            return end(
                     emitter,
                     new SkillException("INTERNAL", e.getClass().getSimpleName() + ": " + e.getMessage(), true),
                     false);
-            return;
         }
         if (ctx.cancelled()) {
-            return; // cancel() already moved the task to CANCELED
+            return "canceled"; // cancel() already moved the task to CANCELED
         }
         try {
             contracts.validate(server.schemas().get(skill.id()).get("outputSchema"), result.output());
         } catch (Contracts.ContractException e) {
-            end(emitter, new SkillException("INTERNAL", "invalid output: " + e.getMessage(), false), false);
-            return;
+            return end(emitter, new SkillException("INTERNAL", "invalid output: " + e.getMessage(), false), false);
         }
         if (result.eventType() != null) {
             if (!events.isResolvable() || result.eventData() == null) {
-                end(emitter, new SkillException("INTERNAL", "completion event without event sink", false), false);
-                return;
+                return end(
+                        emitter, new SkillException("INTERNAL", "completion event without event sink", false), false);
             }
             try {
                 events.get()
@@ -160,16 +164,16 @@ public class SkillExecutor implements AgentExecutor {
                                 null);
             } catch (RuntimeException e) { // KG is committed; the retried task republishes
                 LOG.error("publishing completion event failed", e);
-                end(emitter, new SkillException("DEPENDENCY_UNAVAILABLE", e.toString(), true), false);
-                return;
+                return end(emitter, new SkillException("DEPENDENCY_UNAVAILABLE", e.toString(), true), false);
             }
         }
         Object output = JsonMapper.shared().convertValue(result.output(), Object.class);
         emitter.addArtifact(List.of(new DataPart(output)), null, "result", null);
         emitter.complete();
+        return "completed";
     }
 
-    private static void end(AgentEmitter emitter, SkillException error, boolean reject) {
+    private static String end(AgentEmitter emitter, SkillException error, boolean reject) {
         Map<String, Object> json =
                 Map.of("code", error.code(), "message", error.getMessage(), "retryable", error.retryable());
         Message msg = emitter.newAgentMessage(List.of(new TextPart(error.getMessage())), Map.of(ERROR_KEY, json));
@@ -178,6 +182,7 @@ public class SkillExecutor implements AgentExecutor {
         } else {
             emitter.fail(msg);
         }
+        return reject ? "rejected" : "failed";
     }
 
     @Override
@@ -189,13 +194,17 @@ public class SkillExecutor implements AgentExecutor {
         emitter.cancel();
     }
 
-    private static String authorization(RequestContext context) {
+    private static Map<?, ?> headers(RequestContext context) {
         if (context.getCallContext() == null
                 || !(context.getCallContext().getState().get(JSONRPCContextKeys.HEADERS_KEY)
                         instanceof Map<?, ?> headers)) {
-            return null;
+            return Map.of();
         }
-        for (Map.Entry<?, ?> h : headers.entrySet()) {
+        return headers;
+    }
+
+    private static String authorization(RequestContext context) {
+        for (Map.Entry<?, ?> h : headers(context).entrySet()) {
             if ("authorization".equalsIgnoreCase(String.valueOf(h.getKey()))) {
                 return String.valueOf(h.getValue());
             }

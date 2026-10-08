@@ -1,5 +1,8 @@
 package edu.kit.kastel.mcse.ardoco.sandman.agent.a2a;
 
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Telemetry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanKind;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,20 +42,24 @@ public final class A2aClient implements AutoCloseable {
         }
     }
 
-    private final ClientCallContext callContext;
+    private final Map<String, String> headers;
     private final Map<String, Client> clients = new ConcurrentHashMap<>();
 
     public A2aClient(String token) {
         // a2a-java rejects calls that do not list the card's required extension (W-2)
-        callContext = new ClientCallContext(
-                Map.of(),
-                Map.of(
-                        "Authorization",
-                        "Bearer " + token,
-                        "A2A-Extensions",
-                        SkillExecutor.EXTENSION,
-                        "A2A-Version",
-                        "1.0"));
+        headers = Map.of(
+                "Authorization", "Bearer " + token, "A2A-Extensions", SkillExecutor.EXTENSION, "A2A-Version", "1.0");
+    }
+
+    private ClientCallContext callContext() {
+        Map<String, String> all = new LinkedHashMap<>(headers);
+        Telemetry.inject(all);
+        return new ClientCallContext(Map.of(), all);
+    }
+
+    private static <T> T clientSpan(String name, Attributes attributes, Telemetry.Body<T, RuntimeException> body) {
+        return Telemetry.inSpan(
+                Telemetry.span(Telemetry.SPAN_A2A_CLIENT + " " + name, SpanKind.CLIENT, attributes), body);
     }
 
     /** The agent's public card. */
@@ -112,31 +119,40 @@ public final class A2aClient implements AutoCloseable {
                         .returnImmediately(true)
                         .build())
                 .build();
-        AtomicReference<Task> task = new AtomicReference<>();
-        client(agentUrl)
-                .sendMessage(
-                        params,
-                        List.of((ev, card) -> {
-                            if (ev instanceof TaskEvent te) {
-                                task.set(te.getTask());
-                            }
-                        }),
-                        null,
-                        callContext);
-        if (task.get() == null) {
-            throw new IllegalStateException(agentUrl + " returned no task");
-        }
-        return snapshot(task.get());
+        Object skill = message.metadata() == null ? null : message.metadata().get(SkillExecutor.SKILL_KEY);
+        return clientSpan("send", Attributes.of(Telemetry.ATTR_SKILL, String.valueOf(skill)), () -> {
+            AtomicReference<Task> task = new AtomicReference<>();
+            client(agentUrl)
+                    .sendMessage(
+                            params,
+                            List.of((ev, card) -> {
+                                if (ev instanceof TaskEvent te) {
+                                    task.set(te.getTask());
+                                }
+                            }),
+                            null,
+                            callContext());
+            if (task.get() == null) {
+                throw new IllegalStateException(agentUrl + " returned no task");
+            }
+            return snapshot(task.get());
+        });
     }
 
     /** Current state, result and error of a task. */
     public TaskSnapshot get(String agentUrl, String taskId) {
-        return snapshot(client(agentUrl).getTask(new TaskQueryParams(taskId), callContext));
+        return clientSpan(
+                "get",
+                Attributes.of(Telemetry.ATTR_TASK_ID, taskId),
+                () -> snapshot(client(agentUrl).getTask(new TaskQueryParams(taskId), callContext())));
     }
 
     /** Requests cancellation. */
     public TaskSnapshot cancel(String agentUrl, String taskId) {
-        return snapshot(client(agentUrl).cancelTask(new CancelTaskParams(taskId), callContext));
+        return clientSpan(
+                "cancel",
+                Attributes.of(Telemetry.ATTR_TASK_ID, taskId),
+                () -> snapshot(client(agentUrl).cancelTask(new CancelTaskParams(taskId), callContext())));
     }
 
     static TaskSnapshot snapshot(Task task) {

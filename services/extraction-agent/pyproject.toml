@@ -5,11 +5,13 @@ description = "Information extraction agent."
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "defusedxml>=0.7.1",
+    "docling==2.135.0",
     "fastapi>=0.142.2",
     "markdown-it-py>=4.2.0",
     "pysbd>=0.3.4",
     "python-multipart>=0.0.32",
     "sandman-agent",
+    "torch==2.14.1",
     "uvicorn>=0.54.0",
 ]
 
@@ -22,3 +24,9 @@ module-name = "sandman_extraction"
 
 [tool.uv.sources]
 sandman-agent = { workspace = true }
+torch = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

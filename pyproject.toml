@@ -76,6 +76,9 @@ strict = true
 addopts = "--import-mode=importlib"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-markers = ["slow: long-running performance checks"]
+markers = [
+  "slow: long-running performance checks",
+  "docling: needs the prefetched Docling models (python -m sandman_extraction.prefetch); deselect with -m 'not docling'",
+]
 pythonpath = ["scripts"]
 testpaths = ["libs/python", "services", "tools", "tests/plugin-stubs", "tests/conformance", "scripts"]

@@ -151,7 +151,7 @@ def make_app(
         settings,
         admin_password=ADMIN_PASSWORD,
         state_db=state_db,
-        targets=TARGETS,
+        targets=kwargs.pop("targets", TARGETS),
         nats_monitor_url="http://nats:8222",
         gateway_url="http://gateway:8080",
         gateway_password=GATEWAY_PASSWORD,

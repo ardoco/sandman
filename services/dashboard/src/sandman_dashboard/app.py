@@ -387,7 +387,13 @@ def create_app(
         )  # fmt: skip
 
     ops.register(
-        app, orchestrator=orchestrator, session=Session, page=page, verify_csrf=verify_csrf, read_form=read_form
+        app,
+        orchestrator=orchestrator,
+        poller=poller,
+        session=Session,
+        page=page,
+        verify_csrf=verify_csrf,
+        read_form=read_form,
     )
 
     # --------------------------------------------------------------------- API

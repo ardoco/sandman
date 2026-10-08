@@ -1,0 +1,17 @@
+{% if entry is none %}<p>llm-replay is not configured or not polled yet.</p>
+{% elif entry.health != "up" %}<div class="msg error">llm-replay down{% if entry.reason %} ({{ entry.reason }}){% endif %}</div>
+{% else %}
+{% set misses = d.get("misses") %}
+<table>
+<tbody>
+<tr><th>Mode</th><td>{{ d.get("mode", "n/a") }}</td></tr>
+<tr><th>Experiment</th><td>{{ d.get("experiment", "n/a") }}</td></tr>
+<tr><th>Cassette entries</th><td>{{ d.get("entries") | num }}</td></tr>
+<tr><th>Hits</th><td>{{ d.get("hits") | num }}</td></tr>
+<tr {% if d.get("mode") == "replay" and misses %}class="warn"{% endif %}><th>Misses</th><td>{{ misses | num }}{% if d.get("mode") == "replay" and misses %} (requests without a recorded answer){% endif %}</td></tr>
+<tr><th>Recorded</th><td>{{ d.get("recorded") | num }}</td></tr>
+<tr><th>Forwarded</th><td>{{ d.get("forwarded") | num }}</td></tr>
+<tr><th>Last activity</th><td>{{ entry.last_activity_at | ago if entry.last_activity_at else "never" }}</td></tr>
+</tbody>
+</table>
+{% endif %}

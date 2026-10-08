@@ -40,6 +40,7 @@ def register(
     app: FastAPI,
     *,
     orchestrator: OrchestratorClient | None,
+    poller: Any,
     session: Any,
     page: Callable[..., HTMLResponse],
     verify_csrf: Callable[[Any, str], None],
@@ -141,3 +142,16 @@ def register(
             else:
                 message = problem or UNREACHABLE
         return await workflow_list(request, ctx, message, error)
+
+    def experiment(request: Request, ctx: Any, template: str) -> HTMLResponse:
+        entry = poller.entries.get("llm-replay")
+        details = entry.details if entry and entry.health == "up" else {}
+        return page(request, ctx, template, entry=entry, d=details)
+
+    @app.get("/experiments")
+    async def experiments_page(request: Request, ctx: Session) -> HTMLResponse:
+        return experiment(request, ctx, "experiments.html")
+
+    @app.get("/fragments/experiments")
+    async def experiments_fragment(request: Request, ctx: Session) -> HTMLResponse:
+        return experiment(request, ctx, "_experiments.html")

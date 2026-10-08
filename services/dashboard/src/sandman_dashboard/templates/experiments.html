@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Experiments{% endblock %}
+{% block body %}
+<h1>Experiments</h1>
+<p>Record/replay proxy in front of the LLM gateway (ADR-0010).</p>
+<div id="experiments" hx-get="/fragments/experiments" hx-trigger="every 5s" hx-swap="innerHTML">
+{% include "_experiments.html" %}
+</div>
+{% endblock %}

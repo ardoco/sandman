@@ -7,6 +7,7 @@ members = [
     "sandman",
     "sandman-agent",
     "sandman-cli",
+    "sandman-dashboard",
     "sandman-extraction-agent",
     "sandman-llm-replay",
     "sandman-orchestrator",
@@ -1232,6 +1233,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "sandman-agent" },
     { name = "sandman-cli" },
+    { name = "sandman-dashboard" },
     { name = "sandman-extraction-agent" },
     { name = "sandman-llm-replay" },
     { name = "sandman-orchestrator" },
@@ -1267,6 +1269,7 @@ dev = [
 requires-dist = [
     { name = "sandman-agent", editable = "libs/python/sandman-agent" },
     { name = "sandman-cli", editable = "tools/cli" },
+    { name = "sandman-dashboard", editable = "services/dashboard" },
     { name = "sandman-extraction-agent", editable = "services/extraction-agent" },
     { name = "sandman-llm-replay", editable = "services/llm-replay" },
     { name = "sandman-orchestrator", editable = "services/orchestrator" },
@@ -1346,6 +1349,31 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "sandman-agent", editable = "libs/python/sandman-agent" },
+]
+
+[[package]]
+name = "sandman-dashboard"
+version = "0.1.0"
+source = { editable = "services/dashboard" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "jinja2" },
+    { name = "python-multipart" },
+    { name = "sandman-agent" },
+    { name = "sandman-query-service" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.142.2" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "python-multipart", specifier = ">=0.0.32" },
+    { name = "sandman-agent", editable = "libs/python/sandman-agent" },
+    { name = "sandman-query-service", editable = "services/query-service" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
 ]
 
 [[package]]

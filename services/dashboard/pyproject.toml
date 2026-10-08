@@ -1,0 +1,25 @@
+[project]
+name = "sandman-dashboard"
+version = "0.1.0"
+description = "System overview dashboard (admins)."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi>=0.142.2",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "python-multipart>=0.0.32",
+    "sandman-agent",
+    "sandman-query-service",
+    "uvicorn>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "sandman_dashboard"
+
+[tool.uv.sources]
+sandman-agent = { workspace = true }
+sandman-query-service = { workspace = true }

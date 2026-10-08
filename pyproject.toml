@@ -8,6 +8,7 @@ dependencies = [
   "sandman-orchestrator",
   "sandman-extraction-agent",
   "sandman-query-service",
+  "sandman-dashboard",
   "sandman-llm-replay",
   "sandman-cli",
   "sandman-plugin-stubs",
@@ -21,6 +22,7 @@ sandman-agent = { workspace = true }
 sandman-orchestrator = { workspace = true }
 sandman-extraction-agent = { workspace = true }
 sandman-query-service = { workspace = true }
+sandman-dashboard = { workspace = true }
 sandman-llm-replay = { workspace = true }
 sandman-cli = { workspace = true }
 sandman-plugin-stubs = { workspace = true }
@@ -31,6 +33,7 @@ members = [
   "services/orchestrator",
   "services/extraction-agent",
   "services/query-service",
+  "services/dashboard",
   "services/llm-replay",
   "tools/cli",
   "tests/plugin-stubs",

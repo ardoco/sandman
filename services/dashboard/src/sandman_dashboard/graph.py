@@ -124,7 +124,7 @@ class GraphService:
 
         async def work(tx: AsyncManagedTransaction) -> tuple[list[str], list[list[Any]]]:
             try:
-                result = await tx.run(cypher, dict(params))  # type: ignore[arg-type]
+                result = await tx.run(cypher, dict(params))
                 rows: list[list[Any]] = []
                 async for record in result:
                     rows.append(list(record.values()))

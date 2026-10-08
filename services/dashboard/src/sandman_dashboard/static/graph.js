@@ -5,6 +5,7 @@
   var cy = cytoscape({
     container: document.getElementById("cy"),
     wheelSensitivity: 0.3,
+    maxZoom: 1.5,
     style: [
       { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "data(color)", color: "#1b1f24", "text-valign": "bottom", "text-margin-y": 3 } },
       { selector: "edge", style: { label: "data(label)", "font-size": 8, width: 1, "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": "#8c959f", "target-arrow-color": "#8c959f", color: "#57606a" } },

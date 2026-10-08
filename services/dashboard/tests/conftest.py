@@ -13,7 +13,7 @@ from testcontainers.core.container import DockerContainer
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from helpers import Env, FakeGraph, FakeKg, Upstream, make_app  # noqa: E402
+from dash_fakes import Env, FakeGraph, FakeKg, Upstream, make_app  # noqa: E402
 
 
 @pytest.fixture

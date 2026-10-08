@@ -3,7 +3,7 @@ import time
 
 import httpx
 import pytest
-from helpers import SERVICE_TOKEN, TARGETS, FakeKg, Upstream
+from dash_fakes import SERVICE_TOKEN, TARGETS, FakeKg, Upstream
 from sandman_dashboard import poller as poller_module
 from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.poller import Poller, nats_details, parse_targets

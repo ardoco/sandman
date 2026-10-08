@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import pytest
-from helpers import SECRETS, Env
+from dash_fakes import SECRETS, Env
 
 PAGES = ["/", "/graph", "/gateway", "/fragments/services", "/fragments/gateway"]
 APIS = [

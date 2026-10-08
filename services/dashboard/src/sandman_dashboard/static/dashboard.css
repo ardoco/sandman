@@ -18,3 +18,4 @@ dd { margin: 0 0 .2rem; overflow-wrap: anywhere; }
 tr.warn td { background: #fff1c2; font-weight: 600; }
 label { display: block; margin-bottom: .5rem; }
 form label input { display: block; }
+#services, #gateway { overflow-x: auto; }

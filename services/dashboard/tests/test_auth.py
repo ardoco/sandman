@@ -1,6 +1,6 @@
 import httpx
 import pytest
-from helpers import ADMIN_PASSWORD, Env, FakeGraph, FakeKg, Upstream, make_app
+from dash_fakes import ADMIN_PASSWORD, Env, FakeGraph, FakeKg, Upstream, make_app
 from sandman_dashboard.store import SessionStore
 
 HTML_ROUTES = ["/", "/graph", "/gateway"]

@@ -168,7 +168,14 @@ def parse_budgets(doc: Any, names: Mapping[str, str]) -> list[Budget]:
     for b in (doc or {}).get("budgets", []) if isinstance(doc, dict) else []:
         try:
             key_id = str(b["virtual_key_id"])
-            out.append(Budget(key_id, names.get(key_id, key_id), float(b["max_limit"]), float(b["current_usage"])))
+            out.append(
+                Budget(
+                    key_id,
+                    names.get(key_id, key_id.removeprefix("vk-")),
+                    float(b["max_limit"]),
+                    float(b["current_usage"]),
+                )
+            )
         except (KeyError, TypeError, ValueError):
             continue
     return sorted(out, key=lambda b: b.key_name)

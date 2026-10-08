@@ -101,3 +101,14 @@ async def test_status(client: httpx.AsyncClient, env: Env) -> None:
 
 async def test_readyz(client: httpx.AsyncClient) -> None:
     assert (await client.get("/readyz")).json() == {"status": "ok", "checks": {"sqlite": "ok"}}
+
+
+async def test_dashboard_may_cancel_and_replay_but_other_callers_may_not(client: httpx.AsyncClient, env: Env) -> None:
+    wf = await env.orch.trigger("detect", "mini", {}, "user:alice")
+    other = auth("tlr-agent")
+    assert (await client.post(f"/v1/workflows/{wf}/cancel", headers=other)).status_code == 403
+    assert (await client.post("/v1/dead-events/x/replay", headers=other)).status_code == 403
+    assert (await client.post(f"/v1/workflows/{wf}/cancel", headers=auth("dashboard"))).status_code == 202
+    bad = ingestion(created=["nope"])
+    await env.orch.consume(bad, 1)
+    assert (await client.post(f"/v1/dead-events/{bad.id}/replay", headers=auth("dashboard"))).status_code == 202

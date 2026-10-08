@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Knowledge graph{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/graph.css">{% endblock %}
+{% block body %}
+<h1>Knowledge graph</h1>
+<div id="graph-app" data-csrf="{{ csrf }}">
+  <aside id="controls">
+    <label>Project
+      <select id="project">
+        <option value="">All projects</option>
+        {% for p in projects %}<option value="{{ p.id }}">{{ p.id }}{% if p.name %} ({{ p.name }}){% endif %}</option>{% endfor %}
+      </select>
+    </label>
+    <fieldset>
+      <legend>Start from a label</legend>
+      <select id="start-label">
+        <option value="">Choose a label</option>
+        {% for l in labels %}<option value="{{ l }}">{{ l }}</option>{% endfor %}
+      </select>
+      <button id="start" type="button">Load</button>
+    </fieldset>
+    <fieldset>
+      <legend>Search by key, name or id</legend>
+      <input id="search-text" type="search" maxlength="200">
+      <button id="search" type="button">Search</button>
+    </fieldset>
+    <fieldset>
+      <legend>Filter labels</legend>
+      {% for l in labels %}<label class="inline"><input type="checkbox" class="filter-label" value="{{ l }}"> {{ l }}</label>{% endfor %}
+    </fieldset>
+    <fieldset>
+      <legend>Filter relationship types</legend>
+      {% for t in rel_types %}<label class="inline"><input type="checkbox" class="filter-type" value="{{ t }}"> {{ t }}</label>{% endfor %}
+    </fieldset>
+    <fieldset>
+      <legend>Path between two nodes</legend>
+      <div>From: <span id="path-source">-</span></div>
+      <div>To: <span id="path-target">-</span></div>
+      <label>Max hops <input id="path-hops" type="number" min="1" max="12" value="6"></label>
+      <button id="path" type="button">Find path</button>
+    </fieldset>
+    <fieldset>
+      <legend>Export visible subgraph</legend>
+      <button id="export-png" type="button">PNG</button>
+      <button id="export-json" type="button">JSON</button>
+      <button id="clear" type="button">Clear</button>
+    </fieldset>
+  </aside>
+  <section id="view">
+    <div id="status" role="status"></div>
+    <div id="cy" aria-label="Knowledge graph view"></div>
+    <div id="properties"><h2>Properties</h2><div id="props-empty">Select a node or edge.</div><dl id="props"></dl>
+      <button id="set-source" type="button" hidden>Use as path start</button>
+      <button id="set-target" type="button" hidden>Use as path end</button>
+    </div>
+  </section>
+</div>
+<section id="cypher-box">
+  <h2>Read-only Cypher</h2>
+  <form id="cypher-form">
+    <textarea id="cypher" rows="4" maxlength="20000" spellcheck="false" aria-label="Cypher statement">MATCH (n:Project) RETURN n</textarea>
+    <button type="submit">Run</button>
+    <button id="cypher-add" type="button" hidden>Add returned nodes to the graph</button>
+  </form>
+  <div id="cypher-status" role="status"></div>
+  <div id="cypher-result"></div>
+</section>
+<script src="/static/cytoscape.min.js"></script>
+<script src="/static/graph.js"></script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% if not configured %}<p>No gateway configured.</p>
+{% elif stats is none %}<p>Gateway statistics unavailable.</p>
+{% else %}
+<h2>Usage per virtual key, model and provider</h2>
+<table>
+<thead><tr><th>Key</th><th>Model</th><th>Provider</th><th>Requests</th><th>Input tokens</th><th>Output tokens</th><th>Cost</th><th>Errors</th><th>p50</th><th>p95</th><th>Requests/s</th><th>Tokens/s</th></tr></thead>
+<tbody>
+{% for r in stats.rows %}
+<tr>
+  <td>{{ r.key }}</td><td>{{ r.model }}</td><td>{{ r.provider }}</td>
+  <td>{{ r.requests | num }}</td><td>{{ r.input_tokens | num }}</td><td>{{ r.output_tokens | num }}</td>
+  <td>{{ r.cost | cost }}</td><td>{{ r.errors | num }}</td>
+  <td>{{ r.p50 | seconds }}</td><td>{{ r.p95 | seconds }}</td>
+  <td>{{ r.rates.requests | num(2) }}</td>
+  <td>{% set i = r.rates.input_tokens %}{% set o = r.rates.output_tokens %}{{ ((i or 0) + (o or 0)) | num(1) if i is not none and o is not none else "n/a" }}</td>
+</tr>
+{% else %}
+<tr><td colspan="12">No requests yet.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+<h2>Budgets</h2>
+{% if stats.budgets is none %}<p>n/a</p>{% else %}
+<table>
+<thead><tr><th>Key</th><th>Used</th><th>Limit</th><th>Share</th></tr></thead>
+<tbody>
+{% for b in stats.budgets %}
+<tr {% if b.warn %}class="warn"{% endif %}>
+  <td>{{ b.key_name }}</td><td>{{ b.usage | cost }}</td><td>{{ b.limit | cost }}</td>
+  <td>{{ b.ratio | percent }}{% if b.warn %} (at least 80 %){% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endif %}

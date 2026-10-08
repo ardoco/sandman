@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Services{% endblock %}
+{% block body %}
+<h1>Services</h1>
+<div id="services" hx-get="/fragments/services" hx-trigger="every 5s" hx-swap="innerHTML">
+{% include "_services.html" %}
+</div>
+{% endblock %}

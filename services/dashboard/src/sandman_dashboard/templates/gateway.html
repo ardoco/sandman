@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}LLM gateway{% endblock %}
+{% block body %}
+<h1>LLM gateway</h1>
+<p>Totals since the gateway started; rates since the previous poll.</p>
+<div id="gateway" hx-get="/fragments/gateway" hx-trigger="every 5s" hx-swap="innerHTML">
+{% include "_gateway.html" %}
+</div>
+{% endblock %}

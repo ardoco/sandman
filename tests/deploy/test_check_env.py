@@ -23,6 +23,18 @@ def test_http_url_fails(tmp_path):
     assert run(tmp_path, "SELFHOSTED_LLM_URL=http://x\nSELFHOSTED_LLM_KEY=k\n") == 1
 
 
+def test_compose_ollama_without_key_ok(tmp_path):
+    assert run(tmp_path, "SELFHOSTED_LLM_URL=http://ollama:11434\nSELFHOSTED_LLM_KEY=\n") == 0
+
+
+def test_other_http_ollama_variants_fail(tmp_path):
+    assert run(tmp_path, "SELFHOSTED_LLM_URL=http://ollama:11434/x\nSELFHOSTED_LLM_KEY=\n") == 1
+
+
+def test_open_webui_https_with_key_ok(tmp_path):
+    assert run(tmp_path, "SELFHOSTED_LLM_URL=https://webui.example/ollama\nSELFHOSTED_LLM_KEY=sk-x\n") == 0
+
+
 def test_https_empty_key_fails(tmp_path):
     assert run(tmp_path, "SELFHOSTED_LLM_URL=https://x\nSELFHOSTED_LLM_KEY=\n") == 1
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 # Generates deploy/secrets/* for a local SANDMAN deployment. Never overwrites existing secret files.
 # Afterwards put real provider keys into secrets/gateway.env (OPENAI_API_KEY, OPENROUTER_API_KEY)
-# and, for the local-only route, SELFHOSTED_LLM_URL (https://, remote Ollama) and SELFHOSTED_LLM_KEY (bearer for its reverse proxy).
+# For the local-only routes the default is the compose container (SELFHOSTED_LLM_URL=http://ollama:11434, profile local-llm, 'make models').
+# Remote instead: SELFHOSTED_LLM_URL=https://<open-webui-host>/ollama and SELFHOSTED_LLM_KEY=<Open WebUI API key>.
 # Plugin services: add their names to PLUGINS (token pair per plugin, see ADR-0012); LLM-using plugins
 # additionally need virtual keys in gateway/config.json and gateway.env (docs/plugins.md).
 set -eu
@@ -30,7 +31,7 @@ if [ ! -e secrets/gateway.env ]; then
   write gateway_admin_password "$ADMIN_PW"   # operator only; never mounted into agents
   ENV="OPENAI_API_KEY=
 OPENROUTER_API_KEY=
-SELFHOSTED_LLM_URL=
+SELFHOSTED_LLM_URL=http://ollama:11434
 SELFHOSTED_LLM_KEY=
 BIFROST_ENCRYPTION_KEY=$(rand)
 BIFROST_ADMIN_PASSWORD=$ADMIN_PW

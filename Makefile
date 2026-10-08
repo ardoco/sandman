@@ -3,7 +3,7 @@ COMPOSE     := docker compose -f deploy/docker-compose.yml
 COMPOSE_DEV := $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: secrets infra up down logs images test test-py test-java lint guard contracts e2e backup
+.PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e backup
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -16,7 +16,12 @@ up:                 ## whole system
 	deploy/check-env.sh
 	$(COMPOSE) up -d --build
 
-images:             ## build all M0 images
+models:             ## start the local Ollama container (profile local-llm) and pull the ollama/* models of config/llm/models.yaml
+	$(COMPOSE) --profile local-llm up -d --wait ollama
+	@for m in $$(sed -n 's|^ *[a-z-]*: *ollama/\([^ ]*\).*|\1|p' config/llm/models.yaml); do \
+		$(COMPOSE) --profile local-llm exec -T ollama ollama pull $$m || exit 1; done
+
+images: ## build all M0 images
 	$(COMPOSE) --profile stubs build
 
 down:

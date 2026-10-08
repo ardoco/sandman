@@ -44,6 +44,9 @@
       ]
     },
     "ollama": {
+      "network_config": {
+        "allow_private_network": true
+      },
       "keys": [
         {
           "name": "ollama-selfhosted",

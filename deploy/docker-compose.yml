@@ -1,6 +1,6 @@
 # SANDMAN reference deployment (single server).
 #   cd deploy && ./gen-secrets.sh && docker compose up -d --build
-# Profiles: (default) core system · dashboard: system overview (M1) · obs: OpenTelemetry backend · stubs: plugin stubs for the walking skeleton
+# Profiles: (default) core system · dashboard: system overview (M1) · obs: OpenTelemetry backend · local-llm: Ollama container for chat-local/embed-local (`make models` pulls the models) · stubs: plugin stubs for the walking skeleton
 #           resources: cAdvisor for the dashboard; grants root-equivalent host access via the Docker socket, opt-in, not for production
 # Dev ports (Bolt, NATS monitoring): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 # Memory limits assume a 32 GB host (A-7); initial values, tuned in T5.4.
@@ -73,13 +73,13 @@ services:
       APP_PORT: "8080"
       LOG_LEVEL: info
       LOG_STYLE: json
-    env_file: ./secrets/gateway.env              # provider keys, SELFHOSTED_LLM_URL/KEY (remote Ollama), BIFROST_ENCRYPTION_KEY, BIFROST_ADMIN_PASSWORD, VK_* values
+    env_file: ./secrets/gateway.env              # provider keys, SELFHOSTED_LLM_URL/KEY (local container http://ollama:11434 or remote Open WebUI/Ollama), BIFROST_ENCRYPTION_KEY, BIFROST_ADMIN_PASSWORD, VK_* values
     volumes:
       - gateway-data:/app/data
       - ./gateway/config.json:/app/data/config.json:ro
-    networks: [internal, egress]
+    networks: [internal, egress, llm-local]
     ports:
-      - "127.0.0.1:8081:8080"                    # admin UI / request logs (governance.auth_config)
+      - "127.0.0.1:8081:8080"                   # admin UI / request logs (governance.auth_config)
     mem_limit: 1g
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
@@ -362,6 +362,21 @@ services:
     mem_limit: 2g
     restart: unless-stopped
 
+  ollama:
+    profiles: [local-llm]
+    image: ollama/ollama:0.35.1
+    volumes:
+      - ollama-models:/root/.ollama
+    networks: [llm-local, egress]                # reachable only by the gateway; egress for model pulls
+    mem_limit: 4g                                # CPU-only; Docker VM of 7.75 GiB; qwen3:1.7b + nomic-embed-text
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
   # Plugged-in services (Q-5, Q-6; external systems, ADR-0012) are added in docker-compose.override.yml, e.g.:
   # code-extractor:
   #   image: <registry>/<code-extractor>@sha256:<digest>
@@ -378,6 +393,8 @@ networks:
   resources:
     internal: true          # profile resources: cadvisor <-> dashboard only
   edge: {}                  # only edge-proxy; services behind it have no egress (internal network)
+  llm-local:
+    internal: true          # gateway <-> ollama only
 
 volumes:
   memgraph-data: {}
@@ -388,6 +405,7 @@ volumes:
   query-data: {}
   artifact-store: {}
   otel-data: {}
+  ollama-models: {}
   dashboard-data: {}
 
 secrets:

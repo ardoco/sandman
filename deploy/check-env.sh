@@ -1,5 +1,6 @@
 #!/bin/sh
-# Fail-closed preflight for deploy/secrets/gateway.env (ADR-0004): self-hosted LLM needs https:// and a key.
+# Fail-closed preflight for deploy/secrets/gateway.env (ADR-0004): a self-hosted LLM needs https:// and a key,
+# except the in-compose Ollama container (http://ollama:11434, profile local-llm), which never leaves the host.
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
 otel() { v=$(printenv "$1" || true); [ -n "$v" ] || v=$(sed -n "s/^$1=//p" "$here/.env" 2>/dev/null | tail -n 1); echo "$v"; }
@@ -11,8 +12,9 @@ f="$(cd "$(dirname "$0")" && pwd)/secrets/gateway.env"
 get() { sed -n "s/^$1=//p" "$f" | tail -n 1 | sed "s/^[\"']//; s/[\"']\$//"; }
 url=$(get SELFHOSTED_LLM_URL)
 [ -z "$url" ] && exit 0
+[ "$url" = "http://ollama:11434" ] && exit 0
 case "$url" in
   https://*) ;;
-  *) echo "check-env: SELFHOSTED_LLM_URL must start with https:// (prompts would leave this host in cleartext)" >&2; exit 1 ;;
+  *) echo "check-env: SELFHOSTED_LLM_URL must start with https:// (prompts would leave this host in cleartext), or be exactly http://ollama:11434" >&2; exit 1 ;;
 esac
 [ -n "$(get SELFHOSTED_LLM_KEY)" ] || { echo "check-env: SELFHOSTED_LLM_KEY must not be empty when SELFHOSTED_LLM_URL is set" >&2; exit 1; }

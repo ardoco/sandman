@@ -24,19 +24,34 @@ Open `deploy/secrets/gateway.env`. It contains empty entries for:
 | Variable | Purpose |
 |---|---|
 | `OPENAI_API_KEY`, `OPENROUTER_API_KEY` | cloud LLM providers behind the LLM gateway |
-| `SELFHOSTED_LLM_URL`, `SELFHOSTED_LLM_KEY` | remote self-hosted model server (Ollama behind an HTTPS reverse proxy) used for the `local-only` policy |
+| `SELFHOSTED_LLM_URL`, `SELFHOSTED_LLM_KEY` | self-hosted model server used for the `local-only` policy (routes `chat-local`, `embed-local`) |
 
-No built-in component calls an LLM today, so the stack starts and works with all four empty. Fill them in before you enable features that use models.
+Cloud routes (`chat-default`, `chat-alt`, `embed-default` in `config/llm/models.yaml`) need `OPENROUTER_API_KEY` or `OPENAI_API_KEY`. Without them only `local-only` projects can use LLM features.
 
-SANDMAN does not run a model server itself. If you set `SELFHOSTED_LLM_URL`, then:
+`make secrets` sets `SELFHOSTED_LLM_URL=http://ollama:11434`. Choose one of two modes for the self-hosted models:
 
-- it must start with `https://`, and
-- `SELFHOSTED_LLM_KEY` (the bearer token of the reverse proxy) must not be empty.
+**A. Local container (default).** Start the Ollama container and pull the two models (`qwen3:1.7b` for chat, `nomic-embed-text` for embeddings, about 2 GB), then start the stack:
 
-`deploy/check-env.sh` enforces this and `make up`, `make infra` and `make e2e` run it first. A violation stops the command with one of these messages:
+```sh
+make models
+make up
+```
+
+The container is CPU-only, limited to 4 GB, and reachable only by the gateway. If you raise the Docker memory to 12 GiB or more, `qwen3:4b` is the better chat model: change `chat-local` in `config/llm/models.yaml` and run `make models` again.
+
+**B. Remote Open WebUI.** If Open WebUI runs in front of Ollama on another machine, create an API key there (Settings, Account, API Keys; an admin must have enabled API keys) and set in `gateway.env`:
 
 ```
-check-env: SELFHOSTED_LLM_URL must start with https:// (prompts would leave this host in cleartext)
+SELFHOSTED_LLM_URL=https://<open-webui-host>/ollama
+SELFHOSTED_LLM_KEY=<the Open WebUI API key>
+```
+
+The gateway sends the key as bearer token to `<url>/v1/chat/completions` and `<url>/v1/embeddings`, which Open WebUI serves under `/ollama`. The models used by `models.yaml` must exist on that Ollama.
+
+`deploy/check-env.sh` enforces: any URL other than exactly `http://ollama:11434` must start with `https://`, and `SELFHOSTED_LLM_KEY` must then not be empty. `make up`, `make infra` and `make e2e` run it first. A violation stops the command with one of these messages:
+
+```
+check-env: SELFHOSTED_LLM_URL must start with https:// (prompts would leave this host in cleartext), or be exactly http://ollama:11434
 check-env: SELFHOSTED_LLM_KEY must not be empty when SELFHOSTED_LLM_URL is set
 check-env: <path>/deploy/secrets/gateway.env missing; run 'make secrets'
 ```

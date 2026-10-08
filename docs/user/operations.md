@@ -29,7 +29,7 @@ Everything is published on `127.0.0.1` only.
 
 Memgraph and NATS have no host ports. `make infra` starts only Memgraph, NATS and the gateway with development ports (Bolt `7687`, NATS `4222`, NATS monitoring `8222`) for developers.
 
-The containers share an internal network without internet access. The `document-converter` (Docling) is reachable only inside it, mounts the artifact store read-only and accepts conversion requests only from the extraction agent; if it is down, PDF and DOCX artifacts fall back to file-level elements (`partial`). Only the LLM gateway has internet access (to the providers you configured keys for).
+The containers share an internal network without internet access. The `document-converter` (Docling) is reachable only inside it, mounts the artifact store read-only and accepts conversion requests only from the extraction agent; if it is down, PDF and DOCX artifacts fall back to file-level elements (`partial`). Only the LLM gateway has internet access (to the providers you configured keys for, or the remote Open WebUI); with profile `local-llm` the Ollama container also has egress for model pulls, and talks to nobody but the gateway.
 
 ## Compose profiles
 
@@ -39,6 +39,7 @@ The containers share an internal network without internet access. The `document-
 | `stubs` | `plugin-stubs`: stub code extractor and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
 | `obs` | Grafana/OpenTelemetry backend on `:3001`; services export telemetry when `OTEL_SDK_DISABLED=false` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318` are set in the shell that runs compose | `... --profile obs up -d` |
 | `resources` | cAdvisor container metrics for the dashboard. **Security: grants root-equivalent access to the host through the Docker socket (read-only socket proxy plus host mounts); off by default, not for production.** | `... --profile resources up -d` |
+| `local-llm` | Ollama container (`ollama/ollama:0.35.1`, 4 GB, CPU-only, volume `ollama-models`) for `chat-local`/`embed-local`; needs `SELFHOSTED_LLM_URL=http://ollama:11434` (the default of `make secrets`) | `make models` (starts it and pulls the `ollama/*` models of `config/llm/models.yaml`) |
 | `dashboard` | system overview for admins | `... --profile dashboard up -d --build` |
 
 Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos and tests, not to a production setup; the shipped plugin entries in `config/` point to it (see below).
@@ -88,7 +89,7 @@ Backup is not implemented: `make backup` prints `not implemented (T5.3)` and exi
 
 | Symptom | Cause and remedy |
 |---|---|
-| `check-env: ...` and `make` stops | `deploy/secrets/gateway.env` is missing (run `make secrets`), `SELFHOSTED_LLM_URL` is not `https://`, or `SELFHOSTED_LLM_KEY` is empty |
+| `check-env: ...` and `make` stops | `deploy/secrets/gateway.env` is missing (run `make secrets`), `SELFHOSTED_LLM_URL` is neither `http://ollama:11434` nor `https://...`, or an `https://` URL comes with an empty `SELFHOSTED_LLM_KEY` (for Open WebUI: the API key) |
 | `Cannot connect to the Docker daemon` | start Docker (Docker Desktop on macOS). `DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` is only needed for the Python integration tests (`make test`), not for running the stack |
 | port already in use | change the published ports of `edge-proxy` and `llm-gateway` in `deploy/docker-compose.yml`. To run a second stack, also give it its own project name: `docker compose -p other -f ...` |
 | containers killed or Memgraph restarts | the memory limits assume a 32 GB host (Memgraph 10 GB, TLR and inconsistency agents 5 GB each); give Docker enough memory |

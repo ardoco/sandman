@@ -57,7 +57,11 @@ def sha256(path: Path) -> str:
 
 def verify(folder: Path, expected: dict[str, str]) -> None:
     """Raise unless `folder` contains exactly the expected files (ignoring the download cache) with these hashes."""
-    found = {p.relative_to(folder).as_posix(): p for p in folder.rglob("*") if p.is_file() and ".cache" not in p.parts}
+    found = {
+        rel.as_posix(): p
+        for p in folder.rglob("*")
+        if p.is_file() and ".cache" not in (rel := p.relative_to(folder)).parts
+    }
     if set(found) != set(expected):
         raise SystemExit(f"{folder}: files {sorted(found)} differ from pinned {sorted(expected)}")
     for name, digest in expected.items():

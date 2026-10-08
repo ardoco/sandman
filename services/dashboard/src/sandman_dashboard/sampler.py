@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import sqlite3
+import threading
 import time
 from collections.abc import Callable
 from typing import Any
@@ -24,6 +25,7 @@ GATEWAY_FIELDS = {
 RANGES = {"1h": 3600, "24h": 86400, "14d": 14 * 86400}
 MAX_POINTS = 1000
 PRUNE_EVERY = 3600.0
+LOCK = threading.Lock()
 
 
 def collect(poller: Any) -> list[tuple[str, str, float]]:
@@ -75,13 +77,17 @@ class Sampler:
     async def _loop(self) -> None:
         while True:
             try:
-                self.sample_once()
+                await asyncio.to_thread(self.sample_once)
             except Exception:  # noqa: BLE001 - the sampler must survive any error
                 log.exception("sampling failed")
             await asyncio.sleep(self.interval)
 
     def sample_once(self) -> int:
         """Writes one sample set (and prunes hourly); returns the number of rows written."""
+        with LOCK:
+            return self._sample()
+
+    def _sample(self) -> int:
         now = int(self.clock())
         rows = [(now, series, key, value) for series, key, value in collect(self.poller)]
         self.db.executemany("INSERT INTO samples VALUES (?, ?, ?, ?)", rows)
@@ -136,6 +142,11 @@ def counter_series(db: sqlite3.Connection, series: str, start: int, end: int) ->
 
 
 def history(db: sqlite3.Connection, range_: str, now: float | None = None) -> dict[str, Any]:
+    with LOCK:
+        return _history(db, range_, now)
+
+
+def _history(db: sqlite3.Connection, range_: str, now: float | None) -> dict[str, Any]:
     seconds = RANGES[range_]
     end = int(time.time() if now is None else now)
     start = end - seconds

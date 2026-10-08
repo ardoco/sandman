@@ -114,6 +114,7 @@ def test_vendored_libraries_have_licenses() -> None:
     npm = {
         "cytoscape.min.js": "5141892eb19898946e5af8300e14cec15a63a22186a4ca56d76819a91e2a3fe6",
         "uplot.min.js": "19c8d4c6ad88929a79f4ae49d6f7161566dfd0ba3d15cc495e974f787eb78f1f",
+        "uplot.min.css": "df630c6a8d6f8eeaff264b50f73ce5b114f646ffd9a0bb74f049b0a00135fa04",
     }
     for name, digest in npm.items():
         assert hashlib.sha256((static / name).read_bytes()).hexdigest() == digest, name

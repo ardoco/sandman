@@ -19,7 +19,9 @@ from xml.etree.ElementTree import Element, TreeBuilder
 
 from defusedxml.ElementTree import XMLParser
 
+from sandman_extraction.bounds import add_warnings
 from sandman_extraction.stub import FILE_KEY
+from sandman_extraction.text import NAME_MAX
 
 MAX_XML_BYTES = 10 * 1024 * 1024
 TEXT_MAX = 500
@@ -103,7 +105,7 @@ def extract(
     """File element, one element per component and interface, and PROVIDES/REQUIRES relations from components."""
     if len(content) > max_bytes:
         raise ValueError(f"{path} has {len(content)} bytes, limit is {max_bytes}")
-    warnings = [] if warnings is None else warnings
+    found_warnings: list[str] = []
     root, lines = _parse(content)
     expected, items = ("Repository", _pcm_items) if model == PCM else ("Model", _uml_items)
     if _local(root.tag) != expected:
@@ -118,16 +120,16 @@ def extract(
     names: dict[str, str] = {}
     for el, *_ in found:
         if (key := _attr(el, "id")) and key not in names:
-            names[key] = el.get(name_attr) or key
+            names[key] = (el.get(name_attr) or key)[:NAME_MAX]
     components: list[tuple[str, list[str], list[str]]] = []
     seen: set[str] = set()
     for el, kind, pcm_type, provided, required in found:
         key = _attr(el, "id")
-        if not key:
-            warnings.append(f"{path}:{lines.first[el]}: model element without id skipped")
+        if not key or key == FILE_KEY:
+            found_warnings.append(f"{path}:{lines.first[el]}: model element without usable id skipped")
             continue
         if key in seen:
-            warnings.append(f"{path}:{lines.first[el]}: duplicate model id {key} skipped")
+            found_warnings.append(f"{path}:{lines.first[el]}: duplicate model id {key} skipped")
             continue
         seen.add(key)
         name = names[key]
@@ -150,9 +152,11 @@ def extract(
         for rel, refs in (("PROVIDES", provided), ("REQUIRES", required)):
             for ref in refs:
                 if ref not in interfaces:
-                    warnings.append(f"{path}: relation {rel} from {key} to unknown interface {ref} skipped")
+                    found_warnings.append(f"{path}: relation {rel} from {key} to unknown interface {ref} skipped")
                 elif (rel, key, ref) not in done:
                     done.add((rel, key, ref))
                     relations.append({"type": rel, "source": {"path": path, "localKey": key},
                                       "target": {"path": path, "localKey": ref}})  # fmt: skip
+    if warnings is not None:
+        add_warnings(warnings, found_warnings)
     return elements, relations

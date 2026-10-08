@@ -6,7 +6,9 @@ from xml.etree.ElementTree import ParseError
 
 import pytest
 from sandman_extraction import builtin
+from sandman_extraction.bounds import MAX_WARNINGS
 from sandman_extraction.models import PCM, UML, extract
+from sandman_extraction.text import NAME_MAX
 
 TESTS = Path(__file__).parent
 BENCH = TESTS / "fixtures" / "benchmark"
@@ -100,6 +102,25 @@ def test_pcm_missing_interface_warns_without_relation() -> None:
     elements, relations = extract("a.repository", pcm(body), PCM, warnings=warnings)
     assert keys(elements) == ["c"] and relations == []
     assert len(warnings) == 1 and "unknown interface gone" in warnings[0]
+
+
+def test_file_key_id_is_skipped_and_names_bounded() -> None:
+    body = (
+        '<components__Repository id="file" entityName="Evil"/><components__Repository id="c" entityName="'
+        + "n" * 500
+        + '"/>'
+    )
+    warnings: list[str] = []
+    elements, _ = extract("a.repository", pcm(body), PCM, warnings=warnings)
+    assert keys(elements) == ["c"] and elements[0]["kind"] == "file" and len(elements[1]["name"]) == NAME_MAX
+    assert len(warnings) == 1 and "without usable id" in warnings[0]
+
+
+def test_warnings_are_capped() -> None:
+    body = '<components__Repository entityName="C"/>' * (MAX_WARNINGS + 3)
+    warnings: list[str] = []
+    extract("a.repository", pcm(body), PCM, warnings=warnings)
+    assert len(warnings) == MAX_WARNINGS + 1 and warnings[-1] == "… 3 more"
 
 
 def test_duplicate_ids_first_wins() -> None:

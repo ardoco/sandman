@@ -34,6 +34,7 @@ jobs:
               - 'libs/python/**'
               - 'services/orchestrator/**'
               - 'services/extraction-agent/**'
+              - 'services/document-converter/**'
               - 'services/query-service/**'
               - 'services/dashboard/**'
               - 'services/llm-replay/**'
@@ -90,8 +91,8 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: ~/.cache/sandman-models
-          key: docling-models-${{ hashFiles('services/extraction-agent/src/sandman_extraction/prefetch.py') }}  # pinned revisions and sha256
-      - run: uv run python -m sandman_extraction.prefetch
+          key: docling-models-${{ hashFiles('services/document-converter/src/sandman_document_converter/prefetch.py') }}  # pinned revisions and sha256
+      - run: uv run python -m sandman_document_converter.prefetch
       - run: uv run pytest
 
   java:

@@ -1,4 +1,4 @@
-"""Build-time download of the Docling models used by `docling_worker` (layout and table structure; no OCR).
+"""Build-time download of the Docling models used by `worker` (layout and table structure; no OCR).
 
 Models are fetched at pinned Hugging Face commits and every file is verified against a pinned sha256; any mismatch,
 missing or extra file fails the build. Afterwards a bundled PDF is converted offline with an empty Hugging Face
@@ -17,7 +17,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from sandman_extraction.docling_worker import MODELS_ENV, models_dir
+from sandman_document_converter.worker import MODELS_ENV, models_dir
 
 SELFCHECK = Path(__file__).with_name("selfcheck.pdf")
 EXPECTED = "prefetch self-check"
@@ -91,7 +91,7 @@ def main() -> None:
             "HF_HUB_CACHE": empty,
         }
         done = subprocess.run(
-            [sys.executable, "-m", "sandman_extraction.docling_worker", str(SELFCHECK)],
+            [sys.executable, "-m", "sandman_document_converter.worker", str(SELFCHECK)],
             env=offline, capture_output=True, text=True, timeout=600, check=False,
         )  # fmt: skip
     if done.returncode != 0 or EXPECTED not in done.stdout:

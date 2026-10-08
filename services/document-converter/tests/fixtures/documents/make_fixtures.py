@@ -60,4 +60,4 @@ if __name__ == "__main__":
     teastore_pdf(HERE / "teastore.pdf")
     teastore_docx(HERE / "teastore.docx")
     structure_docx(HERE / "structure.docx")
-    selfcheck_pdf(HERE.parents[2] / "src" / "sandman_extraction" / "selfcheck.pdf")
+    selfcheck_pdf(HERE.parents[2] / "src" / "sandman_document_converter" / "selfcheck.pdf")

@@ -1,4 +1,4 @@
-"""Docling converter process: `python -m sandman_extraction.docling_worker [options] <path>` prints Markdown (T1.4).
+"""Docling converter process: `python -m sandman_document_converter.worker [options] <path>` prints Markdown (T1.4).
 
 Resource limits are applied first thing in `main`, before Docling and torch are imported. Docling runs offline without
 OCR or enrichment; models come from `SANDMAN_MODELS_DIR` only. Only this module imports Docling.
@@ -45,7 +45,7 @@ def convert(path: Path, max_pages: int = DEFAULT_MAX_PAGES) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="sandman_extraction.docling_worker")
+    parser = argparse.ArgumentParser(prog="sandman_document_converter.worker")
     parser.add_argument("--max-pages", type=int, default=DEFAULT_MAX_PAGES)
     parser.add_argument("--cpu-seconds", type=int, default=240)
     parser.add_argument("--memory-bytes", type=int, default=8 * 1024**3)

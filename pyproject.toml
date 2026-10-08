@@ -7,6 +7,7 @@ dependencies = [
   "sandman-agent",
   "sandman-orchestrator",
   "sandman-extraction-agent",
+  "sandman-document-converter",
   "sandman-query-service",
   "sandman-dashboard",
   "sandman-llm-replay",
@@ -16,13 +17,14 @@ dependencies = [
 
 [tool.uv]
 package = false
-# no OCR/GUI: the headless wheel avoids libgl/libxcb in the extraction-agent image
+# no OCR/GUI: the headless wheel avoids libgl/libxcb in the document-converter image
 override-dependencies = ["opencv-python; sys_platform == 'never'", "opencv-python-headless>=4.6"]
 
 [tool.uv.sources]
 sandman-agent = { workspace = true }
 sandman-orchestrator = { workspace = true }
 sandman-extraction-agent = { workspace = true }
+sandman-document-converter = { workspace = true }
 sandman-query-service = { workspace = true }
 sandman-dashboard = { workspace = true }
 sandman-llm-replay = { workspace = true }
@@ -34,6 +36,7 @@ members = [
   "libs/python/*",
   "services/orchestrator",
   "services/extraction-agent",
+  "services/document-converter",
   "services/query-service",
   "services/dashboard",
   "services/llm-replay",
@@ -80,7 +83,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
   "slow: long-running performance checks",
-  "docling: needs the prefetched Docling models (python -m sandman_extraction.prefetch); deselect with -m 'not docling'",
+  "docling: needs the prefetched Docling models (python -m sandman_document_converter.prefetch); deselect with -m 'not docling'",
 ]
 pythonpath = ["scripts"]
 testpaths = ["libs/python", "services", "tools", "tests/plugin-stubs", "tests/conformance", "scripts"]

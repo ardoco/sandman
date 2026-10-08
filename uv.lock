@@ -15,6 +15,7 @@ members = [
     "sandman-agent",
     "sandman-cli",
     "sandman-dashboard",
+    "sandman-document-converter",
     "sandman-extraction-agent",
     "sandman-llm-replay",
     "sandman-orchestrator",
@@ -2029,6 +2030,7 @@ dependencies = [
     { name = "sandman-agent" },
     { name = "sandman-cli" },
     { name = "sandman-dashboard" },
+    { name = "sandman-document-converter" },
     { name = "sandman-extraction-agent" },
     { name = "sandman-llm-replay" },
     { name = "sandman-orchestrator" },
@@ -2065,6 +2067,7 @@ requires-dist = [
     { name = "sandman-agent", editable = "libs/python/sandman-agent" },
     { name = "sandman-cli", editable = "tools/cli" },
     { name = "sandman-dashboard", editable = "services/dashboard" },
+    { name = "sandman-document-converter", editable = "services/document-converter" },
     { name = "sandman-extraction-agent", editable = "services/extraction-agent" },
     { name = "sandman-llm-replay", editable = "services/llm-replay" },
     { name = "sandman-orchestrator", editable = "services/orchestrator" },
@@ -2172,17 +2175,13 @@ requires-dist = [
 ]
 
 [[package]]
-name = "sandman-extraction-agent"
+name = "sandman-document-converter"
 version = "0.1.0"
-source = { editable = "services/extraction-agent" }
+source = { editable = "services/document-converter" }
 dependencies = [
-    { name = "defusedxml" },
     { name = "docling" },
     { name = "fastapi" },
-    { name = "markdown-it-py" },
     { name = "opencv-python-headless" },
-    { name = "pysbd" },
-    { name = "python-multipart" },
     { name = "sandman-agent" },
     { name = "torch", version = "2.14.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
     { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'linux'" },
@@ -2193,18 +2192,39 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "docling", specifier = "==2.135.0" },
     { name = "fastapi", specifier = ">=0.142.2" },
-    { name = "markdown-it-py", specifier = ">=4.2.0" },
     { name = "opencv-python-headless", specifier = ">=4.6" },
-    { name = "pysbd", specifier = ">=0.3.4" },
-    { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "sandman-agent", editable = "libs/python/sandman-agent" },
     { name = "torch", marker = "sys_platform != 'linux'", specifier = "==2.14.1" },
     { name = "torch", marker = "sys_platform == 'linux'", specifier = "==2.14.1", index = "https://download.pytorch.org/whl/cpu" },
     { name = "torchvision", marker = "sys_platform != 'linux'", specifier = "==0.29.1" },
     { name = "torchvision", marker = "sys_platform == 'linux'", specifier = "==0.29.1", index = "https://download.pytorch.org/whl/cpu" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
+]
+
+[[package]]
+name = "sandman-extraction-agent"
+version = "0.1.0"
+source = { editable = "services/extraction-agent" }
+dependencies = [
+    { name = "defusedxml" },
+    { name = "fastapi" },
+    { name = "markdown-it-py" },
+    { name = "pysbd" },
+    { name = "python-multipart" },
+    { name = "sandman-agent" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "defusedxml", specifier = ">=0.7.1" },
+    { name = "fastapi", specifier = ">=0.142.2" },
+    { name = "markdown-it-py", specifier = ">=4.2.0" },
+    { name = "pysbd", specifier = ">=0.3.4" },
+    { name = "python-multipart", specifier = ">=0.0.32" },
+    { name = "sandman-agent", editable = "libs/python/sandman-agent" },
     { name = "uvicorn", specifier = ">=0.54.0" },
 ]
 

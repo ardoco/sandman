@@ -1,0 +1,31 @@
+[project]
+name = "sandman-document-converter"
+version = "0.1.0"
+description = "PDF/DOCX to Markdown conversion service (Docling, isolated worker)."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "docling==2.135.0",
+    "fastapi>=0.142.2",
+    "opencv-python-headless>=4.6",
+    "sandman-agent",
+    "torch==2.14.1",
+    "torchvision==0.29.1",
+    "uvicorn>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "sandman_document_converter"
+
+[tool.uv.sources]
+sandman-agent = { workspace = true }
+torch = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+torchvision = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

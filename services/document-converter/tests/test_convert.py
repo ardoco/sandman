@@ -1,21 +1,20 @@
-"""PDF/DOCX extraction (T1.4): subprocess wrapper with fake converters; Docling tests carry the `docling` marker."""
+"""PDF/DOCX conversion (T1.4): subprocess wrapper with fake converters; Docling tests carry the `docling` marker."""
 
 import asyncio
 import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 import pytest
-from sandman_extraction import builtin, documents
-from sandman_extraction.documents import ConversionError, Limits
-from sandman_extraction.text import extract, render_sentences
+from sandman_document_converter import convert as documents
+from sandman_document_converter.convert import ConversionError, Limits
 
 TESTS = Path(__file__).parent
+EXTRACTION_TESTS = TESTS.parents[1] / "extraction-agent" / "tests"
 DOCS = TESTS / "fixtures" / "documents"
 GOLDEN = TESTS / "golden" / "documents"
-TEASTORE = TESTS / "fixtures" / "benchmark" / "teastore" / "teastore.txt"
+TEASTORE = EXTRACTION_TESTS / "fixtures" / "benchmark" / "teastore" / "teastore.txt"
 CASES = ["teastore.pdf", "teastore.docx", "structure.docx"]
 docling = pytest.mark.docling
 needs_models = pytest.mark.skipif(not documents.models_dir().is_dir(), reason="Docling models not prefetched")
@@ -72,7 +71,7 @@ async def test_unbounded_output_is_cut(blob: Path, monkeypatch: pytest.MonkeyPat
 
 @pytest.mark.skipif(sys.platform != "linux", reason="RLIMIT_AS is only enforced on Linux")
 async def test_memory_limit(blob: Path) -> None:
-    code = "from sandman_extraction.docling_worker import apply_limits as a; a(60, 512 * 1024**2); bytearray(1024**3)"
+    code = "from sandman_document_converter.worker import apply_limits as a; a(60, 512 * 1024**2); bytearray(1024**3)"
     with pytest.raises(ConversionError, match="exited with"):
         await documents.to_markdown(blob, command=fake(code))
 
@@ -137,7 +136,7 @@ async def test_page_limit_with_real_multipage_pdf(tmp_path: Path) -> None:
 
 
 def test_prefetch_verify_rejects_tampered_and_extra_files(tmp_path: Path) -> None:
-    from sandman_extraction import prefetch
+    from sandman_document_converter import prefetch
 
     (tmp_path / "a").write_bytes(b"x")
     good = {"a": prefetch.sha256(tmp_path / "a")}
@@ -149,14 +148,17 @@ def test_prefetch_verify_rejects_tampered_and_extra_files(tmp_path: Path) -> Non
         prefetch.verify(tmp_path, good)
 
 
-def test_limits_from_config() -> None:
-    assert Limits.from_config({"timeoutSeconds": 5, "maxPages": 3, "other": 1}) == Limits(5, max_pages=3)
+def test_limits_from_env() -> None:
+    env = {"SANDMAN_CONVERTER_TIMEOUT_SECONDS": "5", "SANDMAN_CONVERTER_MAX_PAGES": "3", "OTHER": "1"}
+    assert Limits.from_env(env) == Limits(5, max_pages=3)
+    assert Limits.from_env({}) == Limits()
 
 
 @docling
 @needs_models
 @pytest.mark.parametrize("case", CASES)
 async def test_golden_documents(case: str) -> None:
+    builtin = pytest.importorskip("sandman_extraction.builtin")
     markdown = await documents.to_markdown(DOCS / case)
     elements = builtin.extract_document(case, "architecture-doc", markdown.encode())
     builtin.drop_lines(elements)
@@ -176,6 +178,9 @@ async def test_golden_documents(case: str) -> None:
 @needs_models
 @pytest.mark.parametrize("case", ["teastore.pdf", "teastore.docx"])
 async def test_sentence_keys_match_text_extraction(case: str, capsys: pytest.CaptureFixture[str]) -> None:
+    builtin = pytest.importorskip("sandman_extraction.builtin")
+    text = pytest.importorskip("sandman_extraction.text")
+    extract, render_sentences = text.extract, text.render_sentences
     ref = extract("teastore.txt", TEASTORE.read_bytes())
     markdown = await documents.to_markdown(DOCS / case)
     got = builtin.extract_document(case, "architecture-doc", markdown.encode())
@@ -190,6 +195,8 @@ async def test_sentence_keys_match_text_extraction(case: str, capsys: pytest.Cap
 @docling
 @needs_models
 async def test_docx_headings_equal_markdown_sections() -> None:
+    builtin = pytest.importorskip("sandman_extraction.builtin")
+    extract = pytest.importorskip("sandman_extraction.text").extract
     markdown = (
         "# Architecture\n\nThe system has two components. The first stores media.\n\n"
         "## Components\n\n- The Cache keeps hot items.\n- The Store persists all items.\n\n"
@@ -204,54 +211,3 @@ async def test_docx_headings_equal_markdown_sections() -> None:
 
 def test_no_orphan_document_goldens() -> None:
     assert {p.name for p in GOLDEN.glob("*.json")} == {f"{c}.json" for c in CASES}
-
-
-PDF, DOCX = "docs/teastore.pdf", "docs/structure.docx"
-ELEMENTS = (
-    "MATCH (:Artifact {projectId: $p, path: $path})-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(e) "
-    "RETURN e.kind AS kind, e.sentenceIndex AS i, e.startLine AS start, e.endLine AS end ORDER BY e.sentenceIndex"
-)
-
-
-async def run_skill(env: Any, files: dict[str, bytes]) -> Any:
-    await env.put_project()
-    resp = await env.ingest(files)
-    assert resp.status_code == 201, resp.text
-    task = await env.extract(resp.json()["createdVersionIds"])
-    assert task.state == "TASK_STATE_COMPLETED", task
-    return task.result
-
-
-async def test_oversized_document_falls_back_and_others_extract(env: Any) -> None:
-    env.svc.config["builtin"] = {"docling": {"maxFileBytes": 100}}
-    result = await run_skill(env, env.mini() | {PDF: (DOCS / "teastore.pdf").read_bytes()})
-    assert result["status"] == "partial"
-    assert any(f"built-in extractor failed for {PDF}" in w and "limit is 100" in w for w in result["warnings"])
-    assert await env.svc.kg.read(ELEMENTS, p=env.project, path=PDF) == [
-        {"kind": "file", "i": None, "start": None, "end": None}
-    ]
-    arch = await env.svc.kg.read(ELEMENTS, p=env.project, path="docs/architecture.md")
-    assert sum(r["kind"] == "sentence" for r in arch) == 2
-
-
-@docling
-@needs_models
-async def test_pdf_and_docx_through_the_skill(env: Any) -> None:
-    result = await run_skill(
-        env, {PDF: (DOCS / "teastore.pdf").read_bytes(), DOCX: (DOCS / "structure.docx").read_bytes()}
-    )
-    assert result["status"] == "completed", result
-    for path, sentences in ((PDF, 43), (DOCX, 6)):
-        rows = await env.svc.kg.read(ELEMENTS, p=env.project, path=path)
-        found = [r for r in rows if r["kind"] == "sentence"]
-        assert [r["i"] for r in found] == list(range(sentences))
-        assert all(r["start"] is None and r["end"] is None for r in rows)
-
-
-@docling
-@needs_models
-async def test_corrupt_pdf_falls_back(env: Any) -> None:
-    result = await run_skill(env, env.mini() | {PDF: b"%PDF-1.4 not a pdf\x00\x01"})
-    assert result["status"] == "partial"
-    assert any(f"built-in extractor failed for {PDF}" in w for w in result["warnings"])
-    assert [r["kind"] for r in await env.svc.kg.read(ELEMENTS, p=env.project, path=PDF)] == ["file"]

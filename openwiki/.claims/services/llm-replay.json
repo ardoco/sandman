@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:62f896991c1b65e02604d14c64da6c5562ed131dd33eaf7a71f3ec9e8b5cc4ad",
+  "claims": [
+    {
+      "id": "claim_e44d811ecec641868895e9ec15336f9f",
+      "statement": "llm-replay is the single OpenAI-compatible live/record/replay proxy in front of the LLM gateway through which all SANDMAN LLM callers reach LLMs (every agent's SANDMAN_LLM_BASE_URL points at it, e.g. http://llm-replay:8000/openai); ADR-0010 amendment D-3 moved record/replay out of the agent libraries into this proxy so it also covers LangChain4j inside reused LiSSA/ArDoCo Java code and the embeddings endpoint.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0010-minimal-agent-library.md#L93-L93",
+          "version": "repo-lines-v1:sha256:bb7543cece3174ec76528c8d9a3b7fae7d4fcc484a7788b81e2ffe8eff2e0316:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmI3NTQzY2VjZTMxNzRlYzc2NTI4YzhkOWEzYjdmYWU3ZDRmY2M0ODRhNzc4OGI4MWUyZmZlOGVmZjJlMDMxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmI3NTQzY2VjZTMxNzRlYzc2NTI4YzhkOWEzYjdmYWU3ZDRmY2M0ODRhNzc4OGI4MWUyZmZlOGVmZjJlMDMxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWRkMWQwNWMyMTlkMzEyZDE5Y2JhNWNhNGM0MGY1Mzc2NzJhMTZmODRhODYwOGZhYzlhNDVmNTY2YzE3YzgzZiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L9-L10",
+          "version": "repo-lines-v1:sha256:b3b2d5ba8247dba188cd2c2d4654df751afa2de3d615d98831d2e8988153053a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2NkOWEwZGUwYTEyYjA1ZDg2YTViOGE5ODI2MzU2YjdlZTBmYWYzOTY3YzVmOTcxMzlhNzU5MWVjOWQ5Y2MwYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTZmY2FmMTJjMGUzZGMzZDBlZGExZDJlNzgxMmI3M2E5MmM1MDA1ZjhmOTVmZGM1ZWJhYzBhYjk3ZDY0ZGI5MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDFkZTRhNjYwNzVmNDhmODk1ODc1ZTY0OTA0MjljMTZjYTczMGQyYTg4MjI1M2IzZWEwODAyZTQ4NmUzZDU1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjE4ODQzYzg4MDVmYzNkMTgwZTYyMGU1MjAwMGVkNmI5YWMyNDQ4OWZhMmY0MjU4MzJlYjM1OGVhNjgzNzYyNSJ9"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L1-L1",
+          "version": "repo-lines-v1:sha256:5ae95a6dfc7273b56a83ec8e7eebbc1f1a747b25c6590df4db1d5500d9ab6ae4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFlOTVhNmRmYzcyNzNiNTZhODNlYzhlN2VlYmJjMWYxYTc0N2IyNWM2NTkwZGY0ZGIxZDU1MDBkOWFiNmFlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWFlOTVhNmRmYzcyNzNiNTZhODNlYzhlN2VlYmJjMWYxYTc0N2IyNWM2NTkwZGY0ZGIxZDU1MDBkOWFiNmFlNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTUxNWZmZTg4MDQ3ODRmMDJjZmI2OGQwZTIzZmExMDEwODE2MDYwM2JjZGNiZTFiMTZmYTE4ZDgzODIxMWEwNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_50c134ec9ffc47e4a343b87cfc8cf339",
+      "statement": "SANDMAN_LLM_MODE selects live, record or replay (default live); an invalid value aborts startup, and SANDMAN_LLM_UPSTREAM (the gateway's OpenAI base URL) is required in live and record mode but optional in replay mode, where it is never used.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L34-L51",
+          "version": "repo-lines-v1:sha256:c66e88b18e42608aa1a8141168a5087ebe2c2c144792eee6382b637e431adc52:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyMjU3MmI1NTRkMDIwOTUxMzY2ZGQ3ZWMxMjNkN2YyNTRmMTU4MGY3NzE3OGQ0NWJhNTYyODEyZDllYTZhYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3NGYyYmQ1NzJkM2ZhZDZhOGYzMDVmYTAyYWEyZjA4ZWVjYTZmYWEwNTE3ZGRjYjYwNjZkMDUwNDY4M2ZiZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMWZiZGU5NzA2MGQwMTdmNTFjNGY2YjcwMGQ2M2E3ZWQzYWNhMjYyYTViNWExNDNhNTFlMzk3MzllMGQ2ODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f772570255874a8084b4850dcbc4005d",
+      "statement": "The cassette lookup key is sha256 hex of the RFC 8785 (JCS) serialization of the request body after removing the members user, stream and stream_options, so the same prompt re-run under a different run id (the user field) hits the same cassette; the key is computed from the body only, without the endpoint or headers.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json#L122-L155",
+          "version": "repo-lines-v1:sha256:bdf6e100ab578c1cd969a1c9dc12893525cb42173bbdde30656382bc79e3f380:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzYTQ2ZWNhMjFmMTcxZGU0N2M3YzFkOTM3ZDNlMDM4MzMwMzQzNDVlMGY3YmU2YTdkMTg5ZWUwZDBmYmZhZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyMzE0ZTU5MjcyNjQzMDY5NzVlNDQyNWU4NTY5NjdkMjQ2OTdjZDkxNTkxOTUxODNmMmVlOGY1YzAzNzM5N2IifQ"
+        },
+        {
+          "resource": "repo://contracts/conformance/vectors.json#L147-L148",
+          "version": "repo-lines-v1:sha256:aa7ffee8ab62cb3402bec0e05837f94d29745a3a44fc001a1d0e6d8080995a0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzlhMTdhZTU2NjE3MmY2NjljNmZkNGM4MzVkODNiOTJiOTQ1MjRkZTA4NGJiZmE3OWI0Y2YyNTJmZTc4NjgzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjAwYzM4ZjE0ZTAxZDQwNTA0ZTk3YTU5MzY5ZjhjYTFlY2I1ZjVjNGYxMjMyMmFhYmJjM2E1ZDI0NGZiZGZkYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTg2MDY4N2JjN2VkY2FjNzlhNWMzZTYzMzBjNDdkOGQxYTBkY2ZkMjcwYThhNGE4YzliZTY2ODM4NTlmNjhhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzYwODRiYTg2Njk3OTczN2UzMDBkY2QyYTBhYTJhMjEwYTk3OTk2ODQzNzhiZGQzODJkNjBkYjEyMzM0MmQ2ZiJ9"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L24-L60",
+          "version": "repo-lines-v1:sha256:528f367000ec19a13f1f31ca88ce77b41bb8cbe70ef35ba266b33aef1c801ff3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlOGI4M2I5NWZjZGFmZjUzOTE2NDM1MWRkYjgzYTM1YWM1YjhhMWM4YzExNzgyOWRlMjk5OTY0NjU2MDM2NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4ZTA1ZWQ5ZWU4Y2VlN2RhMzA3Y2RmZTQ3MDk3MzlkYTYwZjBjMzFiMTVhZTYwNTBhYjAwMGU3NjFiZjg0OTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMGMxZWM4ZjQ3YjIyZTI3ZGNlZWQwN2IzZDA0NGMzOWFkZDhmODI2NTEyNTVmNzlmMTU2MzZjNjA3ZDdlZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhOTFjOGNiOTI3NDNjYjk3MGNmMmZlMGUyMjUyMzIwYjdhNzUxMTkxZDVmYjIyODU0ZWFiMjllMTAxYzk2ZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_97e639d0ec244f53b56ba002408b97e8",
+      "statement": "Because the recorded request body contains the gateway model name (resolved from the logical route), re-pointing a route in models.yaml changes cassette keys and invalidates previously recorded cassettes instead of replaying stale answers.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0010-minimal-agent-library.md#L93-L93",
+          "version": "repo-lines-v1:sha256:bb7543cece3174ec76528c8d9a3b7fae7d4fcc484a7788b81e2ffe8eff2e0316:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmI3NTQzY2VjZTMxNzRlYzc2NTI4YzhkOWEzYjdmYWU3ZDRmY2M0ODRhNzc4OGI4MWUyZmZlOGVmZjJlMDMxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmI3NTQzY2VjZTMxNzRlYzc2NTI4YzhkOWEzYjdmYWU3ZDRmY2M0ODRhNzc4OGI4MWUyZmZlOGVmZjJlMDMxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWRkMWQwNWMyMTlkMzEyZDE5Y2JhNWNhNGM0MGY1Mzc2NzJhMTZmODRhODYwOGZhYzlhNDVmNTY2YzE3YzgzZiJ9"
+        },
+        {
+          "resource": "repo://contracts/common.schema.json#L142-L148",
+          "version": "repo-lines-v1:sha256:70950195c9cce60ed956827ca6614c7eeeee2d092f082a51412b6f3f402aae1f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNkZjliYWNkYmUwZDkxNjFhZTE4YzUzMmI0OTMyNWJhZmQ2YTVjZTIzZWE3MjExNGQ3ZjU5MDg5NWE5ZmMzNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI5YTg0Y2U3ODg5ZGJiZGQ0Yzc1N2E3MzEwZjJhZTBjNmIxYzcxNGIyNTkxNTZjOGFhZjEwOGQ1OGEyMzE3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2Y2NWU3NGE5ZjNiYmJlMWEyZjhlNGJjZGE5ZDVjZWIzYzMyMmMzNDliMTcxYjRmYzJjNTk5ZWRjZTU4Mzc0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzJlN2I5MGJhMGZkYjNhODE0ZDNlNWEyMDk2NTlkYzEzNGYxMDI4OTg1NzAyMTBmOGEyODdlMDczZDZlZjYyYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d68f0b35eb874e0c86e60d3fdda3d83a",
+      "statement": "Only POST requests to chat/completions and embeddings participate in record/replay; in live mode everything is streamed through to the upstream unchanged, and in replay mode any non-recordable request (e.g. GET /openai/models) is answered with 404 replay_miss without ever calling the upstream, making replay strictly offline.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L142-L169",
+          "version": "repo-lines-v1:sha256:c2990c5b58c6a313d46868cad6f2a9f9893e978abcfd5255349768a74ee3ef59:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NWE0NjkwMTY1MmQ3YzZiYWY2YTYwOWY1MzFmYzkwZWYyNjk3YmEwYThiNTRkMjNlOGNlNWM1N2RkZWUzZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllZDEzMzk3MWRlNzBiODNlZWMzOTYwZDM5MzAwY2I1MWMzZjJjOTk2ZjhhNDcyNjc3NDk2ODlkMDBlZDQ5MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhNzQ0YzhiYWJmYjViMmE1ZDgwNDQ4ZDY1ODYwMzc0MmUyNDg4YWU2ZjJlODhhNDE4YmFhMjc2ZGIwYjE4ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYmUwM2Y0NWU4NWQ3NmY3OGFlOWEwYzM5MTFhMmM4MGUxNTQxM2QzNGViYmNmYmQ2YzMzNmYxYjRlNjBlODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d438409ae1e48f88d080d69c7b06438",
+      "statement": "In record and replay mode a request body that is not a JSON object is rejected with 400 invalid_json, and stream: true is rejected with 400 streaming_not_supported before any upstream call; a cassette miss in replay mode returns 404 replay_miss with the computed key in the error body, and an upstream transport failure (httpx error) becomes 502 upstream_error/upstream_unreachable.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L149-L169",
+          "version": "repo-lines-v1:sha256:2f8cfd8a9efdf9ff9e7f5b445b56e9d4dd2aa351a3f4d4ca290eb5104837b893:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllZDEzMzk3MWRlNzBiODNlZWMzOTYwZDM5MzAwY2I1MWMzZjJjOTk2ZjhhNDcyNjc3NDk2ODlkMDBlZDQ5MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzODM0MTg5M2NmOTY5ZWRhOWQ2ZTNlN2QxMTVlZThlOTE1MjljOTg2ZDVhM2M3OWI0OTQ1ZGUxNjQzOWQzZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYmUwM2Y0NWU4NWQ3NmY3OGFlOWEwYzM5MTFhMmM4MGUxNTQxM2QzNGViYmNmYmQ2YzMzNmYxYjRlNjBlODUifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L179-L193",
+          "version": "repo-lines-v1:sha256:3a01c77a20e84c0c127f9b0e5f93c20d11e3230ec3d8fddb24cd236bfd19f2a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmYTU1ZTFmZjVlMGU0OGQwZWQyNGFkZjY4Y2E1N2M5MjFjYzJhY2NjNGFiZWYwMTAwNzY5YzA0YzBiMGRlMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhODQ5NmVlOTY0MjcyZmM5MTFhMmMyMmVlNDFkYTBmY2U3Zjg0OWJmYWRlMzQwNjUxMmJlMWQyYzgxODhjZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiMjQxNzBiZGQ3YTNhNWNiOGY4MDVhMGRkNGU5OWE2NGZmODBlNDk0ZmI5YzNjMmIyMzI5MzNkMWY1MWQzMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZDlhMjIxMzcyOTQ0MmU5MTE1NjA4Y2JiYTI1OWQzYjRhMGExY2FjZTNhZTdkM2E2NjgyODdlN2QwNzkxMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf75d69d518346c9b5fd2e1d8e6eac01",
+      "statement": "Record mode forwards the request non-streaming and appends one CassetteEntry to cassette.jsonl (under an asyncio lock) only when the upstream answered HTTP 200 with a JSON object body; non-200 responses and non-object bodies are passed through unrecorded (outcome forwarded).",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L122-L140",
+          "version": "repo-lines-v1:sha256:496cbd276032e119f2643bf0c00743945f6d46d3e524cb12c2851fb6e0c6797a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYjBmMWM2ZTcxYTlhM2U2ZmVkN2NjZGRlMWM4ZDgyY2E2MWVmOTk1NWJjNDk2NWU4NmM0YjFlOTQ1ZTU2MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMDg1MTk3YzU4MGQzNTAxZmM5ZTFiM2I5ZjZiMjA0NTRjYzA0NjE0ZmFkYzE1ODFhMTU2ODQ2MTg5ODRmYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyMDhmNWE1NjMxZDRkNTE4ODBhMjcxOTcxMzdkZjE2MmQyNGEwNDIwNDg1MzRjOGViNjZhZmQ4MGFiMDBkNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNTNiMTdiMDc5NjVjOWFjZWFkZTFhMDZjYTgwNzBkN2UzY2E0NmRkMjgwYTQxYmFiYTVmNmVjMjFjNjc4MjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_29b0fed85bd74bfeaa6ba726267828c0",
+      "statement": "The cassette is consulted before the upstream even in record mode: a request whose key is already loaded (or recorded earlier in the same process) is served from the cassette, so re-recording a changed prompt requires deleting the old cassette line or using a fresh experiment directory.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L162-L169",
+          "version": "repo-lines-v1:sha256:e3d5062097aa7d855c7218e7b725c0b6cad69c31dffc1dddcf100012a13c9138:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTM4YTEyNzEyZmI0ZTdlMjcyN2NjZDE5ZGNhMjk4N2IxNGQxM2Y3NmI4ZDE1YjZmMDY5YmMyMzQzNmYxMGI5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWVkMTMzOTcxZGU3MGI4M2VlYzM5NjBkMzkzMDBjYjUxYzNmMmM5OTZmOGE0NzI2Nzc0OTY4OWQwMGVkNDkxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjc1ZWNiMTU3ODg4ZTI3M2RiNDZkZDcyMTRjZGYzM2IzNjRkODgyMTUzYmQyN2FiNjYzNzhlYTVhMmVkNTBlMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGZiZTAzZjQ1ZTg1ZDc2Zjc4YWU5YTBjMzkxMWEyYzgwZTE1NDEzZDM0ZWJiY2ZiZDZjMzM2ZjFiNGU2MGU4NSJ9"
+        },
+        {
+          "resource": "repo://services/llm-replay/tests/test_app.py#L75-L81",
+          "version": "repo-lines-v1:sha256:18d599b9127f985f43eac05bf97a466a28b5521438bc1a8522e2158813ca438b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA0MjRhNTQwODExNmEyMzk3NzUxNjMzODc3NDBkZDllYTQ5YWI5ZTBiOWRiODc1NGI4Y2MwYmY1ODAxMzk5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjkwNTA1YThhOTMyMTgyNWU2ZDBlZTcyYWU4YzA1OTBhODRhOTFlZDBmYjljNGM4MGQ1YmM0NDllMDNlNmE2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGNiZDIzNTEwMDRiYjdiODgzY2EzNmNkMGM2MzUwMTdjOWUxOWYxYTk2YTk5Yjk2ZmQwY2ExOWM2MzlhZmJhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTMwZDY2ODE1OGRhMjBkNmM0ZWMxNTA3YzBhYzc2MzI2YmI4MWNkMGRlNmU3YWMxN2QwNWRmMGM5ZmIwMzI3YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_363a210cd3ad4ad2a13afb37d4309401",
+      "statement": "Cassettes are JSONL files under SANDMAN_LLM_RECORDS_DIR (one per-experiment subdirectory, compose default /llm-records/${SANDMAN_EXPERIMENT:-default}); at startup in record and replay mode all *.jsonl files are loaded into one key-to-entry map (later files and lines overwrite earlier entries with the same key), and a non-blank line that is not an object carrying all five members key, endpoint, request, response, recordedAt aborts startup with a file:line error message.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json#L122-L155",
+          "version": "repo-lines-v1:sha256:bdf6e100ab578c1cd969a1c9dc12893525cb42173bbdde30656382bc79e3f380:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzYTQ2ZWNhMjFmMTcxZGU0N2M3YzFkOTM3ZDNlMDM4MzMwMzQzNDVlMGY3YmU2YTdkMTg5ZWUwZDBmYmZhZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyMzE0ZTU5MjcyNjQzMDY5NzVlNDQyNWU4NTY5NjdkMjQ2OTdjZDkxNTkxOTUxODNmMmVlOGY1YzAzNzM5N2IifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L63-L90",
+          "version": "repo-lines-v1:sha256:503365640790aaab4d7f9806d2efa765345283974a5a771b471d8acd979b20b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NWViYzc0OWYwNmEzYzMwZDRiMWFhMGQ2ZjRkNzkyOWM5ZTNkNDc3MGI3NTJlYTYwMGFiZGQ2ZTkzZjAzOGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2NDE4ODBlZTg1ZGFmOTQyMmYwNzJmYjczZjU0MjYzM2MwYzA0ZDA0NGI1NTE3NjNkYTZiYjIxMjE5ZGE2MjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyYTBhOWM5YzNmZjI3NmRmODdiZDc1OWJlODVjNjFjNDJmMWZiZjEyYzk4YWM2MGJmNDEwYTllYWUzZjdjODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkMWRmNDQxYjI5NzJkMzNmNWE2MDZhMjRkMTAyNTljMjQxOWU4ZWUyMDU5YmIxNmViMzcwNGI3MmUwZTM0MWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf34604672b64e8582df0d08ef32774c",
+      "statement": "Forwarding preserves the method, query string and headers (including the caller's Authorization header, i.e. the gateway virtual key) except the hop-by-hop set plus host and content-length; the proxy holds no LLM keys of its own and does not authenticate the proxy path, and it uses a 600 s total / 10 s connect timeout to the upstream.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L28-L31",
+          "version": "repo-lines-v1:sha256:bcdb0fafa6d8d49d3538fe16ee19bf7ade632eba66b1f2c7c6253d5892e711a7:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2FlYjI4OTA2MTc3MzdmMjE5MDA3OWUxNDU0ZjRmYjY3Zjg3YTJhYzliNGI2YmRlNDNhYmRkMjA1ODg5MTI5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDc2YTliMTVlNmQ1ZmMwMzhiOTg1NjY4N2RlMjMxY2ViNzJiZWZmNDk1MmQ1ZjFhMzFhY2Q3NTMzZjJlNWIwNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjliZTE1MjQ2YzY5Mjc4MTYyMzQwZDVmY2NkMTc3YTZhZmQ0ZGNiNzI1MDhlY2M0ZDFkZjg3OTc2OGNjNDBkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjZTNmMjRhYjQ3YzJmNWE5ZDMzN2YzNzdlZDg1NzNmYTU2NTg0MDc2NDAyZjFhZjA1NGEzZGVkNjE5NDYyZiJ9"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L87-L120",
+          "version": "repo-lines-v1:sha256:65a603a88656614ba7085c27b53829497a6bb1104751f0db44a7b0664495536f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MWZiZjg5NzNhYjUwMzNiNjhhZmVlOTUxMWEwNjk5NWFiNTFkYWE5MzkyZDA3NWMxNGRjYzRlZTAyNGRhM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkYmUxZTFiYTI2Y2NjMDBjMDhkNzkyNmFhZDU4YzZjMGMzZjYxYWU5M2IzMzI2MWUyMjA3MGFkOTRmZjFiMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlNmJiNDIxZDBjNTI4NGYzOWVlMTQ4MGU2MmU1OTUyMGNmM2E0YTQ0NmY4YTk5ODBiMTRiZjZlY2MwMTE2NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzY2IzYjkwY2I0MGQ2MWM2YjFhNzdkMjZlNTAwMzBkMzllY2E3MTEyNzdhMjAxNTEzOWI4ZWY4OWYwYTRhNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_71b8b0800efc4ac59e4282b526ea2ee9",
+      "statement": "GET /v1/status requires a Bearer service token whose sha256 matches (constant-time via hmac.compare_digest) any of the values in the SANDMAN_SERVICE_VERIFY_FILE JSON mapping of caller name to token hash; without or with a wrong token it returns 401.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L50-L61",
+          "version": "repo-lines-v1:sha256:36b9dad059d18ea023ae3961eb84756c4ba1159ca4584a8aa27a00802ba45d62:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NTJmZDkzYzZhNTRkMjhkMDQzZjU5MGM5Y2EwOTMyMTJjODMwZTA5YzljYWRhZjk5M2FiMDU2MWQ2ZWE5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWJhY2Y2NTliYjAxMzRmZTk1OGY0NjMxYjkwMmY0Y2MyNDYxODg1ODMxMDhiODYzMjJiZDJlNmUzNjQ0YTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMDU4Y2UwNWRhZGNkNDc4MGQ4ZmNkOGU1MTZlMjBmNTIwNWUxMTliY2U2YWFlOTUzMDBjNDA0NzJlYzFlNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYWUzZDBmYjc5ZWFkZDI0MTc2MTkzNGFmZGFmMDA1MjkzZmExYmRiNWRmOGYxMWJhNjhiMGRjMTVhOWE3MzUifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L195-L205",
+          "version": "repo-lines-v1:sha256:f3db0686dc77e1e12750960390efd83976ba3305c0189210d3582684a44e469c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZTQ5MWQyNjk4YjYzNzVhYmU4MWQ0MzQzYWNhMzY2ZDhhMTY1YWQ5N2VkMTNiZTExYzBkY2U5MGRmMDhhMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkZWMwZTk2M2RlNmQxNzhiNTY5ZTRiN2RhNTI4NjNkYTZiOTc3OWQxYmQ4ZTQ0MDdmNmM2ZTllNzQyNzQ2Y2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2YTgwZDQ4YTAwNTU1ZDBlZTg2MjJlZjk3YzM1NmNjZjlmMzc4MmYyNDE3NTQ4YmQyNDk4ZjUxMTkyMDZhNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwYWMzYzU5YjM4YjE0ZDZmNmQzMzI2N2FhMTk5ZTQzNTFjZTE4MTE4YmExNGZjOTgwM2VlZjk5MGI1YTYwOTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ee5f006e4af400c899bffbbbf8c98a4",
+      "statement": "GET /v1/status returns the shared ServiceStatus shape: service llm-replay, version (SANDMAN_VERSION, default dev), state working iff activeTasks > 0, optional lastActivityAt, and details {mode, experiment (the records dir base name), entries, hits, misses, recorded, forwarded}; only the proxied /openai route is counted as active tasks, so polling the status and health endpoints never makes the service appear working.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/shared.yaml#L67-L81",
+          "version": "repo-lines-v1:sha256:f2653cae8f9a66b52961852b691679582e7a7215591eeeb65f4a6dd49f6ce8bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDA2ZDQ2N2Q5YjQxODU2Nzg1M2ZjMGE2ZGVlYjQ4YTI2MWU4YTNlNjFlMmExZTFiYjczODgwMWUzMDAxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNWI4ODI0MTUyNWE3ZTViZDk3ZmEzZDZkZWIyMTgzZjUwZGU4MDBiZTM2OTMzN2VlNzQ3Y2M5NmVjNzMzYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxNThlMWIzMjgwNTk0OGI5NjE4M2NjNDYzMmFjOGZlZmI0YzYxOTEzN2YxMjY1ZGQ4ODY1MzBhYjcxYWViMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzNzlkOWMwOWVlYzdiNzNlYjZjMjYwMGRlNTcyYTEwZjVhN2RmY2JiZmY2OTQzY2FmMjcyZWY0ZDBkZTg5MGYifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L171-L215",
+          "version": "repo-lines-v1:sha256:70f7bc1528cdc4d02a1aaf3cebbcfcfa1288bd503eac8443f08647cb492278af:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZjRmYzY2MjAyMzBhZjVlNTJhMGViMGUzYTAwNGRiNGYwMDEyNDA5NmVkODI0NmMxYzU4MjlhMTJkZjA3NDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMjU0ZTk3YzVmNDhkNDhlZThkNjgyMGExM2ZiM2JiNWYxOGMyOGU0YWRmZWQyYmM1MjdjM2E5YjcwY2RjNzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0MjNjZTJlMjNkYzZkYTg5MDRiOGYzMDNmN2Y4NmJhY2U5YTVlZmMwMjdjMTljNmE4ZWEwYTU2MzJhOTdiOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhNDFmZmQ3OGUxYWQ1NjVhYjM1Yjc2MmIzZGRkYTAwMWIyZmRkZDU0OTRkYmM0N2Y1Mzc3MDhmOTgzZDkxM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ca55205077404fe08440b096029446dd",
+      "statement": "/healthz always answers ok, and /readyz reports 503/down only in record mode when the records directory is missing or not writable; /readyz is the compose healthcheck endpoint on which the agents depend for startup ordering.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L109-L115",
+          "version": "repo-lines-v1:sha256:d4912e35cf9ec970f850d08f5294e6f8a8b6378c9fd2b5b6f1281dd1378b42d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU2NDIxZjMzZGU1NjIxYzk3NGYzYjlkOGE0ZjdjMGViZDBkYzlmOTYwZTdmOWU3MmRiMGI1MDI3NWU5OGZlZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTU5MGFkNGIyNGMyN2I0YTBkZmFkYTUwYmQxOGE4MTdjYzNmYWYwMWZiM2YxYTQ1MjlkMzI5MDExYjIxOTU4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTFmYjQwMTVkNGYzNTdmYWZiODFhY2VjY2Y5Mjg5Nzk3YmY2OWNjYjA3ZjZhM2U3ZGUyZmUxYjBhZjg3ODRkZSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L23-L26",
+          "version": "repo-lines-v1:sha256:bfa1672699d3abfadd8c1084211cb75766b970678791f0806ca41be29a135440:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGQzMzdjMTBmZmUwMmVkNmNiZTU4Mzc5ZGJlYjUwZWZjMjYwNThiYzA2MzQ0YzcyYzU3ODRmN2E2NDUzMDliYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAzNDdhZWMxZjg5Yzc1MGVmNjllNzI4ZDBiMTI5ZGQ4MzJjYzBkZmFlZDczODJlMzAyNDU2MDBiMGMyZjZmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmVlZWY4OTRlZTA5NGJlMTY4NTY5NWQ2YTAyODQ2Mzc0NWNhNTUwNjZkYTdjM2Q1YWUxNjE5ODdmMzBmODg4MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTZmYzFmMzViMTRmOTNhNDNhNDg1YTg5OWM3ZGU5NTRkYWY0MzEwOTljYTE5ZTA5NjM3MTllY2E4OGZkMjM5MyJ9"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L217-L224",
+          "version": "repo-lines-v1:sha256:d6611768a5eaee8db3556970633999951359422340bd3e9fef986062b9259b62:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTVhMWI5MGM0OWU4ZmI0YzBjMzFiZjg5OWZlNDYzZTMxZjkzZjgxOGRjNTJiODlmMjM1NTE2YjdlN2VlMGE1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQwYzVjZDNkYjYxMTJiZmYwZGU0OWFlOWZjNzI5MTYyOTYzNTgyZWQxMTMwODkyYjQ3NmExYzQ3ODZmNjE3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzUyY2NiNmFiNGFiNGE5YzNlOWFlZDQyOGI4NjU2YmZkZDhkNTRlZGFiMzA0ZjgwNzg0ODk1NDRmODIxZGM3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2I3NzBiZTNlZmI3NDNjMWI2NzhlMDFhNTJlMjUyZjdiY2JjYWM4ZWRiODE0Mjc2ZjZkOGYwZGFkYTFkNjUwZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8e656810f2e545ca9d1af100e7663716",
+      "statement": "In the reference compose deployment llm-replay runs on the egress-free internal network with SANDMAN_LLM_UPSTREAM=http://llm-gateway:8080/openai, cassettes backed by the host volume data/llm-records, and startup health-gated as llm-gateway healthy, then llm-replay, then the agents (x-depends-core), so the proxy is a hard startup dependency of every LLM-using service.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L345-L349",
+          "version": "repo-lines-v1:sha256:e720133ab6d9b0a36fe1a836016d090761331ff927a0f1523096c417333ba5bf:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGUxODhlMDVhNzBjYzkwZDdjZTg4ZjMwYzdlYWI0N2NmMzgyMWE1MDljZmQ0NDU0NmU3ZmYyN2Y5YWIwYTg1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2QwNTA1OWY4NDk2YWI5ZjE2MzEzZmMwZGQ0NjRlYzZmM2YwMmFkOTI3ZDg0ZTRjN2QxZGMxNjNlZDhmZTkxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFjMDIxM2FmNzliMDhhMzYyNTJkYzJhNDdiMDZmNmY4YjA2NmZlMjM3NTQ0ODYwNTBhNGY1YzJlODJlNGU4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjhlZDA5OTA2NDU1YmIxMThmMTg5ZWEwM2MyZTQ2MzI3MzUwN2ViZTMxNWJiMWY5ZWE3NWQ3MWM3NmQwOTYzNSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L92-L115",
+          "version": "repo-lines-v1:sha256:46c3654ea376006ecd43f14668cb90bafbe18955832f48846478685b16943287:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZDkxYWVjYzhiZDgwM2UwZDJmMDY0MjMwNzI4MzdmZmY4NDcyOTEwZjk4NmQzMGZkZjk0ZjJiYTAyMjBmOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMjZkYjlmOWYzMzJkMDc1ZjA1ODNkZGJkZmMzZWJjOGFmYTA2MjVlMDNmMGRiMDMwYzMwNjkyMTQ5NDE3YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZmI0MDE1ZDRmMzU3ZmFmYjgxYWNlY2NmOTI4OTc5N2JmNjljY2IwN2Y2YTNlN2RlMmZlMWIwYWY4Nzg0ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcaf500f47f34e6180647e3780fddeed",
+      "statement": "llm-replay is a standalone Starlette service that does not depend on the shared sandman_agent library (dependencies only httpx, rfc8785, starlette, uvicorn); it is started by `python -m sandman_llm_replay` running uvicorn on PORT (default 8000), and module-level `app` is resolved lazily via __getattr__ so importing the module requires no environment.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/pyproject.toml#L1-L11",
+          "version": "repo-lines-v1:sha256:20c26c672df0cc431df0fbcde2898f4fa58e3368d27266c772fbc9eebe485d11:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMmE4MWMzODM2ZWRlZjJkMGJhMTFkMjM1M2ZiNmRhYmM3NzcxNTBhN2NhODNlYTBkOWU5YTcwMzEzZmVhYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1MjVjODRkMzIyZWYxNTdkYTg5ODE4MGNlOGUyZmJjYjk4OTk2ODEwYTJkOTk3N2Y0ZWQ2ZTU5MDAzZDc3ZGIifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/__main__.py#L1-L10",
+          "version": "repo-lines-v1:sha256:afc4b7a5364647e9f949a09aa3c0c81ea91adecc6aa62aa980d84a0a049ac3bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MjdhZGZmNTI0ZTA2MTYwMjJlYWRkOGY0YWYyMWEwNzc4YjI5ZmM0Yzc3YmRmZWZkMWFmY2UyY2JmNWU0YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0MjQ4NzRmYzAyNGJiYTRkZWVjNDk1Y2I2ZTEwOWMyMDBkNjQ0YmY2MjgxZWQ1MjdjN2Y4ODQ0MjM5MDI4ZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5NjBiMmQ1ZjI4NzIxMmQ3ODM0N2UxNjRkZmM1Y2VmMjEzNWExNjBjNzdiNzlkYWM2OGI4MmM4YzEyNjZjOGMifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L242-L246",
+          "version": "repo-lines-v1:sha256:ef7d5d079797de1953edc02ad44d41d9fb2b1d6a137b3d7f7d8435194f914735:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjU5NTQ0NzU1Y2ZhZTEwYzYzOTRiNTAzOWM4YTBmOTUzZTViZmViYmI1NWFiMTI2MGQyOWVhZjNlODUxOGY1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUxMWRjNGYyNDdhOWM4OTY2NTllMjI1NDRhMTE5ZWE3MzU0NWYwZjI0MDZkNDY2MDI3MDAzMDIyNjdlYTBhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2739d04478424efe8c51b050ee4349e5",
+      "statement": "Every proxied request produces one structured JSON log line on stdout with ts, level, service llm-replay, mode, path, outcome (hit, miss, recorded, forwarded or rejected), status and, when a key was computed, the cassette key.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L179-L193",
+          "version": "repo-lines-v1:sha256:3a01c77a20e84c0c127f9b0e5f93c20d11e3230ec3d8fddb24cd236bfd19f2a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmYTU1ZTFmZjVlMGU0OGQwZWQyNGFkZjY4Y2E1N2M5MjFjYzJhY2NjNGFiZWYwMTAwNzY5YzA0YzBiMGRlMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhODQ5NmVlOTY0MjcyZmM5MTFhMmMyMmVlNDFkYTBmY2U3Zjg0OWJmYWRlMzQwNjUxMmJlMWQyYzgxODhjZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiMjQxNzBiZGQ3YTNhNWNiOGY4MDVhMGRkNGU5OWE2NGZmODBlNDk0ZmI5YzNjMmIyMzI5MzNkMWY1MWQzMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZDlhMjIxMzcyOTQ0MmU5MTE1NjA4Y2JiYTI1OWQzYjRhMGExY2FjZTNhZTdkM2E2NjgyODdlN2QwNzkxMGIifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L94-L107",
+          "version": "repo-lines-v1:sha256:dd551e9d42dace5fe70de58c43e808fd05706568a638296fd29d8b34a6b79ca4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNzkyMzQ1ZGI5YTNkOTVlYjAwMzY1ZTQzYmRjMmFjNWQ5YTM1NGE3ZjIyMTZhODYzNzEzZjU2NjZmY2VlNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5YjM5ODM1YTE4ZmFmYjAwMzQyYTJmZDJkMWUwZjllYTM3ZmFmZWNjY2JlMjgzMzEzYjAxMjg1NWRkODdiMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkMWRmNDQxYjI5NzJkMzNmNWE2MDZhMjRkMTAyNTljMjQxOWU4ZWUyMDU5YmIxNmViMzcwNGI3MmUwZTM0MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1ZDdlZDlhNTc4MDhiNzZmNTk0MGQ1NTVlZTg4NGMxZGUyNWYxMzQxMmY5MzEzOGExNDk3MjIzODA1YjZiOWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1050c74a59614fcf8cc31b3ee56bf774",
+      "statement": "services/llm-replay/tests/test_app.py pins the proxy's invariants against a mocked httpx transport with no network: the cassetteKey conformance vectors from contracts/conformance/vectors.json, that user/stream do not change the key, live pass-through of query string and Authorization, record dedupe and serving from a pre-existing cassette, replay hit/miss and GET /openai/models 404, streaming rejection before any upstream call, non-200 upstream responses passed through unrecorded, malformed cassette aborting create_app, invalid SANDMAN_LLM_MODE failing Settings.from_env, and /v1/status 401s plus hit/miss/entry counters.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/tests/test_app.py#L38-L151",
+          "version": "repo-lines-v1:sha256:18572b72d1d237a918b0707d18dc37fd4ed3e0acd6092f618f1b8bfef36516c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkNDkxYTE2MTEyOGIyZmQ5MjgyZmVkNmRmZDhjNTljOWIwMTE4MGUxZjI0MWQzN2IyNTA3OTJlYjE2YTdhMWU5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1MjU4NWRiYWZhOTI2MTM1YjQ5N2I3ZTE3YmE0ZTQ0M2NkYzJjZmVhYjg3MmUxODAyMjQ0OTYyOTM3NTJmZTNhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4MzRhYTI5ZmNjZDg4NjM1MDk3ZmVjMWFkZGYyZGVjN2Q1MGNkNWZjODk1MTc0NGJlNzY1ODRmYWY0M2FkNTM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

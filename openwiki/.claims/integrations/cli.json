@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:37b872dc1e45b74c92390478b5874f73e80016f76ee9a6db046fe09b3caa3538",
+  "claims": [
+    {
+      "id": "claim_939356eb2aaf476f9e1ca87a30262d65",
+      "statement": "The CLI always talks to a single base URL, defaulting to http://127.0.0.1:8080 (edge proxy), authenticating every request with a personal bearer token from $SANDMAN_TOKEN or --token-file; it errors out if no token is available.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L162-L175",
+          "version": "repo-lines-v1:sha256:68ee32d098b6f5e376bfd2ee3ac37bcfe8ce919312b55723a14ab89e8a5a7cb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxMjhkZTIxOTE2MDRiZDdiZWZlYzM1MjE3MTgyNzIxMWVmZjg4NmMxMjcwMzk1NjQ2NTAyMDQ0YjVjZTYzMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1MmRkZjY1YmFkMDdiNjhiMDA2ODM2OTUzOGVjZDI3NDVjZjRmZjZkZTY5MWM5ZjliOGEyNzUyZTU3Njg2Y2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L20-L24",
+          "version": "repo-lines-v1:sha256:14903a68be6bfc9df7371b39f4712ebb9f47390dad116467c3fcc347e65a3ec9:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWVmZmFkMzk5ZmMyMzhkZTI4NDkzZDViZmJlOGUzY2FhNTg4ODgyZThjODRmZGYzN2Q4NmI2Yjg3YmRlMjhjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGI5NmY5MmMyY2Q2N2E2NjBkNzY1NjYzYzY1NzEwNjg0OGEzNDFmZGQ3ZTc0NDAyYjM3M2NiMzM4YjRhNjIxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDZmYzQzMjAwYmI5MTY4MDM1ZDg0NTE5ZTdkY2E4MWVkNGE0MmVhYjZjZjQ3MDdmZGRmZmU5MTBhNDc2OTdiMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5b16799eadd4b808d9b232a991a8049",
+      "statement": "ingest performs a two-call flow: POST /v1/projects/{id}/ingestions/check with the manifest JSON to learn missing sha256 hashes, then POST /v1/projects/{id}/ingestions as multipart with the manifest plus a gzipped tar archive containing only the files whose hashes are missing.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml#L252-L310",
+          "version": "repo-lines-v1:sha256:2480bf6aff34610f1a509d51afe5f97ea27d91abf9c380127f3010df59c78e4d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyYTk2YmE3YmFjZTdhZWJjOTA5OWNhZmI5ZDBjMzMyOWY0OGVjNWRiNjI1ODljMTMyZTljZWIxYTI3NzVmYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZTNhYWRiNTMxOWFmZmViMDc0NTc5ZDc3OGQzOTliZTMwZWVjNWYxZDUyN2JjM2UyYTM5OTZlMmNkN2NlZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxNzRkMWI4MTM1NDllMDdlMmY1OTk5NmU3NDc2MDFjZmE5NWIzY2I1OGRjMzRlYWViYzlkMzM0ODIyNDNhM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1NGNhYzM4ZTdkNjQ1NDUwNGUwNTU2MDA1ZTEyZmM2OWQ0NTlkODY1MjA5MWM0NmFkM2NmMjgyYjU2ZGE0YjMifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L90-L111",
+          "version": "repo-lines-v1:sha256:377765c12fde762f1b8c9a5f87467846bee9c61528fdb71b25a7946811e2ea66:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3OGNlNjVmZDNmYTFkMzNlZDYyZTFmMzU1ODI4ODNlZGJkN2JiOTJiNjQ3ZjIyOGRmM2E1MTBhMDZkNWEzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MjMzYjNmZmVhMzJhMjNkZjUzMDY1MzQzNDhmMmRlZTc3NmE1YTZmNzRmYjUzMzE3NWRkYzUzOWE4ZmU0NjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhMTU1ZmNkNGE1YjgwMDdlOTAxYzEyOWUxNzA2NTliYzVkZGI1ODdiZjkwMThjMWE3NTQ3YWEwZTZjZTQwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhNTcxY2VlN2I3NzQ3ODMxOGIxMDRiZmM3MjkxN2ZkNWI5Mjk3YmFkMGE3NGUxOTU3M2YxNjM1YjM0ZDcxYWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eb1923e319054f1084c2e47f83149870",
+      "statement": "File classification uses --kind-rule 'glob=kind' rules (kinds limited to requirements, architecture-doc, architecture-model, code, test, other) followed by kindRules from the project-local sandman.yaml; the first matching glob wins and unmatched files default to 'other'.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L22-L45",
+          "version": "repo-lines-v1:sha256:6070b25bfe707b39f5731c4a0ca1047c0e587991bff727ec426272d324f6de2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NjRjYWI0NDkyNGRlZTA4MzgzOGU2MDVkNTlhMmRmOTJmMjMzMTFmNDhhOTdjYTZjMmM3ZWM5NGEyYjQ2YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YTdjM2UwYmY1MWIxZDgxNTBlNjM1ZjZlYjI1OWVlZTBkOWNlNzI3YTJjZDIzOGMyM2NlYTJhODIxNmQxZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiMzM1ZTNjZWFjNzUxNTlkY2RlN2Y2YmY4MTQ1MTA0MWVmNmE2Y2JlYTkyYmZhMTY5MjExOTc2ZjZhYTBkOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3NzA1NDgwMTFlNzJjNDRjOWRiZTZmZmU1MDU2NjlhYTQ3MTQzNjQxOGJhMTMxYWM5N2M0Y2E3MDBhMDYxODEifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L90-L101",
+          "version": "repo-lines-v1:sha256:a990cca97c72d2075c00278c104be46d2de55c52e7601d4d7f00d17bc8f70efd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3OGNlNjVmZDNmYTFkMzNlZDYyZTFmMzU1ODI4ODNlZGJkN2JiOTJiNjQ3ZjIyOGRmM2E1MTBhMDZkNWEzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmNDM5Njc4NTZhMTI4YTlkZmI4ZTBhMzY1MWYwNzg0OTlhMzQyNTA0OWVkMjcyM2ExZjZiODFkMjFiYzEzYWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhMTU1ZmNkNGE1YjgwMDdlOTAxYzEyOWUxNzA2NTliYzVkZGI1ODdiZjkwMThjMWE3NTQ3YWEwZTZjZTQwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5MThiMmQ0YzdjNjFhYzU4YjcyMzU5M2EyZTg3NzgzZjkzODE1MDQzYmVlZmU1M2MyMGFhZWE4ODYyNzA3ZGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9266948c61147fa93f47bcc8ccbb539",
+      "statement": "The directory scan produces sorted relative POSIX paths, skipping symlinks, any dot-prefixed file or directory part, and sandman.yaml, which is project-local config and never ingested.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L21-L22",
+          "version": "repo-lines-v1:sha256:d8f4d5f836cbf6272ce17781fd04889c334892a51fe8dea416c8399c2c8ee32a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTk4NWRkMzhmZWFhZGMzOTU0MTYzNzM5MzY4MzczZjQ2ZjUwMmZmZDRlMTJlNzAyOGU1ODM1ZDBlNmE5ZGQ1MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODk2NGNhYjQ0OTI0ZGVlMDgzODM4ZTYwNWQ1OWEyZGY5MmYyMzMxMWY0OGE5N2NhNmMyYzdlYzk0YTJiNDZiNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDdlNzE0M2ZkYTg0NzM4Y2Y5NjljMTJjZGNmMmI4ODc2NmEwNjU3Yzk1MzYwMmQ3ZDQ5ZjdhNWZjZjY3OWI4MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGI5N2MwOTA0Y2VkYjFiMTAwZmQxN2Y2MjZlODY4ZDYxMzMwMGQ1ODY0MTA5OGNiYmVjMjU5MDYxZGU2NDRlMiJ9"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L48-L60",
+          "version": "repo-lines-v1:sha256:ed3074035280fdd819a986cbda25a6b3622c977c224259e6133990df1bd531d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmNmRkNzIwZWQzMjhlNGU4MWE5MzBjYzBiMDViOGUyNDlkOTU2YjExNjU4OWY3ZGQ1Y2E2YzkwYmFmYWU1NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlMmQzOWFjYmYxN2U5ODcxMzliNmViZjhlMjA3NWQ0OTMxMDcxMjA3NjBiN2NkYjEyZThmOTJlMmY2NTg0ZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3MTk4NGNkZDhiNzVhOTZlMGM4ZGRlNWEwM2YzMDRiNGM3ZjNhMzM2OTQ4ZjE5NmIyYTNiYmJhNDA2NTg4OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmNjJhOThiOTg5OTExZDY3YWMwOTllZGJhZGZiYjE4ZGNlMDIwZWUxYjJiMGFjZGVhZDViMDM2OTM5ODcyMWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f782c03ff95d4cc9b5236cce3294ae22",
+      "statement": "The upload archive is built in memory as a gzipped tar (io.BytesIO), and when no file hashes are missing the archive part is omitted and only the manifest is sent.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L104-L110",
+          "version": "repo-lines-v1:sha256:aeb80a45d69f441dff50f6a1156f35688148cef63570e3bc144ef8bd62f1ebed:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjE1MjkwNmVhYmJkNDAzYWQ4Yjg1NjQ2MTk5ZDBjNTFmMThhYzZkMWRmYzMxNTdmYTE2YTJiYzk0NGQyOWIwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkxYjFiODc2MmMyYmViYmQ0OGRjYzZlZGNmZDBkYjZkZWI5ZGVmMDNkMWYyMWM1YWQ1MTU3Y2RjM2Q5NTY0OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTFkM2MwZjRlZTZkYjc4YTcxNDE4YWMzNDYyMTIwMzg4MDZjYjk5OTIxOTBjZjAwNjgwNTVlYmQyYmZjNjk4MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDU3MjJiOGM0ZjI4MzFhMDhhNmZmMTY4ZDE2NTExNGI2ZmRiYWNmOTg0MjE1MzY2Mjc3NjkzYmRjYjNiZDAyMCJ9"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L75-L81",
+          "version": "repo-lines-v1:sha256:fd7fd0d835b4fddf4ce9ce0817d018525243adc46a52b229cb007cc46c37e713:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWMyM2RhZjQzYjA1Y2QzOTQ2ZTFhOGQzYjQxNTJhNjBmODllNDE0NTE3MTc1ZjAyYjIxMWM4MGNiMDIxMmI5YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFlNDA4ZWM3YTFmMGNjNGVhNjQzZmNhMTdmYzFhOWRhZGJmMjVkZWYyM2U2NDM5MDQxNWUzNTJiYzdhNDFjMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWU2Mzg0OWE4ZDc3Njk1YmVkZDc0Mzg3MDU2MzcyODc2MDkyZTNjODQzZTQzYjVhMDdiOTRmNTFlYTU0YjUzOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmZlODUyZDMwZmRhNDNmMjNkNDJiOTU2NmQ1ZDMyZTZmYjk4YzUxNzE5NmMyZWExZWE3Mjc0NGY3MDdhNDhmMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_599e58bdd0e64531b040a45160da85fa",
+      "statement": "ingest requires --mode full or partial (full means paths missing from the snapshot are deleted server-side) and an optional --revision recorded as manifest sourceRevision; the manifest carries mode, kindRules, sourceRevision and per-file {path, sha256}.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L142-L147",
+          "version": "repo-lines-v1:sha256:58a6e74afbb67c3ee45ae51deb41d93c88e1d47192aa1297f9743d0f50b2547f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDQ3MTUyNmQ4YWYwNzhjMmMxODZjMDIwYTA1ODc2ZWUyNGRjYjg4NzhhMzJiYzI0NzkyMWExMWQyZDE0NmNjNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWUyODE0YjM0YjA5NWQ3NGZhZmMwODUwZTZjYzE2NWQ4YmQwN2ZhYWUzZmUyZmVkMjE4ZGM5NjBkMDhjNzJlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTJjZDU1NDAxOTAxZmQ1ZDc0ZDIyN2I1N2YzNThiYjkzZTllZmZjODAyNmQwZGZjMTI0MzAzYmQzMWRlMmMwZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWQ0ODY5NjJlMGM0NzJjMWU2M2NkZWE0N2Q2NGU4OTQ5YWRlNjUzNjBhNWM2ZWJmYTI0YTVhMjEwNDBiZWYyNCJ9"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L63-L72",
+          "version": "repo-lines-v1:sha256:42ea0b3772155b2011e470a93910b1bac20d6247de3307d4b24d23757affe6ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwMmE3NWZhYzA3ZjU5NTM0MzUzM2FmOGMwMTkwMWY2NWFkODdhNmQwOTUxNjk4Mjk5MjFhZTU3NTM3Y2QyZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkN2ZhNWI1MDVlYTNlNWFiMTc0YjU4MDg2M2FkODlmYWNkYzIyMTM4NGY2NTBjZmZlNmJmMTFiOWM5MDI5ZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwNGM5N2EwMzRhN2Q5NGQ5MzEzYWZhMWYyMTlhOGJkMDAzMjlmYjYxMjk3YjI5OWNmZjI4ZDg3MDBjYTBmMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZjM2ZjU5ZTAyNzQ5Y2FkM2RkZmVmMTczMTFhOGE3YzM3MjA4MzliOWU3YjFiNTE2N2M5MGI5MDIxNGQ4YzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_28906763cbd74e85b97ece8e43a88ac7",
+      "statement": "workflows --wait polls GET /v1/workflows/{id} every --poll seconds (default 2) with a --timeout deadline (default 600s) until the status reaches SUCCEEDED, FAILED, CANCELED or BLOCKED; BLOCKED means the workflow is waiting for a user action and still ends the wait with a non-zero exit (only SUCCEEDED exits 0).",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L114-L126",
+          "version": "repo-lines-v1:sha256:a1780866a38ac60d546b8caa1e4992dd2d8ad539e600c6450176f73cbb52267f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyY2EwYjExNGEzOTI1MmNmMTljZWFlZWU5ZmM3Zjk4YjVmODRkMmUyNWM2NTNhMzk3MjE5NTQwZjcwNzRmOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MjMzYjNmZmVhMzJhMjNkZjUzMDY1MzQzNDhmMmRlZTc3NmE1YTZmNzRmYjUzMzE3NWRkYzUzOWE4ZmU0NjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1NzIyYjhjNGYyODMxYTA4YTZmZjE2OGQxNjUxMTRiNmZkYmFjZjk4NDIxNTM2NjI3NzY5M2JkY2IzYmQwMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjNDE0ZjI3ZTlmNjQwZDNkNWE3MTQ3NjY0Y2Y1NGMxNGM2NjQ2YTg2YmU0YzVjMTU2MTVkYmVmMjEwMmIwOGIifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L23-L23",
+          "version": "repo-lines-v1:sha256:eb3139698ef72b7759d4beb3e265d91218fc92adc803ea72a9ec01fe8eb197d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIzMTM5Njk4ZWY3MmI3NzU5ZDRiZWIzZTI2NWQ5MTIxOGZjOTJhZGM4MDNlYTcyYTllYzAxZmU4ZWIxOTdkNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWIzMTM5Njk4ZWY3MmI3NzU5ZDRiZWIzZTI2NWQ5MTIxOGZjOTJhZGM4MDNlYTcyYTllYzAxZmU4ZWIxOTdkNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmY1YTdjZDYyYzY4N2M2NGIzYTEzYjcwZjUwYTk0YjFhMWZkYmI4NTg5MTU3NjRhZGU2YTVlYWEyYjk5ZDVjYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzhiMTQ3YmY3ODhjM2ZkYjkzYWQ3OTEzYzk1ZGExM2NhNGM3NTY2OWNlYzYwZDdhZTJhN2E2MzJmY2VmOWIyNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2ef6e1c6fde414d912d2bd9a44a9fd7",
+      "statement": "Without --wait, workflows lists the first page of the project's workflows as tab-separated id, status, trigger kind, createdAt lines.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L123-L126",
+          "version": "repo-lines-v1:sha256:bcfeb91e8ee771a9e796c31ba3f778b559b84cd0a4d0d37056915304a6957add:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGJkZWJhZDBkOGNlZGQzZmJjNGVjZTY0Y2ZhZDExNzI5ODJhNmQ5YzAyMmRlNjhiMjVmYzhkMmE5NWEzODNhOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTYyMzNiM2ZmZWEzMmEyM2RmNTMwNjUzNDM0OGYyZGVlNzc2YTVhNmY3NGZiNTMzMTc1ZGRjNTM5YThmZTQ2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjI1MjZiOGZlNzk4MzA4MjhhZjM3NTViNWUxZDUwMjIzOTZkNzhjZDFkNDgzNWRlMGYwN2JlNTQ4NDNjYTQ1OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWM0MTRmMjdlOWY2NDBkM2Q1YTcxNDc2NjRjZjU0YzE0YzY2NDZhODZiZTRjNWMxNTYxNWRiZWYyMTAyYjA4YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_925b8f2cd39949c7a229e575e65d7922",
+      "statement": "export fetches GET /v1/projects/{id}/export/tracelinks or /export/inconsistencies with an optional format=csv|json query parameter and streams the raw response body to stdout.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml#L549-L610",
+          "version": "repo-lines-v1:sha256:e69d15daaa8de37c952903d3ebf740532b96e72122d841c5946fd826a7962e84:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ODQwYTA4ZDlmNTViZTViNDFhMmU4MjAzNjY1ZjU2MTE4MTY3YTNiM2VmYjdmZDMxYjA1NDY2NTUwYThhNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhNGIzMTI0OWU2ZDRkZTRlOGEzODMzYzgzODc0MTUzYzY5N2E2YTFmOGRmMzYzNGI1ZDQ0ZDliZDlhZWI2N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MWUxOTBhZmY0MTMxZTFmMDBlNTc4NWJmNzRlNmM0NTFlMTBlYzM3ZDliMjAyZDRkZjBhNGQ3MDZjNzIwMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMGJjMWU1MTZlYTA5ZTNhY2ZkMmZkNjRmZWI2NDNiZThlNmQ4ODE2NzBiN2U2ZmQzYzNjNmRjNWFjNjllOWUifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L129-L132",
+          "version": "repo-lines-v1:sha256:1e2baeb9e68a23e8574467bc78f36f1cacb34793da18caee5179197124b0c3d2:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDVhNmM1NzMwZjViNzIyMjE5YjM0ZDJlZDIzYTM5M2VjMWJmNzk2YWQyZDY2ZGZhMzNhMTk4NjBhYWU1Y2MzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTYyMzNiM2ZmZWEzMmEyM2RmNTMwNjUzNDM0OGYyZGVlNzc2YTVhNmY3NGZiNTMzMTc1ZGRjNTM5YThmZTQ2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDU3MjJiOGM0ZjI4MzFhMDhhNmZmMTY4ZDE2NTExNGI2ZmRiYWNmOTg0MjE1MzY2Mjc3NjkzYmRjYjNiZDAyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTgxOWIyMmQ4NmIwMjQ3MTA5MjIzZmY2ZjRkZjExZTE2ZDU3OTJiMjY2OWMyN2JjODBhNmMzZDE0NzhkYThjMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_adc1a35f14fd401a9b5e4f7e9ec4bc91",
+      "statement": "The query-service API forwards CLI ingestions to the extraction-agent and workflow reads/creation to the orchestrator, so the CLI only ever needs the single query-service base URL.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml#L252-L310",
+          "version": "repo-lines-v1:sha256:2480bf6aff34610f1a509d51afe5f97ea27d91abf9c380127f3010df59c78e4d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyYTk2YmE3YmFjZTdhZWJjOTA5OWNhZmI5ZDBjMzMyOWY0OGVjNWRiNjI1ODljMTMyZTljZWIxYTI3NzVmYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZTNhYWRiNTMxOWFmZmViMDc0NTc5ZDc3OGQzOTliZTMwZWVjNWYxZDUyN2JjM2UyYTM5OTZlMmNkN2NlZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxNzRkMWI4MTM1NDllMDdlMmY1OTk5NmU3NDc2MDFjZmE5NWIzY2I1OGRjMzRlYWViYzlkMzM0ODIyNDNhM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1NGNhYzM4ZTdkNjQ1NDUwNGUwNTU2MDA1ZTEyZmM2OWQ0NTlkODY1MjA5MWM0NmFkM2NmMjgyYjU2ZGE0YjMifQ"
+        },
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml#L384-L439",
+          "version": "repo-lines-v1:sha256:321eb28f7701794dfc6004cd162e5e7111181d5ebd972046bab70b8171845f84:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhNmVlODU2YTgzOTkxZWRjY2JiMjMzMTdkZmU3NWQ0MDhiNjc1MDMxZWZlNTNmODM3NmJlMTQzZjg0ODMwZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMjQzODAwNGY1MTMyNGRkNzlkMWIyMjcxNTQ4YmEyMDAwYzczMDAwNjlmNGI2Y2EzYWZhZjA3NDg1ODE0ODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhOGU0Yzg5MDVjMDQwNGRkZjAzNTk3YTczOTg5NTJmNWJjYTMyMWNmNjU1ZmU0ZmY2MGYyNDRkZDQ3YjUwMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyNjU1ODlhYmU2ZjU1MzJiMWI5NTg3Njc3MjdjZTFjMGI0MzMyY2M5YWUwMjc5MGI5Y2Y2NjA1YTUxZTExOTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64fc234763bd432e9730e4aef1c2d60f",
+      "statement": "The continuous-use mode (Q-7) is CI running sandman ingest --mode full --revision <commit> on every push; the hash-check-first upload creates versions only for changed files, so an unchanged snapshot triggers no workflow.",
+      "evidence": [
+        {
+          "resource": "repo://docs/stage-1-analysis-architecture.md#L619-L619",
+          "version": "repo-lines-v1:sha256:8f9e55f4f32b1cc82268c445ab3272b388f36516445813c3bda162d6342c1e8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY5ZTU1ZjRmMzJiMWNjODIyNjhjNDQ1YWIzMjcyYjM4OGYzNjUxNjQ0NTgxM2MzYmRhMTYyZDYzNDJjMWU4YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY5ZTU1ZjRmMzJiMWNjODIyNjhjNDQ1YWIzMjcyYjM4OGYzNjUxNjQ0NTgxM2MzYmRhMTYyZDYzNDJjMWU4YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWMwZmE4N2JlMDcwMzhhNDlkNmZlNmJhMmEyYzQwMTNhZjg3NDA0YWQ2ZTNhNjM3MmFjMjk0YmNlMDc3MTlmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmQzZTcxNTBhOTZmY2ZiMjMyZWIwNjgxMjczODY4MDdiN2I4OTMzNDgyOWNmYTZmNTc3YjAyMjI3ZDIxOGE5NiJ9"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L199-L208",
+          "version": "repo-lines-v1:sha256:3a7a8895e6fc0de15026896aa421c2c1354311eb7b9791b568b630201fb739a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiNzg2OTFkOWY0YTdkN2RkNWY3ZjIxNmQ5ZTk2Y2Q0MzVjZTBhOTE4Y2E5NTE5ZGQ4NDE2NWUyNmM5NGY0ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWFlNzllMjUyNDQ3ZjFhNGQ5YWRmMzU0MzYwZTQxNWE3NzY5OTYxODVmMTRmNDBmZTM4MGRkZDk5ZmI5MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMzdkYWU3NjU0NjdhMjUxNDBlNjQzYzNhMmU1NzdjMGFkNDQ2ZDdlZmYyZDQ1Y2IxMjQ5ZTFhN2EyMTAyZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2NzcxZDQ1Njg2NDQ0ZTQ4MjI4ZDVjMDFjMGM0MmU0MzUwY2RkZGJmYzEyYjkyNzJiNGVjM2EwNzU4ODU2YTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_699e56f75c154d9e879fd3a771eeccfb",
+      "statement": "The e2e walking skeleton drives the whole system through the CLI by calling sandman_cli.__main__.main(['ingest', ...]) in-process against a running stack, asserting created/reactivated/deleted counts per snapshot and that unchanged re-ingestion creates no new workflow.",
+      "evidence": [
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L148-L208",
+          "version": "repo-lines-v1:sha256:45226f2f0b8d9bf07e7da1371cebee6b366556e29b70abba6d2a2ed9ece98437:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExN2QyZDdhNzdlZWJhNTJjODRmOThkM2ViNjI3ODk3YWYwYTY2OTVjOGE3NWIwMGE1Y2Q4OWFmMzk4NTQ1OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWFlNzllMjUyNDQ3ZjFhNGQ5YWRmMzU0MzYwZTQxNWE3NzY5OTYxODVmMTRmNDBmZTM4MGRkZDk5ZmI5MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMmNjOWYzMjNiNjNhZmQ5MzA1NDQ0NmZmZGRkOGY0YTdmZmZhZTM3ZWJjNjA5NTBmNWQzNDNiOTg3ODE4MmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2NzcxZDQ1Njg2NDQ0ZTQ4MjI4ZDVjMDFjMGM0MmU0MzUwY2RkZGJmYzEyYjkyNzJiNGVjM2EwNzU4ODU2YTEifQ"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L96-L103",
+          "version": "repo-lines-v1:sha256:ad7d192e739435b8cdfa902f628c3cc94972c440d1b6346524739f7c5c32fe0d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODZmN2FkZDY3NzkxZjRlNTU1YzhkY2EwMTRmOGRjYjYxZjA4OGMxMjE3ZTdmY2ZlMmU4ZTJhNDJkNGU5NzQ1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmJiNTQyYTkwNzBjYWE0Yzk5ODlmZDE3ZTQ0YTk2YjAyZWI1MGZjYmNlZDY3ZWEwZTQ3YWM4ODNlODk2ODBkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjVhNmQxYTczMTNiNmI1YWExM2U2ZWQzZjJkYjFjOTE5ZjRjZWY1NDMzNDhhNmRlY2JmZmQwMDc1MmFiYjUyNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTkxMGY0MWEzMjc0ZjQzZmQ4NTkzOTQ4YzhiZjBhZDcxMTk1Mzk4MDBiNzBmZmE2YzY1MThkNjI3NTJhMjA5NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cde551e04fbe46b282901aff275399bf",
+      "statement": "CLI unit tests cover kind-rule matching order, manifest construction excluding sandman.yaml, manifest-only uploads when no hashes are missing, wait polling, list/export output, non-zero exit on HTTP errors, and symlink skipping.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/tests/test_cli.py#L34-L154",
+          "version": "repo-lines-v1:sha256:7ccdf2ceacc339ef905fe522f84ccdc267d65b22b8837ab57c3b2b36df4a710e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyY2VhYzZiZmVlMGRkZTY3NzI5ZDA3OWE5MmNjNjVhNDQ5MTdlMGEwNzgxMzM3OGE5MTZjYjIxMjZiNWVjYzY4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjYmVhZTE2NGE0OTg3MzdmMjFiMjYzMTFlYzBmYzA3ZmI1NjUxMjNkNGQ5NmI1ZGQ0YTI1OGIwNTFkNmJkOTllIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4MWY2NDIyYjQxMDhjNmM0YmI2MjExOGYyYWM5NWZkZGRmMGQ5MTI2NGU1NDJlMjU0YWY1NGY0MGI3NGFlNzgxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_b221bc444cb44e48a3b04813322c3bbf",
+      "statement": "Project ids are client-validated against [a-z0-9][a-z0-9-]{1,62} and workflow ids against wf_[0-9a-f]{32}; ingestions require at least the maintainer role and workflow listing/export at least the viewer role per the query-service contract.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml#L258-L263",
+          "version": "repo-lines-v1:sha256:00686aad6b04bce58a0e6d85efd06bd22cdd2d4f069cf871a65f4c772b4fb6cd:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDIyMGI4OTM5YTI5Mjc2ZjcyMzM0YzY3ZDNiYjY1ODAxNGEyN2ZiOTAzNWYxZWIzMDBlM2RmNTg4NjRiMGJhYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI4ZWFkYzdkMGY1OGJjZjc0M2JjOTZhMTM2ZGFmZWQ1MjhiYmM1YzVkYTU5MzcwMjc1YWZhMDc2OTRkZDllMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmEyODViODBhM2VlODg0YzE5NjRiNzI0MWJiNWM0MmI1ZGJiMzIzMzZkNzY5MDAxZDhhZTVmNjIzZmZmMWVmNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTVlZDk5MjU4MzdhNWRjZWVmODgyODlkOGMzMjE5NmQwYWVmYmI4OWZmMWJlMmJlMzVlNzQwNzQ4NmRkYzA3YyJ9"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L136-L151",
+          "version": "repo-lines-v1:sha256:9b0386419b382e1debf7f19944a252beef656ad743d91bf5eb17d6d705711c31:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4NmFlNGZiNjlkZjk1NWE3NTU5YTc1NzM2NjAzMDM2ZDJlZTkwMzIwYTM2NjM4M2Q0NDAzMDQzZTU1YTQyZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlODU0YmM3OTE3M2RlZjk0ZjM3NDRlMGQzY2M1OTM2ODdiYWRhMmVmMjUyNTJhMjU3YzAyOTRhM2U2MjUyMTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4MTliMjJkODZiMDI0NzEwOTIyM2ZmNmY0ZGYxMWUxNmQ1NzkyYjI2NjljMjdiYzgwYTZjM2QxNDc4ZGE4YzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4YjgyMDVmYTJhOTg2NGMyYzE4MzQzN2YzYjVkNWExNTAwYjA4YzlkNDJiMTZjYjdiZjhlNDFlZGM4YjUxZWIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ac628f44c9ea71baa01f4efd715057bbd76659aa23a24f0b541201323d19fed2",
+  "claims": [
+    {
+      "id": "claim_7323aa2b4757489a8165e4d21ac7dc75",
+      "statement": "The orchestrator (sandman-orchestrator, Python 3.13/FastAPI, port 8000, python -m sandman_orchestrator) is SANDMAN's single-instance rule-based workflow engine: it consumes sandman.* events from the JetStream stream, plans steps from a fixed rule table, submits A2A skill tasks to the three agents (addresses from the SANDMAN_AGENTS env var), persists all workflow/step/message/inbox/dead-event state in one SQLite file (SANDMAN_STATE_DB, default /data/orchestrator.db), and exposes the workflows/dead-events/status REST API; per ADR-0006 it is rule-only today (the optional LLM planner is a planned M6 feature, not in the code).",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/orchestrator.yaml",
+          "version": "repo-file-v1:sha256:ded89850f24f2511d56fbbcbb9871bd201f0428d4ad024d236b3d4edcf4b91b6"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L185-L207",
+          "version": "repo-lines-v1:sha256:35b872ec88b9162a15994ef7585e6e0bb8177041c3f2d9a4f62a02fde9e7970b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MGI4ZTBkNDk1NjkwYzQ5ODQzZmFiM2FhMWYxODU2M2U5Y2M4NWFhNDhjYjcwZGYyYjViZWYyY2UzYzBhY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzMDIwM2ZlZDhkYmY3Y2M0NTI5YTRkMGZjOTVhYmFlYTNmYjBiOTI1ODFiNjA4OTIyNzNhOTZiM2Q0YmEyMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZDdkZTBiZjI1Y2NlOGFkODA3ODIxM2FhMDdlYWM4NjkyZTgxNzlkODI5YzgwMDI5NWYwNjUyMjJmZTEwYWEifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L159-L170",
+          "version": "repo-lines-v1:sha256:a80f51b1c2a1c87884a815408778678fd8f4c33c806f39f2aff2ff7172b4df05:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMGM2YTYxZjhkYzZjYWE3NzViYTllYzVlNmQwNDFiY2VhN2Q0Zjk1MTIyOTdmNzc3YWJlNjYxNDEzMTk4ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YmNiYTE5ZTdhZmI2YmUxYzk2NjNkODllOGZiNDdmZDVlZDZiZjYwOTgxMjI1Mjg3ODA3NDM1YmI3NzY1ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlZmFjOWE2YjY4ZDA5NDRmZDMzNmRjOGYzOTM4YjhhMTVjZGY2YzQ2ZWJiODViNDk4MzViODIxNGNhMDE5NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyMGEzYWRmZmFjMWRhYTVlOGMyMTE0NTZiZGViYmIxOTI1MzQ5YjU0NmEzMjI3NGU4Nzg1NGZhMTdlYjJlMjgifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L173-L213",
+          "version": "repo-lines-v1:sha256:ca30a62a758e4ed34169a7916c475af304dc50894430d96cb0ec464789524022:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1NzQ3OWNiMDZlM2UwMDMxNmY2MzdiYzA2MDMzZDJlNWFkM2ZjZmE2YzhkYTdmYzE5MDI0MDBlMDdiYTQ5OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZDJmMjUwMzkzNWM3YWM2MDYyNTE0YTU1OTkwNTY4ZGNlODUzNDU2YTQ3MDA5NTQwMjg3NTAzNThmZTU3NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOTZlMjI2OWY4NzY5ZjdhMDcxMmUxNTA2YmJmNDgwNDM3YTY0NjE0NWVlYjQ4ODY1YTI2Yzk1ODUyMjhhODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_729d9f1dc17e4450b37b6af9ae08d113",
+      "statement": "Persistence is a single sqlite3 connection opened with autocommit=False (every mutation inside a `with self.db:` transaction block); numbered *.sql files in migrations/ are applied in filename order, each executing the script and PRAGMA user_version = n together in one commit, so PRAGMA user_version is the schema version and re-opening a database applies nothing twice (test_migrations_apply_once).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/migrations/001_init.sql",
+          "version": "repo-file-v1:sha256:0a8935f6396a19aa43f055b370f39474ba83e5395558bc9c286ff93db7880c95"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L62-L72",
+          "version": "repo-lines-v1:sha256:4f50f5f7716fc41bbab5acf4bb930447bb7a3fa1f40acfe9e10cde3f2017004c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhNmE0M2I4MjE5OWM5ZTkxZmZhMWQxNmFiN2Q1MDJmYzY3NzMyNGNiNDhhMDg2Yzc2NGRjYjEwYjE2NzNmNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYzZlOWE2OTA2MThlOGNjNTk5NGRlYzM2N2NmMzFjNmNjZWI3ZmYyMmIxZTE4YmJkOTM2Zjc3YmI4MjBmYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzU0MzQ1Y2MxOTUxZjVlYThjMDY4ZDE2ZjEzNGY1ZjZiZGRhOTZhNjUwNTQ0NGRkOWFkZTRlNWI2YjgxMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzNjkwYmNjMDBhNzE3MjlmNDM1Mzg4NWU1MjkyMDhmMWQ2ZTY0NmJiZjRjZWU5ZjQzZmQ5Yjk1YTQxYmQ4OTAifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L143-L147",
+          "version": "repo-lines-v1:sha256:06c940648e0830d81f7fabbb4c15798af744207bfcb23160e79cd7093b06257f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWFlNmRmZDY4NTc0NjQ4ZmYxOTgzOWE2YzY1ZTY3MWMzODRhMWJlMTM2ZDE2ZTFhZWYwMWNjMzIzMDU3OGQ4ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQ2MTE5ZGViMzJjNzJmZGRlZGU1MzhiYThkZmFmZDk3NWUwNjkwMmY3NjA2ODUzNjJjZDc2YWIwNjZhOWMzYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDg3NGRiYTBjNmQxZTM1YTliYmJlMTRiNmJjZTkxNjFlYzJkYzU1YTdjNWRkOWQ5Y2Y4ZjNjOGMxODU4MTQwZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzJkMGM4ZTdjNmE5YzdhMzU0MDYyZjk2YWE3NTA3MzkyZWQ4OTIxNDE3YzYxYzE2MjlmZWJkNmIxNzc3NzZhMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7cec16b8bdfe423f96963c105634c126",
+      "statement": "The schema has five tables: workflows (id, project_id, trigger_json, status, timestamps), steps (id, workflow_id FK, project_id, agent, skill, input_json, action_key, mergeable, status, attempts, a2a_task_id, result_json, error_json, started_at, ended_at, next_attempt_at, attempt_at, next_poll_at), messages (message_id PK, step_id FK — one row per A2A attempt), inbox (event_id PK, type, project_id, payload, received_at, processed_at) and dead_events (event_id PK, type, payload, error, received_at).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/migrations/001_init.sql",
+          "version": "repo-file-v1:sha256:0a8935f6396a19aa43f055b370f39474ba83e5395558bc9c286ff93db7880c95"
+        }
+      ]
+    },
+    {
+      "id": "claim_1608bc565214459ab28a692c581377d2",
+      "statement": "Event intake is exactly-once: the durable 'orchestrator' consumer (explicit ack, max_deliver 5) passes the delivery count into the handler, which validates the envelope against events.schema.json and then, inside one transaction, writes the inbox row with processed_at set and inserts the resulting steps — so a duplicate delivery is skipped by the processed_at check and a crash either commits both or neither. A contract-invalid event, or a handler failure on the last delivery (delivered == MAX_DELIVER = 5), is stored in dead_events and acked instead of looping; other handler failures are re-raised for JetStream nak/redelivery.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L170-L211",
+          "version": "repo-lines-v1:sha256:d5ef05de0b02552672f99623ae74565e35f07847f06657bb14725b137f9d851b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkMzRhNjExYWM2NjM5NzhkMjhmZGJhNWU5M2RhMjExMDI0ODI2ODUzMjI3ZmNmM2YwM2IxZTUyYTdkYTNhMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTAxOWIyMWNkYjg4NjBkNzUxNWNjMzI4MjhjNjU0MTM0ODA5MGJhMTBlN2MxOTcwYmNlY2JmNjZlY2NiNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZDRmYzAxNWJlZTU3ZTM5MjE0YzA0MjQ5OTk5MDA5ZTA5ZWNmZDg1NGFkNmEwOTgwMWM3MjI4Y2Y2MTZmMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L82-L95",
+          "version": "repo-lines-v1:sha256:e99c1e1289bf4d6b8b36598e4b9d4c02d4a15bac771d2d5c811d1caaf78686db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTdmYmJhMDRmZDg0ZTI3MjIzNmQxMDk4NjIzYjE3MDAwMGNiMmIzYTFhYTkxZWU3MTdjNTdmYjMzZjljMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMGFmMjUxZTYzNGZlNGQ1OWY0ODU4M2IyZjhhNDYxM2JkMmI3OTczYjdjOTQ0OTE1ZjVjN2ZkNjcyMjg3MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZjNkOTQ3NWViNTIwMTRkYjE2ZjY0OTEwODRkNDYzMDNiZTdkZWIzOGY2Y2IxYTMxYzk1ZDY1ZDFhOGIyNzkifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L97-L120",
+          "version": "repo-lines-v1:sha256:17d4ef6b005e9a1dd0adfb219451436b7e5bc0733879942981a8eee4be345e96:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzZTk4NDFkOWU4NjYwMWU2MDEyOTZkYTE2OWRlZTIzMmZjNWY4YTQxM2VkMWM4OGI0ZDMwZDIxMmIxNmJkOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZDUyNGRkYTJkOTBhNDk0YzBkYzg0ZDUxYWZlMDc2ZTg0ZDEzZTYzZDQ1MjUwOGY5OWI3N2JlMzEyOTc4MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxY2ViNzFiZWE4NjI0NzRiY2YzZTg2NmM3NTBkYWM4NzFmYjcyNzU4MjVmYzhlMDQxMGU1N2EzZWVjNDcyZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxZjI4ZmUxMGUxNWU3YTQxNzNmY2QzOGQ1ZWNlZjkzMTk4M2JhZDJjM2ViNmM4OTIzZmQyZjhiODYxMzI0NGUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L116-L141",
+          "version": "repo-lines-v1:sha256:683d35f5dd6af13378ab6ef21fc1f753e2a6be7d993a184739ade7adeca9e034:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwYTg2ZDk4NmFkOWFmZDZkZjcyOTg1ZmZkODc3Yzk1MzIzZTNkNDczMTkzNzIyZWFlMTJlZTM2MWI1YWNkYWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkYzIyNjFhYzEwOTZhMzQ3ZGRlNGM1NWRhNzRiN2FjZTE4MTg4OTg4MDBlMDdjZmIzNDk1OWI0ZWZlMDAxY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5NTk1ODUzMGM3ZGY5MTIzNjkyNGQyNTk1MjgwYmEyZmVmOTkyZTNlYWE5MzAzYzJmZDVmMWM1OTA5ZTM3MWIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py#L78-L82",
+          "version": "repo-lines-v1:sha256:7a59e0234cf94309ff67e8eb239f96305d909566baf2a0d6c1466f2d804e65fe:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTBhNDMzNjJlMmY5YzExNzA0Y2RhMjg4MmI5MTI1NjI1NmRlNGJhYzJlMTQzYmNhOWM0ZTg2N2E1MTVjZjE5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFiN2UwYWY1ZDZjOGZmMGM0ZDFhZmJjYjdjZDYxYzFhYmViYTdjMmU1MTE0MDNhOWEzYmRjZTRhNDNlZGZhYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2JjYzE1NWQwMWNlNmU4NzRhZWQ3MzNiMjU3YzRjMGNhMTUyZjA5MTRjNDI4ZGNlNTMxNTA1YjdlYzRjMTUwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTliZWQ3ZDk4YzBmNjBmZTBjMDBlZmJkYzU2NTFhMmIzMDRhZmQ3MzI4ZDM3ZjQyZTc1YTI1N2Y2MzkyNmRhZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_bc72f60ce2d74fd6836fe4b882ac1250",
+      "statement": "Dead events are surfaced and replayed: GET /v1/dead-events lists them (event id, type, error, receivedAt, ordered by received_at) and POST /v1/dead-events/{eventId}/replay moves the event back into the inbox with processed_at NULL (subject recovered from the payload, dead_events row deleted) and reprocesses it; a replay that fails again is returned to dead_events for a later attempt. Startup recover() additionally polls every RUNNING step immediately (next_poll_at = now) and processes unprocessed inbox rows, so a restart resumes without losing steps or duplicating work.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L144-L154",
+          "version": "repo-lines-v1:sha256:913e53b9a0e148e4e528a13046e24f6ce3d36fa41a2dbe52d4a1635c11b911bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkZDk5MTk5NWUwMTY1OGZjNDU4NjkzMTk3OTQ0MjQ0ZDliNTViYjc4ZTlkOWYxZTQ1NTM0YTliMmMyYzI0ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4OGJlN2UyYzk3MGNlOWE5YjdjMDA0ODM3Nzc3OTJmYTNlYjkzNjdlYzI4ZDhhM2IzMzFkMDBhZmM0YTA1MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3ZmE0NzhlN2U5YzBjZGM5ZDE5NTkzMzIxODIzM2E2NmQyMjk0ZWI0ODA4OWM3MDE5NGFmODA0ZjMzNTYxY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmIyOWM0MDI1NjM3OTcwNDY4YmZiZTEwODJjZjY2ZGVmMzM4ZDRlNDVmMzUzZmFiYmI5ZmViN2Q4Y2YwY2MifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L234-L261",
+          "version": "repo-lines-v1:sha256:773018fdd5a9b4fbae3cbb5aad7a703ac967f8db754fb8a8efb936f1602d0d23:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxYmVjZWU5MGUxYjYxYzk5YzlhYjA5N2M2ODE2NDg2MzA4MWRiNjk2ZjM1MmU2NDgxYzQxODg4NGY0NmQyN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMDEwNWUwYTY4NTIxYzNkMzMyNjE1MzkwZTg1OWUzOWNmMjQxMjc0YTdkNzgxZDE5NmEzYWRhMDdiMTBmZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0NWU0NmMzNWMwYmRiYjk3ZTZjZTNhNjZmNmEwOTg4ZTYzY2U1YzYwMDBkNGFkMWJhZThlNmY0N2I2ZmIwYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYjNjYzZhODZiOGU2NTE5ZGUwMWE5MTM0YmEyZTQ3MzliNDhjNDVjMTA0ZjkwYmQxYjU0ODA2MmUzYmNiZmYifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L130-L141",
+          "version": "repo-lines-v1:sha256:181e0734d4f209130b690189fd211942031b9a9a2bf032c975f3195d750bad7a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlOWZiNGMxMjk3N2NjMjg5MWEzNWJhYjQ1ZmUyZDcwOGIzZmE2Nzk5MjY4ODNhYTViZGY2NjdkNTNkYjRkYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEyMmJlODM3NjJkNTU0YTliZGM4YTQyNDY1NWRhZWVjYWMxOTAxMjQxNjc2NTAwMzUzYmU3ZDliNzM4ZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5NTk1ODUzMGM3ZGY5MTIzNjkyNGQyNTk1MjgwYmEyZmVmOTkyZTNlYWE5MzAzYzJmZDVmMWM1OTA5ZTM3MWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a194d7d6a8b54dc291e721442452bae8",
+      "statement": "Skill-to-agent routing is the fixed SKILL_AGENT map: extract-artifact-versions -> extraction-agent, recover-trace-links -> tlr-agent, detect-inconsistencies -> inconsistency-agent; the rule table itself is fixed in code (rules.py) while config/orchestrator/rules.yaml only tunes timings, limits and the TLR kind pairs.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L12-L13",
+          "version": "repo-lines-v1:sha256:6b87dcdab281e8c94fabdc5d220cb3746a4ab2a83035ef63f4bebef05ed34458:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGRlZDJhODQ1NWI2ZmUxYTQwMWU2NjY1MzdjOTg5ZDQ2YzVkMTA0MjI1MTgxYWZjOTM4NDg3YjY0OWZiYjA0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDBlOWNmOWNkZTg2MDIxZDE2ZTZiNGZlZTlhYjY4MmM2YWI1MWVjNDU4NWM2NWUzZmEyZTk5MWU1ZDM1ZGZkNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjM4MjYyZWVmY2FmMjEwY2EwMDg0ZTJmOTRmMmI3YWZjODM2OGRlMjBhMjgwNGE0NWY5ZWI5NWE3ZDk3NDU3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFjMmQwYWI2NWNlMTlkZGU3NzZiM2FhMjcxMzNjYzA1YTVlZGU0ZmJiYjMxMTk5ZGIwZDhlOWQyYjIyYWNkNCJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L135-L155",
+          "version": "repo-lines-v1:sha256:af2fe1b43754fbbdc4b998587f18238a7778119ebe628d689ec3bafe863119b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMmI5OWE0YmRlYWQzOTQ5NzkzZmU5MGRiNmE2ZDRiMTFkZGE0NzViNjNhYWJlOTNlMjY5NmMzNDJmMDlkZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NzdmYTYwZjdmMDk3MTkxYWJhNmQyNTUxZTYxYjFhMTIxNDZlMmI2N2ViODUwMDk0MDY3NWIyYjYwOTdmYTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMThjYzg0MmQzYTgzZTMwZmY3M2Q2MWY1NTQwNmE4ODc0MWMxMmU1Y2VkNzE3ZGZhNjFlY2Y0MzNkNmFkNzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlYzQ3ZjgzNGZkMmNkMjZiZDVlNjg2NTA5MWU4NGE1MzZmMTY1MjI5OWE2OWFkYzU1NWQ1ZDg1NWU5ZWNlMGQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py",
+          "version": "repo-file-v1:sha256:bc039f1de922a7ef836986bbef0490578bb3566ac941e241596e623364fe2546"
+        }
+      ]
+    },
+    {
+      "id": "claim_620456e5e2e34ef6b789e70de1e05d96",
+      "statement": "The rule table maps events to steps: ingestion.completed plans extract-artifact-versions on created ∪ reactivated version ids and, if artifacts were deleted, a mergeable detect-inconsistencies scoped to the deleted artifact ids; extraction.completed resolves the changed version ids via a read-only KG lookup, plans recover-trace-links per configured TLR kind pair (changed × counterpart current versions, both directions, with the pair's approaches) and a mergeable detect-inconsistencies on any changed artifact no pair links; tracelinks.updated plans one mergeable detect-inconsistencies on the artifacts of the source and target versions; inconsistencies.updated creates no steps (it closes the workflow) and inconsistency.status.changed is audit-only. Detection scope is always a set of artifact ids, resolved from version ids by KG reads through the Graph protocol (versions/current), the orchestrator's only KG access.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0006-rule-based-orchestration.md#L63-L67",
+          "version": "repo-lines-v1:sha256:b21978e489eee8a149b22cbd9e9e9422ad84eee01adf27d999704ce0b102b8be:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjkwZjhmNGQ3ODMzZWFlYzJiNDRmM2Y2NzFmZjJhZDFkM2NhYzUyM2Q3ZWZmZWUxNjEzYjRiZTEyYWMxNThjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI0OTgxN2Y1ZWEyYzQzMzI4YzJlMmRjYjIyMDg2MmIxMzJhMWVjMTkwNmRmMDViODM3NmY0MmVhODFkMDAzYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L135-L155",
+          "version": "repo-lines-v1:sha256:af2fe1b43754fbbdc4b998587f18238a7778119ebe628d689ec3bafe863119b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMmI5OWE0YmRlYWQzOTQ5NzkzZmU5MGRiNmE2ZDRiMTFkZGE0NzViNjNhYWJlOTNlMjY5NmMzNDJmMDlkZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NzdmYTYwZjdmMDk3MTkxYWJhNmQyNTUxZTYxYjFhMTIxNDZlMmI2N2ViODUwMDk0MDY3NWIyYjYwOTdmYTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMThjYzg0MmQzYTgzZTMwZmY3M2Q2MWY1NTQwNmE4ODc0MWMxMmU1Y2VkNzE3ZGZhNjFlY2Y0MzNkNmFkNzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlYzQ3ZjgzNGZkMmNkMjZiZDVlNjg2NTA5MWU4NGE1MzZmMTY1MjI5OWE2OWFkYzU1NWQ1ZDg1NWU5ZWNlMGQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L80-L132",
+          "version": "repo-lines-v1:sha256:ac15761bf1d053e2c2cb60ce087b828188cefbf287c51a847ac3e24259eab3a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZmZmZGU0YWE4YTUzNjJlZWZkMmJjNmY2ZjIzMzMyZTU1NzA4OGU5ZGUzYWU4N2I1NDMwYTUyMDAxMzQzMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMDliMDUwNDNhMzUyYTQ3MjU2Nzg3OTU3NTk1NGMwZTNlZmJkOTg0MzBlODhiYTI0NzJjZjUwZTdiOWQ4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYzlhOWU3OGU4Y2U1N2M2NzdmMzlkOTM5MmQyNTgxYWQwNDljNDFhM2U0NzFhOTlkYWYyODVhNjY3M2RiOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyOWMxYThkOWZhM2QxODQ2NjE0ZDk1ZDlmMjY1MWU1MmU5YjEzZGM5OGQyOTE1ZGM4ZjRjYWQwOWY3YThmMzQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py#L21-L58",
+          "version": "repo-lines-v1:sha256:f9ac02a5aebe02596821f9dc64d59f422f861b622d558c3f42841c59c0d9bfa6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmYjIxOWQ5M2U4ZGQyMDIyYzFmOTA2YzM0NjA2Y2I1ZWFmMDNkZjc1N2Q1YWYyZTMyNmRmM2E2OGRiMjcxMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1YTJjODlmMTlkM2VhNGVmNjQzMmJhYTc0NDcyZGE2N2FmYThmNjYxMjQwZjIxYTg2OTllNTMwNzUzYTRjYjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYzk1ZDMyNmIxOTJmMGQwNzUwYWQ2YjVkODhhYmFlNGQ2OWI5ZWY3ZTY0YTg1OTliMGI3ZmQ0NjExNGYzZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyYzVlYWFmYzM2YTcwMzUxMjMzZmQyNDA2OGEyM2IzOWM0N2ZhMDJlZjg2NzFkMDBhN2RhMzlhYTBhNDZiZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_81e6ffc9985d48b99edc9fa7ae84332f",
+      "statement": "Mergeable steps (event-triggered recover-trace-links and detect-inconsistencies) are debounced and coalesced: inserted with next_attempt_at = now + debounceSeconds (10 s); a new mergeable spec whose non-id-list members equal those of a PENDING, attempts = 0, same-skill/same-project mergeable step merges into it — id lists present on both sides are unioned and sorted, an id list present on one side only is dropped (absent scope = whole project), the actionKey is recomputed for the merged input and the debounce window restarts — so triggers arriving in the window coalesce into one step. Non-mergeable steps (extract-artifact-versions and every manual step) start as soon as they are due.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L150-L195",
+          "version": "repo-lines-v1:sha256:2bb2bdb8fec5527e1cf4f9c03da5aaeba95537851918850784129fc701f25ec1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiMDEyMTc4Y2MwZTg4M2IyYmM3Yjc3ZTRhNzkxNzRiMzhiOTNhNmIyNTgzM2VhOTkyYjIyOGIwMWFjMmMzMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMDRhMGY0MjljY2JiNWJkNDNmZTNiZjY5MzRmMGRmYWM5MjMwODE1ZWFlZDM3NmIwMzBjNjMzZDY2ZWVmNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1NDI0Yjc1MDEyMGUzNTVmY2NjNmRhZTBjMWI4Njg5OWUxYzZmYWNjZjM1MmE2YzA2YTA3M2ZkOTQ2YmNhNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmN2VkYmEyMmY0Yjc1OTNmZmVlNDU0MGFlYmM4MGJhYzIwY2QzMzFlMjRmNTUwMDlhNDAyYTAxMmFkNmMwYmEifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L158-L168",
+          "version": "repo-lines-v1:sha256:2dccb40678b309714a7da0f95b66e3c3cb6589c9296e138b927ed5519fbe6d42:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NTlmNDMyNDQzYjY4NGU4ZjRkNmJhZDc5OGM3YTUyYTA3YzRiNDZmODVmZWExM2MyNGVkNzQ3YTc5YjQyZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NTI2YWZkNzhlMmJiZGM0N2QwODZmNjliOTdhZjYwZTQ5MjAzZDNjNDlhMTAwMDNmNTQxNzEyODlmOTYxZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYTNhMjZiZjNhZGU0MjI0ZDE2NGEwNTVjNDI1ZGI4NWM1MDUzMjBkZTU4M2VkODAyMDQ0NWFhOWFiOGY5N2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5MjZkOWE0Nzk0ZmRlYWIzNDYxMGQwY2YwMmFmNDRhZTA2NWE5MzY4MmM3NTA1ZTc0MjljZjQyYjMxZjFjZmMifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py#L61-L69",
+          "version": "repo-lines-v1:sha256:b43070f0ec8f262b9cf08da2b4cef3f86a3283046c783278e00ab18cc1672169:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzAzNjY1ZjI2OTQ0MTFiOTAxZjYyN2EzZTgxN2JhMjc3ODA4OGUyY2JjYTdhNzZkNWRkYzA4OWNkMDk1NmRmMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmMzNTRjOGI3ZjcxZTFiMTVmYmFiMzQ1YmU5NzdmNDM0NTZkYzdmMjc2YmNiNGQyMWE3MGIxNTQ4YTA2NTdkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTI3ZTliODgyMmNmMmE5Y2UyNTE0YWNmMjQ4ZDk2NTlkYjhmYzI1ZDcwMjM3NzBkZWU2ZTkyYWNjNGVkNjczNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf33e6a83f484383bf7866882dcbc1d3",
+      "statement": "Steps are deduplicated by actionKey = sha256 of the RFC 8785 canonical JSON of [agent, skill, input, trigger id], where the trigger id is the causing event id (event-triggered) or the manual request id: an existing non-FAILED, non-CANCELED step with the same actionKey is skipped. Because the trigger id is part of the key, only duplicates of the same trigger are suppressed — a later trigger with identical input (e.g. a revert) runs again; manual force = true bypasses the dedup entirely.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0006-rule-based-orchestration.md#L67-L67",
+          "version": "repo-lines-v1:sha256:5b49817f5ea2c43328c2e2dcb220862b132a1ec1906df05b8376f42ea81d003a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI0OTgxN2Y1ZWEyYzQzMzI4YzJlMmRjYjIyMDg2MmIxMzJhMWVjMTkwNmRmMDViODM3NmY0MmVhODFkMDAzYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI0OTgxN2Y1ZWEyYzQzMzI4YzJlMmRjYjIyMDg2MmIxMzJhMWVjMTkwNmRmMDViODM3NmY0MmVhODFkMDAzYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTNiZDM1YjJkNjhiOGZhNzU5NDJhYzkyOWU3MDE1NzM0MmQ5ZGRhNGQwNzRlN2I1NjM0OTkxNTMzYTk1MTM3YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L150-L168",
+          "version": "repo-lines-v1:sha256:d8e13eb158399540aa404c460d4883d1f4f74cba582fbd013ccc0afc8455b6f2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiMDEyMTc4Y2MwZTg4M2IyYmM3Yjc3ZTRhNzkxNzRiMzhiOTNhNmIyNTgzM2VhOTkyYjIyOGIwMWFjMmMzMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkOGE5ZTljMzI1MjgyMGM2NWE4MTY1MjBiOGRiNDkzMjI4MDg0OWVjOGM3ZDJlYjYyNzJhZmRmZWJlMDU5YzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1NDI0Yjc1MDEyMGUzNTVmY2NjNmRhZTBjMWI4Njg5OWUxYzZmYWNjZjM1MmE2YzA2YTA3M2ZkOTQ2YmNhNzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMTVkYjk2ZDk1MGI4NDQ4NDFkYTQ2MTE4ZjE0MWViNmQ0YTU3NGFkZmQzYmQ4MTU3YjVjYWFlNjdjZTMwMzkifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L26-L27",
+          "version": "repo-lines-v1:sha256:639009c2cb2ab2b178a65d7ca8e8303b6162caa86fc6349300d560a7bd5ba9c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODBjN2RjY2Y5NmE2YTUxNzQwYWFjMmIwMGU2MWU2MWNmYjc3N2UyYmU0N2NmOThhZmFkYTc1NjkxM2YxMTc2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IzNjQxOTc5MzlhMzFlZGM4YTljYjkyNWVmODBmMzJmMWFlNTJkYWVlMGU2OTRjMGJlMDAyMzc4ODA3NjllYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjYzYjMxNWNjOTYzZDZlMWEwOTkzOTRiOTlhNTI1OTFmZjdhMWE0OThjYjIwOTYzNWM3MWFkNTRmMTdhYTJlZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFiNDU5NjdiNGM1Nzk0YjNhYTY3MTk5MjE2YjA1ODdiYTg4Y2FiMDBmOTk4OTVjMDk5ZmRhYjRlMTBhYWI3NSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L84-L91",
+          "version": "repo-lines-v1:sha256:07a80724bee9f0ffa2f563a8ce916ba7dc9ca3e55e8b7e152411a3389a4180a3:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmYxZWRhYTQ1MDc3NDBiOGM1ZWU4YWI2MGMwZTM3MzZiODJjNWNkZmM4YzdkNzE1MWVmMTMyNWE2MGE5NDVhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1Y2VhZTVmMDRlYjU3NjI1NzUyNGJhNTAzZmRiYzkxZGM1N2EzYzFhZTA4NjBlYzk1YmJlY2QyZjA0YTFjNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjllMWQ4ZGNhM2MwODg3NjM3YTRiY2ExMmM2NjBmNGVmNjE3OTNiNTBkZDliMmJiMTc0MTE2MTZlNDFmMmVjOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjE4NzJlZmNkZmU2ODY2MWU3MjBkOGRlYWI3YjIxYzcwYmMwZGNhYjI1NzAxM2VhMjE3MmJmOWY0NmUwYzFkYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e08baf10c60e4fb2a403a24d8e71e44e",
+      "statement": "A workflow row is created lazily (only when a step is actually inserted — always for manual triggers, whose row starts as placeholder SUCCEEDED) and follow-up steps of a completed step join that step's existing workflow, so one ingest produces one workflow containing the extract → tlr → detect chain; workflow status is derived, never set directly: all steps PENDING -> PENDING, any PENDING/RUNNING -> RUNNING, else the first of BLOCKED, FAILED, CANCELED present, else SUCCEEDED.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L150-L157",
+          "version": "repo-lines-v1:sha256:dce5cfbab130f63076717a41c23c3b3610d3063876d3baa398a103820ebf04cb:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGIwMTIxNzhjYzBlODgzYjJiYzdiNzdlNGE3OTE3NGIzOGI5M2E2YjI1ODMzZWE5OTJiMjI4YjAxYWMyYzMzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWZmZTI2MzRiNmM4ZmVkYTg0YzFlMjhjZWY1MzRjZDNhODUyNGMyMzBhY2MzNWYyNDJlYjE3ZWM0MTdjMTkyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTU0MjRiNzUwMTIwZTM1NWZjY2M2ZGFlMGMxYjg2ODk5ZTFjNmZhY2NmMzUyYTZjMDZhMDczZmQ5NDZiY2E3NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTkzYjBmZjFhM2UyZGZhMjdjMTRmZTI0NWUxMzE4NWU2Y2E1ZDNmOTBkMzYxYmRmNzRlMTUzMjI4ZjM4ZjhjMyJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L197-L209",
+          "version": "repo-lines-v1:sha256:7a66562177f63d54e3192517d77f16aac9cfc667e139b205579f197d79d95ba7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyMDI3ZjM1ZGQ1MTY3OGY2NmIyYTQ5MjVjNmQxZGZjMDFmNjg4NmI0MTlkY2MyMzAzNWRhMDhjZjYwOGJlMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhZDcxNDVmODE0NGJiM2UyMDU3ZmZmODAyZWE3NzNhNzE0NDY2MDNjODMwMDNiMjEwYzUxZDQ5M2Q4NTBhYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExOTQ2OGRlMDQ1ZTJjMWIwNDE3NTJhNjA5Yzc0ODA5NzgxMmZiODVlMTNjYjEwNGE5MjJlNTM1Zjk5NGUyMmIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L30-L37",
+          "version": "repo-lines-v1:sha256:0968a51995f8684eae8049997139f20b5fd872128aac0f286a59417f2fd4c68a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEwNDRjNDkzNjNhYzRkNTU2ODViNTEwZDlmMzJlN2M2ZWViMTMyMmNhMTNkNGU4MGI1YmI2YzllNjIxYzk0ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODc2ZTFkNzJhZmI5NzI5MTE0N2U5MjZhNTk5MWZlMzIyZTg3NzI4NTk5ZTMxMTJhMmFlZDllODFlMzQ5YzEyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTRmZDdjZTcxYmE4NjM2MjRjNTBiZjU5ODE2NzE4YTFhZTQ3MWY3ODNjOGU0NWQwZmFjMDE4MzhlYmIyMTZjYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWY4NmVhYTZjOTRlZjQ4OWJkYjVjZWFjOWYyOTg3NWExMDE1NzI3NzQyODQ2MmU1ZjA5ZmYzODQzMGRjZTdhMiJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L30-L34",
+          "version": "repo-lines-v1:sha256:bafc9ba24b703cad1d6d59017010ac70f084aa2c62796a5ff69e80f5d419373c:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGMyNjJkMjc5MTY3OTc2MWU2ZWNhY2M0MTk2ZmUxZWIxMzQ1ZTY3YTAyNTBhM2JmOGU0YmRhMmI4NGQzYzgyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWQ2ODEyN2NjMDk5MTZhY2NiY2I4OGVmOTI3M2NhMTZkZDc5OWVjOWYwMTBkZjc4MGQ0YjgwYmNhNGVjMzY5OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzhjMDJlYTczYWY3NzJlNmU1NWRiNzIzMmFkNTliYzhjNGRlMWQyY2MxZGIzZjBjYzJmMjdiNmNhZjE4MTg3OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDNjYTRmNDRiNTgxNzBkMmVmMWU3MmJiZTdhMzQ3ZDJkYzQ3YjBhMDExZDM3MWI2OTIyNDVkMTMyMjU2OWZlNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3623a180da1e4231b6bcc6387a4db58f",
+      "statement": "The executor is a tick loop woken by new steps (asyncio event with a 1 s fallback timeout). Each tick computes the set of projects with a RUNNING step and the per-agent running counts, then starts due PENDING steps in insertion order unless the project is locked, the project has a different retrying step, or the agent is at maxConcurrentPerAgent; it then polls due RUNNING steps. Submits and polls run sequentially, so a hanging agent delays the others by the HTTP timeout (30 s).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L304-L334",
+          "version": "repo-lines-v1:sha256:5821db014af4b75d64f44bd5d80f0dad7eb1f0b1b719a1fcab5e89e6e9cf8c6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMDYxYzg3YmY1Y2M4NDhhNWM5ZTE1YzhlMTFiZjY0Y2YzNjczNjY3ZTFmOTRkMzZlMDM0ZWRjMzQ2ZGZkZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNjU0ZjY3YjNhMzAwMDkzNjE1MjljNDA3ODE4NjM2NzU1YmQxMGI1ZGUyZjEwMzIyZWZlODdjN2I3MzE5ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWU0NGY3NjE2NDZlNjBmZDQ2ZDQwOWRmYTc4MTZmNGY3NGMyMzY4NDBmNWZhYWZmNDhiYmNlYTJhY2Q3ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhYzY5MGQyMDRiYTgzNTQwZmNjZWUyNmMzYWE4ZWFiYTc4N2JjYzkxYTg2MjkwYmEzMTVhZTNlNjA1Y2E2YmIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L336-L348",
+          "version": "repo-lines-v1:sha256:09bf3099c1b6a9f64703b742c2dabd4f975bb15cf9a14d1f0c582f638e348a67:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNWU5ZTA4NGRjNzNlNTk0MDk5YjVkODgyNzkxNTgyYTEyNjNhZTM5YmMyNTUwYmM0MmRiYmViMmEyYjAzZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNjZmNjllM2M0ODI1YTdmY2MxMDk0OWQ3ZWIxNzcyMjlkMmUwODA4NDU0YWRiZDc5YmM4NzRhZTc1MGRhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhNmE1NmUwZWY4ODU4YTcyODhlZjdjNDFjM2VlNWYxZTZiZTg0NmQyNWY3NzgwOTY1NmJiNmYxOTBlYjE3YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTcyN2E5MTljOTFkMWQxYzk2MjE5M2QxYzY5MTg2NjA0MDFjNmRhMjQ5ODg3ZjMzOTZmYTczZTdjODA0ZmQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L374-L411",
+          "version": "repo-lines-v1:sha256:801cd123efa7d59c7e168f178e5b97fc83400cf72f66d98ef9863622acb20dba:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhM2QzNmVkZTEzN2M4NTZjM2U0ZmUyN2IwZTM1OGU0NDI0ZjBmZGY4OWUwMWMwZTNmYjlmN2NlZmM1Y2IyZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzNDYzOWMyODMwNWU1YmZjYjJjNjYxOGM4ZjIwZTRiYWI2ODc5ZjdkYjcxMzRiNjMzNjI0ZTk5Y2U1ZmIwY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ZDBmYWUwMTY4ODUwMGEyYTI3YmUxZTFlZDUyYTA3MzNlYjVlOTU3OTNkMjk2OTFlMDI3NDQyZGY4Njk3NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5ZWM4ZjhiNzZiNmNkOWU1ZjY1MDg2N2U2YTc3M2IzNjE5YWE3MjkxNDM2YTRkY2VhNWU1ZWU4ODExYWEwNmUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L66-L81",
+          "version": "repo-lines-v1:sha256:69a39c980eb363f3b2584836b540ec7af1d2b7498c652b965145bf6d0773bce0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4Mzk4MjUwMzJkNjUzZGI0NGYzN2I4NTYyOGU1ZTJhNTI2ZmMwOTdhNDhlYjcxOWMwOWUwMDg5NTM1NDliYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZmY1Y2U2OTMyNjdhODI4YzE4ZWE0ZWMwYjc4ZDZjN2UwMjY3MTBjY2YxNTU3MjQzZGNkOWFhYTQwNjVhMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmYWIwNGEyMDIzYzVhNzI1ZGI4ZjIyMGUyNDNjNGY1NjkzZmRjNTFmNWJkMDMwNzk4ZDY1OTk2N2Y3MDRhNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNGQ5ZDU1MDRkNzNkODc1YmYzMDUwMjg3N2FmYjI3ZjY5MTVhZGViMTA2YzNkOTMyNGFjODBlMmYzZWRhODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_76c80bd08cf4417d8766d325a4434bc9",
+      "statement": "The per-project pipeline lock holds: at most one step per project is RUNNING at any time, so extract → tlr → detect never overlap; a step waiting for its retry (PENDING with attempts > 0) keeps its project's lock, while other projects run in parallel, and the global per-agent limit (maxConcurrentPerAgent, default 2) applies across all projects.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0006-rule-based-orchestration.md#L65-L65",
+          "version": "repo-lines-v1:sha256:6a8157b60f0b0a8f0ffda9470efc65b3318d62d4aadfb5ba7e386aef4e3ccfd8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE4MTU3YjYwZjBiMGE4ZjBmZmRhOTQ3MGVmYzY1YjMzMThkNjJkNGFhZGZiNWJhN2UzODZhZWY0ZTNjY2ZkOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE4MTU3YjYwZjBiMGE4ZjBmZmRhOTQ3MGVmYzY1YjMzMThkNjJkNGFhZGZiNWJhN2UzODZhZWY0ZTNjY2ZkOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDVmODhlNmIyZjFiYWQ0MmEwMzQyY2RlMDhjNjRjZDM0Njc3NmQyODExOWM1NDZjNTliNTA5YzU0NDlmN2QyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzg4NDcwMmJlMTljZTI0OWMxNTc1MjNjZGFiYThlYzcxNjhmYjZjYmM1ZGU5N2ExN2I0OTY1ZTExYzgwYmJiZSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L304-L334",
+          "version": "repo-lines-v1:sha256:5821db014af4b75d64f44bd5d80f0dad7eb1f0b1b719a1fcab5e89e6e9cf8c6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMDYxYzg3YmY1Y2M4NDhhNWM5ZTE1YzhlMTFiZjY0Y2YzNjczNjY3ZTFmOTRkMzZlMDM0ZWRjMzQ2ZGZkZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNjU0ZjY3YjNhMzAwMDkzNjE1MjljNDA3ODE4NjM2NzU1YmQxMGI1ZGUyZjEwMzIyZWZlODdjN2I3MzE5ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWU0NGY3NjE2NDZlNjBmZDQ2ZDQwOWRmYTc4MTZmNGY3NGMyMzY4NDBmNWZhYWZmNDhiYmNlYTJhY2Q3ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhYzY5MGQyMDRiYTgzNTQwZmNjZWUyNmMzYWE4ZWFiYTc4N2JjYzkxYTg2MjkwYmEzMTVhZTNlNjA1Y2E2YmIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py#L85-L91",
+          "version": "repo-lines-v1:sha256:837862c0c4c9a3b653c92b8fcf699df9c45e1de8c93335f7374862471e409897:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGI2ZmQ2NmVjY2VmNDg1ZGU5M2FiZDA2MjAzOThmYmE0ZDA1YjAzNTU4OWMyMmEyNWUwNWI5YjdkYTExNWM4ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjM5NjI5MDE5ZmQxZDhkMmEyMzhmZmViMTViOGI2ZWY5NDkwMDVkM2UzZjk5YzU4MWE5MmM2Y2E4ZjgwODVkYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjkzODllNzBkYjAzZTgyNTU1MTQ4MjIxNTU5YWU4YmNjZjk5ZjJhM2U1NjhhNTcxMjllMmQ1YmZmYmQyODUzYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c93cc410d55440728c6967d1af7838af",
+      "statement": "Before each attempt the executor stores the A2A messageId: inside one transaction it inserts the messages row (message_id, step_id) and flips the step to RUNNING (attempts + 1, next_poll_at = now + poll.initial) and only then sends SendMessage — so a completion event that arrives before the HTTP response always matches a stored message; the snapshot's task id is persisted after the submit returns.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L336-L372",
+          "version": "repo-lines-v1:sha256:b6db13462a85616061aa4a3a7b05471656ac58b5d304bef5a93c47bc119b302e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNWU5ZTA4NGRjNzNlNTk0MDk5YjVkODgyNzkxNTgyYTEyNjNhZTM5YmMyNTUwYmM0MmRiYmViMmEyYjAzZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOWVhZGUzYTY3NDE4MzA5NWUyZmYyNDI4YjM2ZTMxMGRlY2Q3NGE0OWZhZWMxNDY1ZWE2M2U1YTU4NDJlOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhNmE1NmUwZWY4ODU4YTcyODhlZjdjNDFjM2VlNWYxZTZiZTg0NmQyNWY3NzgwOTY1NmJiNmYxOTBlYjE3YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMTQ2ZjkyMDhjMmMxNjA0ZmRlZmRiODRhNjYxMzRkOTZlMTE5ZDUwODQzMmEwZDJiYjEyOTQ1ZTExZjQwNTQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L19-L34",
+          "version": "repo-lines-v1:sha256:fbe653951c90a38a7a8bb4c33430a9f5572523d17642534cf5e69b5d092f45db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjdmODA5Y2I5YTI4OTY1MjJlNWU5YjM3OGYxZjRjYTlhODRhOGYyMTIzN2I2MmE0NzdjZjAzYTJlZTg5MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNjgxMjdjYzA5OTE2YWNjYmNiODhlZjkyNzNjYTE2ZGQ3OTllYzlmMDEwZGY3ODBkNGI4MGJjYTRlYzM2OTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhN2FlYzhmNzVhMWFjNTc2MTE5Y2UzNjQyYWE3OTEzMzNkNWM4Y2Y2MjZkNTI0MjNkZTM4MWI1MGM1ZmI3YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzY2E0ZjQ0YjU4MTcwZDJlZjFlNzJiYmU3YTM0N2QyZGM0N2IwYTAxMWQzNzFiNjkyMjQ1ZDEzMjI1NjlmZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7078404895344acf9ac893d41f1125ab",
+      "statement": "Steps are marked SUCCEEDED only by their completion event (matched via messages.message_id = event.causationid), with the event payload stored as the step's result_json — GetTask polling never signals success (TASK_STATE_COMPLETED merely schedules the next poll, and the timeout branch excludes it). A completion event for an already-finished step is ignored and its follow-ups suppressed; follow-ups are also suppressed after a completed step of a manual workflow whose type is not 'full' (manual detect/extract/tlr are single-step), while 'full' chains through the normal event rules in the same workflow. Workflow status is recomputed from step statuses after every step change.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0006-rule-based-orchestration.md#L64-L64",
+          "version": "repo-lines-v1:sha256:57428a27bb11aa3d9f2eddc1723a958bc23c00ae03b944415f0a4a1c7ef33dfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc0MjhhMjdiYjExYWEzZDlmMmVkZGMxNzIzYTk1OGJjMjNjMDBhZTAzYjk0NDQxNWYwYTRhMWM3ZWYzM2RmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc0MjhhMjdiYjExYWEzZDlmMmVkZGMxNzIzYTk1OGJjMjNjMDBhZTAzYjk0NDQxNWYwYTRhMWM3ZWYzM2RmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmM0ZTk4MDdiOTRhNGRmYWQ0NzYzYjBhZjM4OGI4ZmZhMWJhMzVkYmFhNGQ3NDE4OTZjMGQ1ZDZkODIzNzdkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE3MjI0OGMxNDFiOTllMTIxNzMxZjcxZjlmNDI5YzI2MzAzNmY2ZmQ1YjI2N2M3ZGNhMzY2NjkwYTM2MTI3NCJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L122-L144",
+          "version": "repo-lines-v1:sha256:7c3a187b1aadb13afab7e5165c27e36b0623a4ae36679f6a0e847e5d56947b89:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMjA1OTIzZTNhMTBkZmZiZDY0MzRiYTk3MTc1MGE1MWQ5MzNiYjQwNDMwZWI3YmJmMTAwNTMzODg2NWQ2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNTI1MjA2NzU0NjQzYzI2YTBhOTlmMDIzM2I0YjY0MWNjZjc3ZDhiYzAyZDJmNGJmY2Q3YmE4Y2VmMWU2NWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzYjBlMTEwOTVhOTAwYzkwNzczZmVjNjBmMjU0ZTFlODgyN2I0YjIxYzNhMmYxMWFhYWU4ZDQ4MTkzNTIyMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhMWVlN2I5NTIyMDQwOWQxZDJjODRmY2VhZGU2ZjViNDQ3MmVmMDdhZGFkMjAwYTQxNTdjZTg5YjhiMzczNzUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L388-L411",
+          "version": "repo-lines-v1:sha256:25ebbf5c6c2d29ff0fab661be9036e5efb5687b2c8657fac84feeb2cf356febf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5MzU2MjU4Y2NiZWZlNGJjZTE5OTJjYmM0MzdlZjlkMTAyNzFmMjM0NjEyZjJiNjMxNTYzYWJiMTc3N2VjZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzNDYzOWMyODMwNWU1YmZjYjJjNjYxOGM4ZjIwZTRiYWI2ODc5ZjdkYjcxMzRiNjMzNjI0ZTk5Y2U1ZmIwY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiY2IwOGY3YTRmM2IwZDFhNGUxNmEyZTJiNDU5OTkyYWU3Nzg5MjM2ZDU4ZDkyMTY1OWIxNTBmOWI3ODAxNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5ZWM4ZjhiNzZiNmNkOWU1ZjY1MDg2N2U2YTc3M2IzNjE5YWE3MjkxNDM2YTRkY2VhNWU1ZWU4ODExYWEwNmUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L19-L29",
+          "version": "repo-lines-v1:sha256:94623b49e3989bbed7df5ddd8348abd7e52a4a1ead45b3657af3bda1cacfcdb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZjdmODA5Y2I5YTI4OTY1MjJlNWU5YjM3OGYxZjRjYTlhODRhOGYyMTIzN2I2MmE0NzdjZjAzYTJlZTg5MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhN2FlYzhmNzVhMWFjNTc2MTE5Y2UzNjQyYWE3OTEzMzNkNWM4Y2Y2MjZkNTI0MjNkZTM4MWI1MGM1ZmI3YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlOWY5ZDRmZTg5MjJjNjZjZWE2MTE0MTQ3ZGQxNDMxNmY1NTMzOGNkMGMxZmI3NTMxNzEwYjllMmUwMjZjZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5a315d83c20e4ddba9250ee7b9c1f907",
+      "statement": "GetTask polling exists only to detect failures: TASK_STATE_FAILED with error code BUDGET_EXCEEDED ends the step BLOCKED (no retry — a user must act); other FAILED states go through the retry decision; TASK_STATE_REJECTED is failed non-retryably; TASK_STATE_CANCELED ends the step CANCELED; TaskNotFoundError (agent restart emptied its in-memory task store, or no a2a_task_id after a crash between storing the attempt and sending) is a retryable TASK_NOT_FOUND; other poll errors are logged and polling continues with an UNKNOWN snapshot. A step not completed within the per-skill timeout gets a best-effort A2A CancelTask and fails with retryable TIMEOUT. The poll interval grows with elapsed attempt time, clamped to [poll.initial, poll.max] (30 s → 2 min).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L374-L386",
+          "version": "repo-lines-v1:sha256:4f827c841b25cfe0aa8f4b1d134d6a8347d1fd00640f94fc5da3a8f5bbd04ac9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhM2QzNmVkZTEzN2M4NTZjM2U0ZmUyN2IwZTM1OGU0NDI0ZjBmZGY4OWUwMWMwZTNmYjlmN2NlZmM1Y2IyZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjOGE0M2RjY2RlYjcwMDQxODY2NTQxYmMxMzEyYWQxMTdhNTg3ODg2ODJlOTUyNGFhOGQxZjQ5MjlhMThiMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ZDBmYWUwMTY4ODUwMGEyYTI3YmUxZTFlZDUyYTA3MzNlYjVlOTU3OTNkMjk2OTFlMDI3NDQyZGY4Njk3NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0MmQzMjI3OTI1ODUyZmE1YmE3ZmMxMWEzMDI2M2ZkMzNhMTM1NmIxYTRiNWU1YjBkMjk3OWRmMDU5N2M4YTIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L388-L446",
+          "version": "repo-lines-v1:sha256:8bcf58f59d4ed4120026eded57f8266d0e6fb5215333d56069ea8990474dc813:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5MzU2MjU4Y2NiZWZlNGJjZTE5OTJjYmM0MzdlZjlkMTAyNzFmMjM0NjEyZjJiNjMxNTYzYWJiMTc3N2VjZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNjZmNjllM2M0ODI1YTdmY2MxMDk0OWQ3ZWIxNzcyMjlkMmUwODA4NDU0YWRiZDc5YmM4NzRhZTc1MGRhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiY2IwOGY3YTRmM2IwZDFhNGUxNmEyZTJiNDU5OTkyYWU3Nzg5MjM2ZDU4ZDkyMTY1OWIxNTBmOWI3ODAxNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzMjgwNWVhYWZlY2JlMjFmMmQxMTMwMTBmM2VkMWYwMjBlODQ3ZGY5OWJlMTU1MzBiNmUzN2MxOTc4Y2RmZDIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L37-L81",
+          "version": "repo-lines-v1:sha256:3635f2f353980289f27c23cd7c3d85c05509c3f710e473155347330e967e6b77:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MGUxZmFlNjc2YzNhMDBkNjJmNDdlNDZhOWQyOWRiYTg1Yzc1NzIxMjZkZmRiNWI4YzZlMzIwNWQxNDRlZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZmY1Y2U2OTMyNjdhODI4YzE4ZWE0ZWMwYjc4ZDZjN2UwMjY3MTBjY2YxNTU3MjQzZGNkOWFhYTQwNjVhMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiNjZmMzFlMmFlNWE4ZDQwYWRjODExOTA2Yjk3M2QyMGUyMDczM2FiNWI4MmJjMjAxOTdmMTVkODAwMzk3M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNGQ5ZDU1MDRkNzNkODc1YmYzMDUwMjg3N2FmYjI3ZjY5MTVhZGViMTA2YzNkOTMyNGFjODBlMmYzZWRhODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d3137b0d14954cffb92bd15ba54b74d0",
+      "statement": "Retries follow rules.yaml: a step is retried only when the failure error is retryable and attempts < retry.maxAttempts (3); the delay is retry.backoff[min(attempts, len(backoff)) - 1] with the default schedule 30s, 2m, 10m, the step returning to PENDING with error_json and next_attempt_at set (the retrying step keeps its project's pipeline lock); non-retryable errors or an exhausted budget end the step FAILED. Per-skill timeouts default to extract-artifact-versions 15m, recover-trace-links 60m, detect-inconsistencies 30m.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml#L5-L6",
+          "version": "repo-lines-v1:sha256:0432a6ba2796e2363b7e5ba54235ffc151fffeeec21f5f68649c7a676ec9d95f:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE2OTI0OWZkMGE1NjUyMjU2NTg4NzU1MWM2MGI1NzcwZWZiMWJiYzI5YmZmYjRjYTNlMWExZmVkNzU3OTgyZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTEyOTk1ZjJlOTcxNWFlNWExMWRkMGI1YTI3ODQzMzhhZjU2MTc2YjY1ZjhjOTllZmMzNTZlODg2NDE1ODJiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOThlNzAzYzU1NmYwNTZiMzI1ZGY0ODMxZDlkMmY1NmVmYTM1ODQxOGZjNDcwNzJhODE0YmE1MDk2Y2UwNTkyNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFlNjYwNjQyMTA3MzQxZWJiODRjMTM4MTY2NDg4YjJjOWZiZTBhNTFiODgyMzQwY2FlYjZjNzBlZDdjZDg1YyJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L419-L437",
+          "version": "repo-lines-v1:sha256:324e7262cf8d93ba5f82541f2c634320bda87b4f11e1be4dfeb4b714f4f830d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkM2YwZThlZTE4YmFlM2JjNDViM2NhZGM1OTVlNDgxNGViZTRhMWM0YTg1NzgwOTkxMDM0NDhiMTY2YzhhOWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNjZmNjllM2M0ODI1YTdmY2MxMDk0OWQ3ZWIxNzcyMjlkMmUwODA4NDU0YWRiZDc5YmM4NzRhZTc1MGRhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MWI5YTRlMDA5ZGEyNDk1ODFhMWFiZGFlMjZjN2YyMmU0MTYyMjhlMTUzNjcyMDFjMWQ1YTFlYTU2YmYwNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMTYyNTE0YjQ2ZGNlNjZhYzlhMjRhYTAzYzZiMjlhMDZkOTM3MzIxZGE1NWRmNmU0OTgwODZiOTM5YWRiOWUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L45-L56",
+          "version": "repo-lines-v1:sha256:ef521d36cab343a19dd0a494f1cb9365f1805fcc416e41b57d744db29c0e91c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZjJhYTgyMDVjZTc4M2ZmOWEzN2U5NTAxMGQ0OTE2YWUyYWI2Yjg3YjExYzgyMTU5NTNkNzhmNTljNzk3MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NTFlOTkzODQ2MGI3ZjI3ZGI3OWJlNWM0ZDI2Mjk2MjgxZWZiOWIxYzM3MTMyMzk0YjM0OTI3NzNjZTIxMjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkYzIyNjFhYzEwOTZhMzQ3ZGRlNGM1NWRhNzRiN2FjZTE4MTg4OTg4MDBlMDdjZmIzNDk1OWI0ZWZlMDAxY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2ZDMwNTA1ZDBkZDExNGIyNTUxMGE3NWM0YzczZTE0ZmY5YzQwZTFmMDQ2ZDcyMjAyZTE5NjA3MTUwOTllZjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_aacb9fe6b1ff4d0497a4b998d819a6d3",
+      "statement": "Manual workflows come from POST /v1/workflows with type full | extract | tlr | detect: detect plans one detect-inconsistencies step ({projectId, **params}), extract and full plan one extract-artifact-versions step over all current version ids (full then chains TLR and detection through the ordinary event rules), and tlr plans one recover-trace-links step per configured kind pair over all current versions of that pair. Every planned input is validated against its $defs entry in contracts/skills.schema.json (schema name derived from the skill id: ExtractArtifactVersionsInput etc.) — a ContractError answers 400 'invalid skill input' with the messages, an empty plan answers 400 'nothing to run'. Manual steps are not mergeable, always create the workflow with trigger {kind: manual, type, actor}, and the actor is forwarded to the agent as A2A sandman.actor metadata.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/orchestrator.yaml#L43-L74",
+          "version": "repo-lines-v1:sha256:60992ecb35ef6aee26f55ee9a4abbc988d57be7f6ef11bb09e09024a9b09e1e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZWFhMjhhODgxZWFjYTE0ZDY5ZGYwZGZhNWVlOTBjNTliNjZmZDI0ODRkYzJmODY4MDgyZDliMzM1MTRjMWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlZGE0N2E2ODNlNDJkNDBlMjljZWU1MjgwNzgzNmUzYTk0N2Y3NWI0ZjVhYjZhYTE2MmYzMmE4NDNlNTZmZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1NDIyNjVkNDBiNzNhODBkZjhlNjk4ZWY2MzUwOGEzNzFkMzUyMDIyZWZjYmM1YmM3ZDFjODYxOTg4YjBkMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMWU5MTM4Zjg3ZjUzMzI4YTFlM2VhZTc2Nzc5MGEwNDQ0ZmIxN2NkYTI4YjZjMjI3MmU3YWQ0OTE0MTY5YzcifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L211-L232",
+          "version": "repo-lines-v1:sha256:c257649741e0ca8c97b195771a426563578c3dd1615d997cbbf4c2ea1e514917:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4OWRhNTVjOWQ1NGQ5MjU1ODlhOTBiY2ZlOWEwOGIyNmY5MTZiOWEwOTRkNzk0NTM3ZGUwY2NjMDdlMThlZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMDRhMGY0MjljY2JiNWJkNDNmZTNiZjY5MzRmMGRmYWM5MjMwODE1ZWFlZDM3NmIwMzBjNjMzZDY2ZWVmNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4MDRhYjRkZmRhZWVmZGVjZjFjNTczNGFiYWMwMjk4ODQ5ZjhiZmU0NmIzMzNhYTRkYTRmNmZhNzk4MDFiYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MDBhMDI2YWQ5ZDdmNzYyOTFkYWYzMTNmZTUyZjg4MWNiM2M1ZTBkZDQyY2I5ZGExYTJmNGRmNDA0YTk2YWEifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L171-L189",
+          "version": "repo-lines-v1:sha256:286fa760913fbcefcd2464ac3d797c6ae0956de6eb3e7b9939f5c533b5e5467c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYjJiNGQ5YjgxZTQ4Y2Q1ZTAwNzA5NzJhMjM3MWRhMWZiMThkOTU3ZjNiNGEyOTNlNzg2YmIxZjE4NjI5OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMDliMDUwNDNhMzUyYTQ3MjU2Nzg3OTU3NTk1NGMwZTNlZmJkOTg0MzBlODhiYTI0NzJjZjUwZTdiOWQ4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiNDY4YWQwYWJkNWRmODYyMGJiOTRiZGZmZTg1ZjQyMTEwZWNkYThhZjc2NGE0ZDVjM2JhMDZiYWE1Zjc3M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rest.py#L47-L82",
+          "version": "repo-lines-v1:sha256:68f4fd37fb5e33ee22a4adf8822fa38449b9282fd240688c455579a41b92cde0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2YTkyMzUyNTZkMTI4MTdlMjlkMWYzN2UxOTc3ZGU2MzRiNDdmMDZlNTQ4NDE3ZTg5ZTg5YTFlNGEyMDQ0OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0OTIyNTJkOWNkYzI0M2IwMGQ1ODIyZDg5MTZlODdiNjlhYWZjNzRhOWNkMmNjMjZhYThhMTllNDE0ZDI0ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4NWJjMmY0MTdhZmZjNWQ4NDQzNWQ4ZmE3NDY3M2RjY2ZkNDMxYzI3YjM0N2YzNjAwNjM1MzYyMTNlYmZiMmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0YWY1NDVhOGFjODI3MWQ2MmZjNTBkZWQwYzVjMWRkODI1MzczZTU3MDIzMmFlYTg2ZTQxMjZlZTYwYzI0MTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_43e09e11821148159788cf01e270501e",
+      "statement": "POST /v1/workflows/{workflowId}/cancel (202) cancels every PENDING and RUNNING step of the workflow (status CANCELED, ended_at set, next_poll_at cleared) and sends an A2A CancelTask for each running step's task (best-effort); an unknown workflow returns 404 and a workflow with no pending or running steps returns 409.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L133-L142",
+          "version": "repo-lines-v1:sha256:f351bb32a1d1dbda8937cbc9d6054a261ca6fab8f062bcb6a0015d125887ff97:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlODU4NzAzNzIxNDg1ZWRhZjI2MTQ4NDk3NjlkNzg3NzZkODQ5NjZlZmE0YzZhY2JkZjFlZWFmOGVhMDBjNDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwZmIzMjA1ZDMzOWI0N2UzYmM4MDhjMTNmN2RjNmM2YTM3OTI5NjZjYTZjZmFkZWI0MGZjNmY5OTBiMzM5ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxY2U3ZDUxY2MwYmZkZTgyMGRlOGQwNGI0ZGI4NzU3Y2IyNGNhMWU4ZmI4M2YzNTdiYWZmOTYzNmI4MmU5MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllNzRlZDEwZDFmZDllZjRkZTYxMzIyMDczNGJlZWYyNTU0NjFjNGY4ZjUwZjA1YzU2MWVjNGU4YTRlNTg5NGIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L263-L281",
+          "version": "repo-lines-v1:sha256:80e3889a645834ccd2cf4c3c0c7e5c03a43a6b6ebf6609ebd606a697b0b798dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4MDQxNTFkNTE5ZWZjNWVhNTA5NDBjNTZlZDA2NzNmZWIyZjIzZTdmYTg5OGVjMmNiMWY4NzFlMDFlNWVmZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiMmJkZTU2NTliZTM3NTZlMzU3Y2JmZmM2MmJkN2YzYmY0Y2MxMTE5MWQyOWEzOTcyN2Y2MGMxOTQ2ZTliNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhNGRkZTI4M2E4ODdiMDJkYTRlMDBhMjQyZjI2MDE2YTdiYjdmODVhOGZmMGNiODViN2NlMDQ5NGFlZTQ4MDgifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py#L94-L100",
+          "version": "repo-lines-v1:sha256:c4437636de026fe06b6158de72cd7610ae01b19e1a0dc9e1526d6a19242a2b34:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODY5ODc1MWNhZGY0ZjI4OWI3N2IyMTU5YTU5NWY4OGFjMmEwNmM3OWNiMjRhZGRhN2I5ZmY2MGYwZjJlMDQ0NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE0NjY1Njk1YjdlYzBjZDVkNTIyYjc3ZDM5MGQ3Y2EwYTdjOTA4Mzc5YjBkYjQ1ZTZjNmExNDY1Y2E0MWUxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmVhZDc0NWNlZDJkMDM1NWJiZDU2YjdlYzQxNjU2ZWNjNGVlOWMyOWMxZWU3YzkxZGI1ZTJkNjI3ZWJjMjAyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTFhMTRkZTk0NTY5YWJiMTEyYzI1ZjAyOTFmNTA2MDA3M2M4NDQ4OTk2NTdkMDNjOTMxMmI2MDc1NDJhY2YyMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1441f837206c4e59ab59a6575d81f420",
+      "statement": "Security on the REST surface has three layers: every /v1 route requires a verified service token (401 unknown, 403 plugin callers); the mutating routes — POST /v1/workflows, POST .../cancel, POST /v1/dead-events/{id}/replay — are additionally restricted to ADMIN_CALLERS = {query-service, dashboard} (403 for any other service); and X-Sandman-Actor is accepted only when the caller is the query-service (403 otherwise), must match ^user:[A-Za-z0-9._@-]+$ (400 otherwise) and defaults to service:<caller>. The query-service is the only user entry point and forwards workflow list/create/get with its own token plus actor/roles headers; responses use the shared problem+json error shape and the OpenAPI workflow/step schemas (workflow ids match ^wf_[0-9a-f]{32}$).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L37-L44",
+          "version": "repo-lines-v1:sha256:94078ee3d118668dd3ad70b8dac2c47bf20e26ae0ce8996c02e0c2439dbd1909:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDllN2JlMDdlNGVhYTk1YTkzYjc1NmNlNjM5ZDRiNzU5N2ZjNjA5NmYyY2UzYmNmNzYxNzQ0ODk0YTkxZjljMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRlMDcwMmZlZTQ5ZGMyNWMzMmJmNjhiNDhiODlmNTdhM2I4MjIzYTEyZTZmZDUzMjIyNTM1M2NmMTg1YTBjOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGI5YWM1ZGQ5YzEzMDE1NDk0ZjFkMDllODFiODliOTc1MzcwYjczOWU5ZGQ1ZjdjYmI1M2RlZjRlMWQ1YWJjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDJlY2YxNTg5NTBjNmYxODg2ZTIwNjM4N2ZhNTMzM2U2N2Q4NTIwMmIxMzUxNjkxYTBiNjQ4NTY4NzYwMWY0ZiJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L79-L156",
+          "version": "repo-lines-v1:sha256:deb3bb5419f7e66b64385eb9c563792bbd8c3093aea400933c5f855fce716fe4:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwOTkyMzFmNDNiMTRiYzE1MzI5NTc5YWQ5MGI4MjE3ODYyMzgwZmQ0YmVjZGE0OTY4YjA5NzE0ZGFhNzJmYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNjdiNDY2Mzc4NzVjM2JiN2Y5MDNiMWRiODczNGI0YTI5NjY4NWRmNGRiZTY2YTRmNmNlZjdmZGM0MTE2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQyMzFmYWJmODAxMGMwMGIyYTRjZDE2NTdjODM3YzVjMDhkNjRkOWY1ZDdmZTMwOGQwNTY3YmE2MmE4MTBjOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiNzQwYjNlZTMwNjY4ODMzNDE4MGE1Y2FiN2M1ZDQ3OWFiZTljY2Q4M2NmN2ZhNjZjYjcyMWZlMTA0Mjg2NGYifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rest.py#L40-L44",
+          "version": "repo-lines-v1:sha256:5a42cef583ff05d6629671fde51118539f3edb3b4f7273c384f3af61fa48ecea:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDBkY2IzNTViYjc2YWMyZWQ4MmQzYjY3YWQ1MjRjYWU2MjQ0NjQyNGVjYjg0MmU3NmQxNWY1ZDkwMDg1MWQ5OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmYwOTJiMWMxNjAyMzc1NDlhZmFhNWYwMDk5OGIzMWY5MzEzMTIxN2M0MWRjY2M4ZjdkMWJhMmU1NGJmMTFkOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjRkODNmMzE1Nzk4MmFjMmUzOGU3OWNkODNkNmMyN2RkM2QzMWY0N2UxYjMyZjU4YjFmOGMwMTI1ODkwZDRjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGNmNWQ1MjhjNDQ1NzFlY2M3ZTQ2NGVjM2IxYWI5OWMwYjhmYzJlOWQ3NGVlNTNhN2FjNDMwMzE1ZTllZGM1ZiJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L249-L259",
+          "version": "repo-lines-v1:sha256:ca12ab68ffabc8d4ec3e42a79a2f0de36d92ec990c99d994f4b09640c88cb227:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0NWY4NGIxYTdmN2I1ZDZhOWMxZGQ4YTQ3Yzk0NjIyMzQyMTA0OWYzMWJhZTc1ZGY5MDAzNDkxNjE3NmVmMzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNzcxM2RhY2E4ZDlmZTFkNDQ5MzRjZWQ0YTgxNTdmZTA3ZjA1MWIyYjg1YzA4N2I5NjIwMTdkOWQ2YzRjZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2ZjA1Y2YxZmJkNWVhNjhjMzQwNDUyMWZkNjk4M2I3ZDg0ZTM5YWY2ODc1ZDVhZGU2MzZmZTQ4OTE4NDFhNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4M2RmZWIxZDQ1NmQ5NmUyMjcyMzEzNzE0ODI3NTNlZmYxYzAyMGE0ZmQzZGU2ZTYyNDdkM2Y0OWEzYzA4ODYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_83908ee6fb9a41b49095ab231dda86ba",
+      "statement": "Read endpoints: GET /v1/workflows returns a page of workflows without steps (projectId/status/limit <= 500/cursor filters, offset-based cursor with nextCursor only on a full page, ordered newest-first); GET /v1/workflows/{id} returns the workflow with its steps (step JSON includes id, agent, skill, status, attempts, actionKey, optional a2aTaskId, input, result, error, startedAt, endedAt); GET /v1/status reports the shared ServiceStatus shape with activeTasks = running steps and the orchestrator-specific details runningWorkflows and pendingSteps; /readyz reports sqlite plus executor and nats task liveness (503 if any check is down).",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/orchestrator.yaml#L104-L139",
+          "version": "repo-lines-v1:sha256:404a9b901754a9268ece2cbcaaff4d25848613f1a35a936d8177530410c555ac:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyZDY5Y2FhZTEwOTA2MTI1YTdmNjg4MWMyNzJmOTA0MGNlNTY2ODMwMTZkNzVlOTQ5M2ZiNzI0ZTZiMGEyNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0MTMxNjZmZDNjZDYxMjZkMzJkZjUxYWFmM2I0OGE1OTNiMzE1MWZkNjg3YjRkMjMzODVmOGFlODc0ZTIyMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYTMxNThhYjNlOTY2NzgwYWJjZDU1YTU4NTkyMTQ3Y2EyZDlkOTJmZDU4Mzk1ZGUxZTM5Y2FhNmUxMDA3N2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYWU1MjliOWY5MjZhMTg2YjNiMTg3MTdiODYzYzg2YmRkMDZiMGNlM2U1ODA0YjcwMGUzOGU1MTJmNDc5MGUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L89-L116",
+          "version": "repo-lines-v1:sha256:4f388d1f36d32f15a81122d9afba34b0f0b8917f9a4c3784a5494e5700ca1ed9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1OWVmNTk2OWQwNzY3MDA4ZTViMDhiNjQ2YWJkZWUyODU4M2M5YjQyNTc0YmRkMGU0YWY0OWFhYWMwNzBiNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2NzI2ZjNhMmUwYTUyMDBjMTFhMTg5N2JiYTdlYzYyNTdmZDMzYzFhN2EzMzExNDUwYzc5ZDU1NDI4ODhmNGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5OTdkODlkNjY0ZWUzMTVhMWU1NTg5ZjZkODYxYzdhNWY5NTE2ZWU4NjQzOGJlNjkwOTUzOGE3N2ZlNTc2YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2NjkzOWZiNjhiZWM5NDgzOTQ2NzQ4NTZhZjE2MTNkZDNiZDYwYmE2YjQ1Y2ZjNDcxMWFmZDQ5NjhmZTFjNmEifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L489-L499",
+          "version": "repo-lines-v1:sha256:751f2860260cff63444817373a4f22fd12aa75c9db6caa2fe014d7a9c38d21fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MjYwNmFmZDEyZGE1NmE1ZTA4YmE5MGZlYThmZTdkMTYwNDQxNzI3MjJmYTc5MDc3NGM0YWU5YzU3MWRhNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkZTg0NGY1YzRhMjEwMGVhOGFjYzIxMTUzZTQ2ZjQ0OTcwMDdkNGVmOTAwN2IwMGRlN2VmZGYyMzg5MTYwMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rest.py#L93-L102",
+          "version": "repo-lines-v1:sha256:ca84756e34e6df5b9765bae661f2df8d97a448224ad5fa8b72ddce9dbd797d23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3MzBkNTZlYjQ4YmFjOGMyN2FiMzI4YzhhOTdjMTljMDg1MDhlNzA4MDI3M2FiNjgwYzhkNWE4MWY1NmJkY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTNkNTNmMTdhZGQwNjYwM2Q3ZGZmYTk5MTMzZDc1MDM0MDRhZGI1YWJiMDE2MDE2ODhjOGJlM2Y1MzBjZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0OTdhMzA5MjBmYjMzZTI5YjExMDMwYWMwZDRlN2U5ZGJjNGJmNTAxY2Q5NTEwNzZlNDVmYjAxNThlNzkxNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c7c5f63917f4f019ce4a536377aeb05",
+      "statement": "config/orchestrator/rules.yaml is loaded by Rules.load from <config_dir>/orchestrator/rules.yaml and carries debounceSeconds (10), maxConcurrentPerAgent (2), per-skill timeouts (extract 15m, tlr 60m, detect 30m), poll.initial/poll.max (30s/2m), retry.maxAttempts (3), retry.backoff (30s, 2m, 10m) and tlr.kindPairs (requirements→code and architecture-doc→architecture-model, each with approaches [stub-name-match]); duration values accept '30s', '2m', '1h' or plain seconds, and the same values are the code defaults when the file omits them. Without any configured kind pair, extraction.completed plans only detection.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L183-L190",
+          "version": "repo-lines-v1:sha256:c7ca0e8b523c8232c9646891e97cd1957fbfaa1ff2bb87f8764aa453c4af6319:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDE1MzA0MTA0OGY2OTQyNGRkMDRjNzRkN2MzN2Q1ZGFlYzM1YjdiMjI4NzQ1NWM2OTNlMTM5NTg5MDQ3Y2ViOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzhmYjUxZGIyYWQzMmU2Y2VkMjJiNzJkM2UwODhkODI1NjY5MTg0NmEyNGM2MmMwNjA2YjQ3OGVhNWQ0Mjg4ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTQ4N2QxZmRmMjc0ZGYzNjI3ZWVkODRmMmY1YTUyNDU4N2RhYjFjOTQ4ZjQyZDkzN2E2MmEwMWQ1ZmZlMDQ4MiJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L27-L61",
+          "version": "repo-lines-v1:sha256:af4c21a8d7a5dcfbbbd52790ce6cdedb44bd52859fdcc27e714a6ffa440173ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNTQ2YmIyMmJkNWYzZmE5YmFkM2EyYzAxNzc2NDlkMjhmYmNhM2RhOTFmMGMzZTBmNjAxNDMxZmI4MDE4YTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_674c693e05a9474e9271e429ac87d89d",
+      "statement": "The orchestrator's tests exercise the real engine against fake A2A agents built from the shared library's serve() whose completion events flow straight into Orchestrator.consume: test_rules.py pins the event → step rule table, coalescing, duplicate-event dedup and the project lock; test_executor.py pins the executor invariants (event-based success, actor forwarding, retry/blocked/timeout/not-found semantics, restart recovery, migration idempotence); test_rest.py validates REST responses against the OpenAPI schemas; test_nats.py runs the durable consumer against a real JetStream (Testcontainers) and asserts a duplicate event id yields one step; the walking-skeleton e2e asserts the three-step pipeline succeeds in order and that an unchanged re-ingestion triggers no workflow.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/tests/fakes.py",
+          "version": "repo-file-v1:sha256:e26e4a8f7a22a89cb7d758e43dd2250fa0268cbf7716b8f931221ce39b6cb525"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py",
+          "version": "repo-file-v1:sha256:00f49baadf19ecc89404f210afa57b3f0d0c0f7e4a32e1371d463c2e5f10ac79"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_nats.py",
+          "version": "repo-file-v1:sha256:74d23637109c1d0faeabe2a733d53c858dbddaaabf119c193060b8e03b3319a2"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rest.py",
+          "version": "repo-file-v1:sha256:02037120d86598a1ef1fd2dc1e73933e0cf31c6cb0013583b0512a755e446664"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py",
+          "version": "repo-file-v1:sha256:bc039f1de922a7ef836986bbef0490578bb3566ac941e241596e623364fe2546"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L143-L222",
+          "version": "repo-lines-v1:sha256:77d6f4b3ec25e0ffd7d92fade78e5bec171fe254f1aff72362e3fe7d7cb3a9ce:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYmMxZGM0NDQzYWZhY2IyZmJlOTc3YTdkY2NiMjMyM2Y2NjBmMjRiYjRlOTM0NTg0OWY0ZmQ1YzM2YTg4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyODY5OGNhZTIxYmFlNTY1MjQwZjlkM2RlZjM3Y2UyOWI1M2VhNzQ5ZDkzYWVmOGVhNTI3NTE5MGM0NzE3YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzlhNWNiYjkxNDFjYWZjNmFkZjUzNjMxMTAyZGM2OGY4ZjI2NzBjNTNiN2I4Y2ZhZmZkZDNlOTUwNmFmNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

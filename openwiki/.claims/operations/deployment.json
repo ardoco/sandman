@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:73bf22884bab1365fdb699ab6fb7d2198fa5f718f99a53751b2806c15c18ec4f",
+  "claims": [
+    {
+      "id": "claim_5cd7b67426e44d68ab915aa18b455f27",
+      "statement": "The default compose profile starts ten services (memgraph, nats, llm-gateway, llm-replay, extraction-agent, tlr-agent, inconsistency-agent, orchestrator, query-service, edge-proxy), each with restart: unless-stopped, and the edge proxy plus the gateway admin UI (127.0.0.1:8081:8080) are the only published ports.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L270-L280",
+          "version": "repo-lines-v1:sha256:d591730dbafa46e69947e45bf5a0b868f76b4798e6bac929383d314fc84f46e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzI0NDBmNGM0MmM1YzAyNjlhMzQ1OWNmZGZkNjFjZGNlZGYwMDkzYTg1Mzk3OTM5MWU4NTNiOTM1ZjM3MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyMjViODY2ZmYwOTBiZWQyYjkxMDE3ZGIxMGIxNGIzYzRlYTI1ZDRhNTFlYzU1MGJiZmJiZTFjOWZhNzMwYjUifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L28-L53",
+          "version": "repo-lines-v1:sha256:e5892e3e4df2c1f4791b78033fca0265ee21dca34cac802f6563b8e8932e08f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNzNmY2NkYzk5ZWE4MzU5NjdjN2RlZTdlZmJlZDFmM2NhODcyNjBkOTI5MzE4NTBmZGQ2NmRhOGNiMTJmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0NzdkNmQ1NjJhZjMzNzg5ZTk2YmFhZWViYzAxYTQyZTljMjBmYjMyZDMxY2IzZjNlOTcxNGRiN2RjMzI0MTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNmQyNWVmN2ZiMTEzZWYxNzU2Y2Y0NmM0N2MzZTJhMzY3YTA1NjhhN2ZkZGMxNTAyM2I0MmRmMmMyOTcyYjAifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L69-L90",
+          "version": "repo-lines-v1:sha256:8f8b76ef70874d70a7415966a5c976b84275c8bc43ffa1836fc4203304aee601:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTY2NzkzNzAzNjM2M2RmMGZmNTAwMDI4YjNiZGMyYTRmNGVmYjU1ZGQzOWI4ZTY4MmE3Mjc0NDFiMTE3N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNjJkMjQwMzA1NzJiZjQwMGQ0M2E1MDY1ODgwOTA0OWM3MDlkNmM3ZWFkYzIxMzQxNjljMDk3ZTNkYjcxZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MTU4NGVlZmVhMmFmOTIzNTFmZmQwNWUyNTI2OTdmMTYyODMwNjJlMWNjMjllOGRlOTEzNjM1ZjllODEyMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8a07c092ed0241d9b294d5e82b82adbf",
+      "statement": "Five optional compose profiles gate non-core services: dashboard (admin overview, image planned for M1), obs (otel-lgtm), local-llm (ollama), stubs (plugin-stubs), resources (cadvisor with privileged read-only host mounts).",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L238-L336",
+          "version": "repo-lines-v1:sha256:8cbd6c18a9dc1fa7402f76cff0ada01487e7d4a366168bdb39b8be14c11e5580:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYWI4NmE2NTIwMDRkYjJmODVjMjFiMTI4ZWFkOGEzZDc0YWYxMGQ4MmVjMDIzODc0ZTQ1OTAyMmEwYzZlNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3YmZkNmUzOGYzMzI2YmJiMDhkNTAyZmI5NTE3NzA2NTcwYzQ3MTY4NzVkYzcxNTUxN2ZjNThlZjZlZGI0ODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eb872e949ada47c0bd526eee1c915efb",
+      "statement": "Network topology enforces egress control: internal is internal:true (no egress, holds all services plus llm-gateway and llm-replay), egress carries only llm-gateway and ollama, llm-local is internal:true with only gateway and ollama, and edge carries only edge-proxy (plus memgraph/nats under the dev overlay).",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L324-L325",
+          "version": "repo-lines-v1:sha256:3a588a5b15a629b2c4ab2d026ae0e509526e441da7b30dc2150bfa6f89519700:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDdlMDdiNTQwMmM5ZTI1NWRhYWMxNDg5MTVjMTU1MjcwYjk0ZGU4NTQ5OTBhMzg0ZjIyMzI3MWYwZDY3YzlhZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxZGI0ZTg3NWViOWE2YWYxNDU1NjMwNTg2MTk2Zjc0MjIyMzEyOGIzNjI1ODAwOTg0OWE2OGY4MDJjY2Y5YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWVhMWU4MDdhMTk1OWE1ZjJiMDUzNWExNWQxYzI3YmE2NjIyN2JhZDMyZTYzYjQzYzJjOTlkMzkwOTYyYTNlNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDlhNjYyOTFkNzczM2JiYmFhMzQxYjljOGE1MTg3NzYzZGMyYjhiZTFhNThhZTIyOThmMGIwNTEzMjc0Y2Q5NSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L345-L351",
+          "version": "repo-lines-v1:sha256:0c5676d11becfe54d34252cada984a740249daabe8cdba1b293ee2a91db48628:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGUxODhlMDVhNzBjYzkwZDdjZTg4ZjMwYzdlYWI0N2NmMzgyMWE1MDljZmQ0NDU0NmU3ZmYyN2Y5YWIwYTg1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJmYjdlOWFkMzM5NjA1OTc4YjdjNmMzOWM1NmI5NTkyOGY4YmM1ZmQ4YTEyMGVkNmI0MGExYzQ0OTMxOTFlMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFjMDIxM2FmNzliMDhhMzYyNTJkYzJhNDdiMDZmNmY4YjA2NmZlMjM3NTQ0ODYwNTBhNGY1YzJlODJlNGU4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzRiM2NlODg5MzZhYWNkZDI0N2MwNzQzMGE4ZGNlMDJmNmIxYjY4YzAyZTk1NzljZDRkNGRmMzQ2NjRiNGE5MSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L80-L81",
+          "version": "repo-lines-v1:sha256:ce0f7acc30677d5d689ab4d633e8afdc525931accf06c7161ce8d6636ddec6a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmU2Yzk1MzQwMjhiYTNhNjQxM2Q0ZTAzNjNjY2ZlNThjMDk1N2JlMTg3MzFlMTJkMTkwN2ZkY2Q5ZGYyMDM1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTczZGVmNTc3OTc5OGJiY2YwYjhlOTNkYWEyMWM4M2MyYTY4Yzk5NTQ1MzY3ZTE4ODJiZjRlZWVlNjIyZGViYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzk1MTNlMWUzMWYwMWE3MzVlY2QzYzQ3NjEzMDEyOWI4MzgyZjM0ZDRkMGE4YzkxNTdlZjM2MDEzOTUzYzFkYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e822399116dc4587ae2345cc5a9126d0",
+      "statement": "The Caddy edge-proxy (128m) joins internal+edge and reverse-proxies three loopback-published ports: 127.0.0.1:8080 to query-service:8000, 127.0.0.1:8090 to dashboard:8000, and 127.0.0.1:3001 to otel-lgtm:3000, with admin and auto_https disabled; it exists because masquerade-based egress blocking failed on Docker Desktop (spike T0.4 check 13).",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L270-L280",
+          "version": "repo-lines-v1:sha256:d591730dbafa46e69947e45bf5a0b868f76b4798e6bac929383d314fc84f46e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzI0NDBmNGM0MmM1YzAyNjlhMzQ1OWNmZGZkNjFjZGNlZGYwMDkzYTg1Mzk3OTM5MWU4NTNiOTM1ZjM3MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyMjViODY2ZmYwOTBiZWQyYjkxMDE3ZGIxMGIxNGIzYzRlYTI1ZDRhNTFlYzU1MGJiZmJiZTFjOWZhNzMwYjUifQ"
+        },
+        {
+          "resource": "repo://deploy/proxy/Caddyfile#L1-L18",
+          "version": "repo-lines-v1:sha256:5bb474b07e5adbaa302b3db4417f7d89d229db1528250513bd61a99f2cb71516:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNjUxNDgzZTc2Y2U0YmYxY2MzOTZjMzE2ZDA4Y2NmMTc3ZDU2ODQxNThhOTIxYzQwZWU3Y2I1MmM0YTA0ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L30-L44",
+          "version": "repo-lines-v1:sha256:a40b6e6f4edd5fde8e2ca8b2cdaf4ed0892a7eecd19e141c1c2bc853b6f3a4b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlOWEzODdhOTEzMDZlOWVhMzk3YTRiMDE5OWQ4NjBlNmQyMWM2ZGExMGYxZDc4ZTFjNjc2NTI5Nzg4ZmYxMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YjU4MDAwNTVjMjg5Mzg0YTU0NTIwZmEzOGY3Yjc5ODRlNTBiZDc4NDI2MWUxZmM4YWNkYWJkNjQ3NTdlMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2NTYxZjc5ZWM3ZjFiNWEyMGI4MDBhYTAwY2E3ODhlYjNhZDFhOWRmNDZhMGQ2ZGMzNTk1MzNkZWJhOTk1ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZTA5YjY3ZGMzOGQzNDBhYjZkM2FmMGMxNjFlZGM3NjgyMDNiYWU1MTFjMTVlZjg5ZTJkNGFjZDU1N2E4YjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b859d24520e42ecbd87d18b839521d0",
+      "statement": "depends_on uses condition: service_healthy: llm-replay waits for a healthy llm-gateway, the three agents share x-depends-core (healthy memgraph, nats, llm-replay), the orchestrator waits for healthy nats plus the three agents, query-service waits for healthy memgraph and orchestrator, and the dashboard deliberately depends only on memgraph and nats so it can show down services.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L107-L108",
+          "version": "repo-lines-v1:sha256:697bdf7524def00c09d203025472309a281e8aba0f4dd921d6bf17e2c4833c68:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmZkZDU1ZWYyYWUzY2E2NzRhNGMzYTU2ZGFiMzRmODkwOGQ3NDA0MzIzZGI1NGVhZGRjNGU0Y2YxODllOGZjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U0Mjk3NzRiYTY0YjBkY2I4OTM2YTlkZTI0NGYzMzA5Y2RmODc4MWM3MWExMTNhODhhNzMwNmY1MTdhZmQ5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTY3ZTlkNDk1YjNiYmViMjc3YThmYzkyY2FhNjIzYmM5ZTQyYjg4ZTZlOTljOWRiN2RiMGU1NTAwNWMxMzE4YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2M2YTgxY2E0NTkwYTFhZmU0ZTI5MWNjNDIyMzdhODBiODhhMDI5ODViZTY0YWJlZTc0NjUyYTAwNDFlNzNiMiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L134-L136",
+          "version": "repo-lines-v1:sha256:fb42f3b137863800acaccaf4e59afc8a97d4c5fb69094c066f04b4eb77e1dd69:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWVmNjA5MzMwZWJlZGVmODYzZDBiNGQwNGFkMTk2OWM5YTJhMjIxYTJmNzU4Zjk5NWRkZjA4M2RlODY4ZjFmOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDc1MTBmMDUzYTUxZGEwMzY3OGE4NWVmYTFkM2QzMzM0NTQ4NzY0MGM2ODhmMWMwMzMyZDAxM2EyMTE5ODQ4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDcwZTI4YWFkZTY0Zjk1YWJhMjMzOWYzNGMxMTk1OWY3MGU3NGM2ZDQ4NThkOTFlZjQ0OGUyMDA3MWI5NmQxZCJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L201-L207",
+          "version": "repo-lines-v1:sha256:78670707e7bb96a9a7fae4bd9a3ec509586c569c30467f150eab68b7e0343a4e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmZkZDU1ZWYyYWUzY2E2NzRhNGMzYTU2ZGFiMzRmODkwOGQ3NDA0MzIzZGI1NGVhZGRjNGU0Y2YxODllOGZjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjAyZmQzZThmZjlkMTcwOWU5OTkyMjVlZjc4N2U1NTg0ZDIyOTViZDg2NmE5MTUxOGQzMjVmZGUxMTVlY2YxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzZkN2RlMGJmMjVjY2U4YWQ4MDc4MjEzYWEwN2VhYzg2OTJlODE3OWQ4MjljODAwMjk1ZjA2NTIyMmZlMTBhYSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L23-L26",
+          "version": "repo-lines-v1:sha256:bfa1672699d3abfadd8c1084211cb75766b970678791f0806ca41be29a135440:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGQzMzdjMTBmZmUwMmVkNmNiZTU4Mzc5ZGJlYjUwZWZjMjYwNThiYzA2MzQ0YzcyYzU3ODRmN2E2NDUzMDliYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAzNDdhZWMxZjg5Yzc1MGVmNjllNzI4ZDBiMTI5ZGQ4MzJjYzBkZmFlZDczODJlMzAyNDU2MDBiMGMyZjZmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmVlZWY4OTRlZTA5NGJlMTY4NTY5NWQ2YTAyODQ2Mzc0NWNhNTUwNjZkYTdjM2Q1YWUxNjE5ODdmMzBmODg4MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTZmYzFmMzViMTRmOTNhNDNhNDg1YTg5OWM3ZGU5NTRkYWY0MzEwOTljYTE5ZTA5NjM3MTllY2E4OGZkMjM5MyJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L232-L236",
+          "version": "repo-lines-v1:sha256:f1f84a73b39e3f2851f0e473dbdd996c097ef402f0c4a6ee4425ec26c80dd0df:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmZkZDU1ZWYyYWUzY2E2NzRhNGMzYTU2ZGFiMzRmODkwOGQ3NDA0MzIzZGI1NGVhZGRjNGU0Y2YxODllOGZjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDM3ZTliYzcwYjY0ZjEzNzI2NDY5ZDlhN2RjNDZhMDU0ZWUyNGExMjU4NTZjMDRjMTM3MmFlYTVlY2RlNTcwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWViODRlODY4MTQ5ODg2YzgwYzhmMGRjNjY2MGU4NTkyYzE0YjY4NDI4NThjZjdhNWJmZjE4ZTNhYjY1N2VhMyJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L264-L266",
+          "version": "repo-lines-v1:sha256:7379cc5a70a59ba62e2107d078c20ae61c8abb546a46041cdaa41ac2805c2f8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmYwNDM1NjYxNjRkMzZhOGUzNTZkMmY5YjUzMmUxODAyY2RhNGMwNTBhMTdhMThmNzU2MWI2MmQ5Y2ExNzViNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjY1MjJhNTIzNWI2NjQ4NzQ3Y2RjNDlkMjA3NTI3YjIzNTE0NGQ0YTlkYjQ4OWU0ZjkwNjE3ZTVkMTMzMTNhZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTNiYWNiOTExNTA3MzVkYmY3N2Q2NjBiY2VhZDUwYTY4MWM0ZTBlMjE5ZjI2YjczZWJiYzFiYWZiOTk3OTcxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjFiNDRhZTRjMDk4MDIwZTc2ZmEyMTY5YTBjM2VlNTRhMzA0MmI1NTBmNDM5ODQ3MTExY2Q5MWY2MjlmZjNhNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_484a841019f64ec5975130d6f092b0f1",
+      "statement": "Every service has an explicit mem_limit sized for a 32 GB host (memgraph 10g, tlr and inconsistency agents 5g each, extraction 3g, gateway and query-service 1g, edge-proxy 128m, ollama none); the two Java agents set JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75 so the heap is a percentage of the mem_limit, and memgraph caps itself at --memory-limit=8192 MiB below its 10g container limit.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L133-L134",
+          "version": "repo-lines-v1:sha256:d20a12f5db61814f1c081f7e16b187189fb6b9e45888ed8157ca07e444d9b7e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDQzNzYxZjVhYzMzNmNkYjA2NmM1Y2QxMzFiY2QyOWM3NmU0MjQxNjkxYWRlMzVjYTRjZGQzYWFkYWM2ODU5ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWVmNjA5MzMwZWJlZGVmODYzZDBiNGQwNGFkMTk2OWM5YTJhMjIxYTJmNzU4Zjk5NWRkZjA4M2RlODY4ZjFmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTMxYmUzMzY5YjUzNGYzNjNjYjcwOGM3ZmNhZThhZWU5MmZkOGQxMzgyY2QyZjdlYmU3OTQ0YTIwYTQ5YjAzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjFiNDRhZTRjMDk4MDIwZTc2ZmEyMTY5YTBjM2VlNTRhMzA0MmI1NTBmNDM5ODQ3MTExY2Q5MWY2MjlmZjNhNiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L146-L153",
+          "version": "repo-lines-v1:sha256:93554bdaaf0d9854e628ffa8ab3c5539223cc2fc8f8957e54aa609f95804f9d5:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTViNmY4MGM0YzFjNzYyNmU0OWQzNDU5ODJhMDhmNDFlYmUyNTFhMDM4OWM2ZjE4ODVkNTZmYTNjYWE3YjZjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGExNmZjMjdmNDUyYTU5M2QxMmI1ZDFlMjAwNmIxZDcwOTIwNTRhYmZkMzIyODliYjNhMTNiMWMwNDliOWRhMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWU0ZGI2ODNiMjI4MjEzMTE5ZDQyMWZhNjFlNWQ0NjlkZWUzYzRkOWIzYjdmM2UyMWI0ODE0NmE2NjNhNzRlMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTRlYjJmYjNmMmFhODFjZWJhMzQxMWViYzExYjViN2U2Zjc5M2JkNTQ2ZDkyOTQ3MTQ2ZDExNGEyOWI5OGUzMiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L172-L180",
+          "version": "repo-lines-v1:sha256:9539be099c3ec741687b259de72ebb77297f166894e33cfb0f634ce50f8d18f1:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTViNmY4MGM0YzFjNzYyNmU0OWQzNDU5ODJhMDhmNDFlYmUyNTFhMDM4OWM2ZjE4ODVkNTZmYTNjYWE3YjZjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGExNmZjMjdmNDUyYTU5M2QxMmI1ZDFlMjAwNmIxZDcwOTIwNTRhYmZkMzIyODliYjNhMTNiMWMwNDliOWRhMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGQyMTdkMTI2NjBhODRmNmNlMjA0NzM1ZjUxMTMwZWYwN2YyZDQ1OTcyYjM1ZDA0ZjQwZDljMDAwNmI0NzhkMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRjN2M4YmEyNDc1MmIwZjkyOWQxNzJlYzFlNjBhYmM5NDg0YmUxY2M5OWE0N2Y5NzZmYTIyNzFiZDhhYWI0NCJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L46-L48",
+          "version": "repo-lines-v1:sha256:48022fb9110ded5dbcd03a5fde8208dfe9d6b0000cb2de9bbfc253db4de9bcdc:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzhkMzBmZTMzODUwY2VhY2QyYjdkYmE3MDkzMGI2OGUwOWI2NzliODBjN2Y4ZGU4YmU1Yjg0YjUyNDJiMTA4ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDcwMmRlNDA1Y2YyMzkyYWRlYWIwYTQyZDRkOTA4MTU1ZDM1MjM4NWRkN2YxN2M2M2E5MjM0N2ZkYjdjZDk0ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2Q2YzBkYmI0NGI4NGRjMjExNzU2OTk0ODBiZDgxMTM1ZThlZDM2YTM5YTUzNzliNGM5OGI4NDRmMDNlNDU5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjQ0NjNiMjIwNTM3ZjRkNDdjYjRhZjI1ODIzNjI3OTY5OTdmZTFmMWFiZTk3OTJkZjhmZTRkZDI1NGUyMjE3YSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L5-L6",
+          "version": "repo-lines-v1:sha256:33ea91455c12823297c9bba25764b960b63cfc84127eae8b4ff156491ceef722:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWU5ZThjYmNjODAxNzE2NGE2MmNlYWFlMzQ3NGJhY2I4ZDA1YTVmZmQ0OTE5M2UzYTQ1ZWJlMDg0ZWUxNGQ5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RkMGIzNTNmMzI0NGMxNWIzMGU1NDVjZjQ2Mjg4NjU4YmQxODI5NWUwZmY0MDJiN2M4ZTU1YWFlYjFkNmVlNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThkNjg1NmUxZjZhNGNjZTcxYmU1NzUxOGQ3YzVjYTE0ODZlYjhmNDljNTE1OWRlOThkNzM0NGYwNWFmYTYzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGZlMDBiMzYyMDhhNjY5MWNiNzNmYzNhNDgxNDVkYjg4ZTBjMDAxMjY3ZTUwMGZiNWY0MWRiMWFiNDY0NmNmZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b7c1293522f5449898fc2d917f946d62",
+      "statement": "gen-secrets.sh is idempotent and non-destructive: write() keeps any existing file (printing keep vs created) and umask 077 protects new ones, so re-running to add a service or plugin never rotates existing credentials.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L6-L17",
+          "version": "repo-lines-v1:sha256:fb43ced5fc3a96cabad9ee100fa39f9b7216df82df7414026371e809418b800b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjNzNlOGMwZjg3ZTRhZWU1NzVhNjBjY2U3OGIyYTBhNjgwYWYxYmE5ODVmYWFjNmY1ZTllNzBlYTJmYTQ4MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkOGFhMmFkY2M3ZmQwMmFmNDhlYzBhZTJmZjIzNzFmODEyYWU4MDkzYTNjM2ZlMWEyMjMyNzdkY2U0NTU1MzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzODdmMzc3ZWY4ODc0Y2YzOGM5ZWFlYTAzNjA0YjkzM2MwMGJiMzVmMjcwMjhlMmRhM2ZjMDYxYzAyOTFmMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNDdiNjYxZTM2MzllZmU2ZGM3NzdjOWFkMzhmYTAwY2Y4MWVmYzRkZDkzNDU2ZWRhZjM0NjI3ZDk3MDBmOTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_19eb9a7487b242ff8ee15bdb3db3e64d",
+      "statement": "svc_tokens_verify.json is regenerated on every run: gen-secrets.sh hashes each service token with sha256 and writes a map where services appear under their own name and plugins under plugin:<id>, which every service mounts at /run/secrets/svc_tokens_verify to verify incoming callers.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L365-L367",
+          "version": "repo-lines-v1:sha256:ebc0b10fd10f058b28793137ef3d656c2771c8eca215b1340384592e57eafb0b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjI2OWU3NTk1Nzk2ZmEwMjExYzJiN2RlODNmY2U4MmYzYWU2MWQ3OTA4NzU1ZTg5ZjE5MjE2YmU5MmQ1MTgyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDc5M2Q2Mzc3ZDY2YmVjY2JiNzMzMDA2M2YzYTBlYzhlN2Y3ODUxZWE4M2RhZWIyNGE0MGM4YzEzMzllMDEwZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGU3ZDE5MmFjMDJhNjBjMGY1MWJkMzRjN2Q1N2JkY2U5ZDA2NmRiMjFlNzQ0MGIzMDBlYzk3Zjk2OWE5MTY1OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGUwNTAwYWFiNDEwZDdjMWM4ZGE3MTE1NTc1YjZhNzdiOWVlZmMzNTg0NTRiMThlODIwNTI1NDZhOTdiNzJkZCJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L50-L61",
+          "version": "repo-lines-v1:sha256:36b9dad059d18ea023ae3961eb84756c4ba1159ca4584a8aa27a00802ba45d62:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NTJmZDkzYzZhNTRkMjhkMDQzZjU5MGM5Y2EwOTMyMTJjODMwZTA5YzljYWRhZjk5M2FiMDU2MWQ2ZWE5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWJhY2Y2NTliYjAxMzRmZTk1OGY0NjMxYjkwMmY0Y2MyNDYxODg1ODMxMDhiODYzMjJiZDJlNmUzNjQ0YTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMDU4Y2UwNWRhZGNkNDc4MGQ4ZmNkOGU1MTZlMjBmNTIwNWUxMTliY2U2YWFlOTUzMDBjNDA0NzJlYzFlNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYWUzZDBmYjc5ZWFkZDI0MTc2MTkzNGFmZGFmMDA1MjkzZmExYmRiNWRmOGYxMWJhNjhiMGRjMTVhOWE3MzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2a2784e507b34212bf74584368813d93",
+      "statement": "LLM keys are generated as a unit on first run: gateway.env (OPENAI_API_KEY and OPENROUTER_API_KEY left empty for the operator, BIFROST_ENCRYPTION_KEY, a policy-compliant BIFROST_ADMIN_PASSWORD mirrored into gateway_admin_password, VK_ORCHESTRATOR, VK_EXPERIMENTS, and per component in LLM_COMPONENTS a cloud VK plus a _local VK) is created together with the per-agent llm_key_* secret files carrying the same values; only the llm-gateway container reads gateway.env, so provider keys never enter agent containers.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L76-L77",
+          "version": "repo-lines-v1:sha256:348ebc59f6c5036fe5637ef20491695766f5a1b68a39c3dab24a54281a28879e:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjhkYWJkNjgwZTcwNDA4ZTQyOGNlMTBjNGMzZmEzYTEzNWFhOWI1MjA0NmZlOGZkNThlMWFiOTc0M2VlYWEwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEzZjRkOTY2MWU5ZDJjM2UxYTI4OWU1ODMyMjk5YmVhMTRjZGI2NGJmODg2NjFkZjcxN2IxMmZhMDJkMDExZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTI5NzE1YzhlOWU5NmFlM2RmMTM1Zjg3NmI5NjdlNjE2OWM2MmUyNDVjYTY0ZmYyZWQ5NWQwN2QwMmVjM2Y2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjFkOWQ2ODM3ODcyOGRmYzBhYWMxMjFkZGJjZWM0YzY5OWQ2YmU0YTExMTBmZWQzZTY5YTMxNmVkYmE3N2U5YSJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L27-L48",
+          "version": "repo-lines-v1:sha256:e7885eb3a42e8d25756ce6c62b3b4bc4b3d42f708d03e6971550d45e6ec3f742:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0ODlmZDdjMWMzMzdmZTIzNDFiNDdhOTIxOGZjZjAwNTgxZWE4ZmJiODNjOTY0MzkyYjBmZWRmYmQwZGIwNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNjJiYTEyZGU4YTViOWMxYmZjODcwNzRhNDg4OTVhMWU4MDRkMTljZmUyZGQzNTkzMmU0MDQ0MjE1OWY2MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzMTk2MjJlOGY0N2Y0NjEyODIzNWUwYTkzYWU4ZDcwMmI2YmU4NjA1ZTM2ZTM4MTc3OTE5NzU0YWEwMGMwNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_084fd0bc07c84b7b953062981c04bac7",
+      "statement": "Each of the six services plus each plugin in PLUGINS gets its own random outbound token (svc_token_<name>), plugins additionally get an inbound token (plugin_in_<id>) for owner-to-plugin calls, and adding a plugin id to PLUGINS and re-running creates the new pair while existing tokens stay untouched.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L11-L13",
+          "version": "repo-lines-v1:sha256:785feeab643e0e0cd33deb9e800830fe8f434a25d72aa6f93f5c6d0ac2a5d43c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWU5ZmViYzhkOWI5MjY0MTI2MGM1ODM1ZGNlM2QxYTVjNzA0NDgyNDBiMDRmYzM1NmYzMjM5NmNhOWFkNWY0YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWRmMmZmYzZkYTZkNGQzODBhYTRlYmRmZjRkYjRlZmExNzdiZDgzOGQ1Mjc3N2E3ZmQ5M2Q4MGM4ZGQ1MWU2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjgzNjU4ZjAwYjhkMjZkNmM4YjQ5MTI1ZmE4MTU1ZGJjOWU0MzAwYTJiNmEwYjMzMjk3YzY3MzlmOGVlYjQ3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWRlNmJlODI5MTM1ZDg1MmRmMDRkMWMzZDZkMTJiZDg5NjU4YTIwN2E5Y2VhNmU1NzViYTdjMDZiZWRmZWJiZCJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L51-L52",
+          "version": "repo-lines-v1:sha256:82448a4914855f8c3be4066b0884186c5cec77892ccdbbabdbfc21050da1733b:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTIxZTk0MGQ1ZDk2NTUyNjUyMzZhNDVlYWFiNzM3NjhmOWRkZWRlMDQ4NGMxYjY0NWJkZjEyNTliY2ZkMWRiNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmM4NzM2MTkyZDg2NzE0OTFhYjFhYjY2ODhiNDIxMWIzMzc5MTNkY2UwNjJlMWM5M2UzZmI5NzliMDFkODViYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmY2OTU0MTY5ZDFlNDQ1NDlkMzJlMGY4MmFlMzg4ODgwNWE0YTQ0ZTgwNmYwNTk3Nzc1ZDQ3MWUxZTg5NmI5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2VhNWFjZTZmMzY1ODJkMzJiMzliNjc3YTdlZDJhNWU3MWEzMjkwODZmNTUzMzdkZjQzZjdmOTMxMTQ3ZmUxMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6a08fef02e0644a99e0de81bd0fe07f9",
+      "statement": "gen-secrets.sh writes admin/session/dashboard secrets (admin_bootstrap_password, e2e_admin_password, session_secret, dashboard_admin_password, dashboard_session_secret) using the same never-overwrite write(), and e2e_admin_password is not mounted by compose — it is read directly from the secrets directory by the e2e suite as the admin's new forced password.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L63-L67",
+          "version": "repo-lines-v1:sha256:a03fabda8ec51ecca26b1239b9896c5607bc83c9f3824425a85a67743c5b0500:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY0MTNlMWJlNDRlM2M3Y2I4MWY1ZWI2YTIxYmM0ZTE4NTUwNzQ0ODhkNzBlMjQ3ZTBiZjQ2ZTg3YWQ4ZjFkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGE2ZWY2YTRmN2E2Y2UwNjI3NzkyZDQ0OTVmOThkNjNkZDVlODI3NjY1NThhZGNjOWZhN2Q5YTM1OGRjN2NmMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5M2Y2OWMyMWExMzI1NjgyMGM5NGY0MzFlODRhMDYyYTEyMmRiZDgyNTk2NTJkYTEzM2IzODcwYzNhMGMwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L1-L8",
+          "version": "repo-lines-v1:sha256:c82e4b25ec570f8ea141e511c3b6fbd5c9b7c890a43fa723668ed6c2b5168eaf:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzA4MDg0NDcwMmEzYTFlMzY4ZjljNWY2NmQyZjkxODMyY2FiY2U1MDYxMTU4OGY0ZWRjYzlhOWM2Y2FhYjMyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWM1MzY0MWZhYWFmMjA5OTMwOWM1NTlkYjJhODg5Y2MxY2VmMGRkM2FhMjUyNjc1MTQyZTkyNGE4ZGJmNGZmNiJ9"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L60-L64",
+          "version": "repo-lines-v1:sha256:05209bac6f01e5de7082a1659c47560630205d602ba4019b6469b40698225838:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUyYWJiOTllZTI2NmM4M2UwOWY5ZGU2NjY5ZjFjMWNhMzZjNzdiODgxMjY1Y2EwNmQ1NWFjZGQyM2MwOWEzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDFiMTZjM2MwMmRjMTc3ODZkYjk0MGRmNWM4ZjE3ZTEwMzQwODhkZmYzNmYzMmM3NmZkNjZkNzc5MzdlYWRlNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGJhMzNkZDY5NWFiMGU5OGQ2MjQyNTRiMDE3ODZlNzdmOTM4MDdiOTdhMzcwZTcyNTU3ZjM1ZGM4ODRkNzU1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDQyZGEyMzYwZDMxZDEwNGJhZTA3MjdhYjlkZmI1Yjk1MGYzZmFjZWRjMjhlYWI0NzhjN2FiOWRhYmM4ZWQ3NCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9b149301ea14c009736c2c8965b4318",
+      "statement": "The Makefile drives the stack: secrets (gen-secrets.sh), infra (compose with the dev overlay up -d memgraph nats llm-gateway), up (compose up -d --build), down/logs, images (compose --profile stubs build), and e2e (secrets, then compose --profile stubs up -d --build --wait --wait-timeout 300, then SANDMAN_E2E=1 uv run pytest tests/e2e -q); backup is a failing placeholder.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L8-L47",
+          "version": "repo-lines-v1:sha256:0d4862c968479268977de3dabdee0e81bb875dfdf7d4c5e7378ce641cb300112:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNzIyZDUyY2M0MzAwZDUyNmEzY2UwZWYwZjRmMzg3ZWNkZjE5MzI0M2QzZWE1ZmVhNjEzNDI2MmM2NzU0M2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YjI4NThmZmMyYTg2MjFiYTc5MjZjYTI3Yzk0ZjJmY2FhNGU3ZWI4ODQ2ZDBlZjUzMWNiYTdjZGEzNDZlZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlMGM0NTBiYzgyZGM3Zjc5ZTRjNWY3ODNjMmM2ZWVjZTMwNDhiNTliMjZlNDk0YzU5YjVkYTJjMTVmZTM1NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYzdjZmRjYTI2NWM0ZTkwYzAzOTU4ZTIyNDc5MzUwMmEyMTc4N2M4YTA2ZmVjZWI0MjQ5NDAwMjgzMDZlMzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fda893c73cce4f90ba20a051b71d4b77",
+      "statement": "docker-compose.dev.yml publishes Memgraph Bolt (127.0.0.1:7687) and NATS client/monitor ports (127.0.0.1:4222, 127.0.0.1:8222) on localhost, attaching memgraph and nats to the edge network because an internal:true network cannot host published ports.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.dev.yml#L1-L9",
+          "version": "repo-lines-v1:sha256:067c2037b12f351bbb477fcd431c15c3472ecc0cb6d2b59359b85a8ccccfd320:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzUwNTEwMTY2MWI3NTFkN2RmYjc5OTk5N2MzNjc0NmUzY2RmZTBlY2I2YzhmMDU3MTZiYzU2MjNiMTIzYjBlZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU2MGIzZGJhNGZkMTllMDg4ZDUwYmIyYzg0MTJkYTQyNjZkZDkyMzFkMTc4MmFmZWZkNmJhYzE2YzBhNzA5YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L345-L351",
+          "version": "repo-lines-v1:sha256:0c5676d11becfe54d34252cada984a740249daabe8cdba1b293ee2a91db48628:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGUxODhlMDVhNzBjYzkwZDdjZTg4ZjMwYzdlYWI0N2NmMzgyMWE1MDljZmQ0NDU0NmU3ZmYyN2Y5YWIwYTg1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJmYjdlOWFkMzM5NjA1OTc4YjdjNmMzOWM1NmI5NTkyOGY4YmM1ZmQ4YTEyMGVkNmI0MGExYzQ0OTMxOTFlMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFjMDIxM2FmNzliMDhhMzYyNTJkYzJhNDdiMDZmNmY4YjA2NmZlMjM3NTQ0ODYwNTBhNGY1YzJlODJlNGU4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzRiM2NlODg5MzZhYWNkZDI0N2MwNzQzMGE4ZGNlMDJmNmIxYjY4YzAyZTk1NzljZDRkNGRmMzQ2NjRiNGE5MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_443d544b2edc4f1aad1ed876adfc7448",
+      "statement": "The e2e walking skeleton exercises the stack through the published edge port (SANDMAN_E2E_URL, default http://127.0.0.1:8080), requires SANDMAN_E2E=1, asserts /readyz answers there first, creates its own project and users, and permanently changes the bootstrap admin password to deploy/secrets/e2e_admin_password.",
+      "evidence": [
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L1-L30",
+          "version": "repo-lines-v1:sha256:fbdb29b244cbeaa9a129de9e18a7b637ca01393d157103517e548db76739938e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwODA4NDQ3MDJhM2ExZTM2OGY5YzVmNjZkMmY5MTgzMmNhYmNlNTA2MTE1ODhmNGVkY2M5YTljNmNhYWIzMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZTkzMDZiMDFkZWRmZDU2NTg1ODBkYjUyNjYxNjNiNmRhNDVhOGE2ZmY1N2VkNzA4N2EyOGY2YmRmMDQ3Y2IifQ"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L136-L140",
+          "version": "repo-lines-v1:sha256:39d83ab105cd0ff60f25ba8223bf2fc01e891e22f8f4e3c7fa020a6da68b60b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjNiMjIyNTM1ZDQzMzJhZWFiM2RhYWU3OTkwMWU3YWEyYjMwNzIzNjU5YTMyM2QyOTU2YTgxNTBjNjM4OGU0YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWE5OTZkNTdiYjc1ZmVkY2E2MjNiNzU0NWJjODBiY2ZmMmQ2ZDBkNGMzMmZlNzg0MGQ2NjA1MjlkNmNiODk3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzQ4NjMzNWZiODgxMzkwMWNjMTZmZDJhMTM0MThiMWMxOTMwMDI0MjNhOTBjN2EzMjc5ZmE3ODBhYzEyZDJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGJmMWQyZjBmZjk5N2JlY2RkMjU0NGM4N2EzZjkyNzQ1NmJjMTRmNDViNjA1NWQ2MDcxZDkyNjYwYWUxOWI4MCJ9"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L71-L95",
+          "version": "repo-lines-v1:sha256:3bf85cee913cf455e58f7a90cfad2e21e81c86bc9bf2589ae376ab6d4dd3de6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NzFmOTI1NGJiNGU5MzVhNTUxNTQ0YjIxYTJkYTk3MmFlZTIxY2U5ZmE2YWZlNTMxNjQ1YmIwNTdlOTI4MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMTljZjE1YTIyNDM2YjEzNDY2M2QwMzg2Y2M0YmM3ZmZlY2ViM2IwNjI3NWJhYjVjMTU0YjRiNTc3NzRkMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwYmFhYWY5N2ViYTY0NGYzOWRhZjM4MDVkNDUyM2Q2YzU4MmJhZjU5YmYwZDNhZDAxMDZmZTU3NGYxNmY5MTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_05aa9962558846caa0ad46b77c51cdf7",
+      "statement": "Bifrost (maximhq/bifrost:v2.2.6) starts healthy with empty provider keys and enforces auth on inference with the read-only config.json mounted at /app/data/config.json, which is why the walking skeleton needs no LLM account; its admin UI/request log is published at 127.0.0.1:8081.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L69-L83",
+          "version": "repo-lines-v1:sha256:f31cc58ccfff937ab3906a63777c8bb306a4c48968055b2cc320861dd39502ac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTY2NzkzNzAzNjM2M2RmMGZmNTAwMDI4YjNiZGMyYTRmNGVmYjU1ZGQzOWI4ZTY4MmE3Mjc0NDFiMTE3N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZjc1MjdlOWU4NTE4Mjg4MDA2NDA5YjQ0MWVjMmE2YWQ1YzNkNmZjMjFhMDMzZTY3YWM2ZGUyODAzZDMzOGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNjJkMjQwMzA1NzJiZjQwMGQ0M2E1MDY1ODgwOTA0OWM3MDlkNmM3ZWFkYzIxMzQxNjljMDk3ZTNkYjcxZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzYTRhOTM1ZGY1ODZkOTFmODUwOTEyYzJhNzE3MDQ2NmQwNDkxY2NjYjI2YWVkMTY4OGEzNjQ0ZmRkOWM2NTQifQ"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L1-L20",
+          "version": "repo-lines-v1:sha256:80b9fac1e55477dbb64baf516e86596682bf79d721206473989a0f0f8fee5558:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNWNkMmZiNGYzZGY4ODQ1MTUyNTViMzk1MjNmMmY4YjU0NzJiZWVhOWY1NjZmZmNhMjA0ZGI4MDI1NjEwNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyMDc5MTRjZGQ2YzBmZWIyMmYzNjQzMDQwMjc3ZTJjZWRjNTMyZDcyMzMzNzAyZTMzNTNmNDdhM2Y1MGY1ZTEifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L15-L35",
+          "version": "repo-lines-v1:sha256:e60ff7ad3e0824f1fe672ba1d2c2201204914ca9ae478579eea2e2d2f15ac3fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyMDQ5N2FiZDgxNzY2ZjIxMDM0NjE0NzQ1NzQ4ZWViMWIyZWQyY2U0MWY1MDJmNGNjYWMzMWZjNzdjMzJlY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NzU2MjNiNTg2N2I0YWRhMDQ4MmMzOWRkOTdjZTFiM2IyMzhiNjRjMDQ2NTZiNTFhNzZlOWYxMGU2MjdkNWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlYzNhNDZjYjk4NmJiOGZkZWRlOWVjZWJmZWY4NTExZWM0NzZjNjcwNDdhZmE4MzQ4ZjQxMGQzZDBmOGJhOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEyYjVhN2ZmMTg5NzAwODc2YjI5ZjFhN2Y2NTU0MGI4MjlhYjRiYWNlZjcxNzViZjI5ODlhZTk3YmE3MDgzZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a89a317a5f741cdb9faf50f246244ec",
+      "statement": "Plugged-in services are external systems added via docker-compose.override.yml next to the reference file — pinned digest image, read-only artifact-store mount, svc_token_<id> and plugin_in_<id> secrets (name added to PLUGINS in gen-secrets.sh), internal network only, with LLM calls only via llm-replay using the plugin's own virtual keys.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L338-L343",
+          "version": "repo-lines-v1:sha256:705e2fbf99007b8d4d46f312773c6022d27e704b0295f6c96ca2abe5f61cbb7f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzkxM2U0MjFjOTRmZDI2NjEwOWI3N2JjY2JlM2EyNzMxMWYyOGE4Y2Q2NmY5NjM1MWI0ZTQ2ZDQ3YmY2N2MzNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1OWU2YzE5NmVkYWU1YjM5NzQyYmNmNjcyOWU2YjEyZDFhZmJhMmZiY2U1NzJjMTEyMDRmMWQ5OWY2YTEwNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzk4MzlhMWMyZGI1Y2IwNTM3YTQyYzY5YjU5MjhlMDcxMGI1OTJjZjMzYzVlNWMxODBmZDZmMzVlYzUyMzBlMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmRiYTYwNWQxMWY0MDE1NDI5MzRmOWNiNTY0ZWQwMTlmOTQzOTQ3ZjFkZGU1ZTYwMjVkNmNkYTM2OGIxZjk0OCJ9"
+        },
+        {
+          "resource": "repo://docs/plugins.md#L38-L49",
+          "version": "repo-lines-v1:sha256:2ac2bafb2cc438b049065c2e60dfc98184ab52aaf6581be9f51e5f91f5aaf128:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NjhmNDBlYmY5MTEzMzFkZThmYzA4Yzc3Yzk4NzQyNThjMmVjNzZjNTY2MTQ1OTBkNjhlMTIzNTBjYmI4ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjM2VkMmIwOGE5MTVjOGJjZjJmYjA5NDEyN2MyYWNiM2UwNmFkZjYwZmEyN2QzYTkxYTNhNDdmMDUyZDBkZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4MWI2YWExYTkyMzdmMWY2MGYxYzEyMGFhNGVkODcwZjM1NTg4NWJjZDMxMTgwMGFiOTU1OTM3ZGMxZmFlMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2ZGNmYTk4ODcwODliOWYxZTZmMWVhZDY1N2ZmODQ5N2U1ZmI2YWQyZTJiYWZiNjc2NTY0YmI2ZjhmM2NlMjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9303a82099624f03bce2cc7adc9308e2",
+      "statement": "OpenTelemetry is opt-in per deployment: OTEL_SDK_DISABLED defaults to true in the shared agent environment, and profile obs only becomes effective when the .env sets OTEL_SDK_DISABLED=false and OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/.env.example#L9-L11",
+          "version": "repo-lines-v1:sha256:828de4b458426a771ff2541da25881a3b2f47e0b43d36df492cc53191fb232c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTNiZWJmYTI2MzUzYmE4OGJlMTBhYzNiNWI1MTczY2NhOTllM2Y1MmUxNTA3YmI1MDBkN2EwM2FmYzU4ZjNiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGRiNjk4ZWVhNmYwM2Q0MjYxNmY2ZDFkMTc0MWI4MzY0MDliNmNhNmRhOWJiMjAwZjg5ZDJjMDg0MGNiMmEyNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjJhMTgxYmI1MDQ0NjVmM2I3ODdiNWYxMzQzMzlmNTc4N2QwMjQ1ZjEwZjE3ODg1OTA2ODY0NzU4NDBmZTNiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L19-L21",
+          "version": "repo-lines-v1:sha256:74b9025f5fb410a1b325b3bf9072aeb4847028c213ee42d1b196b08e7c382464:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA0Yjc1MzE2NGQzYzg1MjkwMjc4M2YzY2U2MzZjOTVjNjc0YTNlYWYyMzAxNzViNDI2NGZjOTFkNzY4MDczOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU5ZGE0NTg0ZTEwMDQxZWQ0MTI0Mzk4YjVmMDM1Njc3ZDc1NGEyYTY1NDIxYmYzMjEzZjI0OWEyMGMxNDA3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZhNmM4ZTk3NTg5NWU4NjI2OTY3ZTM1ZWNmOGRlN2VlOGQzNzE1ZTZmZmQ5ZTczNTg3YWZiY2ZiYTYyY2FhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzcyYThiOGNkN2RmNTkxNTMwMmFhMzEwYTc1YTdiM2ZjN2E3YTU2MmQxZGM1MGFmZDhlODQzNDc5MGRkODViMSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L310-L317",
+          "version": "repo-lines-v1:sha256:c8e5060a7872a2b850286527eabbee3d4059d37bbb6ae4d4cd5fbb03d2e23004:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE1ZjdlOWJlNWY0OWI2ZTUwNTc1MDhiZTI3OTdiNDg3N2Y2ODk2NzIwMzRhYjc2MzI2MjE2NWI1MzEwOGVlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDk0MTVhNGIxMTg3NzA0YjIwOTJkZmMwOTE1YWIyOTRmMWI5ZDk2YjQyYzcwN2QwNDRkMTNlZDlhNjZhYTE0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjQ5MTk3OWVhNjljNjdiOGQzN2RhZWJlM2ZlMGJlOWIyMTg5MzM3MjkzYTVhMDE0MjkwNDcwYTMzZDhjY2RjNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_522543f529bb43eea8553c0d54540dfe",
+      "statement": "The CI compose job copies deploy/ to a temp dir, runs gen-secrets.sh there, validates docker compose config -q with no profiles, with --profile stubs --profile obs --profile local-llm, and with the dev overlay, then boots the stack like make e2e (--profile stubs up -d --build --wait --wait-timeout 300) and always tears down with down -v; a separate e2e job runs make e2e nightly and on compose-relevant changes.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L104-L146",
+          "version": "repo-lines-v1:sha256:72a5b27bf6ecc7f9e1786f7213df3a3ec889ab9b4f42cc8cc3b958f1ed7270b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxODc1ZjU2MTY3YjE0YWNjMjJmMmUzZTk1MjZlYTMzMDk5Mzg5N2JjNTNlOWE5NGRkOTNlNTM3NzIzMWNmZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0YjgyN2ZhZDlhYjYwM2E0YmI5NTUzMzUxNmI3NWQ2YWE4ZDlmMjI2MjFmNTkxMmVkMWI4MzRjZWQ1NzllMWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMWJjMmNhNTZkNmE2OTdlOTE0ODBkZWM2YWZhNjgxYmI0MzU3MjJkMTBlMGVjNWNkMmI0OGJjZWQ1ZjFkZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fe435eae0e6640c3a98ab37965e5dcf7",
+      "statement": "Memgraph runs with tuned flags in the reference stack — telemetry and allow-load-csv disabled, schema-info enabled, 300s query-execution timeout and storage-snapshot interval, stderr logging — with credentials from deploy/secrets/memgraph.env and persistent data/log volumes.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L30-L53",
+          "version": "repo-lines-v1:sha256:5d35d4cfed77d53916851f4d8242e021d7a1daa992ff29e0218a5b59a2fb9257:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiNzhkYWFlYjBhZTEyZTc1MTQ0MzUzYTBlYTJiNTgyZjRhNDYzZGM4MDcxZWRhOWVlMWRkMGM1MDdkZDIxNjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2ZmMxZjM1YjE0ZjkzYTQzYTQ4NWE4OTljN2RlOTU0ZGFmNDMxMDk5Y2ExOWUwOTYzNzE5ZWNhODhmZDIzOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNmQyNWVmN2ZiMTEzZWYxNzU2Y2Y0NmM0N2MzZTJhMzY3YTA1NjhhN2ZkZGMxNTAyM2I0MmRmMmMyOTcyYjAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

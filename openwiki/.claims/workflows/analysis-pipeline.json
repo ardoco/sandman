@@ -1,0 +1,352 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:444c026bed1f5c72c8294906255bef5d122bb38f7ce886b7801c3d6553d60b12",
+  "claims": [
+    {
+      "id": "claim_1395441854b84707a07bee80606e15f7",
+      "statement": "The orchestrator's fixed rule table maps events to steps: sandman.ingestion.completed plans extract-artifact-versions on createdVersionIds union reactivatedVersionIds plus, whenever deletedArtifactIds is non-empty (deletion-only or mixed ingestions), a mergeable detect-inconsistencies scoped to the deleted artifacts; sandman.extraction.completed plans recover-trace-links for each configured kind pair over changed x counterpart current versions in both directions (with the pair's approaches) plus a mergeable detect on artifacts of changed versions no pair covers; sandman.tracelinks.updated plans one mergeable detect on the artifacts of the source and target versions (resolved by a read-only KG query); sandman.inconsistencies.updated and sandman.inconsistency.status.changed plan nothing (workflow end / audit only).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L117-L132",
+          "version": "repo-lines-v1:sha256:aef084af0528a3dfb0bb5404311329060c94067dabbb94f8abd2b06308e5b067:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmOWQ1N2JjNjU2YjFmODNjMzQyMDE1OWY2MDczMjM3YzZiYTFkMjk0MmZiZTQ2MmJmNjg4MTI5NWZhZWM1OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMDliMDUwNDNhMzUyYTQ3MjU2Nzg3OTU3NTk1NGMwZTNlZmJkOTg0MzBlODhiYTI0NzJjZjUwZTdiOWQ4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMmE2OGVmNjk2ZjlmNDgzNWFkNzEwMDkzM2Y1ZDA0Y2MwNjI2YzJhMmYxY2Q0YjVmZTQ4OWMyZmFjODk0MjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyOWMxYThkOWZhM2QxODQ2NjE0ZDk1ZDlmMjY1MWU1MmU5YjEzZGM5OGQyOTE1ZGM4ZjRjYWQwOWY3YThmMzQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L12-L14",
+          "version": "repo-lines-v1:sha256:654ba141eef09cfef233e8ac5710acd22179b4b428fc403f2f25be575e3b9ce1:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGRlZDJhODQ1NWI2ZmUxYTQwMWU2NjY1MzdjOTg5ZDQ2YzVkMTA0MjI1MTgxYWZjOTM4NDg3YjY0OWZiYjA0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYwYWIyMWY4YjMxMTA0YTY0NTVhNjEzZTgyYmEzZTYxM2FiM2ZlN2E2OWNkZTk2ODU3NjVhMjFhMDlkODcwZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjM4MjYyZWVmY2FmMjEwY2EwMDg0ZTJmOTRmMmI3YWZjODM2OGRlMjBhMjgwNGE0NWY5ZWI5NWE3ZDk3NDU3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjRlMDEzNmQ5ZTgxMTJiZjk5NWZmMmRmYmIyNTg0ZGQ1ZmJjOGY5YzBkYmE1NjJkOGVkMjA0OGFkYmMwZGJmMSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L135-L155",
+          "version": "repo-lines-v1:sha256:af2fe1b43754fbbdc4b998587f18238a7778119ebe628d689ec3bafe863119b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMmI5OWE0YmRlYWQzOTQ5NzkzZmU5MGRiNmE2ZDRiMTFkZGE0NzViNjNhYWJlOTNlMjY5NmMzNDJmMDlkZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4NzdmYTYwZjdmMDk3MTkxYWJhNmQyNTUxZTYxYjFhMTIxNDZlMmI2N2ViODUwMDk0MDY3NWIyYjYwOTdmYTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMThjYzg0MmQzYTgzZTMwZmY3M2Q2MWY1NTQwNmE4ODc0MWMxMmU1Y2VkNzE3ZGZhNjFlY2Y0MzNkNmFkNzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlYzQ3ZjgzNGZkMmNkMjZiZDVlNjg2NTA5MWU4NGE1MzZmMTY1MjI5OWE2OWFkYzU1NWQ1ZDg1NWU5ZWNlMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04cb9377be424444a05a00bb9541a2ed",
+      "statement": "Detection scope is always a set of artifact ids, not version ids: the orchestrator resolves version ids to artifacts with a read-only Graph protocol (versions, current) implemented by KgGraph over KG read transactions — its only knowledge-graph access; detection re-checks whole artifacts even though events list version ids.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L113-L114",
+          "version": "repo-lines-v1:sha256:9a6d7de1f9cff87a9046f65805fafeccd01c53ad08535e2c5189eed01adb8159:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJjYjRmYmRiMzg4ZjhjZGQ4MDkyODY1NzkwZjNhODBkZDQ3NDUzYWI1NzMxMTA3MzhlZDg1M2ZjNDY2NTE5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2VkY2E2ODQ3NWFjZTVhMzQzNzc3NzczNWJkOWJjY2IwNTNjNDMzNGI2ZDJmZDE3Y2MyNTg1YzZjM2Q3NWU2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2JhNjI5Y2ZmNTZlODc3M2I0MzEyNTgxNzA5MjU5MDZkMDQyYTYxMjM0MDVlZjgyYWQxMDAyYWQxNWZmYWEwMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjkzMDE5NzYxMzFhNmJlOWM0ZTQ3ZjhkOGVmZjAxMGVlYTgxY2U3MmY3MzJiMTZjZGJkOWI5NDQ1ZTkwYTY2ZiJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L80-L106",
+          "version": "repo-lines-v1:sha256:d92ac137347ac00a3b39a46c24d047a568be8990896c810300049d38687e352b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZmZmZGU0YWE4YTUzNjJlZWZkMmJjNmY2ZjIzMzMyZTU1NzA4OGU5ZGUzYWU4N2I1NDMwYTUyMDAxMzQzMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlN2FhNzI1YTBmZThhYjMyZmNhODFlNmYwYzIwODI4ZTY2ZGRkMGIwZmE5NGQ0NmM4M2I0NGExODZjNmFjNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYzlhOWU3OGU4Y2U1N2M2NzdmMzlkOTM5MmQyNTgxYWQwNDljNDFhM2U0NzFhOTlkYWYyODVhNjY3M2RiOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzMDA4OGRiOTJhZjE2MGVmZTZiOGM4NjUwYjg2OTQyOTU5YTIwMTQ2YWQ1MjE2MWY4ZWE3NWM1NWY5MzcxYmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8e75caf749ad4e84a7fd7b5e7757c7aa",
+      "statement": "Pipeline steps complete on their completion event, never on A2A polling: each agent skill publishes exactly one completion event with causationid = the A2A request messageId after output validation and before task completion; the orchestrator stores the messageId in SQLite before SendMessage, marks the matching step SUCCEEDED with the event payload as result_json, appends the planned follow-up steps to the same workflow, and uses GetTask polling only to detect failures, rejections, cancellation and timeouts.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L215-L232",
+          "version": "repo-lines-v1:sha256:229fe66d27feabf3d942c46b51cf512b872b99920501fb7eea83e2afd6e239f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5YzdlOTdmMDI4MDkzZTdhNDUyN2RlNjY3NTlmZTYwZWZlNzY0N2ZiNmY2MDI5ZTdmMWIxMTI4ZDgwYTdkMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMDQyODljZjk1NTFiOTc5YmZlMDI4NDVkNDAyNjRjODgwYzExYmExZThkZDM4YzI2NWU5ZjBiOWUyZjliYmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3MDJhZjQ3MWZmZjc3YzQ3OGVjNzBlNzdkYTk4MWJmYWRkNWZmMmJjYjQzNzJiN2JhMDA0YTc1MTlkM2U1MDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzN2JiNjUzMTZkZjg3MDA4MDI2MTc0OGIzMmM1YjBmNjIxMDAyZjM2MjM5YzNhYTQyZDZkODNhODRkZDk1ZDUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L122-L144",
+          "version": "repo-lines-v1:sha256:7c3a187b1aadb13afab7e5165c27e36b0623a4ae36679f6a0e847e5d56947b89:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMjA1OTIzZTNhMTBkZmZiZDY0MzRiYTk3MTc1MGE1MWQ5MzNiYjQwNDMwZWI3YmJmMTAwNTMzODg2NWQ2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNTI1MjA2NzU0NjQzYzI2YTBhOTlmMDIzM2I0YjY0MWNjZjc3ZDhiYzAyZDJmNGJmY2Q3YmE4Y2VmMWU2NWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzYjBlMTEwOTVhOTAwYzkwNzczZmVjNjBmMjU0ZTFlODgyN2I0YjIxYzNhMmYxMWFhYWU4ZDQ4MTkzNTIyMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhMWVlN2I5NTIyMDQwOWQxZDJjODRmY2VhZGU2ZjViNDQ3MmVmMDdhZGFkMjAwYTQxNTdjZTg5YjhiMzczNzUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L336-L348",
+          "version": "repo-lines-v1:sha256:09bf3099c1b6a9f64703b742c2dabd4f975bb15cf9a14d1f0c582f638e348a67:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNWU5ZTA4NGRjNzNlNTk0MDk5YjVkODgyNzkxNTgyYTEyNjNhZTM5YmMyNTUwYmM0MmRiYmViMmEyYjAzZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNjZmNjllM2M0ODI1YTdmY2MxMDk0OWQ3ZWIxNzcyMjlkMmUwODA4NDU0YWRiZDc5YmM4NzRhZTc1MGRhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhNmE1NmUwZWY4ODU4YTcyODhlZjdjNDFjM2VlNWYxZTZiZTg0NmQyNWY3NzgwOTY1NmJiNmYxOTBlYjE3YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5MTcyN2E5MTljOTFkMWQxYzk2MjE5M2QxYzY5MTg2NjA0MDFjNmRhMjQ5ODg3ZjMzOTZmYTczZTdjODA0ZmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cbdb593aa52e4c5dbfa5997686edd534",
+      "statement": "Late or duplicate completion events are inert: a completion event whose causationid matches a step that is no longer PENDING/RUNNING is logged and all its follow-ups are suppressed (a redelivered extraction.completed must not re-plan TLR and detection); one that matches no stored message is planned as a fresh event into a new workflow; manual workflows of type extract, tlr or detect are single-step by design (their completion suppresses follow-ups), only manual full chains through the ordinary event rules.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L122-L144",
+          "version": "repo-lines-v1:sha256:7c3a187b1aadb13afab7e5165c27e36b0623a4ae36679f6a0e847e5d56947b89:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMjA1OTIzZTNhMTBkZmZiZDY0MzRiYTk3MTc1MGE1MWQ5MzNiYjQwNDMwZWI3YmJmMTAwNTMzODg2NWQ2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNTI1MjA2NzU0NjQzYzI2YTBhOTlmMDIzM2I0YjY0MWNjZjc3ZDhiYzAyZDJmNGJmY2Q3YmE4Y2VmMWU2NWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzYjBlMTEwOTVhOTAwYzkwNzczZmVjNjBmMjU0ZTFlODgyN2I0YjIxYzNhMmYxMWFhYWU4ZDQ4MTkzNTIyMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhMWVlN2I5NTIyMDQwOWQxZDJjODRmY2VhZGU2ZjViNDQ3MmVmMDdhZGFkMjAwYTQxNTdjZTg5YjhiMzczNzUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L97-L120",
+          "version": "repo-lines-v1:sha256:17d4ef6b005e9a1dd0adfb219451436b7e5bc0733879942981a8eee4be345e96:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzZTk4NDFkOWU4NjYwMWU2MDEyOTZkYTE2OWRlZTIzMmZjNWY4YTQxM2VkMWM4OGI0ZDMwZDIxMmIxNmJkOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZDUyNGRkYTJkOTBhNDk0YzBkYzg0ZDUxYWZlMDc2ZTg0ZDEzZTYzZDQ1MjUwOGY5OWI3N2JlMzEyOTc4MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxY2ViNzFiZWE4NjI0NzRiY2YzZTg2NmM3NTBkYWM4NzFmYjcyNzU4MjVmYzhlMDQxMGU1N2EzZWVjNDcyZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxZjI4ZmUxMGUxNWU3YTQxNzNmY2QzOGQ1ZWNlZjkzMTk4M2JhZDJjM2ViNmM4OTIzZmQyZjhiODYxMzI0NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_80e58b6f273e4387ab108425bceeb387",
+      "statement": "Event intake is exactly-once: handle writes the inbox row (keyed by event id with processed_at) and the resulting steps in one SQLite transaction, so JetStream redeliveries are deduplicated; contract-invalid events go to dead_events immediately, events that keep failing go there on their fifth (max_deliver) delivery, and POST /v1/dead-events/{eventId}/replay re-queues and reprocesses them.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L159-L170",
+          "version": "repo-lines-v1:sha256:a80f51b1c2a1c87884a815408778678fd8f4c33c806f39f2aff2ff7172b4df05:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMGM2YTYxZjhkYzZjYWE3NzViYTllYzVlNmQwNDFiY2VhN2Q0Zjk1MTIyOTdmNzc3YWJlNjYxNDEzMTk4ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YmNiYTE5ZTdhZmI2YmUxYzk2NjNkODllOGZiNDdmZDVlZDZiZjYwOTgxMjI1Mjg3ODA3NDM1YmI3NzY1ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlZmFjOWE2YjY4ZDA5NDRmZDMzNmRjOGYzOTM4YjhhMTVjZGY2YzQ2ZWJiODViNDk4MzViODIxNGNhMDE5NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyMGEzYWRmZmFjMWRhYTVlOGMyMTE0NTZiZGViYmIxOTI1MzQ5YjU0NmEzMjI3NGU4Nzg1NGZhMTdlYjJlMjgifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L23-L24",
+          "version": "repo-lines-v1:sha256:170e3d33a6c291462b082f29bb77554c1367302fc03e2e4f52082bb3e999e717:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzEyOTdhM2Q4YjE3Mjc0ZjM4MzZiYmM2MmFkZjE3MWM1MTQzNzBhNmI3MmRhODQwZTAxMjljYWExZjZhNzFhMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGNkZmM4OWY0OTlmYWE2MjJhMGY5NTAyZWM4N2NjZTM3YmUzOGM4NTIxZDk3MGQ5NmQ3NTljMTVmOTI0MTU0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTliZmZmNzFlMmY2NmZkYzVkZDNkMDE2YTBkYjE5ZmMyNTI0MWY2YmY1MjZlZmJhMTBkOWQzNjVjOTEyNWNmZiJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L82-L120",
+          "version": "repo-lines-v1:sha256:845375ce5e56bfa8554498ea7f2be50fef44e127bd042d099188c2d089378839:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTdmYmJhMDRmZDg0ZTI3MjIzNmQxMDk4NjIzYjE3MDAwMGNiMmIzYTFhYTkxZWU3MTdjNTdmYjMzZjljMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZDUyNGRkYTJkOTBhNDk0YzBkYzg0ZDUxYWZlMDc2ZTg0ZDEzZTYzZDQ1MjUwOGY5OWI3N2JlMzEyOTc4MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMGFmMjUxZTYzNGZlNGQ1OWY0ODU4M2IyZjhhNDYxM2JkMmI3OTczYjdjOTQ0OTE1ZjVjN2ZkNjcyMjg3MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxZjI4ZmUxMGUxNWU3YTQxNzNmY2QzOGQ1ZWNlZjkzMTk4M2JhZDJjM2ViNmM4OTIzZmQyZjhiODYxMzI0NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_05421d9fbec948e1bae4bd3142ad3f5e",
+      "statement": "The executor enforces a per-project pipeline lock — at most one step of a project is RUNNING at any time and a step waiting for its retry keeps the lock — so extract, TLR and detection run strictly in sequence per project and never overlap, while different projects run in parallel under a global per-agent concurrency cap (maxConcurrentPerAgent, default 2).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L304-L334",
+          "version": "repo-lines-v1:sha256:5821db014af4b75d64f44bd5d80f0dad7eb1f0b1b719a1fcab5e89e6e9cf8c6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMDYxYzg3YmY1Y2M4NDhhNWM5ZTE1YzhlMTFiZjY0Y2YzNjczNjY3ZTFmOTRkMzZlMDM0ZWRjMzQ2ZGZkZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNjU0ZjY3YjNhMzAwMDkzNjE1MjljNDA3ODE4NjM2NzU1YmQxMGI1ZGUyZjEwMzIyZWZlODdjN2I3MzE5ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWU0NGY3NjE2NDZlNjBmZDQ2ZDQwOWRmYTc4MTZmNGY3NGMyMzY4NDBmNWZhYWZmNDhiYmNlYTJhY2Q3ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhYzY5MGQyMDRiYTgzNTQwZmNjZWUyNmMzYWE4ZWFiYTc4N2JjYzkxYTg2MjkwYmEzMTVhZTNlNjA1Y2E2YmIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L34-L61",
+          "version": "repo-lines-v1:sha256:4709434b80136549d5050bf1f8a15b086ad128485b59dea1e8d7095e781cd6ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5ZTY0ODdlNzZhYjQ2YzlhMTA4YWUzOGVmZjBkZTM3MDA0ZDlmNjU2Y2IxNDhlNjM0ODhhY2MxNjRlMjgzMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c6128990c2bf476383a18c32e5443a22",
+      "statement": "Mergeable steps (event-planned recover-trace-links and detect-inconsistencies) are debounced (next_attempt_at = now + debounceSeconds, 10 s by default) and coalesced: a spec whose non-id-list members match a PENDING, never-started, mergeable step of the same skill and project merges into it — the id lists (artifactVersionIds, sourceVersionIds, targetVersionIds, scopeArtifactIds) are unioned and sorted, a list present on only one side is dropped (an absent scopeArtifactIds means whole-project detection, so merging widens scope), and the debounce window restarts; non-mergeable steps (extract-artifact-versions, all manual steps) start as soon as they are due.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L169-L193",
+          "version": "repo-lines-v1:sha256:903fc50623eebd7dd51671dedeabede4f03d2024605ea3e47b865fbacec9b0d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllMmNkNjczZjE2OTJhYTA4ZWMxZjZlMGQxZDEyMDhhNWMwYzk2MGJkM2FjNzlhNDJhOTM1ZGNiMTU4YTJiNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZGRkZmQ4MjY5MTlmMTM4ZjE3ZGQ2YjI0MDQyNmVlZWM1Y2MwNDFhNjhjN2FkN2U1MGIzZjJjYmQyZTViMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyZWRjNDE5NzJhMzhhY2Y3NDkxMjBiMjI3ZGVmMGM3YmMwYjExNmI1YWE5NjA3MzgyYWUyMjJlZmM3MDg5ODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhZDcxNDVmODE0NGJiM2UyMDU3ZmZmODAyZWE3NzNhNzE0NDY2MDNjODMwMDNiMjEwYzUxZDQ5M2Q4NTBhYjUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L158-L168",
+          "version": "repo-lines-v1:sha256:2dccb40678b309714a7da0f95b66e3c3cb6589c9296e138b927ed5519fbe6d42:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NTlmNDMyNDQzYjY4NGU4ZjRkNmJhZDc5OGM3YTUyYTA3YzRiNDZmODVmZWExM2MyNGVkNzQ3YTc5YjQyZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NTI2YWZkNzhlMmJiZGM0N2QwODZmNjliOTdhZjYwZTQ5MjAzZDNjNDlhMTAwMDNmNTQxNzEyODlmOTYxZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYTNhMjZiZjNhZGU0MjI0ZDE2NGEwNTVjNDI1ZGI4NWM1MDUzMjBkZTU4M2VkODAyMDQ0NWFhOWFiOGY5N2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5MjZkOWE0Nzk0ZmRlYWIzNDYxMGQwY2YwMmFmNDRhZTA2NWE5MzY4MmM3NTA1ZTc0MjljZjQyYjMxZjFjZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_76c3ccc5dda1484b975226f6758f567e",
+      "statement": "actionKey dedup suppresses only duplicates of the same trigger: action_key = sha256(canonical_json([agent, skill, input, trigger_id])) where trigger_id is the causing event id (or manual request id), so a later trigger with identical input runs again — the revert semantics — while force bypasses the dedup entirely; existing steps with status FAILED or CANCELED never block a new one.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L160-L167",
+          "version": "repo-lines-v1:sha256:4fb3596118fa3b8f84aa7dbf6b5deda2508b833f2e9de858520bdd7ce3ad93a0:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDA5NjgxOGRjNTEzOGVjNTY2MGZjNWMwNGFkMDIzZmZkMzlhZWQwZjExNDVjZmI4NjYyNDllYjk2NmEyZTc2YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM0OWFmZDMzZWQxYjJjZDhhOTcyM2IxZGJiNjMyYzBmNDQ1YWQyMGRmNTkyYzdhMzAyMzI0ZDNjNTNkMDlmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjVkOTYzMDFjM2FlYTUwZjk1NWRjMWU3OWRmNDNkOTU5NTdlNTQ1ZTYwYzFlODc4OTViZTZiNzMxZTM4NzdkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODE4MDRiYjBiMDZiZTM4MGZjMTQ4NTc2ZmRlZjFmNWJmOTE4OTRhZDAwOWVjMzE0MTQ2ZWFiZmZjNDE2NjM2MCJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L26-L27",
+          "version": "repo-lines-v1:sha256:639009c2cb2ab2b178a65d7ca8e8303b6162caa86fc6349300d560a7bd5ba9c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODBjN2RjY2Y5NmE2YTUxNzQwYWFjMmIwMGU2MWU2MWNmYjc3N2UyYmU0N2NmOThhZmFkYTc1NjkxM2YxMTc2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IzNjQxOTc5MzlhMzFlZGM4YTljYjkyNWVmODBmMzJmMWFlNTJkYWVlMGU2OTRjMGJlMDAyMzc4ODA3NjllYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjYzYjMxNWNjOTYzZDZlMWEwOTkzOTRiOTlhNTI1OTFmZjdhMWE0OThjYjIwOTYzNWM3MWFkNTRmMTdhYTJlZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFiNDU5NjdiNGM1Nzk0YjNhYTY3MTk5MjE2YjA1ODdiYTg4Y2FiMDBmOTk4OTVjMDk5ZmRhYjRlMTBhYWI3NSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L150-L155",
+          "version": "repo-lines-v1:sha256:4acf730c0d6c11adee6f1db66d784427a13db8f3f1d49c740952aef895274501:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjI3M2ZhZWYzMjIzMDQyZjg1ODNmZGNkMzU1MjA4ODVkNDNmNTc1ZDkwNzE2NmQwOGQxNjQ5NTBlZmFlYmZlNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzg3N2ZhNjBmN2YwOTcxOTFhYmE2ZDI1NTFlNjFiMWExMjE0NmUyYjY3ZWI4NTAwOTQwNjc1YjJiNjA5N2ZhMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2IyNzNjNWFiNzE4OGQwNWM4OTVlYjgzYjVjM2E3NjQwZjBlN2UxNGUyZTVlMGM4MjRlODkwMzI3ZTk5Y2QzOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWVjNDdmODM0ZmQyY2QyNmJkNWU2ODY1MDkxZTg0YTUzNmYxNjUyMjk5YTY5YWRjNTU1ZDVkODU1ZTllY2UwZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_add8fa27f39c465785347ea74b6d0c92",
+      "statement": "Manual workflow triggers are type full, extract, tlr or detect: detect plans one detect-inconsistencies step with {projectId, **params}; extract and full plan one extract-artifact-versions step over all current version ids, with full then chaining TLR and detection through the ordinary event rules in one workflow; tlr plans one recover-trace-links step per configured kind pair over all current versions of that pair. Every spec input is validated against its skills.schema.json $defs entry (ContractError -> 400), an empty plan raises 'nothing to run' (400), manual steps are never mergeable, and repeated REST triggers run again because each gets a fresh trigger id.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L211-L232",
+          "version": "repo-lines-v1:sha256:c257649741e0ca8c97b195771a426563578c3dd1615d997cbbf4c2ea1e514917:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4OWRhNTVjOWQ1NGQ5MjU1ODlhOTBiY2ZlOWEwOGIyNmY5MTZiOWEwOTRkNzk0NTM3ZGUwY2NjMDdlMThlZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMDRhMGY0MjljY2JiNWJkNDNmZTNiZjY5MzRmMGRmYWM5MjMwODE1ZWFlZDM3NmIwMzBjNjMzZDY2ZWVmNDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4MDRhYjRkZmRhZWVmZGVjZjFjNTczNGFiYWMwMjk4ODQ5ZjhiZmU0NmIzMzNhYTRkYTRmNmZhNzk4MDFiYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MDBhMDI2YWQ5ZDdmNzYyOTFkYWYzMTNmZTUyZjg4MWNiM2M1ZTBkZDQyY2I5ZGExYTJmNGRmNDA0YTk2YWEifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L171-L189",
+          "version": "repo-lines-v1:sha256:286fa760913fbcefcd2464ac3d797c6ae0956de6eb3e7b9939f5c533b5e5467c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYjJiNGQ5YjgxZTQ4Y2Q1ZTAwNzA5NzJhMjM3MWRhMWZiMThkOTU3ZjNiNGEyOTNlNzg2YmIxZjE4NjI5OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMDliMDUwNDNhMzUyYTQ3MjU2Nzg3OTU3NTk1NGMwZTNlZmJkOTg0MzBlODhiYTI0NzJjZjUwZTdiOWQ4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiNDY4YWQwYWJkNWRmODYyMGJiOTRiZGZmZTg1ZjQyMTEwZWNkYThhZjc2NGE0ZDVjM2JhMDZiYWE1Zjc3M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba2705ba4aad4943b305372741b8607d",
+      "statement": "Manual triggers, cancel and replay on the orchestrator are restricted to the admin callers query-service and dashboard; users trigger workflows through the query-service (POST /v1/projects/{projectId}/workflows or the console workflows page), which forwards with its own service token plus the acting user in X-Sandman-Actor, and the orchestrator forwards that actor to the agent as A2A sandman.actor metadata so runs record who requested them.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L39-L39",
+          "version": "repo-lines-v1:sha256:43750d71eaa940b44342d07f44621391c32bbee08372a5578e38f77046671ec8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM3NTBkNzFlYWE5NDBiNDQzNDJkMDdmNDQ2MjEzOTFjMzJiYmVlMDgzNzJhNTU3OGUzOGY3NzA0NjY3MWVjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM3NTBkNzFlYWE5NDBiNDQzNDJkMDdmNDQ2MjEzOTFjMzJiYmVlMDgzNzJhNTU3OGUzOGY3NzA0NjY3MWVjOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWZlZjAzYmRjZGZkOTcwYjFjNWQ5NGM0NGIwYmJkNzdlNzE2MWFkMDBkYjExZmYyYzExMjhlMWY1MDA5MWY2MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM3ZmYxYmVlNDgyMThlNTkyZTdmOWE0OTM0ZjU2YmVlMzBlMmU3MjhlMzY2ZmE1NGNlNjlhMTdkMDE3OWI1ZCJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L349-L372",
+          "version": "repo-lines-v1:sha256:9966110b64cb547cfb3b2a517850d88f07b5e0926550554e313803027b68b2fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YmE1OTg5NTk3MmI5NzZmZTY2OTQ5Y2M1M2U5MmZmZDE2M2E1ZWM4MGUzZjM0NjQ3ZWFjODRhOTE4ZjZiMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOWVhZGUzYTY3NDE4MzA5NWUyZmYyNDI4YjM2ZTMxMGRlY2Q3NGE0OWZhZWMxNDY1ZWE2M2U1YTU4NDJlOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1NDEwZmRiZGE0YTQ1NzkyNTI5NDEyMGFmZGUwYWU5MDg1OWIxYjI0MWE0YmNjNGU5NzRlNDgwZGMzNzBiYmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMTQ2ZjkyMDhjMmMxNjA0ZmRlZmRiODRhNjYxMzRkOTZlMTE5ZDUwODQzMmEwZDJiYjEyOTQ1ZTExZjQwNTQifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L253-L259",
+          "version": "repo-lines-v1:sha256:3df49ad058ff7873e73b3fcd7d02b37a5d42f65527439db213eaecd520d59cab:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzE1MDI3Y2VkNTNlMDZjM2JmZTQ5ZTBkNTJkNjAzMDAxZWNlYmY5OWNiNWU3Y2RkMDJkODkzZjUxYmU5M2M5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzM3NzEzZGFjYThkOWZlMWQ0NDkzNGNlZDRhODE1N2ZlMDdmMDUxYjJiODVjMDg3Yjk2MjAxN2Q5ZDZjNGNlNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2I3NmY4YWM5NjQwOTNmNzVmYTNjNTkxY2VlNmZhMDg4MTMzZDllNmVhYjVjZDIzZjhmNDNhMGQwMGU0M2RlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzgzZGZlYjFkNDU2ZDk2ZTIyNzIzMTM3MTQ4Mjc1M2VmZjFjMDIwYTRmZDNkZTZlNjI0N2QzZjQ5YTNjMDg4NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7f06ec5dc22f4c2697716a287ba2fa55",
+      "statement": "sandman.ingestion.completed is published only when the ingestion changed the current state (at least one created, reactivated or deleted item): the extraction-agent initializes the Ingestion's eventPublished flag to true when nothing changed, publishes with a deterministic event id (uuid5 of the ingestion id, so JetStream dedupes re-publishes), marks it published only after the ack, and re-publishes still-pending events at startup and before every intake — so an unchanged snapshot triggers no workflow at all.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L46-L62",
+          "version": "repo-lines-v1:sha256:72088c3703a8d4a5ba5c2372ec6b2f5436f1621c356339c24adc938faecf2eb5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiOTM1ZGFhZjI5ZjlhOTg3NTcxNzljOTViYzQyZmM5ZDNmZmFhOWJmMGVjYmExYzcxMDRiODBjMjA5YWQ3ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyY2IzY2UxNTQ2OTA4YzdkZTQ0NDQxZWQwMDY1ZGU0N2ZmNWZiZWRlZmVhNTAwZDlhNTU1OTgwYjMzZmRhM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkNWQ3YmZiOWIyOTgyNDRhMDg3OWVhNDEzNDUyZmJhNGNlZDY2ZWE2MTFmOTU1ZGU1ZTUxNDlmMmNlZjI0YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3M2MzMGI1NzhhNDM0MjcyMzBiMjkwNGNhMzY4YmFiZmJiMGRlNWI1Yjg0M2I1MDc1NjY0MTE2ZTVlMjZhZWIifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L179-L186",
+          "version": "repo-lines-v1:sha256:478ad86f4a99ca5513abaa19aafd1c41eeda6f3b1a1c0cb0e74a2436c1deb93d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjMjFhYjQ5NzljN2I4NTY2ZWRmOTYwOTk4MjdkZWVkODBmNzJmMzY2YzU2MTZlNTc3YzIzN2VjMDQ1MzY0YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzI4YTMyOGJkZWE4MjhlNzFjN2UxOGIwMzA2Yjc5NzJiYWQ1MDg4OTJkMmY4NmYzMGNhNzI0ZTVhMmI3OTAyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDcwYTAzYzRlYzE3N2U5YzE0YmNlYWJhM2Y3ZmQxZmQxY2JjYzAwNzFmMzViY2ZhOTE3NzM2MjA1MDY2YTQwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTY2OTkxZTEzN2EzOWNmOWMxYjkxMGI3NGZmNDczNzlkN2JhZDdiYWI0OTcyZDFhM2RmNjhjZmU4YmEzNTA5ZiJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L245-L262",
+          "version": "repo-lines-v1:sha256:45d12230dcd7bb1cef828533049e47bbb6e8e3ffd7f331ec43d77a9ec387de7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYzViY2Q2NTYwMDQ1OTdlNDQ4NjkyNTYyYjllMzliZTQ3NWI1YmFjZGQ1ZTI0MTk0ZWZkZGQ0YTJkMGNjNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjMDc1ODMwNTI1YjNkYjdhMzY5N2YwZDc1M2ZjNjFiMmQwNDFiMjVmOGJiMWQ5M2Q4MTY1M2QzNWZjY2YyMDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjZmNjYzQ4MDI5MWQ0NGZkMTZjMzg2NzkwMTg4MzIyODE4NzMyMjMxMDU1YTEyOWMyZWM3OWNkMDM5MGY1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1f8049389bd43aea467fb6bda7f7df7",
+      "statement": "The event contract requires causationid (= the A2A request messageId, chosen and stored by the caller before sending) on the three completion events sandman.extraction.completed, sandman.tracelinks.updated and sandman.inconsistencies.updated, and the workflow id travels as correlationid / A2A sandman.workflowId metadata; tracelinks.updated is published once per recover-trace-links task listing every approach run (including failed ones), and inconsistencies.updated carries newIds, reopenedIds, autoResolvedIds and stillOpenCount.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L15-L44",
+          "version": "repo-lines-v1:sha256:3a5f4683595472620c1e0738d3650ebedd0aad43333995074e49b4e28416a879:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2YzczMGM1MzgxOThmMmMxNTYzYTM0NmVkNDBmMmJlMGY1ZjE2ODM3ODNiMDFjY2Q4MjI3NWI3NWU5YzVmNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MjIzOWIxYmQ4MmI4NWVkNTBjMThhYmU2YjhlOTk3ODc1NWRhYzZmZDgwNDA5MjRjOGE4ODBjNTJmMDY1ZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2N2I5MzdjMjQzMmNmNDgxNTYxN2Q4NWFlNGNjMjIxZDNjMDc0MjAxNmIyNDE0YmIxYWE0ZGJjYjNiYWI2OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzYzIxYWQ1YWFmNTMwYWIwYzdkYjUyNmYzZDVkYjU4OTk1MjBjZjFjM2JkNTJjZTkxMjU5ZTE5ZWQxMmQ0OTgifQ"
+        },
+        {
+          "resource": "repo://contracts/events.schema.json#L78-L103",
+          "version": "repo-lines-v1:sha256:f582af57640657151f3d067cc4fb1907939cb8ad80fca10717c2dd27bed781f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwNGRlZTRhNDVmMWU5YzBjZTE0YjM1MjY4YzcwYTdiYzg0MmI0OTAwMjc1M2RjMjg3MDJkYjE0ZWQ4ZDg2MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyY2IzY2UxNTQ2OTA4YzdkZTQ0NDQxZWQwMDY1ZGU0N2ZmNWZiZWRlZmVhNTAwZDlhNTU1OTgwYjMzZmRhM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwMmM2NjIyZDI3MGNhNjc4NDE5ZDYyOGMzMzYzNWUyN2Q5OTliNzViNzZiNmE5NGRhOTcyZWM3NDY3OTIzMzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c7d62fc7d4c4e7c829ee33ae740dc69",
+      "statement": "The extract-artifact-versions step rewrites the structural facts of the given versions in one KG transaction per version (stub file elements, Requirement elements per requirements-Markdown heading, plugin routing for artifacts matching config/extraction/plugins.yaml via A2A sandman.plugin.extract, explicit-reference links from REQ-n patterns); a failing plugin only degrades the run to status partial while the completion event is still published and the step still succeeds.",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L108-L143",
+          "version": "repo-lines-v1:sha256:9133478dc337294e3c5c91ecab6e56c1017cffbeab273c13960a6696c47ee482:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMWM2ZjRkYzMzMzE1NmY2ZDJmOTBmYjFkZGViZmY5NzdkMzMyNDcyM2MyMzI1NjViOGRiNDhiNzFkMmY5OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmZTM3Y2ZiMWI5OWZjODlmZmIzNmY0NWYzYTZjMGJiZGIxMTIyOWY2ODkzYzMyMThhNThhNDM3ZDM2YTVlYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MjBmNGVmZTg5Njc1NmQxMWQ2ZmM4ZTJhZjA5OWI5MTU4YTZkMTM2ZTY1YzNmNDczN2Q3NThkYWIwMjgzNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3M2QxODRmN2U3ZDg0Njc4NzM1MjMxNzI2YTgxYjg1NjEyMGI5NWZmMTVlYTI4Nzg2ZTE1NTgzMTVlN2NmN2QifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L175-L235",
+          "version": "repo-lines-v1:sha256:bd4ce63b9225ea10465deba8ededadd57dc254c27397546b879c33e4d1a4ed2e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZmE5MGFjYWYyYmUzOGNkNzQ1YWRhNzU3MmRmOTA0ZGQ4Zjg5MmFjMzIyZWQ1YWQ2OWIxZGJmMTk2N2UyMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5YzM0ZTM4NmY1NjdiOTc4YjA1NjQyMjgxZmIzMDMyZGFhNjdkZGMwY2JmOTA2ZDg0Y2ExNjQ3NTE2MzgyMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxYTM3Y2RkNDBmYmI5MjlhYTIwOTBkNGVlMWEyNDVmNTcwOTQyZWZhZWUyOGRmZjRhN2QyMWQ4Y2FlMjI0OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_45133b33ca4f42f5bef73bd901ca4c46",
+      "statement": "The recover-trace-links step runs one Run per selected approach (the kind pair's approaches from the rule input, or enabled approaches supporting the observed kind pairs), writes candidate links inactive in batches and activates them in one final KG transaction that supersedes the approach's earlier active links between the same source and target versions; a failed approach is isolated (its links stay inactive) and only reported in the runs array of the single tracelinks.updated event.",
+      "evidence": [
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/LinkStore.java#L82-L110",
+          "version": "repo-lines-v1:sha256:b6693fa9bb8711cd5a3aae73c4861059420f86a45911800f29ad13cac0a44c61:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzM2FiYTJkMWVmOGQwMTlkMzI0NWJjZjFlM2NhNDM3ZTE4NzAyOTAzMDAwOTUyM2IxZTAyMzVlMjQ5MTlmYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxNTVjMDM3YTM3NGU3NmUyYTM3YTQ4Zjc3NmYwNDM1MWJjY2VhNzJiZWViY2M0ZWJhNWNmYWNlZWRiOGQxYWMifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L54-L175",
+          "version": "repo-lines-v1:sha256:4f3751a35b8a40fc7b65058c265f20ca11db8f2ce00e7d53bd69e2ec2b128228:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMTYxNTBlZTJmZGM5OGM0YWNmM2RjYmJiYjUzOGRlYWY1YjI5MmI1MzcxMjNkODBmZjFhNDVkY2I4MWVhMWI4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzNjk0NmUxMDFlNWU3OGQ5MGE1MTBjNjlmMjY2ZWY3NjU0MGQzMDliMWI4MjI2OTViNTMxNzJlZDJjYWEwMjU5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4OWRmYzg1OTM5MWZlMmE0ZGNkOGE5Mzk0YTMxYjcwZTA2MjY2NTAxNzdhNjA0ODRiMmUzZTY2MTQ3MzY0M2NkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_2991b01249774878a21a100faef4beae",
+      "statement": "The detect-inconsistencies step applies the ADR-0007 lifecycle in one KG transaction, with every system write conditional on the status observed before the detectors ran: findings whose artifacts were deleted resolve as artifact-deleted regardless of scope; auto-resolvable findings (OPEN, REOPENED, DEFERRED) that were not re-detected, lie fully inside the run's scope and belong to a completed detector resolve as not-redetected with verification confirmed and actor system:detector; re-detected RESOLVED findings reopen; ACCEPTED and REJECTED findings reopen only when their evidence hash changed.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L268-L357",
+          "version": "repo-lines-v1:sha256:eb78a2932f7ed51c8a685e523ed24fb441e72035346eddda7586499f91c3e4b1:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2MjQwOTdmYjg1OWFjNzIyODBjNzgyMWE2N2ZlZmJhOWNjN2E4Yjg3YTZhZWQ0Mzc5ZDc2MzZkZmJkZTNhY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiYWY3YWI4NDVjZTQ2ODhmMTdiNjEzOWFkOTIxNGM2NzI4NjU3Zjg2OTVjYTlhNjEyZWZhYzNlMjM3ZGZkYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1MzViNzgzYmI4OTg4YTEzOGQ2MGFhODhkNDk4YzZiNjk2ZmY2MDM3ZDc0MmQ2MGI4MTlkZGE4MTJkNjMyOTUifQ"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Lifecycle.java#L58-L64",
+          "version": "repo-lines-v1:sha256:c822173e92040687d52d8ec6b2350204defb0ad7480a5464c6414af34a537dcd:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjQ0NTVjODdlYjZlNTFlYWZiZjAyOWVjNjgwZTU4MDIyNjA4N2Y2ZTBmMGRmMjJiM2UxNTc1MDNkYTc5MDFiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODgzOGQwNzg2ODBmZjljZTJmYzA5OWJiNzFmNjM5Mzk1MDljMDQ0OWU1NGExOTljZmJhMzQ2ZmQyZTY4ZTRmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_74fabfe7805745649f46dead9668d03b",
+      "statement": "Along the chain, retryable failures (agent unreachable, submit errors, TASK_NOT_FOUND after an agent restart, timeouts) retry up to maxAttempts (3) with backoff 30s, 2m, 10m; per-skill timeouts (extraction 15 m, TLR 60 m, detection 30 m) cancel the A2A task and fail the attempt retryably; BUDGET_EXCEEDED ends the step BLOCKED awaiting a human instead of retrying; non-retryable errors fail the step and the workflow at once.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L388-L437",
+          "version": "repo-lines-v1:sha256:7c19fb4efc440ec424ec4d3a27d4d0c3714a526c62a2950c41c828fa03e31a5c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5MzU2MjU4Y2NiZWZlNGJjZTE5OTJjYmM0MzdlZjlkMTAyNzFmMjM0NjEyZjJiNjMxNTYzYWJiMTc3N2VjZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNjZmNjllM2M0ODI1YTdmY2MxMDk0OWQ3ZWIxNzcyMjlkMmUwODA4NDU0YWRiZDc5YmM4NzRhZTc1MGRhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiY2IwOGY3YTRmM2IwZDFhNGUxNmEyZTJiNDU5OTkyYWU3Nzg5MjM2ZDU4ZDkyMTY1OWIxNTBmOWI3ODAxNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMTYyNTE0YjQ2ZGNlNjZhYzlhMjRhYTAzYzZiMjlhMDZkOTM3MzIxZGE1NWRmNmU0OTgwODZiOTM5YWRiOWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_be1ce0e5241d4433957c34603b216ade",
+      "statement": "The pipeline's entry point is the sandman CLI's two-call ingest against the query-service, which forwards to the extraction-agent with its own service token and the actor header: POST ingestions/check returns the hashes the server does not know, then POST ingestions uploads a multipart manifest plus a gzipped tar of only the missing files, and the query-service streams the body without buffering it.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/app.py#L285-L309",
+          "version": "repo-lines-v1:sha256:268ac4e692d967660f59aaadd5b7f6bc837c432b6d45d917fcd33acec1115e45:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MzUxNzlkMjQzZDcyNjdhMDQ3ODBkYTY5MDcyZmNhMzMxYTExYTNhMzg3NzlhYThhNjVjODYxZmU4M2NiMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNzcxM2RhY2E4ZDlmZTFkNDQ5MzRjZWQ0YTgxNTdmZTA3ZjA1MWIyYjg1YzA4N2I5NjIwMTdkOWQ2YzRjZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2ZWQ0YmE2N2ZlYjllY2MwMmUzZDBhNjQzZDk2OWEwNWRkYWM3YzY1MGRiODcxOTc2NGNkMzY1YmNiOWU5ZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NzkyMTFmYTI1MTQ2OTQzOTRmNGEwMzQ5Yjk0NjM1Y2VmNGE2NTBlMjk0NTc0YTdmYjgxMjM1NGJhYmY1YzIifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/forward.py#L39-L59",
+          "version": "repo-lines-v1:sha256:31794ff2f23b5d29e8a5bd6dc74e20c623484637b456ac0dd325d572fb7f7912:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlN2QyODFjNGZjMzc5ZWEzNDg2MWFjOTBiZDdlZTQyNTk4N2Y4YTIwOTBjODBkZWE3M2E1MTU5ZDJiZTM3NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZTU1ODJhZjJjZDcyNGQ4MDA5YjkyMjNjY2NjMmExMjE0ZDljYzU2MTUyMDk4MDRkZmRkZDY0YjYxMDEzNTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4ZWE3MjY5N2M4YmZiZjEwOGZjNDdiMTU5YTdmZTk1MTRkYzUxNjc3MjYwNDNlZTE3MGYyZjc5MDBhZTcwOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliZmQ5MjEwZDE0MjNhOTg4MjFkZDg0ZTk5MjY4MTE4NjZlOGQwMTNmOTc1Mjk0ZGI5MjZhOWJhNDNmMzUxZjgifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L90-L111",
+          "version": "repo-lines-v1:sha256:377765c12fde762f1b8c9a5f87467846bee9c61528fdb71b25a7946811e2ea66:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3OGNlNjVmZDNmYTFkMzNlZDYyZTFmMzU1ODI4ODNlZGJkN2JiOTJiNjQ3ZjIyOGRmM2E1MTBhMDZkNWEzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MjMzYjNmZmVhMzJhMjNkZjUzMDY1MzQzNDhmMmRlZTc3NmE1YTZmNzRmYjUzMzE3NWRkYzUzOWE4ZmU0NjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhMTU1ZmNkNGE1YjgwMDdlOTAxYzEyOWUxNzA2NTliYzVkZGI1ODdiZjkwMThjMWE3NTQ3YWEwZTZjZTQwMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhNTcxY2VlN2I3NzQ3ODMxOGIxMDRiZmM3MjkxN2ZkNWI5Mjk3YmFkMGE3NGUxOTU3M2YxNjM1YjM0ZDcxYWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f23684a444b44da9cf5b7eeb383cb6f",
+      "statement": "The e2e walking skeleton proves the chain end to end: a CLI full ingestion of the six-file mini/s1 fixture creates six versions and exactly one workflow whose three steps (extraction-agent/extract-artifact-versions, tlr-agent/recover-trace-links, inconsistency-agent/detect-inconsistencies) all SUCCEED in order; the KG then holds three Requirement nodes, plugin- and stub-produced elements and explicit-reference plus stub-name-match trace links, and exactly two OPEN untraced-requirement findings; triage enforces roles (viewer 403) and optimistic concurrency (stale expectedStatus 409); snapshot 2 (one changed, one deleted file) auto-resolves the now-linked REQ-2 to RESOLVED/confirmed with a system:stub-untraced history actor; an unchanged re-send triggers no workflow; reverting to snapshot 1 reactivates two versions and reopens REQ-2 while the deferred REQ-3 stays DEFERRED.",
+      "evidence": [
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L143-L222",
+          "version": "repo-lines-v1:sha256:77d6f4b3ec25e0ffd7d92fade78e5bec171fe254f1aff72362e3fe7d7cb3a9ce:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYmMxZGM0NDQzYWZhY2IyZmJlOTc3YTdkY2NiMjMyM2Y2NjBmMjRiYjRlOTM0NTg0OWY0ZmQ1YzM2YTg4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyODY5OGNhZTIxYmFlNTY1MjQwZjlkM2RlZjM3Y2UyOWI1M2VhNzQ5ZDkzYWVmOGVhNTI3NTE5MGM0NzE3YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzlhNWNiYjkxNDFjYWZjNmFkZjUzNjMxMTAyZGM2OGY4ZjI2NzBjNTNiN2I4Y2ZhZmZkZDNlOTUwNmFmNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_495274e071b449188bf0bcb9ee222769",
+      "statement": "The e2e test's operational requirements: it runs via make e2e (make secrets, then docker compose --profile stubs up -d --build --wait --wait-timeout 300, then SANDMAN_E2E=1 uv run pytest tests/e2e) or manually with the stack up; it skips unless SANDMAN_E2E is set and first asserts GET /readyz on SANDMAN_E2E_URL (default http://127.0.0.1:8080, the published edge-proxy port); the admin account is forced to change its bootstrap password on first use to the value from SANDMAN_E2E_ADMIN_NEW_PASSWORD or deploy/secrets/e2e_admin_password (both written by gen-secrets.sh), trying the new password first because a previous run may have rotated it; and every run creates its own project (e2e-<hex>, llmPolicy local-only) and its own alice/bob/carol users with roles maintainer/triager/viewer and per-user personal tokens.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L45-L47",
+          "version": "repo-lines-v1:sha256:5421abebf1d7553bee8ee93c40336965b99f84663d73f2b01519e28c0ab111c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I5Nzc2M2Q5MWE4NTU4MWIzZTZhOGFhYzFhZWY1YzJjYWU1N2Y4MWVhZjgwOGRjNzM5ODk0NWU0ZjUzZTZlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdiMjg1OGZmYzJhODYyMWJhNzkyNmNhMjdjOTRmMmZjYWE0ZTdlYjg4NDZkMGVmNTMxY2JhN2NkYTM0NmVmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODkzYjg1ODFiYmMxZWI0ZmRlOTg1MzA4MTgwZDEzMjk4MWQwNjRmODRkODJmODVmZjRiMzc1MmQ1MTNlM2FhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmNjN2NmZGNhMjY1YzRlOTBjMDM5NThlMjI0NzkzNTAyYTIxNzg3YzhhMDZmZWNlYjQyNDk0MDAyODMwNmUzOSJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L63-L64",
+          "version": "repo-lines-v1:sha256:7b9af44dad09373f07d7e7dd4b1f717847b9751ba214a13bef9bc634b4a6e1f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY0MTNlMWJlNDRlM2M3Y2I4MWY1ZWI2YTIxYmM0ZTE4NTUwNzQ0ODhkNzBlMjQ3ZTBiZjQ2ZTg3YWQ4ZjFkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWE4ZTk4ZTA2ZjFhMjIxNmYwOGUwMzZmM2M0YzIzOTUzNzQxMGIyODllY2Q2MWIxZTkwNzMxNmVhMmRmYzZhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5M2Y2OWMyMWExMzI1NjgyMGM5NGY0MzFlODRhMDYyYTEyMmRiZDgyNTk2NTJkYTEzM2IzODcwYzNhMGMwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2YyOTY0N2ZlNzI0ZTExZmM0YWNlNDFjOWYxMmE4OTM2ZjYwY2FlYzM2MzFlOTk2MThiOTVmZjg2YWMzM2E1NCJ9"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L1-L30",
+          "version": "repo-lines-v1:sha256:fbdb29b244cbeaa9a129de9e18a7b637ca01393d157103517e548db76739938e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwODA4NDQ3MDJhM2ExZTM2OGY5YzVmNjZkMmY5MTgzMmNhYmNlNTA2MTE1ODhmNGVkY2M5YTljNmNhYWIzMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZTkzMDZiMDFkZWRmZDU2NTg1ODBkYjUyNjYxNjNiNmRhNDVhOGE2ZmY1N2VkNzA4N2EyOGY2YmRmMDQ3Y2IifQ"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L32-L57",
+          "version": "repo-lines-v1:sha256:46e75faaa266333e63f36fa74f5d0747aec3306dd0b0eaa27cac92204c204d20:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkMzE4OTQxY2QyNDZhMWI1ZmQwYjM0MTJjNGExMjk3NWJhM2JmNDlhMDVhNTk0ZTBhZGI0MmE2OGUyMWYxMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NmZlN2Q3YmY3MTY4ZjY4OTQ1MjM3NjFjZDIwYjE0NDE1NDJkN2U2ODliMjNiODdkOWFiZDNlZDUyNjA2YTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxZDhmNTgyYTM1MGE0NGNmMjFkZTJmYmE3OTVmNzhiMmQzZjI0OGI4YzZmYTIwMmNmZGNjY2QxY2YzMTZkMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyOTI0MjVmYWIzYjZkZTE4OGJlZjAxMmU1NTljY2I5OWNmMWFiNDBiMjE1Njc2MTkzYmE3MjZiMmZlNzk5MmQifQ"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L71-L94",
+          "version": "repo-lines-v1:sha256:ffc4a2aeafd8d701216302679da5fd29f2637732b4d45d68dcd907a0a06f6bc0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NzFmOTI1NGJiNGU5MzVhNTUxNTQ0YjIxYTJkYTk3MmFlZTIxY2U5ZmE2YWZlNTMxNjQ1YmIwNTdlOTI4MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmYThkOTRhZmFiMjVmNzU5YjU5MjRiYTUzYTk2YzZiNWMyOTVjNTIxYzVhMzNkMzUzNzBjNDUzMzljODQ0YjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhMTljZjE1YTIyNDM2YjEzNDY2M2QwMzg2Y2M0YmM3ZmZlY2ViM2IwNjI3NWJhYjVjMTU0YjRiNTc3NzRkMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1Nzg4YTBjZTJiOTQ2ZjFlN2E5MTMxZDNlOTAwNjI1NGI5M2NkMDA2ZDk2ZGQzYjA5YTE0YTJmZjgzN2Q5ZjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3bc1d481d92e40fa903f175fcbe53e97",
+      "statement": "The compose stubs profile adds one plugin-stubs container that serves both reference plugin transports in a single process — the A2A extract stub on port 8000 and the plain-HTTP detect stub (GET /manifest, POST /v1/detect) on port 8001 — which is why the walking skeleton exercises both the A2A and HTTP plugin contracts without any LLM provider key.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L295-L308",
+          "version": "repo-lines-v1:sha256:50d2681a2727807f54d3ae8ac50b92320c576fda669226e82d7b552d91a21244:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYWRiZGMzMGE5NGRmN2Y4MmM3YTUyZTFiZjVhODVhMWU1MzNhN2EzNzA2YjhmYjI3MDM0NzA4YzFhZjJjNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiYzVlM2Q1NzkyYTQ5MWNlMWZiM2EyYjVmYTI4ZTljYWJkNmExZWNkNjE0M2Q4MjllYzczMGFmY2Y4ZTJkYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyNDY4NGU2OTY4Njg3YzNiNGQxZmNmYTUxNjY4ZTYyMzdhYzIzMTJmZDQ4NzI1MTZmOTg5Zjk2ODYxNDI2NmMifQ"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/__main__.py",
+          "version": "repo-file-v1:sha256:b8f61ec7f0ab54f91c1d5dcaafa08578a0b2dd6f64c98ba09f13ffb592055366"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/app.py#L124-L175",
+          "version": "repo-lines-v1:sha256:a35567debe33bbdf211f0e3761b04f39ca310903105b3f78f9391b8ed9611492:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ODg5MTE3Y2M3YzRmY2IwZmY3ZjQwZWU4MDljZTVlNzgzN2RmZWQ0YzYxNDllZTdiMTM2ODdiNTRkMjgyMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNjdiNDY2Mzc4NzVjM2JiN2Y5MDNiMWRiODczNGI0YTI5NjY4NWRmNGRiZTY2YTRmNmNlZjdmZGM0MTE2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMzdhOTE0ZWI4NzhiMGVlMzdmNWEyNTFjZDQzZTc1YTkyYjNmM2MyNDliOGE4OGM1MGFkZGYyNzVjNmExZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_aebd363f700d4e8ea84b6464a0639354",
+      "statement": "The chaining rules and executor invariants are pinned network-free by services/orchestrator/tests against fake A2A agents built from the real sandman_agent.a2a.serve whose completion events flow through an in-memory bus into Orchestrator.consume: test_rules.py covers every rule row (including duplicate events processed once and no step starting while another of the project runs), and test_executor.py covers a manual full run chaining three steps in one workflow, retries, timeout, BLOCKED on budget, agent-restart recovery and dead-event replay.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/tests/fakes.py#L117-L126",
+          "version": "repo-lines-v1:sha256:8988cdf4d5880948b15fe81a6c3667198eac5a5a0a4457c9c0a868340680faa3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxNWZjYWMzYjhiODVlYzcyZDBiMTg0YzQ0ZmZlMmIyYTIyYWNkNGZkZDQyNjVlNjc5NGNiYmY1NjdmYmY2YmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZWJlNTc3YTQxYWZkYjNjNDBhYjRiMjEyMjY4YzQ2YzgxYWExZTUzOGYwNDQ2N2VmYmIzYjc5MjMyM2QzMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzNzU4ZmE0NjUzNGIzZjMxN2Y1YmUxNzk1MjlkNmM2ZDU1MWM2NzNkYjc0M2E3NDQ0ZjU0OGM2ZjhiMWFlMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_executor.py",
+          "version": "repo-file-v1:sha256:00f49baadf19ecc89404f210afa57b3f0d0c0f7e4a32e1371d463c2e5f10ac79"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rules.py",
+          "version": "repo-file-v1:sha256:bc039f1de922a7ef836986bbef0490578bb3566ac941e241596e623364fe2546"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

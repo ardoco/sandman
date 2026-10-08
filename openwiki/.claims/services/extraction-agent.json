@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e13b1b41af30061e7ab6a01836f9da2a0c77a93eec35f2042746b42f077f2c3c",
+  "claims": [
+    {
+      "id": "claim_0f9b8eef3d60480298e750e330246872",
+      "statement": "The extraction-agent is a single ASGI app that serves both a REST intake API (/v1: project registration, ingestions/check, ingestions, ingestion lookup) and the A2A skill endpoint (serve mounted at /), and per its OpenAPI contract it owns the Project, Artifact, ArtifactVersion and Element nodes in the knowledge graph.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L1-L3",
+          "version": "repo-lines-v1:sha256:2f5283cea738be44960b58f4899d68a4e76b61078bf1648c96d0bc851d105578:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTI4Y2E2ZWRkMTEyZTIzZjMyMTgxZWI3OWM3NmNlMzM4YzdlYWU1MDA2MWY5MjA5MTEzNzZkMmQ4YjEwOTc1OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGM0ZDA0ZjJlNDgzZTQxZDliYWEzZjE5ODk4Zjk5N2RjYTY1ZmY0NGNjOTgzMjg1NTBmNzc4M2JiYWZmYzJhMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjJlZDcxNmFmZjQ2YmI2ZGUyNjlkYjEwMmJkYjQ0MmRjZGM5NzZmYTgxZjA4ODhhMDVmYTFjNDc0ZDhmMDU0YyJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L162-L223",
+          "version": "repo-lines-v1:sha256:142ccd59a5bb3099b193ec608c12678a7f6c3675021ccb73e1ad6b2716336eb2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZTExNDdiN2I5MDU0NTEyN2U0NWNmOWFjMjk1YTYwZGNmM2IyOTI3Y2JjNzQ2OGJlZGFlYWY5OTQ5MTQzNzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4OTM2Y2IxMTY1MWNjNGU0ZTljMjc4MzE3NzAxYWY2YTYxNzI0ZTRlY2FmYmNjNzdkNjYzYTAxZTE4ZWY3MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3Yzk2OGZmMmFjZDNjMTMzOTcxNzAzM2U5NGZjZDI0OTVhZTllNDhiZTQwOWJhNTlhZjQxYjA0MDY2YTlkY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkNjdiNDY2Mzc4NzVjM2JiN2Y5MDNiMWRiODczNGI0YTI5NjY4NWRmNGRiZTY2YTRmNmNlZjdmZGM0MTE2M2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5ef6eb3646554e84ba02c607ca96593e",
+      "statement": "Service startup requires kg_uri, nats_url and artifact_store settings, loads config/extraction/plugins.yaml into a config dict plus a sha256 config_hash, and bounds uploaded archives by max_archive_bytes (default 1 GiB, override via SANDMAN_MAX_ARCHIVE_BYTES).",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L60-L75",
+          "version": "repo-lines-v1:sha256:a98b0d3cf2bd98bb7be123910fbf5a55272fc59cb96ea7283be30a6bf6c06a07:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMmIwNjlkYzk5MWMzMGQyNTU5YjFiZTU1Mjg3MTYzNzQ0YWEyMDgxMzAzYTM1NWQ4MjE4YjAwZmE0NzdlMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNjVmMjJmMDkyYWM2MzM1ZmZlMDQ4NGNmNDg5MzhjYTE2NjM5NjRjMmQ2OTBkNmU3OGM1YTM1YjRhOTFhMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmMTg5YTI5Mjc2MGZiMGY1MmE5Zjc0NDM0YTcyYzZiOWM1NzAwNzAzNDE4OWY4M2NiMzcyYmZlODkyNDM5MzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1ZmJkMmJiMjcwYjgxZmFiYTVjNjUyYTE4Njg5N2NiNGY4MmIyOTVkY2QwMzFkMDI2NmNlZGY0OTM2ZTEwMmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f157d306aef458fbfbd7586dae1ac59",
+      "statement": "At startup Service.start initializes the KG schema from contracts/kg/init.cypher, connects NATS, ensures the JetStream stream, creates the EventPublisher, and republishes any pending ingestion events; republish failures are logged and retried before the next intake.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L77-L92",
+          "version": "repo-lines-v1:sha256:49f75b5e1692890d9f7f475e034a854cff5b1d357c2635ffa203166f0c2ff977:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjNmRmYmI3NmM1ZmNjNGJjZDM3MjU4OTUzNThjZThiY2VhYjVjYjVlYjEyNjMwNzZlYzljYWExNjdlZWMwMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4YzUwMDM5YWNkYzU0NDJkNTE3ZGU0MDM0OTA4MGE5OGM4YTFlNTY1YzQ1ZGI1ZWMxNjJkMDRmNjVjOTNjNGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3OTEyOTM4YTdlNzk2NTA0ZGQ4ZDUyZWMyZDEzYjBhYzQ2MDJlNGM3MDQyMDkwMzA5ZTEzNDE1OWJiNGZjYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyMjhkOTY4NzI3MzYwYjkxZTE3ZDI3ZTljZjAzZWYzMWZiZjZlZjA0Y2M3ODdhZjFkYTE1OTdlYmI3OTlhZGEifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L254-L262",
+          "version": "repo-lines-v1:sha256:17ee8647d1011072f2ccfb4b43cd12a2d6f64b042fc260bd6d5258db01b2dc60:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZkODc4YTNjMmY1YzY1YTQ4ZjJjZjg3YTM0YTg3Mjk2YjVjMDAwYzQzMThhMGMwYjk5ZWVjZGVhZWIxNjcwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMwNzU4MzA1MjViM2RiN2EzNjk3ZjBkNzUzZmM2MWIyZDA0MWIyNWY4YmIxZDkzZDgxNjUzZDM1ZmNjZjIwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTFmNjY3ODk4MTgxZTY2YmU3OTkzNzc1ZDk4YTIyOWYxYjg1NDc3ODRlNWE5OTdjYzI5YjYyODk3ZTMzMzE0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba38deaac21543aaa884100cbc7696c3",
+      "statement": "/readyz reports memgraph and nats checks and returns 503 unless both are ok; error responses use application/problem+json.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L138-L153",
+          "version": "repo-lines-v1:sha256:a0bd2ebd5dbfa267803dfd3967e899893f29b311ff31a67d6d394e33ddb8f382:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1OWVmNTk2OWQwNzY3MDA4ZTViMDhiNjQ2YWJkZWUyODU4M2M5YjQyNTc0YmRkMGU0YWY0OWFhYWMwNzBiNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OWExZmQ5ZDI1N2Y2YmFjY2ZlY2I2YTE3OWQ2YTNlNjkzYzVhYWJhZjAxMjMxNmNhOGZmYmM0YjgwMzcwMTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ZWE5MmE1YjdlYjM3YWIxMWQ0Mzk0NDhmZWU3YjEzYTdkOTI1YjYxY2UxM2JkZDg0ZTZkYjE4YjBkZTg5MDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1MzkxOGZlOWU4ZmQxMmY0ZTM4ZWZmNmM0NTI4OGMwMTUzMTEzMzFhNzAzZmM4Y2EyYjAzMDBiM2Q4MTBlNDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_de712857c1224269b298dd987c18e741",
+      "statement": "POST /v1/projects/{projectId}/ingestions/check returns the manifest hashes whose blobs the artifact store does not already hold, so unchanged content does not need to be re-uploaded.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/extraction-agent.yaml#L51-L75",
+          "version": "repo-lines-v1:sha256:dd757f78ab02fe103df3ff93727f8e31d203cdfeeaae962bb9872548195cb754:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyYTk2YmE3YmFjZTdhZWJjOTA5OWNhZmI5ZDBjMzMyOWY0OGVjNWRiNjI1ODljMTMyZTljZWIxYTI3NzVmYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0MTMxNjZmZDNjZDYxMjZkMzJkZjUxYWFmM2I0OGE1OTNiMzE1MWZkNjg3YjRkMjMzODVmOGFlODc0ZTIyMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhMzk3YjlkYzIyOTFmM2I2YmI4MzJhODNjMTI3ZTU2NDlkYmU3YzNlM2Q5NWViZjUzYWJlNTQ0NTgwNDhhNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4MWYyZDlkYWMwMDU5NTZjNThmMjhiNGFlYTY3MGZiZWM3MzU1NzZkNDUyZDc2M2YzZDFiNzVhOGU3ZTdkNzIifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L18-L69",
+          "version": "repo-lines-v1:sha256:0cf691730e3baef0dd8106553b8122ff75a5afa57de14366eadb8e53d77b87a7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2NmFkMzlmZjJkMTEzNWI3ODk4Mjc1Y2Q3M2MxNjg5MTUwZjMxOGUyNTUxZTNiYmVkZWYyY2FhOGI5Yjk1ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNTc1YzBmM2EzZjc3ODI5OTlkNWQ3NzRkMzE2Nzg4ZDU0YmM5ODkwOGE3MjMyMmQ0NDczY2FiZjhhYmIwYTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjYTFlZjEyOTZhNjhiMGM1YjI0YWFkODNlNzU4OWM1ZjQwN2RjZTYzYjYwNWMwZmM1OTY1NjhkNGJjNzRmNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiZjg3MGE0MTY0OWYwZDYwMzU3NTAwZGI3ZDA3ZDY4OTYxOWI1NGMyNTY3N2Y5NDA5NTQ1ZmY2YjdhZDA4MGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9c1574c807e5423fb5c230f9a1c60e0b",
+      "statement": "The Manifest model (extra forbidden) carries mode full/partial, optional sourceRevision, kindRules mapping globs to kinds (requirements, architecture-doc, architecture-model, code, test, other) with optional format, and up to MAX_FILES = 20000 files each with a strict 64-hex sha256 and unique safe paths; kind_of resolves a path via the first matching rule using PurePosixPath.full_match, defaulting to other/None.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L18-L69",
+          "version": "repo-lines-v1:sha256:0cf691730e3baef0dd8106553b8122ff75a5afa57de14366eadb8e53d77b87a7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2NmFkMzlmZjJkMTEzNWI3ODk4Mjc1Y2Q3M2MxNjg5MTUwZjMxOGUyNTUxZTNiYmVkZWYyY2FhOGI5Yjk1ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNTc1YzBmM2EzZjc3ODI5OTlkNWQ3NzRkMzE2Nzg4ZDU0YmM5ODkwOGE3MjMyMmQ0NDczY2FiZjhhYmIwYTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjYTFlZjEyOTZhNjhiMGM1YjI0YWFkODNlNzU4OWM1ZjQwN2RjZTYzYjYwNWMwZmM1OTY1NjhkNGJjNzRmNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiZjg3MGE0MTY0OWYwZDYwMzU3NTAwZGI3ZDA3ZDY4OTYxOWI1NGMyNTY3N2Y5NDA5NTQ1ZmY2YjdhZDA4MGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_94321f53b4d2481285621b8ee010ec0e",
+      "statement": "safe_path rejects absolute paths, backslashes, NULs and empty/dot/dot-dot segments; read_archive accepts only zip or tar(.gz) regular files (no symlinks or special files, stdlib tarfile.data_filter applied), rejects duplicate entries, caps entries at 2*MAX_FILES and total content at max_bytes with HTTP 400, and the HTTP handler reads at most max_archive_bytes+1 up front so oversized archives are rejected early.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L196-L204",
+          "version": "repo-lines-v1:sha256:50591a36a0103f7f309445783838774988aab849215f9a7900bf85d26fe20ef4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDUzMmFjM2FiNWExNWFkYjU1NTViNGNjYzljNDEwNWU1ZmM0Y2E2YzY0MmE3Mjg0Njk3ZTM2OGE4NTk2MGEzNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2YyNDBmZDgyZWU4NGZkNzRhNmQwOTQ1ZWJmYWMyYjI5MGMxMzY2ZDY0ODNlZWUyYTlmMGQ3ZTdmNmNjYzZhMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2NjZDBjNTViMGNiYTdlN2RmNDkxYjcwNTUyMWVlYTMxNzgyNTNmZmVjMGE4ZWEzZTkzMzJjNTU5NGRiMmMzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk5NWU4OWQ0ZWYyMDkzYTAxMjc5ODc0ZDgyZjVkODg5MzZjYTA5NTZkOWI3YmM5ZTRlNGRmNTg4ODc5NTA2NCJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L23-L118",
+          "version": "repo-lines-v1:sha256:5f69444a412d60f7728c205a9d9678861838aa5adffd046b19da5aceaea1e746:eyJzZWxlY3RlZExpbmVDb3VudCI6OTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYmVlMzRlNTQ4OTI4M2RjZDVkYzM3ZTk5OWYzNTFlZmJhNGNmMWYwNWFlMjdkZWQyYWI0NjMyYjJkNmE1YjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlMmQzOWFjYmYxN2U5ODcxMzliNmViZjhlMjA3NWQ0OTMxMDcxMjA3NjBiN2NkYjEyZThmOTJlMmY2NTg0ZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMGJjN2JjYTVjOWYxNzQ2MWZkZjIwMTg1Yzg5YjIyMTg1YjIzZmUwNTI2Mjg1NTI1ZTQ5ZWY1MmQ0MTJlYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyNmIyOTlhOGUyYjQyMTFhMDI0NTY3NjVlYjA5Y2ZjMTJmZGQwMWMyOTlhNDRmODhkNzg2ZGQxZmUzYTY2NjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae00bfa613024fb0bd24242c2738a07a",
+      "statement": "The versioning transaction runs after blob storage in one kg.write_tx: it increments Project.ingestionSeq (404 if project missing), creates a deterministic Ingestion id via stable_id(ing, project, seq), MERGEs Artifact and ArtifactVersion (version id keyed by stable_id(ver, artifact, sha256), so identical content is a no-op counted in unchangedCount), ACTIVATED edge, clears deletedAt, and deletes/recreates CURRENT_VERSION so revert-and-readd reactivates existing versions; in full mode only, artifacts absent from the manifest get CURRENT_VERSION removed, deletedAt set, and a DELETED edge.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L132-L217",
+          "version": "repo-lines-v1:sha256:e98dfa40e704280319a26b455e5249f6b841b27b5b27ab7844385ff1552052ee:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyYmUxNmQ4MjY3OWM5MzI1MzllZTdhNDgxNDY0MzExM2ZiYzRkNzdkOGJmZThjN2I4YTIwMTJkY2I2YTA3N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YmIxMzIxYmMzODUzYjBiZWM2N2ZkNjkwMGVlYjY2OWU2ODRjYWNhNTMxNTU4NzQxMDZmZDE0ZWY5YjNhZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiNjFhN2M1YmFjNjgzNjI1ODYzNjJjMzVmYjc5NzBjODI0MWQzMTI4YTU4OWRhZmMwZmViYTI2YWMxNGI5MGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzYmY4ZTc1ZjFhMDUwOGMxZDdjYzNjOGI2NmQxNWQwY2UwMTA5NTAzODM5MzNmY2NiMzU1NjExOWU2OWMxN2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a49f7db0f9844c878a81f539bbcd2102",
+      "statement": "sandman.ingestion.completed is published only when something changed: the Ingestion is created with eventPublished = not(items or deleted), the event id is uuid5(NAMESPACE_URL, ingestion id) so JetStream dedupes replays, eventPublished is set true only after the publish ack, and a PublishError yields 503 with the pending event re-published at startup and before every intake (at-least-once outbox invariant).",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L134-L136",
+          "version": "repo-lines-v1:sha256:96d8a3db0e90b3bc3e564ab91e2c38c980aeedb251b42563ae9f4071f7cdab85:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ0ZmIwY2M2Y2RlMzcyZjUwZGQ4N2NkM2M2OThhOTlmZTM1Y2E1OWJjYjY2ZWNlY2RkNGUwMzVmZTIyZGUwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTRiNzgzN2QzNGRhOTVjNDA3NGQyNmQ0MDRjYmE2Y2JjZTk1MDM3MTY1NTgwZTZiNGZlOWVjZjRmMThjYjQyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzhlNTkzYjFkMjVkMjczYjJkZDRjZDg5NDlkMTE4OWZhZWU2OTI4YmJiYjg0MmM2NzFiMmIyNGMzMjk3ZDVjMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjgzNDk0OWJhODI3OTNiZjM0NjExZjVkYjNmMzdhYzlmYjEwNDU3MGFjODZhNTFmZTRkZTFkZDkzMTY0ZTgxNSJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L179-L186",
+          "version": "repo-lines-v1:sha256:478ad86f4a99ca5513abaa19aafd1c41eeda6f3b1a1c0cb0e74a2436c1deb93d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjMjFhYjQ5NzljN2I4NTY2ZWRmOTYwOTk4MjdkZWVkODBmNzJmMzY2YzU2MTZlNTc3YzIzN2VjMDQ1MzY0YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzI4YTMyOGJkZWE4MjhlNzFjN2UxOGIwMzA2Yjc5NzJiYWQ1MDg4OTJkMmY4NmYzMGNhNzI0ZTVhMmI3OTAyNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDcwYTAzYzRlYzE3N2U5YzE0YmNlYWJhM2Y3ZmQxZmQxY2JjYzAwNzFmMzViY2ZhOTE3NzM2MjA1MDY2YTQwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTY2OTkxZTEzN2EzOWNmOWMxYjkxMGI3NGZmNDczNzlkN2JhZDdiYWI0OTcyZDFhM2RmNjhjZmU4YmEzNTA5ZiJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/ingest.py#L245-L262",
+          "version": "repo-lines-v1:sha256:45d12230dcd7bb1cef828533049e47bbb6e8e3ffd7f331ec43d77a9ec387de7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYzViY2Q2NTYwMDQ1OTdlNDQ4NjkyNTYyYjllMzliZTQ3NWI1YmFjZGQ1ZTI0MTk0ZWZkZGQ0YTJkMGNjNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjMDc1ODMwNTI1YjNkYjdhMzY5N2YwZDc1M2ZjNjFiMmQwNDFiMjVmOGJiMWQ5M2Q4MTY1M2QzNWZjY2YyMDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjZmNjYzQ4MDI5MWQ0NGZkMTZjMzg2NzkwMTg4MzIyODE4NzMyMjMxMDU1YTEyOWMyZWM3OWNkMDM5MGY1OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a3753eec25c54b8485907376e82ca988",
+      "statement": "PUT /v1/projects/{projectId} MERGEs a Project node with name and a fixed llmPolicy that must be cloud-allowed or local-only; the policy is set at registration and later read by the skill to constrain plugin behavior.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L162-L170",
+          "version": "repo-lines-v1:sha256:b90293894d9cf3c320c6aee4c4896877efb0398df3f6d4bb5d01e68e9ef74b95:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTJlMTE0N2I3YjkwNTQ1MTI3ZTQ1Y2Y5YWMyOTVhNjBkY2YzYjI5MjdjYmM3NDY4YmVkYWVhZjk5NDkxNDM3MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmRmNGQwZjZiMmE0Zjk3ZjAzYTBkMTQ1OWY1MWNmNGM2NDM1MjVhNmI0N2E5YThlMGJjNGQxM2Q5MWNhMzNlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzdjOTY4ZmYyYWNkM2MxMzM5NzE3MDMzZTk0ZmNkMjQ5NWFlOWU0OGJlNDA5YmE1OWFmNDFiMDQwNjZhOWRjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWRjNDc3ZWJmZTczMjdmNDliZmIzMTQ1NzYzZGU5ODM3YTAzNGE3ZGM2YmVhNzRiYjRhZTZjMGExZTZmYTgwMyJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L54-L57",
+          "version": "repo-lines-v1:sha256:f47865ccbf2e1500203d5fec22277d8b6a0e2d13985b736b3ea43878236f2dd1:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODYwODM2YzZlNmFkMjJlYmQzMmE3ZTk5ODVjM2EyYWExZjMxNzNhMmNkNzMzYjdkZGE1MmQ5ODZkOTkzMGIxMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGIyMTMyNTRkNzUwYjMzZTc2NDE2NDA3MWRlZWM1YWIzMzg1NWRmZGIyN2ZhMzI1NmZhYzdhNDlkMzA0YTJkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWM4NjVkNmY5MDBmN2M1MjNmNjQzZTlhZWI3OWJkMGM4NjFkZWY2OTE0MTk4NmE5N2Y5MDlmYWEyNTJlMmU5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzNhNmU2ODVjNDQ4YjNiMDU2ZDIxNGI3OWNlZjAyYjJjNzRlZTZiMjA3YzllMTE2MzA5MTAwODI2Yzc5YzExZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b61f9263f8374b40b7ab42e15de842bc",
+      "statement": "Stub extraction (tool stub-extractor v0) produces exactly one file element per version whose label depends on kind (TextUnit for requirements/architecture-doc/other, ModelElement, CodeUnit, TestCase), and for requirements Markdown one Requirement element per '## <ID> <title>' heading spanning to the next heading with parent = file.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L22-L67",
+          "version": "repo-lines-v1:sha256:af2da17339a5244815ec32a1c2e0d0e9e4c1b4036f761749077eb11194cd2f7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5Nzc1MDc0NjgxNTcxYmQxNjg5NzBlMDc1NzZkOGViNDI4NzgzYWMyN2E5ODk3YzViY2YwNDdhMDZkZTY1OWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNTFjM2Y3ODZkZWJiYWU1YzAyMmI0MTMzZmY2YmJjOWQ5YTJiYzAyZDgyZDhiMDA5NTUyYzYwYmIyZGQ1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNDRjMjdmYTFlOWUzZGFkZjliYTA1NWExN2E0MWFhNzMwZGFlM2ZmOWRmZjQxZmE3MzhhNDg4MzgzYTljYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1Y2U4NzI1ZTgyMjMwNTRhZWI3ZDMyNjAzZmUwNDQxNTI5YTVlZjVkZjMyODgzMmMxZDM3ZDc5YzMwYTE1ZDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_29316b887ed24ceba464268363338b92",
+      "statement": "Explicit references are regex matches of config patterns (e.g. REQ-\\d+, FR-\\d+) attributed to the innermost element containing the match line, then resolved against current-version and run-version elements into TraceLinks with approach explicit-reference (confidence 1.0, status candidate), links running from referenced element to referring element.",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L240-L267",
+          "version": "repo-lines-v1:sha256:9a275c3f66fc693974041d5ca1c3b07fba7dbe6f8af710f463aa8303e93c842f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4NWIxZmFkNjBhMmJkNDYzYzkzYzFkYThhZTQyOTUzNTQyZGNkMjExODUwNzIxMmMxOTkwODI3NTJkMDRlYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2YjcyMTJmZjljODI2ZWJiMGI4ZmU0MDJlMWE2ZTAyMjM0YzViNjc4NjdhMTYyZTc1N2M0MjcxZWVlZGM4NzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMTFjOTk4Mjk3NWVmOGM1ZGI2MjU3Y2E3NzM3MmQ5NzBiZTMzNDkwYzEzOWY4NWM0YjE3ODdkNDRiMDEwZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkZjJlZjFjZjc0MzUwY2I1NGVlYTM4ZWUyNTBmZDI5MGRkN2M1ZGMzNTk0ZTIxMmQzMWEyZWY5MmY5YjI4MzcifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L70-L91",
+          "version": "repo-lines-v1:sha256:50c366a8e7c3f27bae154ed0a312dea69694f64b0e01c24db581d54d65224e6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YzExNjhmM2Q3ZGI0MTJjNTg5YzQxMTgwMjc3ZTRkZjRlZjBlYmUyZDRmOTRjMDQ2NzdhY2U2OTAzZjc1OGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTYwMGE3M2QyZTAyZjM1MmI5MGZlZjFkOGQ2MzgxMWJhNGE4ZWUwYzFiZWFhN2FlNDY1OGYzNmFhMmUxOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwOGNhYmEyMWM5NDFmYzhmYTc5M2NhMWVmODg4OWNkZDBmMzk1YzMwOGEzMDVhYzM5ODliYWM0NTM3MjRjYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOTMwMTZlOTEzZTZiN2VjNTQ1YjE3MTUwODEwZDhjNmQxZDYwN2VhNTNhYzEyNzNjYzA5N2QyNDcwNTUxZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c4ebbf225578401995c24d1792a84be2",
+      "statement": "Plugin routing selects the first plugin whose match.kinds contains the kind, match.formats the format, or match.globs matches the path; matched versions are sent via A2aPluginClient (Agent Card URL, token from tokenFile, parsed timeout) with a recorded plugin run, and a plugin failure is non-fatal: the run is failed, warnings added, overall status becomes partial, and those versions fall back to file-level stub extraction.",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L175-L234",
+          "version": "repo-lines-v1:sha256:881cd4e1d306c1e3188be34293285722c2cfe2b533a7b49070ecd8c69a8572ed:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZmE5MGFjYWYyYmUzOGNkNzQ1YWRhNzU3MmRmOTA0ZGQ4Zjg5MmFjMzIyZWQ1YWQ2OWIxZGJmMTk2N2UyMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NGU3OTM4ZGUwZjgxMjRkM2ZiZWNjZmNiYTg3MjdhMjg2Zjg5YzI4Zjc0NDcyOTc2YWFlNDMxNWY1NjIzMWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5YzM0ZTM4NmY1NjdiOTc4YjA1NjQyMjgxZmIzMDMyZGFhNjdkZGMwY2JmOTA2ZDg0Y2ExNjQ3NTE2MzgyMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3ZWVhNmQxYzYyZmZkMThkYjhiNTI4YTA1OTVhYzc3NGQ3ZGEzZTUwNGYxMGE0MzE1ZTYyYThkZDNkNGVkMGEifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L83-L91",
+          "version": "repo-lines-v1:sha256:68d3133459334c585768073d100a1d1450ad141066e02808c3e887a5b196083b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ2YWY2ODM3YTYwOWFhZWQ2MTk1MzBmYTMxZTg5YTlkZjVkYWY3M2ViMTZmMzNiNGVkN2RlZTJjOTI1MGViNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5NjAwYTczZDJlMDJmMzUyYjkwZmVmMWQ4ZDYzODExYmE0YThlZTBjMWJlYWE3YWU0NjU4ZjM2YWEyZTE5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWEwZDNiYzVhZDZkOWMyNWI1ZjlhNmQ5NDRmYjdhZjUwZDZmMjUzODBiMjk5MGE3NTg5OGE1NTA4YmRmZjQ3ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGE5MzAxNmU5MTNlNmI3ZWM1NDViMTcxNTA4MTBkOGM2ZDFkNjA3ZWE1M2FjMTI3M2NjMDk3ZDI0NzA1NTFkMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8b3b3caf6284e02baa8572a8ed07477",
+      "statement": "All KG writes in the skill happen in one transaction per artifact version: _write_elements replaces the version's complete element set (MERGE by localKey stable id, delete stale HAS_ELEMENT edges, parent CONTAINS) and _write_links deactivates the version's previous explicit-reference TraceLinks before re-activating found ones; links/relations are written after all element sets so cross-version references resolve, and every Element/TraceLink gets Run PRODUCED provenance with cleanup_stale keyed on sha256(canonical_json({input, tool, configHash})) making re-extraction idempotent.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L100-L143",
+          "version": "repo-lines-v1:sha256:47256f9d9fb5953c9246318dcf219a06cf33fc49f0d155e8073679643936cad3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyOWM4NjQ2YTdjNzMwODI4YTAzOWJiZDM2ZTI2ZTQ3YTRkNGVhY2M4Njc3OGQwOTVkNGYxMmY5N2M2NmExMjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmZTM3Y2ZiMWI5OWZjODlmZmIzNmY0NWYzYTZjMGJiZGIxMTIyOWY2ODkzYzMyMThhNThhNDM3ZDM2YTVlYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhOWUxOGVlMmM4YjJlNjYzNDhkMGY1YTI5MDI2OTE5YjQyNTgxMzhhZDQzMTk3YzNjYjE3YTBjNGUzZDM3NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3M2QxODRmN2U3ZDg0Njc4NzM1MjMxNzI2YTgxYjg1NjEyMGI5NWZmMTVlYTI4Nzg2ZTE1NTgzMTVlN2NmN2QifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L280-L337",
+          "version": "repo-lines-v1:sha256:f4ffa8954c9bffe5d63608cd60cb49707530161d2a74b6cf06dce58b6af35bcf:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ODJmNmFkYjA2ZTEyYzY3MDQyYjhhZjMwMThkMjg1YWNlOWNlYmMwNWQ0Y2MwMWQ3YjgzODEwNDA3ZmI2MTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NjE0MGE1N2YyYmM0N2EyNTgxMDA4ZmIyNjljODFkYzFhOTgwNzc2YTk5YjM0OGYwN2E3YWUzM2MwYmM1NjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDQ3MjBlODBlMGMwYjdiOTM2NTFhOTI4Y2Y4MDQxZTBlMjQwZmRkMDI1Mjk3YjZhY2RlMWJkNDI2MWVmZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_803916bc562b4f9daec83153eb0eef21",
+      "statement": "The skill returns {runId, status, elementCount, explicitLinkCount, pluginRuns} and publishes sandman.extraction.completed; unknown projects or artifact versions raise a non-retryable SkillError INVALID_INPUT.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L108-L143",
+          "version": "repo-lines-v1:sha256:9133478dc337294e3c5c91ecab6e56c1017cffbeab273c13960a6696c47ee482:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMWM2ZjRkYzMzMzE1NmY2ZDJmOTBmYjFkZGViZmY5NzdkMzMyNDcyM2MyMzI1NjViOGRiNDhiNzFkMmY5OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmZTM3Y2ZiMWI5OWZjODlmZmIzNmY0NWYzYTZjMGJiZGIxMTIyOWY2ODkzYzMyMThhNThhNDM3ZDM2YTVlYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MjBmNGVmZTg5Njc1NmQxMWQ2ZmM4ZTJhZjA5OWI5MTU4YTZkMTM2ZTY1YzNmNDczN2Q3NThkYWIwMjgzNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3M2QxODRmN2U3ZDg0Njc4NzM1MjMxNzI2YTgxYjg1NjEyMGI5NWZmMTVlYTI4Nzg2ZTE1NTgzMTVlN2NmN2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e8d37f3021184352b0b7170bef843068",
+      "statement": "REST endpoints require a verified service token plus a trusted X-Sandman-Actor header (pattern ^(user|service):[A-Za-z0-9._@-]+$, falling back to the caller service identity), and validation errors are returned as problem+json.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L124-L132",
+          "version": "repo-lines-v1:sha256:07fe2228168f351580a3a9021d0f60bef2f186b3ad6d86f12e86d506848734b5:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZkNmI3YTVmYTIzODFhZWRiNjVmMmU3YWNiMTY0ZTc4ODFkZjkwMGJhOTc1MmQyNjA1MGIyNzFmMWI3YTc2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzNmOWFjOGZmZDhmYTk2NzIzMmM5ODdhOGI3NGZhZWEyNDRiZGM0ZWE1YzE2Y2IyN2ZjYzJlZjkzODlhMWFmMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTljYjQ1ZDk2MGZjYWI4Mzc4NDc5MjFlYWEyZTgwMTgyM2UwMjNmNjFhZWVlYTc4MTlhYWQ2NWM5ODJmM2U5ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzljMGQ4YWZhNzAzODUzNjE2Yjg3YzkwMDUxNWI4NmQ1NzE3MDUyZGJkZTA2MGQyNDc5Y2NhOTU1YmNmNDE5MiJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L189-L191",
+          "version": "repo-lines-v1:sha256:a75ca9ffe103cd6e7930ce23ddb512cf22a56393948aa85eea6545c3efe0f49a:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmE0Zjg0ZGQ4NWZmMGI4MmRhZGRkZDNmZTUzYzdiOTI3ZjVmOWVmZmJiMzVlZmFjNGRhNGIxYThmMjZiYjFkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2UyYTc2OTI5NzYwOTVhZjM4ZGZjYjcyN2ExODhhMTM0YzZiYTY3ZTY3ZjI0ODAyNGZmYjU5ZGFmNThlMzZhZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDM4ZGVkOTYxY2I2NjY5NTU1Y2QwMTM5ZTQ2MmYwOWEwOGI3MjU4NGNjOTU2OWQ0ZGE1Mjc0NzQzZmU4MDllYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjU5ZmJhNTU0MWMwMTVmZjc5M2EwNDkwYjc3ZjA3ZjY0MWIzNjliZWEzMmUyOWY1M2QyZDdjN2ZiNzJkNTY5MiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d5e7d9c6cda448e9ba6e4b85c3312a3d",
+      "statement": "The service test suite (against live Memgraph and NATS containers) pins the ingestion and extraction invariants: idempotent re-ingestion, revert/reactivate semantics, exactly-once publish retry, archive traversal rejection, plugin-failure fallback, and idempotent re-extraction that drops stale elements.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/tests/test_extraction.py#L42-L260",
+          "version": "repo-lines-v1:sha256:8a850ba01cbd92e4f44bb73aad4f59e4329ae8e2041d0a1d0b928996804a4490:eyJzZWxlY3RlZExpbmVDb3VudCI6MjE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3NzhiYWVkMDllNzYwMjA1MzQyOGI2Y2Y1N2Y5Yzg2ZjFiODAxYzRiY2Y4MDBhNGU2NTU3MzhmN2FiMjA4OTg0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4YjA1Yjc3YThlODQ5YTE5NDc2ZTU3ZDI4NDExZmUxNmIwYWViYTFhNzljZGUzNmQwMzBjOWJiYTIxYmZkNDQ2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjOWM3ZTdjMzdkOTdlZTU0NGVmNWZkOTg1N2MzYzM2ZDgxNTgzMzE3M2QyZjY1MjY1NmM0MDQxNzFmYWNkY2M5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyMGYwMzY5MThiZGNiOTM1YzJkMjc4YjI3ZWZlZmFiNDgzNzUzNTllOGE2MDQxNTdlYTg0ODE2N2UyZWQ2ZTA4In0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

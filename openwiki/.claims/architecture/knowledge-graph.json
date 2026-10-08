@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:02ce120a972f49eedb83416b7a92859c58e8b6fda96c5ce49457c26f7112a031",
+  "claims": [
+    {
+      "id": "claim_22ce93c074cc4cdda1c5b23b5d6710ab",
+      "statement": "The KG schema is governed by the versioned contract contracts/kg/schema.yaml (v0.2.0), which is the source of truth for writers, contract tests, and the NL-to-Cypher prompt, and follows ADR-0005's decisions L1 (reified TraceLink nodes), P1 (Run provenance nodes), and V1 (immutable artifact-version snapshots).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0005-kg-schema-provenance-versioning.md#L27-L46",
+          "version": "repo-lines-v1:sha256:c0102a396c8539488fc08cab9553cc3a8b1e0fb7cdc5e6f7bd8422951fc303b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkYjhhMDg5MzI5MzdmNGJkNTRjMjJlNDk3ZDExYzA2YzA1YzI0NjZiMDJhOTBhYmM3NDdkZTg3ZjFlYmY3OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhYTQxN2Y0ZDNkYzE1ZGU2Y2Q0MGRmMGNhNTFkNGU0YzQ0ZjgxOWE0OGIxNTNiNTBjZTI1NzVmNTYzMDI2Y2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyYzBiYmQzOWNiZDkwNDVjM2EwYzQzZTFkMWE2YmQ2ZDVjYjdlOTI3ZjI2MjgwOGJmYTMzOTdjMzgyZWQ5NDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1NzFkYjI0MzIwYmI5YTE1MWQ3ZTA3M2RlODBkNmQ3NWJjNGU2OWE5MjgyZGJhNjgxOWRmZDVjMGM4MDc5NTEifQ"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L1-L12",
+          "version": "repo-lines-v1:sha256:e3154dc0a5ea64d418f5667f7c828072c3172795a8ffd5d2bd00dc87669a528b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwYjJjN2RlZTM0YjliMTViYWFkNTBkMWZhM2QzMGUyOTFhZWEyMmJmYjQ4YmY0YzFmNTJkNzYyMWVmN2IzOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0Mjg5YTU0MGMxN2UxNzQ2NTIxYzIwNTE1YmIzNjMxMGJiZGQ5Y2UwZGMyZmFhZTQ1YzRlNjU2NWJkY2VhODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ZTcyNDgyOWMwM2JkM2NmMzM1YzIwNmIyNGEzMGU3MWIwNGEyMWMzOTg4ZGU2M2M3MWUyMDY4ZjUxODBhMGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_38ebdac2b4f24603bcc7084390b6883c",
+      "statement": "The single-writer rule assigns exactly one owning component per node type: extraction-agent owns Project, Ingestion, Artifact, ArtifactVersion, Element, and Concept; tlr-agent owns TraceLink (co-owned by extraction-agent for explicit-reference links only); inconsistency-agent owns Inconsistency and StatusChange; each writer owns its own Run nodes.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L14-L151",
+          "version": "repo-lines-v1:sha256:7c4b8ce1ffc27f3073383273eb936d9a0f6a4c816a5ac7b7ba849269fc415ec4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwYzg3Y2JmNDZjZWJkODU2YzBiOTk3NjcxMWFiZWE3ZmMyODE1NjMwOGM3MWUzMGE5YTM4MGIzZTlkMzgxM2ZiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4NTFiNTE2NTVmZjBiNDRhMmE1YWVjNzE0NjM5NTI2MjQ5MzU1NTIyMDM4NGZiMzRlYTBhNmM5ZmE4YjBmNzMwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1YTU4MmQ1NGYxODcxMWZjOGNmMTAzZThjMTBlM2Y1MzFhYzdlZjhmNmU4ODk2YmU4NjU5MWZiNDFkMTQxMzk2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiZjRjZjY5OTAzZGJkMTc3NGIyMDI4MDM2YmU5Njk3ZTNkODUxNWZhZTc0NDEyMTgxNTJhMjMyNzI0MTAwMTQ4In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cc032f53b6740578497ec9573e86483",
+      "statement": "Element nodes always carry exactly one secondary label (Requirement, TextUnit, ModelElement, CodeUnit, TestCase) selected by kind; Run nodes record full provenance including agent, tool, model, params, promptIds, inputKey, replayMode, and status.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L148-L174",
+          "version": "repo-lines-v1:sha256:14e65f3337b61858f343f422bff1c9d1b4ec7001c221636d1136605c93eb5ebd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiYjljYTMwOTZiMDE4ZDg4OTJkMGZhOWQ2ODRiZjI0YWE0NGZjOTEwYWU2YmI3ZTZmZDA0Nzc3OGQ3NmJhMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzOWRmMDRmNzkyNTE0MmJlNTlmYzAzOTVlOTkxMGY3YjM1MThjNDFjMGI4YzI1MzEyMzUwOGU5YzM4YzNlYmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4ODYxMzcwNTAzYzE0MWNhMTYzMWEyNjQ1Zjk1YzA4ZTNjMDNiZDg1YTgyMmZkYjA2OThjZjUwNTU2Y2Q3NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1MGM3NjA4NjVjMTFkMjc2ZGFlNmQyZmNmYWJhYjNkMTAxMjgzMGJhNzU3Yzk3MTg0YjY4ZWU0MDBkZTRlMjkifQ"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L64-L86",
+          "version": "repo-lines-v1:sha256:9ec96deccd50bee95937947c98a4fe54bb0a15671e609c777a0fdd55e1bd3516:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiYjE3Y2U2YzMzMzZkNjBiZjUzZTNjZWU1MTAwMzFmZTI4ZWEzNjY5ODdjOTA5M2NhZTE1MGE4MDA4NzMxMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YWRlYzVlZjg1NTlkZDMxYjBmYTE1ZmJkMWQ0NzUzNmVmNDlmMGFjN2NmZDk1ODEwMzY4MGFkYTVhNGMyNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxODhhN2YxYTBiNzg1NmY4OGJjOTY4MmMzYTExYTI2MjA1NTJjOTUzYmYzZDJlOWNkOTllYjFhMjg1NGQyMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNGE5OWEyYTY3MGMwMTMxYzMzZDdmN2Y3N2U5YzliM2RlYTQyMWYwNGNhYmQwMzgxZDRmNmNlNTdmM2Y5OTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fe34923dd36540c2849332e6c5985c98",
+      "statement": "Element.key = artifactId + '#' + localKey is stable across versions; TextUnit local keys are content-based (section slug paths with duplicate counters, sentences keyed by first 12 hex chars of sha256 of the NFC-normalized sentence plus an occurrence counter), so inserting text does not change other keys, and sentenceIndex is a non-key property.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L11-L12",
+          "version": "repo-lines-v1:sha256:177127ef20e50b1124885c43223b5deafd364d367b96a85346e7837a3df36a66:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDY3ZGNkNzJmNWJmYzdkZDI0Yzg3OWExMTZiMTg4NGUyYzFlYzA5YzI3MzMzY2Q3M2YyZDUwZGFiMjNjNjY5ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQyODlhNTQwYzE3ZTE3NDY1MjFjMjA1MTViYjM2MzEwYmJkZDljZTBkYzJmYWFlNDVjNGU2NTY1YmRjZWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjNkNTI1NDM1YTFkNDMxYTMxNDZhM2NjNWRhZTk4YmI2MGVkZDI4YzczODRhZGQwMmQzOWM1NmNmNTU5NzIxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDRlNzI0ODI5YzAzYmQzY2YzMzVjMjA2YjI0YTMwZTcxYjA0YTIxYzM5ODhkZTYzYzcxZTIwNjhmNTE4MGEwZSJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L69-L69",
+          "version": "repo-lines-v1:sha256:4aed1db130d4c214def1a0bd64b3c65458a36c6149be8db19de922f05662fe85:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGFlZDFkYjEzMGQ0YzIxNGRlZjFhMGJkNjRiM2M2NTQ1OGEzNmM2MTQ5YmU4ZGIxOWRlOTIyZjA1NjYyZmU4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGFlZDFkYjEzMGQ0YzIxNGRlZjFhMGJkNjRiM2M2NTQ1OGEzNmM2MTQ5YmU4ZGIxOWRlOTIyZjA1NjYyZmU4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODE5M2U5MGE1NjJmY2MxZTYzMTZiZGNiM2NlNDc1YjVkMTU5MGY1OTViZTljMmQxOTlmZDY2Yzk3YmQwMmM2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTk2YjgxNDhkNDdjYjY2YjIzNGIwNmJkMDQ1YWFmZGM2MDZiYmIzNDBlMGU2ZmQyYzRiMWZhZWQyNjI1NDExZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_793c6e3238f74696b40e14ffa59f8185",
+      "statement": "Inconsistency fingerprints are sha256 over UTF-8 of type, detector id without version, and involved keys sorted byte-wise by UTF-8 joined by U+001F, where an involved key is an Element.key or sourceKey + '->' + targetKey for a TraceLink; this makes re-detection across artifact versions possible.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0005-kg-schema-provenance-versioning.md#L38-L40",
+          "version": "repo-lines-v1:sha256:9b589576b42c7fc2b587d3a386fcdb895515557492e84a51c7d6429a839affd8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2E4NjI2YTk3YTcyZjIxMWNkMDg0NGU2Y2MwYTE4NzQ4ZDE3ODE5YjVhNjdiZWVjY2QxMjViNzgwOTQ5NjYyYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGVlNmIwNzYzMGU2NzViM2Y1YWE2MTE1OWI0ODg0ZGQ5YjI1NTI5NGJlZDFhMzhjNGYzOGM5NDQ2NmQ5NWFiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA3YmFmODVhMDBlZjg3NzRlNDc0NzkxMDA4OWRiZDIxZTI5YjQ4MmQyNGQ5ZTA4YmM3OWRiNjY1MmMwYWY2YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmI4YTNjNjI5ZGIwOGRmMDE2ZWJkZWJjYWRiZTU5MmNiODFlODA5YjU2OWI4MGZhN2JhMWE2MmIzMjRmZDVlNCJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L12-L12",
+          "version": "repo-lines-v1:sha256:64289a540c17e1746521c20515bb36310bbdd9ce0dc2faae45c4e6565bdcea82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQyODlhNTQwYzE3ZTE3NDY1MjFjMjA1MTViYjM2MzEwYmJkZDljZTBkYzJmYWFlNDVjNGU2NTY1YmRjZWE4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQyODlhNTQwYzE3ZTE3NDY1MjFjMjA1MTViYjM2MzEwYmJkZDljZTBkYzJmYWFlNDVjNGU2NTY1YmRjZWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTM4OGU1MDg4YTQwNjljZjJkZGY2NDJiYzhjMThmMmUwZjI5MGI0M2I0MmE4ZDMzMzI2NzlhODIwYzU5MzQwZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDRlNzI0ODI5YzAzYmQzY2YzMzVjMjA2YjI0YTMwZTcxYjA0YTIxYzM5ODhkZTYzYzcxZTIwNjhmNTE4MGEwZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0fd83e8688f14d9f88f6b645405d9fb1",
+      "statement": "An element is current iff (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(element); a link is current iff active = true and both endpoints are current; CURRENT_VERSION is at most one per artifact and absent for deleted artifacts.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L182-L182",
+          "version": "repo-lines-v1:sha256:2d40c65b32a9933e5a4fa6b65f6465d6528d4173c58331f71cd1c5b63b9f7437:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQ0MGM2NWIzMmE5OTMzZTVhNGZhNmI2NWY2NDY1ZDY1MjhkNDE3M2M1ODMzMWY3MWNkMWM1YjYzYjlmNzQzNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQ0MGM2NWIzMmE5OTMzZTVhNGZhNmI2NWY2NDY1ZDY1MjhkNDE3M2M1ODMzMWY3MWNkMWM1YjYzYjlmNzQzNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmE4NzkwYTI2OTgzZThjMTczYmZmMmM0MjEzYTY3MDUxZDIwYTgyZGUyZDJkN2I2ZjhkZDk3NDFmNmMyZGI3NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWM5MzliOGE0YWUyODgyM2M2MzVkMTU1ZmIyMWRkNDJjNTI2NzhhMjY2YWY2NjhhYjgxZTUyODIwODg2MDM5MSJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L9-L9",
+          "version": "repo-lines-v1:sha256:b7000eb9b898bbc63b5ef6fe8c5c57f955484e16da3ce67a2717bf8c8a859076:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjcwMDBlYjliODk4YmJjNjNiNWVmNmZlOGM1YzU3Zjk1NTQ4NGUxNmRhM2NlNjdhMjcxN2JmOGM4YTg1OTA3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjcwMDBlYjliODk4YmJjNjNiNWVmNmZlOGM1YzU3Zjk1NTQ4NGUxNmRhM2NlNjdhMjcxN2JmOGM4YTg1OTA3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjNlNGZiODExMmY1YTI1OGVkNDY1NGRjYjQ3NmQwY2Y0NDYwZGVkZjZmMTg3NDBkY2IyOTNlNTg0Yzk5OGRhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmEzNjg2ZDY3ZTkxMTUwY2UwOTJlODdlNjhlZjdkODAyYjA4MmM0OGY2MGMzMmU2YTNmM2U4NmNmNmI3Yzk5NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_24aef2ed7f184479858914008c6d59f3",
+      "statement": "Under the active_facts convention readers never see facts of unfinished runs: the extraction-agent writes one artifact version's element set in a single transaction (re-extraction replaces the set, dropping HAS_ELEMENT edges for un reproduced elements); the tlr-agent writes links inactive in batches and activates them in the run's final transaction, which also deactivates earlier links of the same approach between the same versions; the inconsistency-agent writes one detection run in one transaction; consequently readers never need Run.status.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0005-kg-schema-provenance-versioning.md#L89-L94",
+          "version": "repo-lines-v1:sha256:d30a6aeeaac909e02312c8d2c9522faaa356d61f8539877ef15cd26b80f138cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWE0ODIwNzIzYjY1NTA2ZDcwYmY4OTQwNTBhNzVjMDQ5MTViZmYwNjVhMjNmMTMwZTBmZDlkZDkzMjI1ZWE4OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTJkNDYzOWI5OWVkMDc1ZDI0M2I3ZGU0OGYwNThiOWU5Y2RiMzk3MWQwODQzYjBiNmQwNjY3ZDFjMjdhYWViNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L10-L10",
+          "version": "repo-lines-v1:sha256:79acea318e766e22c9aeb8e6755375fdd52ac4e56548f23e3e9f0158d59f1f7b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzlhY2VhMzE4ZTc2NmUyMmM5YWViOGU2NzU1Mzc1ZmRkNTJhYzRlNTY1NDhmMjNlM2U5ZjAxNThkNTlmMWY3YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzlhY2VhMzE4ZTc2NmUyMmM5YWViOGU2NzU1Mzc1ZmRkNTJhYzRlNTY1NDhmMjNlM2U5ZjAxNThkNTlmMWY3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmUxOGQ5NjU5NDczZTY1NmQxYzE4ZjgyMzdiZjg5NjYyMjliNTk0MjViYTJhYTM2MGI1ZmRmZjIzMjU2OTU5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWE1ODJkNTRmMTg3MTFmYzhjZjEwM2U4YzEwZTNmNTMxYWM3ZWY4ZjZlODg5NmJlODY1OTFmYjQxZDE0MTM5NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a7a17f122ca5493eb2ea612d20b86dfd",
+      "statement": "Ids are deterministic stableIds (prefix_hex32) over their arguments (e.g. tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId), inc_ = stableId(projectId, fingerprint)), making re-runs idempotent; only Run ids are random (run_hex32).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0005-kg-schema-provenance-versioning.md#L29-L34",
+          "version": "repo-lines-v1:sha256:29019707315ecb7b332426483222ba9beeda29c7ecd315a30329ac237cb50ea1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjQyOTkxNWY1M2E1Yzk2NTMwM2Y1OGQ1MWE0ZjlkMThhOTUwZWI0YzhlNTBiYzQ1MmQ3M2ZlOWFkNDQzNjg0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ3MTRlMTRhZWUyOWQ4ZDFkOWIxMGYxMTQ2YTJlNTU3YzRiMmI4NjJmNTZhYWQyNTQyYjIzNjZjYjc5OTFhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGIwYTA0ODE5NTFmOGRiMjA3NGJhNjc1ZmM1Mzk3NTMzNmNmOWM0ODYyYzkxNzE1M2ViMDNjMGU3NTM5YzA0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA3YmFmODVhMDBlZjg3NzRlNDc0NzkxMDA4OWRiZDIxZTI5YjQ4MmQyNGQ5ZTA4YmM3OWRiNjY1MmMwYWY2YiJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L6-L6",
+          "version": "repo-lines-v1:sha256:8ce22fe40bc36761522768ab59ee1d13b138de19fcd8329a14a16fd7bf5eec91:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGNlMjJmZTQwYmMzNjc2MTUyMjc2OGFiNTllZTFkMTNiMTM4ZGUxOWZjZDgzMjlhMTRhMTZmZDdiZjVlZWM5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGNlMjJmZTQwYmMzNjc2MTUyMjc2OGFiNTllZTFkMTNiMTM4ZGUxOWZjZDgzMjlhMTRhMTZmZDdiZjVlZWM5MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjAyMDgxMTIzMTA2MzEwMDM5OGU5MDliNjdkMjRjNGUxMWY5YWY3NzFhNGIyY2Q2NTM0MmNjZmViZTNhN2NhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmUxOGQ5NjU5NDczZTY1NmQxYzE4ZjgyMzdiZjg5NjYyMjliNTk0MjViYTJhYTM2MGI1ZmRmZjIzMjU2OTU5MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_554467ef791d440aa7c70a5c589db51a",
+      "statement": "Both Java and Python KgClient split access into read transactions (executeRead; Memgraph rejects writes there), write transactions (executeWrite with driver retry of transient errors), and auto-commit (runAutoCommit) required by Memgraph for schema statements and SHOW STORAGE INFO; initSchema executes contracts/kg/init.cypher statement by statement, idempotently.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/KgClient.java#L39-L81",
+          "version": "repo-lines-v1:sha256:0587eb4885c0e5acc1fc99bbdb19a7dfe68d5ca7b37329d64e5a8f4cb9d382f6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4ZWViNTg2YjljZjlhMzMzMmUyYmQ2MjQwZGFjYzlhOWMyMTE5MDE4NTI5ODE3ZmFmZjcwMWZhMjhjOTg5NjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlYjllM2E3YThlNjU1MjdmOTVmNzIxZGY2OTRiZDgzY2I4ZDliZTc3YzlhOGM0YmIzOGFmZGJiMDQwZDIzZjcifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/kg.py#L39-L84",
+          "version": "repo-lines-v1:sha256:eda1d407be61e48ca0f241283fae1e8200f52e1203bf7b742005d32c79ddae4a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMmQyZTgzYzQ3MjA3YWYwMmFmYjQ5NGRmZDM4YTMyOTQwNGNmZWM3ODUwNTQ5YjNmM2NmMzZkMmNmMzQ5ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZGVhODlhZTM4NjVhM2FlM2QyZDcyM2JjYTE2YWUzNTA0YTYzN2E5YmQ0ZDViM2E2ZDI1NjhmOTU0ZmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjZTdiZGM4YTE0M2U2ZDcxNmQwMTEyMDUyZDE5MWNkMGMyZGY0NDJmNzQzMDQ3MjEwMzNmOWIyYzYxODFiM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyOGMyMmY4OWM3NTk5ZTVlMDU4ODdkNTVhMjQ1YTM3NDJlYjgwNGY1YTAzYzYzZTRmMWVmODBmN2I2NmFmMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0fa7efad68944a7acc0f4728ab97ee0",
+      "statement": "Memgraph reports memory-limit aborts as transient errors, so both clients wrap transactions with noRetryOnMemoryLimit / _no_retry_on_memory_limit and re-raise them as MemoryLimitException / MemoryLimitError to stop the driver's retry loop; deployment therefore runs Memgraph with --memory-limit below the container limit.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0014-graph-database.md#L77-L79",
+          "version": "repo-lines-v1:sha256:90cdfff7fab6cf8ca7f884382dce1006e3bf2333144943815bdbc9f6a9ba444d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTczZDJhYTBhZjU4MWU2ZjZlMjA3ZjhiMzNhY2IyYzY5YzE3MWIzMjM4Y2UyMmMwMWEyZjcyMGQzNWRjZTNjMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWUwNzU1MGYzZjQ1MjkwY2VjOTEzMDk3MmU0ZGMyODE5OTMzNTIzMThkODMwMGU2YTMzOTkxMGIzNWVjNzkzMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/KgClient.java#L22-L27",
+          "version": "repo-lines-v1:sha256:dc4b52800c977409224b1d883ec7d30852a798079ecb516d595073597be90b76:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmJjMzYxZDA2NGMyMGQ0YWE1ZTljNTYxZjRkOTUzYzYxNTBjNjBiMTJkYjM3MjZiYmFlMmE0NjU2NDg5YzkzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2IwZDk4YmM4MmZjYmE5Zjg1MzQ2NjMzZTVhODZjNDk3NGFjZGFhNTJkOWJiOTUzMjc2MDA0YjViYzVlOGI3YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDg2MDQxMjIxOTYwNGU4ZDQ2NTFlNWJiNjgwMmExZmNkYmI2ZTBkNzEzZDQ1NTU4NDEzNzU4YWRmYjIwMzY2NiJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/kg.py#L17-L31",
+          "version": "repo-lines-v1:sha256:d8f511ab3f21192b3599e848e461fa4315efc4f29a6e42851fdeb21d0f190d5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNTI3MmViZTkyOGU5ZjM1MjllNjRlNjQ2ZjYzMTEzMjI4ODA3ZmMyODQ2ZWU4ZTIyZTQ3OTNlNjM3NDhlOWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NGVkZDZkZGM1YTYwMmIwNDU2NDE4NzMyMzU4NGJhOWE5Y2ViZGE2MTNhZjQ5NzVkNTIzMjk1OWU5NjNkZjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYzM5ODI5NGI0NzYzNmRhYzlmNTM1M2FiYTBmNzIyMGI5NzYxMDJiMmVkNzZlN2U5ZjRmZTBlMmJiMzFjZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4NWMyN2ZmZjYwYWU5OGExMzRhYTM3Yjk1ZmYyZjU2OTdjMDY1YzhiNWZhN2ZmZDhiNWQxYmJmODczODU0YzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c542e9065db644d8b9316c3bc896437b",
+      "statement": "The Python RunRecorder creates a running Run with its USED edges, completes/fails it with token usage and timestamps, and cleanup_stale deletes facts produced by non-completed runs with a given inputKey (marking those runs failed), so aborted runs leave no visible facts.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/kg.py#L87-L152",
+          "version": "repo-lines-v1:sha256:7ffd5968e52fb30066e7286140678ed219c9ded11cfc1dda99673c74b5bb0959:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkZTUyYjZlYWY1NGEzMzllNmJlNzZkOGJkYTNlN2I3ZmE5NjhjOGZiYjYwNGNjYTdkZWJkNjRlNzU3YjMzM2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZTNjYzE1ZmYxZWY2ODEyNDM0OTdkMzE0MWNmZGFhNDQ2MWRkZWExNmZmMWNhM2I1N2ZiY2MxNzE0NzA2ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzZGU3OGRhOTIyNjMxZWE5MjI5YTk5NGJlOWQ4YmJmMmJhYjU1MzcxOWU5MmJlODk2Mzc4YWQ3MmRiZTNiZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_24f451f5302847aa8b69381455d5f2d8",
+      "statement": "contracts/kg/init.cypher declares unique id constraints for Project, Ingestion, Artifact, ArtifactVersion, Element, Concept, TraceLink, Inconsistency, and Run plus single-property indexes (Element(key), Inconsistency(fingerprint), Run(inputKey), projectId etc.); it is idempotent and applied by the extraction-agent at startup.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/init.cypher#L1-L27",
+          "version": "repo-lines-v1:sha256:9f0deef489b00c89e5fa5e1a952d4fe55bdbe05b951ba764f977471b93809212:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5MmNhMDU3YjExMDNlZTM2YjQxNzI4ODk4ZGFkYzYwYzk3YTc3Yjc5MmEyMDFmYzU1MTU3MzFhMDEyNGQyY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExYjAzMTI2NjdhMjEyNzUxMzllYWU0MTliNmZlNGFlODg4YTlkNjhjOTYxYWFkYTY0MTkwNzRiMzdjMmJmZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_433f61e27ae34dbd92488270fc438f03",
+      "statement": "Schema evolution is versioned: additive changes bump the minor version, renames/removals require a major bump plus a migration script.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L3-L4",
+          "version": "repo-lines-v1:sha256:d6b54d434c7c705a8d1a3d0961ca8bae9cbdee69470c68f378444cb1e0ef8cde:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODM4YjQ0MDVjYzA3M2MxMDhiYzMyY2JkYmZhZTJiZTMyNzFjNGQzMzYwY2M0ZjQxNjU1OWI3YmFkY2EyMWZlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M2NDc5NWU5NWFhNjNmNWYyZWIwYWM3NWE4NGZjNDVlYmM3NjBkOWY4ZWNhZTM5ZTcxMmQzZDdmZTQ2ODNiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTYxNTQyYzcxMTI5YzdiMGY1OTJjMzYwMTlkNzU1NGRjODc1ODEzZmUwZjY1OWRiM2FlMDcxN2YyZWRhZmJiNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWI5MmM5YTAzMGU4YWM5MTgwMWI1MjBkNzVkM2YwMmIwYzA5OGEzYmIzNWIyMzQ5ODZhMTgxYmJjNzYxMDc4MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_abde04868da04c7eba96414a6aa0a203",
+      "statement": "Memgraph dialect rules for all Cypher in the repo: no pattern expressions inside size() (use OPTIONAL MATCH + count()), MAGE procedures instead of APOC, and never rely on internal ids (id()/elementId) — always match on the id property.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L197-L200",
+          "version": "repo-lines-v1:sha256:7982930a1df20370c021c5f884827512388c8290606a37f2ca86ac71ff943188:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ5Njk4YzE5OWE3ODQ0N2E1ZjMwMDlkZjVlNjVjYWVkYWFkZTgyOTU3ZDgzYWE5NGUwNmVlZWY4OWViMWJjMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTE5MWQwNDRmYzlkZGZlYmEwMDg4Yjg3OWEzZTdhMjc3MjFmNmVhMjE5YWVjY2U0ZTJmNGQzMTQ5YmE5ZmQyMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmJkMTdjNjViM2JkZWZjNzFjNzg3YjRmM2ZhYWZlNjY1OTBiYzlkZDY3NjQ0N2YxMDdlMWJhYTVlNGI4OGRiZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7baf70b9c1a14969a30d29851f012915",
+      "statement": "Memgraph Community (BSL 1.1, in-memory, Bolt via Neo4j drivers) was chosen per ADR-0014 with ArcadeDB as first fallback and Neo4j Community second; the whole graph must fit in RAM, which motivates version retention policy.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0014-graph-database.md#L30-L44",
+          "version": "repo-lines-v1:sha256:33224c5254756a2000e70021bb3004272a2cfbbe47393451fc07d207dad04ce7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkYjhhMDg5MzI5MzdmNGJkNTRjMjJlNDk3ZDExYzA2YzA1YzI0NjZiMDJhOTBhYmM3NDdkZTg3ZjFlYmY3OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyZjkyM2JjM2Q1YmU3OWVjMDY3MDRmNjVlOWMzNzU5NmMxZmMwMDQ2MjE1ODA2OWYwNzRmMjc4YjkyODFiYmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3OGU2YTMxOTYyN2Y2ZjI5OGEzZDc4ZDRmYjJlNTJiYTcwYzljZDI1NmRjYzZlNmMwOTQwN2FhZDk0YTYxNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzOGVmOGFhY2M2NTM2YjJiODVmZWMyM2QxNGQwN2ZkNGY1OTAwNDUwNzEzMWJkNWFkMmY0Nzg1YjMyODU5YTgifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d08287cf8aec3cb8726262b33a75da662e8c1da2cfa13e4c2b72d9fb85812daa",
+  "claims": [
+    {
+      "id": "claim_5f4d92553d9f4649b89ce75485ca18ba",
+      "statement": "The SANDMAN skill-invocation convention layers on A2A 1.0 (JSON-RPC binding): the skill id is passed in message.metadata['sandman.skill'], the input is exactly one data part validated against the skill's inputSchema, and the result is a task artifact named 'result' with one data part validated against the outputSchema.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/skills.schema.json#L1-L6",
+          "version": "repo-lines-v1:sha256:0ffd2229048750bd0024d264d64de86886ece3600c3b6537e2479b53ef0ff04a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZmYjA4ZmRhMWFjYjk1N2I2MTE2YmQzNzgxMWExZmU0MWEwMTYxMWMwNjMxZWRiZjc4NmQ2ODg5YTI3YTU1YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2QxNjNlZjljOGI2ZjBiMjMzY2EwYjFlYTUzYzBhYTkzNTI4Y2QyOGQxNThiZmQ4YWFhODJkM2I4MDBjMDM2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjFiMTc2MjhhYTNhMmIzMDUwYTY1MWQyMzY5YmEwNzgzNGJmOWEyMzQ2ZGRmYWUwZGM0YWJlYjExNTIwNDJmNiJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L76-L170",
+          "version": "repo-lines-v1:sha256:10690ffcdb380e27aa35b849e7b659371cef57fc6df28898dcb51a9c9732e0a3:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiNDgyNDkwNmVlNzAxZDczMTRiYTYxMzI4Yjc2YTJmNzNmNTJmNmNmNTEzNTI5ZTkxY2Y3YjA1OGY2OGM1N2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2OTQ2ZTEwMWU1ZTc4ZDkwYTUxMGM2OWYyNjZlZjc2NTQwZDMwOWIxYjgyMjY5NWI1MzE3MmVkMmNhYTAyNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0NWZkZDQ1MTZkOWYyZDIzZDk5NDQ4NTY4MTU4MDVjZWY4ODY4NDdjOWY3ZTUxNGJmMzhjYzAyZjQxY2FhNTQifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L154-L232",
+          "version": "repo-lines-v1:sha256:2374700c630fa15803abaef98b5fa48796b297c8c33286ed12eb1b7d5c46ab7f:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MDNmMzgwYTBlM2RmMTE0MGUxYjM0OTFmNGM1ZTQ3NDFlMDYwMWRkYWYyZGJmNjQwYjE5MjVjOGMwZTU1OTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMDQyODljZjk1NTFiOTc5YmZlMDI4NDVkNDAyNjRjODgwYzExYmExZThkZDM4YzI2NWU5ZjBiOWUyZjliYmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxN2ZjMGQ4Njk1OTkyYWRiODM2ZGU3NDRlZGMwMTk1MDA5NGNiYTA0M2FhNGRhNjk3OTFmZWFhY2E1NDM4YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzN2JiNjUzMTZkZjg3MDA4MDI2MTc0OGIzMmM1YjBmNjIxMDAyZjM2MjM5YzNhYTQyZDZkODNhODRkZDk1ZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f1d8adf7d4245eab7c0fe6d33dbd0ad",
+      "statement": "Skill failures are reported as a SkillError object {code, message, retryable} in the status message metadata key 'sandman.error'; expected SkillErrors reject/fail with their own code, unexpected exceptions become retryable INTERNAL, and BUDGET_EXCEEDED blocks the workflow until a user acts.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L127-L181",
+          "version": "repo-lines-v1:sha256:85e985ca017d831563a3595d31bc65c2d2897f60dcd34018d1e4ac78f6855852:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiMTRiYTZmMzM3YmE5NGJjNjM2ZTBhNWFhYWRhMThjN2VlZTM5MjVlMzYzY2ZhZjBjNmQzMzliN2YxZTFiOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiYTM5YzhmYWY1YzU0ZTM1OGExYjUyMWI4ZTQyMDQyY2RmMDQ4Y2Y5YzJkYjU2NTZiNDljZDY2ZTA0YmY2MzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzNDE4MWE3NjAwYjU2ZjJjMjBjMzRkODEyNTA5NjA5MTRlMWI2MTk0MDcwMjBmMzM1ZmJlNjY1ZTBmN2M3NmQifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L198-L236",
+          "version": "repo-lines-v1:sha256:332301e8b89b2827fa9293d063a2813661d977f60ec0ef316b8b4b352f329370:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2OTEyODVjMTNmNzhjYzRmZmExYTVlNjMwNDRhNDU1MjZlY2EzYjliYTBiMGQyZTA2OTI2NmE3NWVhN2ZiOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3YmFlYmVhZDQ0YjNhZjY5MzQzOWM1MzljMjI0N2YxNTA2Yjk2MzViZTZlOWIwNTk1MDA3YzliNWMwM2RjNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5YWE5ZjM0NzY0Nzc5YzE5ZmFhMmY2NGU0NjIxN2FjOTg4MGNkMGFmNjNmY2VhZTAwNzE3MjhhOWFjYjIwMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1OWY3MDdkNjlhMmIzOTZkNWFhN2M5ZTMzMDRlZGQ2YTNlZjY2NTIyYmMxNmY3YzYyMzI1ODEyMDZmY2Q3MjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d734b63992ae4b479f2ea6c20dd21048",
+      "statement": "Every agent skill publishes exactly one completion event with causationid equal to the request messageId (correlation = sandman.workflowId), published after output-schema validation and before task completion; plugin skills publish none.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L141-L170",
+          "version": "repo-lines-v1:sha256:206dae50b331e04a279248bb8453d54169fb30f8f48031c1bc2cad203b31f70b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4NzhhMDdmNWU3MGFhMjU1NTZlYTAwYWVkZmVhNGRmOWVmOTllZTg2ZDI3NDI3NWUwM2I3ZTk3YjRmY2FkNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiOGRjYjVjMDQxMWIwOTcyMDZlNGM2NzJjMzNkMzI1M2Q1NzI2NDUzODk2NWM1ZTgwYmFkZTE1YTNiNDhmNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0NWZkZDQ1MTZkOWYyZDIzZDk5NDQ4NTY4MTU4MDVjZWY4ODY4NDdjOWY3ZTUxNGJmMzhjYzAyZjQxY2FhNTQifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L210-L232",
+          "version": "repo-lines-v1:sha256:f9d40d22368b16c81b09e4d2e9416d75495599466e8eb1b5d8ca239b01003e70:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNGE3YWUzZTUyYzFmYmE4NmUwNzM2MDYxNWI3MTM1MDkzOTUyM2ZkZThiNjlhNDY5ZDYyY2JhMjI0MmY3YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMDQyODljZjk1NTFiOTc5YmZlMDI4NDVkNDAyNjRjODgwYzExYmExZThkZDM4YzI2NWU5ZjBiOWUyZjliYmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0YjdiMzg2NjA0Njg5N2JhYmQ5ZjY5MDhjMTRkMTVlYjYzMTg3NTJlYWNhOTllZGRmYjEwZWE1NTg4MmQyYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzN2JiNjUzMTZkZjg3MDA4MDI2MTc0OGIzMmM1YjBmNjIxMDAyZjM2MjM5YzNhYTQyZDZkODNhODRkZDk1ZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8fc8539ca2af45f19f0fa62ae544a30b",
+      "statement": "If publishing the completion event fails after the knowledge graph is already committed, the task fails with retryable DEPENDENCY_UNAVAILABLE so a retried task republishes the event rather than completing silently.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L152-L165",
+          "version": "repo-lines-v1:sha256:1d2cc8f92e88ff502066efe5573b896c515ce883e1e61c80771276efc6982c85:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjUzN2JkMzkyZDAxNzkzMWRlOWQ1MjRhYjRkMWQ1Yjc4YTc1YWU2OGMwZDllOTRkNTg2NDA2ZjhjNTg2MDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMzE0MTE1MDk5ZWI1MTVkODM4MzNlMWE0MzBjNjRlNGIwZTQ0YjgxNjMyMTE0ZTQ2NDJiNDcyNzFiM2Y4MmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhMTNlODBhNjA4OWI2YzAyMDdjYjhhYzcyZDc2NDU0MTY3NDdlOTE0OWQxNWM0MDQxZjIxYzc1MGVjMTk4NWYifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L220-L231",
+          "version": "repo-lines-v1:sha256:6aff564087a41473decadcb84f87b1028020e77e93b5d266727ad51d36287526:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZjE4YzIwZTAwY2Y4MDc2ZDIyODkzNzAwZjBkNTU4OTNlNWUyNDIwMjE5OGUxMDc5MmIyYzRiYTZmMDNjY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NDNhNWU0OWY2ZjFlOWViM2E0Mjg2MGRkNjY3NmRmMzM2NTk5ZTAwNzM5NjI3NWY3NWE2NDk3NDNhZjdhNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyZDlmZmZmZjAxY2JjYzUxYWQwM2E4YjgyYzBlNDAxNmU5YWQ5MDZhYjE2ZmZiZDg5OGFmYjM1MDgwMjdiODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_28a84ec36ab541fb86eed7c66599e668",
+      "statement": "The metadata key sandman.actor is accepted only when the caller is the orchestrator (verified service token); from any other caller it is silently ignored.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/auth.py#L62-L65",
+          "version": "repo-lines-v1:sha256:1e526d4e23ca81e63a5f227c3d18d1a2b9498d53724d6189c7000d2709f7f5c6:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzhlNmUxY2NiMWExZjA5MDE0ZDA1MWMzZGU4ZTUxZmZhZTM5MDgyZGZiYTk5MDgzYzY5ZjkwOGFkMGYzMjVkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTkwYTRiMjhiMDkzZTYwOGQ3ODcwYWQwYjU0MzU0OGRiNTIzYjgyM2FlZTFkZmQ3MjkyYzhiNDM2ZTA3N2E5ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDhkMzdjYTNkZjFiMzg2YzU5NDdjNTEwNGY5Nzc4MjdkNGE4YzhiYTZhZTYxNWFhOTdlY2ZlMDcwMWE2NjUyNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_units.py#L63-L64",
+          "version": "repo-lines-v1:sha256:bb3fcdc846673606441e54654b8e6d87d3a4ab6adfad91807b71e302fa9882ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjJlODE0MGI5MTU2MjFhYTA5Y2Y0MzRlN2E5NWZlZTE1YWE1MzBkOWNmOTE0YzlhMDBlMGMwNTJkNWM4ZTMxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzc3NzMyYzJmNzMyODg0MWVjMzQyM2VhYjM2OTI4OTI1Mzg5MmQxZGU4YTBiZDc3OGU0MGZiYWUzNzU5YWYxYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmYwZTRlMjIwMDdlZjAzYjExOTlkOTRjNjBkNzRlNmEwZTc3NjUwNzJmOTBkODcwOWMzYTdmNjAyMzgxMTZhYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGM0YThhZTJmNmQ0NWM4MTllNTlkMjBkNjQ5ODRmNTY0YWU1YjFlZjkwY2VlMGU3ZWUzNjA1OTU4YjM2YmFlMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3b396892bc954453b730bb6c2f866e22",
+      "statement": "Agent Cards are served at /.well-known/agent-card.json from templates in contracts/agent-cards/, declaring the JSONRPC binding, a required skill-invocation extension whose params.skills maps skill ids to inputSchema/outputSchema pointers into contracts/skills.schema.json, and bearer security; agents fail startup if a skill bean has no card entry.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/agent-cards/extraction-agent.json",
+          "version": "repo-file-v1:sha256:0cba0d98de568ed953745f51bb017c2993b4109397576a56197f28d711e74fec"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L64-L73",
+          "version": "repo-lines-v1:sha256:abfd4fd17bd5610f0d72f120cac2a5b504409c8c1436ae11d26030fdb11f6a3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwNjRmMGZjYmQ3NDk4ODBkMWZiMDg5OTcxY2MzYzMwMzliYzc2ZTI3OTM2Nzk5YjgzMTE0MDdkODE1ZjE2ODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1OTAzMDIzN2NiOTFmZmIxMjc2NjZhZjQwYmUzNWUzODkxNGJiZjBmYzJhNzI5OTZlOGUwNTJkNDRlNTYzOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczN2U2N2RjNjM5YjI0MjAxZDU0ZWM2MmUwZjhmOTUzMjM3OWU1MzQ3ZWU2OWNlMzk3ZWZkODgyY2NkZDFiNzcifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L128-L135",
+          "version": "repo-lines-v1:sha256:71f76a624378190ad8bc0d04e359b1ce6c869c489360f4e02e66dd2c3e6bf267:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWE2NDYwZTc2MjFjZTAxMDA5MzQwNjBmOGM2MzBiYzI5ODlmNzRiYTk3ZmIzOGRlM2E0YzI4OTk1MGU0YzFjYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDRmYjIxYmVhY2RmZmJmYTljN2IxZWU1N2RkNzYyYTBjNmNhNDVlZjAzYzBiNGQ5NjcwODg3M2EwOWZhYmVjMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODg4ODQzYjMyNDljZDdlNzE2NDUwY2FiMjFiNTFjY2Q1NjY5MjNiMThhMTdjMTVmNmVjMGNhOWE3YjE0YTRjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjEyOTUzMjVmNWUxYWMzYjBlMTRmNDhkMTk2NzFmMjJhZTIyMWJhNWI4MTJhOGVlOWIzNWZkYWQwYTcwZTJiNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d92d897bf848466e81298d8dd6df72c7",
+      "statement": "Client behavior is submit/poll/cancel: SendMessage with returnImmediately true and a pre-chosen messageId, GetTask polling only to detect failures/rejections/timeouts (30 s growing to 2 min, steps complete via their event), CancelTask on timeout; unknown tasks raise TaskNotFoundError treated as retryable.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0002-use-a2a-for-agent-commands.md#L67-L70",
+          "version": "repo-lines-v1:sha256:03ac05d9fa15ef7859ff56a7ab673c65f8f0a9be8f2ceabe65ce635de72c787e:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjhlN2UwZTkxZjJmODY1NmE2NmZkZDQwNGUyOGZmNjZiM2Q1MzVjMTJjNjI1YWNmYTlmZmU3ZjdhMzkzZDlhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjQ3YTJjNDgxYjI2YTg1ZDE1MzRkMTk4NGMyODc3MDlhNDYyMDQzYTBjOWFiZmMwYTQwYmJhZWM2MDEyMTNiZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwMGRhMmQ4YzM4NWEwMDQ5OTBiOTU3ZDI0MzM3MTc1ZDljMjAxNzg1Mzc1NTc4M2U5YjMwMDBmZGNlYTI2YyJ9"
+        },
+        {
+          "resource": "repo://docs/notes/a2a-python.md#L1-L13",
+          "version": "repo-lines-v1:sha256:5ba633249b895170bd862327ee18e770e9c517ebe1518bbd81b948eef76cfae9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjMGRhNTRlNTFjYjk3NWMzMTYyZWZmMmRhOGQxZTgyNWExZTI3NmEyN2M2NTc3ZTdjOGQ2MTg3ZWNhYTU3ODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NDcxNDEzMThiY2EwZTQ2MzZhZDcxOTI3YmNlMThhMWVlNzU2ZjQzZDdiZmE4ZDlmNmQ0N2I0Y2M2NmM4ODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwOWIxOGY0MDAzYjU5ZjZmMTU4ZTlmZDVlZjc5YjUyYjQ3YzljNTkxNDEzNTdkN2Y5MGFkMWQwYWViOTEzMTYifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L345-L421",
+          "version": "repo-lines-v1:sha256:2d2a7b2b2a95fdbd1371a603db01f13ed9ebf5b5564b2fc637c9c4dee7e41695:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwZjg0MTg3OGVkYTUzYmQyYTVmMzYwY2VhODQ2OWIzYjYzNmU1ZTk1MjQ3YzI3ZThmMWNmNjgzNmY4NTc4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZjFjZDQwNWIyNTY4NDc2YTlkN2I3MGVmNjljOWJkMTIxYWVlZGEzOWI4MjZhNzNjNWY1ODg3YjljYzAxMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmYTJmNzgzNWZkNDljMDk1NmJhMDcxMjU2MGI5ZTk3NTY0ZmNkYTY0ZDY1YjI2NDcwNDZiMjA4NWUyN2NjODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxZDY3NWI3NDhiMDAyNjg0Y2NiM2MzY2QxMDhiYWRiMjkwZmYxOGJmZTZiMDQ2MjIwYTI0NzMzZjE2ZjY3ZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_72297497011c4d43b75e20d211eb27b8",
+      "statement": "Every client request carries the service bearer token plus an A2A-Extensions header listing the skill-invocation extension because a2a-java rejects calls omitting a card's required extension; protobuf Struct widens numbers to floats so both libraries convert integral floats back to int before schema validation.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0002-use-a2a-for-agent-commands.md#L70-L71",
+          "version": "repo-lines-v1:sha256:48a950e473c205bebe7fa121108f9e7c2d4213ffa842adeee06b9f2cc9f65fcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjhlN2UwZTkxZjJmODY1NmE2NmZkZDQwNGUyOGZmNjZiM2Q1MzVjMTJjNjI1YWNmYTlmZmU3ZjdhMzkzZDlhYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWIwMGRhMmQ4YzM4NWEwMDQ5OTBiOTU3ZDI0MzM3MTc1ZDljMjAxNzg1Mzc1NTc4M2U5YjMwMDBmZGNlYTI2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmU2NjZiMDM5MzQ2YmU3Y2UxNGY0OTc2M2IxN2Y0ODUxNDI5MDdjY2YzMzMzMmEzOWEyNTQxZDkwNDVlYzhlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L206-L225",
+          "version": "repo-lines-v1:sha256:ecd6c92a2055b3841735a571160a5501b02a17d0f8c3b0bf1ccf24a842fb32f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1ZDY2ODczNTc0YjEwYTdhOGUxOGI0OTAyNmQ1MGQwY2YyZTZmMjYyNmQxYTZlZGJiNTdlNDM1MjgxYmMwNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NjY3MDlmMjgwYjJkZGEzMzk3NDQwOGMzODNiZjMwOGIyZTcxOGM3YTc2YmVjY2Y4MjhjNjUxYjZlNWYxZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkNDg4NDQwYjEzMDFiN2I0YTMyMWQwOTc5ZGU1YzUyZmY5ZTExYjZlM2NhYmM1YjJiNzUwN2NkNjRlMjkyZGUifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L113-L121",
+          "version": "repo-lines-v1:sha256:b4078e7c83245352a1112cd0391574c005af536d1883869493d34406bb0c272c:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjM5OWZhOTdkOGQxNzgwMGNjNmYzNmMyOGVkNjNkYTJjYWY0NDVjMzEwZTg0ZTgzYWIzOWViNjc2ZTY1YzEyYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTkzYTEzMDYyZjEwZWU0ZjEyMThkOTNlMzdhNmY4MWQzNDZmZjExZWM3ZTU1ZGQ1NDJlMmQyZDJlZjA3MTFmMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGUxMDJhMTliYTY1NDBmYWEyM2ExNDg1NmRiYzQxMzJlNDkyMWRiMDg5YzU2MDk1OGNkZDZkOWRhMDBmOTI4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjk3NGUwNmZlYzg4NThjNmM5YzA3MjBiYTk1NTIzMmE5Njk4YjljNzA1NjM0N2IxMDIyMzgxODdlMmE5YTU0YyJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L345-L354",
+          "version": "repo-lines-v1:sha256:6e5797849e5ab7b16454e934554ef9f2c7e7c39b0af7c0833d8535bc6fd92001:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwZjg0MTg3OGVkYTUzYmQyYTVmMzYwY2VhODQ2OWIzYjYzNmU1ZTk1MjQ3YzI3ZThmMWNmNjgzNmY4NTc4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmYTJmNzgzNWZkNDljMDk1NmJhMDcxMjU2MGI5ZTk3NTY0ZmNkYTY0ZDY1YjI2NDcwNDZiMjA4NWUyN2NjODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkMGI4NGZhOGJmNjkzYWE1YjkxMTdhNTE5NjM5MTg0YzkyZTU4NTgwYTk5MDFmOTM5OGNhOWQ0Yjk1NjY0NzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3fcd988cb8214613a6e2d521149c1d03",
+      "statement": "The SDKs do not check bearer tokens, so each library adds its own auth: Python middleware rejects JSON-RPC calls without an accepted token with 401 while the Agent Card stays public, Java agents run a2a.authorization.required=false with their own bearer filter, and plugin services instead check a fixed inbound token (caller 'owner').",
+      "evidence": [
+        {
+          "resource": "repo://adr/0002-use-a2a-for-agent-commands.md#L70-L71",
+          "version": "repo-lines-v1:sha256:48a950e473c205bebe7fa121108f9e7c2d4213ffa842adeee06b9f2cc9f65fcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjhlN2UwZTkxZjJmODY1NmE2NmZkZDQwNGUyOGZmNjZiM2Q1MzVjMTJjNjI1YWNmYTlmZmU3ZjdhMzkzZDlhYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWIwMGRhMmQ4YzM4NWEwMDQ5OTBiOTU3ZDI0MzM3MTc1ZDljMjAxNzg1Mzc1NTc4M2U5YjMwMDBmZGNlYTI2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmU2NjZiMDM5MzQ2YmU3Y2UxNGY0OTc2M2IxN2Y0ODUxNDI5MDdjY2YzMzMzMmEzOWEyNTQxZDkwNDVlYzhlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://docs/notes/a2a-python.md#L1-L13",
+          "version": "repo-lines-v1:sha256:5ba633249b895170bd862327ee18e770e9c517ebe1518bbd81b948eef76cfae9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjMGRhNTRlNTFjYjk3NWMzMTYyZWZmMmRhOGQxZTgyNWExZTI3NmEyN2M2NTc3ZTdjOGQ2MTg3ZWNhYTU3ODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3NDcxNDEzMThiY2EwZTQ2MzZhZDcxOTI3YmNlMThhMWVlNzU2ZjQzZDdiZmE4ZDlmNmQ0N2I0Y2M2NmM4ODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwOWIxOGY0MDAzYjU5ZjZmMTU4ZTlmZDVlZjc5YjUyYjQ3YzljNTkxNDEzNTdkN2Y5MGFkMWQwYWViOTEzMTYifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L250-L316",
+          "version": "repo-lines-v1:sha256:00414cafbdc2a2dd6761b6b91219844f1faf02d25a44840ff295b2e9b44e80c9:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2OTFlNThjYzYzNjYyNTg3OWUwODMwZGM0NzU2M2U2MWIxMmU0MjhiNDM3M2MyMmVjMDJlY2NjYjY2Yjk0MWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNjdiNDY2Mzc4NzVjM2JiN2Y5MDNiMWRiODczNGI0YTI5NjY4NWRmNGRiZTY2YTRmNmNlZjdmZGM0MTE2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1Zjg5YjllOGIwMTA1ZDY2ZTMyN2ZmYjQ2M2FhYTMyNmUwODhkYjVkNzc0MGU2OGE5ODMxM2Y2MjdmZDQ5ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5024d1bf1e0444a3810e45dd39026182",
+      "statement": "Cancellation flags the running SkillContext so a skill finishing after cancellation emits no result or event; static catalog lookups (TLR approaches, detectors) are plain REST rather than A2A skills, and plugins may use A2A or synchronous plain-HTTP (ADR-0012).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0002-use-a2a-for-agent-commands.md#L64-L65",
+          "version": "repo-lines-v1:sha256:fff8706c3df17f074c9e592f99126b10c916a663d0b8d9cc6fa0cf655b2e441a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDc3MTBhNzNlM2ZhYWMxODM0NGEwM2NiNzg3Y2Y4NTIwN2YzM2UzNTY2N2UwMWI5Y2IxNGQ2NDkzMWNhYzJlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhN2NjMjJiMWE5ODZkZDQzNTM3MWU2ZTIzYzFkMWE2ZGU4Y2UxODYxOGRhOGQyZTZkOThkMGI5ODM4NzQ3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQyMGZlNDM2ZTVhNWFiZjlkNWFkMDUyOGFjMGNjY2Q1MWQ2OWM2OGFlNzAwN2Y3NWY4NzlkMTY4NDIzM2U4YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L138-L139",
+          "version": "repo-lines-v1:sha256:c1a4e5a1700b5b0da72de5cd05e727d02c2594b95556f9319be079ad367a075a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYThlZTlhZTE4NjRlMTdjZjg3NThiZjNlMjY1ZDk2NzhmMTllNzFkNzVjMTZkOTdlMTNiM2NlZTk5NjQ5NzcxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVkYmVlMGM5MTUwNjVkYjllYTVkMGJlMGU3MWNjZTA4ZmY3Y2EyMTkwNjk2YThiZjQ3NTYxZTQ2NDVkM2Q0ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM5NzgyM2Y4NTA0OGJkYTAzOTdjNzJmZmQzYzg2YmU4NWFhYTk0ODM2ZDlmZGNlMzIxZGRkMzQzNTNhOTMyOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzQxMWUwODVlZmZjNzRmZTgxM2U3NjRlNTUzOGFlYzU1ZDk3MTAzZDhhZjk3NGFlMjdhYjU2YTg0MTBjYTJiNCJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L238-L243",
+          "version": "repo-lines-v1:sha256:1a85f71541ae6a17da62b52ab561d757c00833e2700464333ddf76d4d17d363e:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzdiY2VhZDFkM2ZhZDE4YTVjYTQ4MGY3OWI4OWJlOGMyNDNhY2U1ODYwZDQ1Y2YwZmM4ZmIyZjY0ZjQ5ZDUyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTc4MTVmN2NjNTFiYmFhOWY5ZmU4ODg4MWVjMzg1Y2Y5NjZkODllNjllYTAwMjg0YmYwYWUzOGYwMDQ2OWQ0MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTM2MGEzMmVlN2M1NjA4YTk0ZGE0YTliODUzZTJlNzhlMGJhNjY3ZjBjZmQ0MjM1OWVlMjAwZDZkNzkwMTczNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ2ZWRlOGMyNWE5OTFkYmYyMGU2NzQ3YjE3YWE4YzUyZjFlZTcxNzM0ODBlOTZkZWQ2ZTExY2YxZjU4NzcxNiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

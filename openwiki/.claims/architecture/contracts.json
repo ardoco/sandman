@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:7c0fe01e2e45621b6b0ea696e368b9f3b3339b07fc9b509478d1e74069512d7e",
+  "claims": [
+    {
+      "id": "claim_165d52525d9449a984977fc918fee1e4",
+      "statement": "contracts/ is the single source of truth holding JSON Schemas (common, events, skills including plugin payloads), A2A Agent Cards, one OpenAPI document per service plus shared.yaml and plugin-http.yaml, the KG schema contract with init.cypher, and conformance vectors; both stubs and final implementations are tested against the same files.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json",
+          "version": "repo-file-v1:sha256:d4e2c1a3b0dcd5dfaeb61d8cd62237bd3999c7b9ea64778d3468abe3c375659a"
+        },
+        {
+          "resource": "repo://contracts/conformance/vectors.json",
+          "version": "repo-file-v1:sha256:de42b1bae5a081d68654d2d7a21edf0883c0125d6692a62b6439f7398e2338c9"
+        },
+        {
+          "resource": "repo://contracts/kg/init.cypher",
+          "version": "repo-file-v1:sha256:9f0deef489b00c89e5fa5e1a952d4fe55bdbe05b951ba764f977471b93809212"
+        },
+        {
+          "resource": "repo://contracts/openapi/plugin-http.yaml",
+          "version": "repo-file-v1:sha256:4ebd54b0c237c66caeb2a56c0b1c58489ded09bfc0db2f4c5e436f0c0695ab4b"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L7-L33",
+          "version": "repo-lines-v1:sha256:586220f85ece907b664997405fcd7c3644b00dd7e3294ecc17129e054d4a3435:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZjE5NzZkYjY4ZDc1OTBhOGIyMjE4NmQ4OGY2YjA0OGExMDAwOGE0NzAwMTEwMTI3YzFmNmI3OTk0ZjI3NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwYTBjZTA0NzMxMWJjZTU4MWQ5ZDIyMGE0NjQzYWM5M2M0MTNhNjY0ZWZmODQyZjNhN2JlODZlMGFhMWQ4NzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZjRjNDNjM2Q3Y2QwNzFhOTE2ZDE0NGM4MDA4MWI4OTEwZDI1OWNkYmJhYTU3NmJhNWY0NWUwMDNhYTkyODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE4NDUxNzI3ZTY3M2IxYzViMjJiZmZkYjYyYWYzOThhNTFhM2U1N2U0YjBkN2FjM2U2MmVhYTVkZTVlMmY3ODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_19d36820f435466497dc0b1cc16efb93",
+      "statement": "common.schema.json defines shared types (StableId, RunId, Timestamp, Actor, ElementLocator, CassetteEntry, SkillError, SkillInvocationMetadata) and enums used by events, skills, OpenAPI documents and both agent libraries.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json",
+          "version": "repo-file-v1:sha256:d4e2c1a3b0dcd5dfaeb61d8cd62237bd3999c7b9ea64778d3468abe3c375659a"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba60e3f155cb45d5a03b615ef063dd4f",
+      "statement": "StableId is deterministic (<prefix>_ + first 32 hex of sha256 of parts joined by U+001F) with prefixes art, ver, el, con, tl, inc, ing, while run_/wf_ ids are random (uuid4); the split ensures idempotency where needed and uniqueness of invocations.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json",
+          "version": "repo-file-v1:sha256:d4e2c1a3b0dcd5dfaeb61d8cd62237bd3999c7b9ea64778d3468abe3c375659a"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L37-L39",
+          "version": "repo-lines-v1:sha256:335bf4bd10ddd67d581aa1237b296465c68b1468dd7aae9ee1b014464d0054f8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJmYTQ3MDgyZDcwYzQzNDAyOGEzZjhiMGQ4OTZlOTkzYmRiMjUxNjUwMzJmMzUwN2U4YzQ5OWIwZTk3NDZjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDMyY2M5ZTQxZmFjMjg4MzUyZmM2ZjdkYWQ2NDkyNDJmZWY1MGQ0MGI1YjA4ZjI2YWUwMjFhN2VkMjI5ODA5ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTg0NTE3MjdlNjczYjFjNWIyMmJmZmRiNjJhZjM5OGE1MWEzZTU3ZTRiMGQ3YWMzZTYyZWFhNWRlNWUyZjc4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjlmMmU5ODg4OTFkZjgyNmE0MDNjMDk0ODk0YTE4OWY5MWY0MGEzNzE1NmVmOTFiMzZkYjQzN2IxNTk0MWJiNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd74ac8245a24d3cbd6ac091a9d7afab",
+      "statement": "events.schema.json defines a CloudEvents 1.0 structured-JSON envelope with exactly five event types (sandman.ingestion.completed, extraction.completed, tracelinks.updated, inconsistencies.updated, inconsistency.status.changed); NATS subject = type; per-type if/then constraints select the payload schema and require causationid on the three completion events.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json",
+          "version": "repo-file-v1:sha256:8ddd416e9bdb93a916996089f74b59e65a509e6ae287e6e8a09dfd1d97551387"
+        }
+      ]
+    },
+    {
+      "id": "claim_700c439f9c224a06a3648b1a141eeae5",
+      "statement": "Each A2A skill task of the three SANDMAN agents publishes exactly one completion event with causationid = the messageId of the A2A SendMessage request, chosen and stored by the caller before sending; plugin skills publish no events; orchestrator steps complete on the event, GetTask polling only detects failures.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json",
+          "version": "repo-file-v1:sha256:8ddd416e9bdb93a916996089f74b59e65a509e6ae287e6e8a09dfd1d97551387"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L68-L94",
+          "version": "repo-lines-v1:sha256:e78aa66e3341a1f075a2fbf167169f863f830ca2a91e73b2620bd9c03b624405:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMDZjY2NkODlkYTA4ZTI1MDY5ODg1ODEzMTIwZjg2ZTVjM2VmYmY1YTM1ODYzZDQ2NzViOWZiMjgwMzQ5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlNTk2MmMxY2ZjNzc2MjFhMmU2NTBkNTBlY2QwMDU1NTZlM2U5ODQwOThlNjg2NTY4NDhmMmQ2OGM3MzQzNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4MDkxOGFjNjQzMDcwNDAzMDA0MzI3OGFiYjE2NzAwMWM2ODM0M2ZjNWEzYWRmN2Y4MmI2MTY5NTI5Yjg0YWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1MmRmOWU5ODVkNjU1YTM0NmIzM2M4NTYzMTk0OTJiZDE5OGM0NDQ0YjU2YzY1OWExOWE0Y2Y2NDkxMTBlMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7428ad24433e4214a2057348bfd30a50",
+      "statement": "skills.schema.json defines per-skill input/output pairs (extract-artifact-versions, recover-trace-links, detect-inconsistencies), plugin payloads (PluginExtractInput/Output, PluginDetectInput/Output, Finding), and REST-only responses ListApproachesOutput and ListDetectorsOutput; plugin extraction output addresses elements by ElementLocator (path+localKey) before ids exist, and detection plugins return Findings that the owner fingerprints.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/skills.schema.json#L404-L750",
+          "version": "repo-lines-v1:sha256:68714eb2aab309b806b39865400702662aea2eb951725e388ac5eaf74b451104:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQ3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0OTlmNTk4OTVlM2I4YzRiNGI5NjcxNTZhZmI2YzdjNGE3ZTBlMjJiZTJjZmIzOTQ3MDYzODc3MTdkOGFhMWQ2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjN2NiNTZlYjJmZDZjMGY3YmI5MGE5YWFjNDBjNzQ3NGYxMDYzMDY0MGJiYTEyYjZkZmM4MTAwODRiODc0ZmVjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_7f0a62a3dde945229c3e7d48efbd0fdf",
+      "statement": "plugin-http.yaml is the plain-HTTP alternative to the A2A plugin skills with identical payloads (GET /manifest, POST /v1/extract, POST /v1/detect); synchronous within the caller timeout (default 10 min); plugins never write the KG — owning agents validate and write results; owner authenticates with the plugin's inbound token.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/plugin-http.yaml",
+          "version": "repo-file-v1:sha256:4ebd54b0c237c66caeb2a56c0b1c58489ded09bfc0db2f4c5e436f0c0695ab4b"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L27-L27",
+          "version": "repo-lines-v1:sha256:95fd8ab1fe5f248f93757eb9cfcea01d15bf97b28a2d40d7c9e51517b8063052:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTVmZDhhYjFmZTVmMjQ4ZjkzNzU3ZWI5Y2ZjZWEwMWQxNWJmOTdiMjhhMmQ0MGQ3YzllNTE1MTdiODA2MzA1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTVmZDhhYjFmZTVmMjQ4ZjkzNzU3ZWI5Y2ZjZWEwMWQxNWJmOTdiMjhhMmQ0MGQ3YzllNTE1MTdiODA2MzA1MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjZhODVjNGRjMzAwNDc1MWFhY2YzNWQyOGQyZWNmZGJhMDBkYzRlMjVmNzU4NjA4NWIyZDZhMDdlMDU0OGY0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTQxYWQwYzIxY2YwNDUyOTBkZTAxMDQzYzU5Y2NiZmFhNzVlNWZjZTdjNjgxZmU4ODFhZTEyYmM5NTkxOTU5NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f4652e51c53d44a78bf0613c8964ab51",
+      "statement": "Agent Cards in contracts/agent-cards (three agents, one skill each, plus two plugin templates) are served at /.well-known/agent-card.json and declare the required skill-invocation extension whose params.skills reference inputSchema/outputSchema $defs in skills.schema.json; the validation script checks these references resolve.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/agent-cards/extraction-agent.json",
+          "version": "repo-file-v1:sha256:0cba0d98de568ed953745f51bb017c2993b4109397576a56197f28d711e74fec"
+        },
+        {
+          "resource": "repo://scripts/validate_contracts.py#L92-L100",
+          "version": "repo-lines-v1:sha256:c8fc403565c692733f353b256f7d19b0fa9264172032f61fa7e2533c009dd7e2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI1NDAyN2M4M2U1OWMyNTc4OTk1NjZjZmI3NWZkYWNiMzI0M2EzNTFjN2I1MGVhNGU1YTNjNjdiZjFkNGZlMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjFiNzVjZGI5MWI5MTg4MjhjOGVmZDUzZjZjNGNmYzgyNzdkMGNmOGJiMzdjNjI2NDg5ZTNhNmRlOGQxYzg4YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAxN2JiNmNkMWY2N2FiODIxMzhkOTc5NzIxYjI4MTI0NzdkZjhjZTc4ODhkYTliMWI1OGJmNjMxMTZiMTk2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDQ0MTI0ODRjOWFhYThhYWUzNDlhN2ZjNmExOTA1NTU0ZDNlOWVmMjk5NTY0ODFlNzdiZWJjNGI1ZWJjZDk5ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fbdbc645a0c34086be70a6e82da91302",
+      "statement": "shared.yaml is a component library, not a service (paths: {}), providing security schemes (serviceToken/session/personalToken), X-Sandman-Actor/X-Sandman-Roles headers, the RFC 9457 Problem schema used by all error responses as application/problem+json, ServiceStatus + GET /v1/status (working/idle), and unauthenticated /healthz and /readyz path items.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/shared.yaml",
+          "version": "repo-file-v1:sha256:5afdbd658d136da2a5ba77a8e16fbf287a1cb87efebda2acc56b975a1e0a88ac"
+        }
+      ]
+    },
+    {
+      "id": "claim_c7a0c073178c4e878f35b2247262bcbe",
+      "statement": "REST errors use RFC 9457 problem details; A2A failures use TASK_STATE_FAILED/REJECTED with SkillError {code, message, retryable} in status message metadata sandman.error; timestamps are ISO-8601 UTC strings everywhere.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json#L156-L183",
+          "version": "repo-lines-v1:sha256:1cf203dc913ab3c071a7fdb5672fbb411633a78912ee14666b429d18351998b5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlMGMzMDc3ZjU5NThkZGViZjUwMDRjMmU5ZGI1MmY0N2FlNWRmYmM3YzlkZmMzM2MyNzg3MjZhMmFmNjY1OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2ZDg1YzIxMzVjNGVkNmVmODZjMzRjYzQyODA3ZWVjM2M3OTA5N2NmOTc4ZjgwY2E4ZDI0YmQxM2M3YTIwYzgifQ"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L39-L41",
+          "version": "repo-lines-v1:sha256:e914749710dca4893564faa411ceb46236dceba989538031710ad7179c4608e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDMyY2M5ZTQxZmFjMjg4MzUyZmM2ZjdkYWQ2NDkyNDJmZWY1MGQ0MGI1YjA4ZjI2YWUwMjFhN2VkMjI5ODA5ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzFjNDEyZDcwNzllMGYyNGFjYzNlOTNlOWIxZTU1ZDg2YzNmZTAyZTIwYjgzNzgxY2U3OTQ1ZGQ0OThmNTM5MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWZkODAzYmM4YTNhOThlOWIzN2YzNGQ4Mjg2YTVmNzc4YmJlOTQ3M2Q1N2YyNmExOGU1ZTk2NzViYTFhY2Y1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDlmZTQwZWJjNTA0YThjNTY0YzZkZDBkNzlhYWVkZGZiZDA1OWM5MjU0YmQwYjk0YjNhM2MxNzc2NDc0NGFjNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1c046d4c50c842d0bb76699a49514bfd",
+      "statement": "Inputs across the contracts use additionalProperties: false (producers never send unknown members) while unknown output members are tolerated, so payload changes are additive-only within a major version.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/skills.schema.json#L36-L36",
+          "version": "repo-lines-v1:sha256:32cb3ce1546908c7de44441ed0065de47ff5fbedefea500d9a555980b33fda3a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJjYjNjZTE1NDY5MDhjN2RlNDQ0NDFlZDAwNjVkZTQ3ZmY1ZmJlZGVmZWE1MDBkOWE1NTU5ODBiMzNmZGEzYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJjYjNjZTE1NDY5MDhjN2RlNDQ0NDFlZDAwNjVkZTQ3ZmY1ZmJlZGVmZWE1MDBkOWE1NTU5ODBiMzNmZGEzYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWE2ZjY5ZWUzMmNkNDA2NzNjYmNjYzY0NDkwYzZkN2ZjZTQ3NWU0ZWRmN2VkNDQxYmRjMzlhNzc3Y2QzYjNjZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjk5YTc1ZDUzOTk1ZDBkMDU2Y2Y0YWMwZjY2YjliZGJmOTU3YjgzM2E2ZjNlN2ZlNDNiMDY5MjdmZDE0YTAwOSJ9"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L37-L37",
+          "version": "repo-lines-v1:sha256:52fa47082d70c434028a3f8b0d896e993bdb25165032f3507e8c499b0e9746c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJmYTQ3MDgyZDcwYzQzNDAyOGEzZjhiMGQ4OTZlOTkzYmRiMjUxNjUwMzJmMzUwN2U4YzQ5OWIwZTk3NDZjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJmYTQ3MDgyZDcwYzQzNDAyOGEzZjhiMGQ4OTZlOTkzYmRiMjUxNjUwMzJmMzUwN2U4YzQ5OWIwZTk3NDZjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTg0NTE3MjdlNjczYjFjNWIyMmJmZmRiNjJhZjM5OGE1MWEzZTU3ZTRiMGQ3YWMzZTYyZWFhNWRlNWUyZjc4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWE1YjA4ZjU1NTRkMjk5NzI2NDgyOThiY2YwNDM4ZDQ4ZmFkMjVmNTE2NjViMDY1NGU2M2M5ODc4M2RiMTlkOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9c8847086f624f6588c99eb00efe82bc",
+      "statement": "The whole system carries one contract version 0.3.0 (in schema descriptions and every OpenAPI info.version); additive changes bump the minor version, breaking changes introduce a new event type with .v2 suffix or a new skill-id suffix; the KG schema is versioned independently (0.2.0) with renames/removals requiring a major bump plus a migration script.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json#L5-L5",
+          "version": "repo-lines-v1:sha256:4272ab8f319b8de0263fbae2edf0d9e99aecbac201710a360167ae3229719dd1:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDI3MmFiOGYzMTliOGRlMDI2M2ZiYWUyZWRmMGQ5ZTk5YWVjYmFjMjAxNzEwYTM2MDE2N2FlMzIyOTcxOWRkMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDI3MmFiOGYzMTliOGRlMDI2M2ZiYWUyZWRmMGQ5ZTk5YWVjYmFjMjAxNzEwYTM2MDE2N2FlMzIyOTcxOWRkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmFjM2UyYjA4MWZjMjEzODdhNDg5MjNlZGRhODFlYWVhODI5YzA1ZjRlOTk0ODQwNWU4YzIxZDE0MmI3OWMwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODczZWI0YzVmNmIyZDA0NThmMDMyYzM2MmM1MzIyZWYwYjE3NTk0MDcwY2E0ZTM1MDE3NzFhZWY4Y2I3MGU1YiJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L4-L4",
+          "version": "repo-lines-v1:sha256:7c64795e95aa63f5f2eb0ac75a84fc45ebc760d9f8ecae39e712d3d7fe4683b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M2NDc5NWU5NWFhNjNmNWYyZWIwYWM3NWE4NGZjNDVlYmM3NjBkOWY4ZWNhZTM5ZTcxMmQzZDdmZTQ2ODNiMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M2NDc5NWU5NWFhNjNmNWYyZWIwYWM3NWE4NGZjNDVlYmM3NjBkOWY4ZWNhZTM5ZTcxMmQzZDdmZTQ2ODNiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGViYmVkMzkzNzY4ODJmYmVkNzYyMjgyNGJmOGU0ZDAwZTFjN2MzODQ3ZjAzYjNjY2U0NzZiYWI2NjJkNDg5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWI5MmM5YTAzMGU4YWM5MTgwMWI1MjBkNzVkM2YwMmIwYzA5OGEzYmIzNWIyMzQ5ODZhMTgxYmJjNzYxMDc4MyJ9"
+        },
+        {
+          "resource": "repo://contracts/openapi/shared.yaml#L4-L4",
+          "version": "repo-lines-v1:sha256:e82ff0ec31ad566e13f416c0cc3af99e17ebb20cd5e7edb74f774d10f8874a69:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTgyZmYwZWMzMWFkNTY2ZTEzZjQxNmMwY2MzYWY5OWUxN2ViYjIwY2Q1ZTdlZGI3NGY3NzRkMTBmODg3NGE2OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTgyZmYwZWMzMWFkNTY2ZTEzZjQxNmMwY2MzYWY5OWUxN2ViYjIwY2Q1ZTdlZGI3NGY3NzRkMTBmODg3NGE2OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzVmYjJiNDhlYzZlYTg0MmM4MGFjMDE2NGQ1MGZhMDc1NmVkMDhjMjJkYzc2YTFlZTEzYTU4ZTRiMDdiZDEzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDk5MDFjNmUyYjAwZjFiM2JjY2M2ODUyY2FjMTBmNWY0NjhiOGVlZjc4NTMzMWJkZmFhMDMwNGI1ODA1YjA3MCJ9"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L8-L8",
+          "version": "repo-lines-v1:sha256:d34c4720adc064d37f01ad4c0b6d6195f2520727ede4c8dc9efefd7f9e4b1d82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM0YzQ3MjBhZGMwNjRkMzdmMDFhZDRjMGI2ZDYxOTVmMjUyMDcyN2VkZTRjOGRjOWVmZWZkN2Y5ZTRiMWQ4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM0YzQ3MjBhZGMwNjRkMzdmMDFhZDRjMGI2ZDYxOTVmMjUyMDcyN2VkZTRjOGRjOWVmZWZkN2Y5ZTRiMWQ4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGNkYWU0NzhjN2YyMDBhOWRhNjgzYjNlODA5Mjc3ZjJiNzQ0MGYxODFkODdlYTk2YTIwMjU0NjBlNTUwOTI5MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA3OGY2NDkxYzQ4MjU0NDAzNTA5NDE5MTg2ZDk3OGE3NTljNzE0Nzk4OGI2NjkyNDFjMWU0M2ZmOTY0OWEwNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cb3c15467e0645a4af54973622976a39",
+      "statement": "make contracts runs scripts/validate_contracts.py, which validates the JSON Schemas against the 2020-12 meta-schema, re-implements and checks every conformance vector (stableId, sectionKey, sentenceKey, fingerprint, cassette keys via rfc8785, event envelopes, skill invocation), verifies Agent Card extension refs resolve, validates all OpenAPI files with openapi-spec-validator, and sanity-checks kg/schema.yaml nodes/relationships, collecting all errors and exiting 1 on failure.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L42-L43",
+          "version": "repo-lines-v1:sha256:79d433bbdbeae5f264bc72de363e0af7f7fcfec9539576556e06796a1208cee2:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVmNjJmZTMxMjJjOWEyOWZlMWZmNjY4MDU2OGZhYjA4YTVlOWU0MGUxZTFjYzA5ODhmNjI1ZWMyM2U4MDdlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTRlNWM2NzYwMTUyNzhkMzVkZWU3YmUzMjg0MjA1ODA5ZjA1MjMwNmEwYmFmMDkzMDQwOTk0ZTY1NzU3YWU0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWQzMDgzYmVmN2E3MTk0ODMzMjMwOTBiNWEzYTBmODU3Yjk1OTgzNWFjMTI0ZDZkYWU1MTA4MDgyNzEwYjA0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFlMTJlZTM1MjM3Mjc4ZmJlZmNmOGE0ZDk4Nzc2ZWEwODRiNjIyOWJhZjU5MjgwNjU0ZDQ2ZmY0YmNlN2ExMSJ9"
+        },
+        {
+          "resource": "repo://scripts/validate_contracts.py#L56-L124",
+          "version": "repo-lines-v1:sha256:8624c0974ac98583df2c1399b49d7e231231b686ed057ade5ea9cf8ba457dec5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyMDE4YTVmMjA0ZTA1NDRmYjkxYmEzY2I3MTA0ZTcyNmM4MzViMTRjYmE4N2RjMjAzMGNhZDY5NmExMzQ2NmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlMDQ0YWMyOWQ0YzJmZDY2ODhiMGZkYWZjNjkwNDg4ZjhlMzBmOTU1OTcwMDgwNjcyOWZhMjk1YWU0NDViYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiYTMzYTU3MjZjZGQ0ODJlNWE4Zjc0MTM2YjBlNDU3NjBmOTE1YjU1MWQ0OWEwMzdlMzg1ZmY2NThiMjAxOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d78e9b142f34850af3ee6246c49b13e",
+      "statement": "CI runs the contracts job (scripts/validate_contracts.py) gated on the contracts/** path filter, and the python and java jobs also run the same conformance vectors, so both agent libraries must reproduce every expected value in vectors.json independently.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L28-L76",
+          "version": "repo-lines-v1:sha256:bb69f10b6581d3a28909b0bfb1392dddf5223d310806a5770d3a6768a9b7fc8c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNWYxMTQ3YjFjODQ2N2I3MjExMzkyZWZlNzhhMjJiM2FlMTllYTc2YjUyNTMwMThiNWMwMGI1NTZhYjUyODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExMmUxMjkxMDcwY2IxYjZkYWEyNzFkODFhNzZiOWRlY2NiZTJkNGNiNzEwYWM5NmZlODU4Nzc0Mzg0MDgxZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkN2M5YzBkODk3NDAzMTVjMGZmNDRiNzllMGYxMTkzNzJhYzhjNDVjYzNhZmIxODdlYzcyOTMyZDk1MzA3ODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwNDM1ZjNmNjc2MDAyYWE0MDk4M2RiYTZlMWYxYzQ0Y2E0YjYzMzRiZmRiZGIwOWI2MGJjYzY1M2RiY2I2ZDcifQ"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L256-L260",
+          "version": "repo-lines-v1:sha256:ed63fce358ff969d2c7e060d71d4abad18753564b64b6b0a405a82de49fb44dc:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2FlMmU1ZjlkOWMxODczODk2YWM5OWIyMjE0MTc2YzE2ZGZmMTI5YmQ5NzAwMDYxM2UxN2FiZjlkNGY5NTI3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTdiMDU2NTNmZDFmZGJkOTk3NDVjOTEzYjFiYTExNDIzMmFjNTExMzJlZDU0NTliYTAzZWE4MWMyOGY4ODM2MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjY5NTVhYTkyMjFiMjkwMDVjYzg0Yzk2YjE2ZDBmNjg1ZTQ3MzdjOTI1YWI1ODk2ZTk5OGEzODcwOTZlYTUwZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjZkNmMzNTYxNjE1NmQ4MGJjYmE0NWE4ODk1Y2VjYWI3ZWEyYTliMWIxYmIxMTY0YTU4ZTc3N2VkYmI2OTQzZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a2d8a3a3355b48d8a36fd018a72be70d",
+      "statement": "The skill invocation convention on A2A 1.0: SendMessage with returnImmediately, metadata sandman.skill/sandman.workflowId/traceparent, one data part as input; on valid output the library publishes the single completion event (await ack) then sets COMPLETED with one artifact named result; schema-invalid input → REJECTED with INVALID_INPUT, unknown skill → UNKNOWN_SKILL, output-schema violation → FAILED with INTERNAL retryable=false and no event published.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json#L184-L206",
+          "version": "repo-lines-v1:sha256:a692fee99276d1d7ccdd225d7d35fc7e255bce4b8e4106a85fec54601554a79d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmNDlmN2E4MDcxZGRhYzhhM2Y3YTA1ZmJhMzljNTlhNTkyZjFhYjVjZmJkYWUwYzFkYWZmMTY1MmM0ZGIzYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNzM5YTA2YzFjYmIxMjQ0ZTMzNjNkMzhiY2Y5ZmE1MGNlODRmZWQzOTljMjE5M2EzYzdmMDhkNTk5MThiMmEifQ"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L68-L74",
+          "version": "repo-lines-v1:sha256:70d6d99075a2394b68e4701fc7e0cfb58df22d176ef4c0d5e5009f9ddf9ddecd:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTAwNmNjY2Q4OWRhMDhlMjUwNjk4ODU4MTMxMjBmODZlNWMzZWZiZjVhMzU4NjNkNDY3NWI5ZmIyODAzNDkxNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDgzYWEyNGQ2ZTFmODAwNjQ3ODU4ZDJkNDExMGQ1YjVlMjhmOGI1YjMxMGRmMWY5YzRmZGRmYzNkOGFhZjVjYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODgwOTE4YWM2NDMwNzA0MDMwMDQzMjc4YWJiMTY3MDAxYzY4MzQzZmM1YTNhZGY3ZjgyYjYxNjk1MjliODRhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTA1NDQzNDc0YTQxMzkzYTVhZTE0YTAwZDk3YmQyNGI5NWFhNzZhNWQ4NGY0MWViNzRmMzM3ZDIzZTQwMGI3MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_633de574cdb846e8a073677f9c039112",
+      "statement": "kg/schema.yaml is the source of truth for KG writers, contract tests, the NL-to-Cypher prompt and GET /v1/schema, defining node labels with per-node owners (single-writer rule), properties, relationships and Memgraph dialect notes; kg/init.cypher (applied by the extraction-agent at startup) creates uniqueness constraints on id per label plus lookup indexes.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/init.cypher",
+          "version": "repo-file-v1:sha256:9f0deef489b00c89e5fa5e1a952d4fe55bdbe05b951ba764f977471b93809212"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L2-L13",
+          "version": "repo-lines-v1:sha256:3239fa095e00e446f75d426c972512a678f5ff2b57c09cf888d4fe9d37e3bd86:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1N2JiMTJlNTZkZWFkNzFiNDIwZDFjOWNkNjY3Yzg1MGQxYTMxM2RmYzNkOTEwYTQ3MjE5ODZmNDU5ZDZjNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoxLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwYjJjN2RlZTM0YjliMTViYWFkNTBkMWZhM2QzMGUyOTFhZWEyMmJmYjQ4YmY0YzFmNTJkNzYyMWVmN2IzOWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkZjlmZmI3ZmRlNDI1ZGU5YjQ0MWZhZDhmMDI2YzMxMTY4M2JlMDY0ZWFmNDBlNzU3ZTU5MzkwMDA1NjFlZmUifQ"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L31-L32",
+          "version": "repo-lines-v1:sha256:11cea2775a5f33da24677e86992461ad77b90445d44e3ddf98850f2679378399:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjJkZThiOTJmMjAyM2IzNWI1NWVhOGY1N2VjYTEwOTYxOTZiNTc4ODUwMmQyY2IwZjBiNGZjZTg4Y2M0NmVkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNThjMzM3MzlmMjk3ZTYyYmU1YWUwMGU1ZGRkNGE5M2ZmOGNiOTQ3OTJlMjA4OTA1ZjFhN2IyMzdjNWQ3ZGQzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTQxYWQwYzIxY2YwNDUyOTBkZTAxMDQzYzU5Y2NiZmFhNzVlNWZjZTdjNjgxZmU4ODFhZTEyYmM5NTkxOTU5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWNiN2UyNGQ1NGFiMjdhZjRjMzA3NzFlYWY0NzU1YjVlNjA2MWMxZDViN2RkYTNjYjE5OWJiMzllNzA4MDlmYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0f1d5be44314f07817d52e72a5524b5",
+      "statement": "query-service.yaml is the user/agent entry point (auth, admin, projects, forwarded operations, query, schema, export) with a per-operation minimum role declared via x-sandman-min-role and enforced by the query-service; owners trust it.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml#L10-L10",
+          "version": "repo-lines-v1:sha256:778525b1a4f2b6dfaf61dcf9a22b01ae8d24c754609743fbce3454c696d2aef0:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzc4NTI1YjFhNGYyYjZkZmFmNjFkY2Y5YTIyYjAxYWU4ZDI0Yzc1NDYwOTc0M2ZiY2UzNDU0YzY5NmQyYWVmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzc4NTI1YjFhNGYyYjZkZmFmNjFkY2Y5YTIyYjAxYWU4ZDI0Yzc1NDYwOTc0M2ZiY2UzNDU0YzY5NmQyYWVmMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWUzZjkwZWQ2OGU2N2VmYzljMzY1NjM5N2RkZDIyYWJiOWJjZTU2MmFlOTQwMjQ5YmQyN2RmZTI0Nzc2ZmRlNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNjYmVlYzk1ZmEwNzYwOTEyMmMzMzYwNmJkOThhODYxNGMzMmFhMmE1ZTA3NWU2NDllMjJlZDYxNTZhZmE4ZCJ9"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L29-L29",
+          "version": "repo-lines-v1:sha256:50b66afede65ec01332605cbbe8adad63235ba5a58d0c98f5b57cb12679bf13e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTBiNjZhZmVkZTY1ZWMwMTMzMjYwNWNiYmU4YWRhZDYzMjM1YmE1YTU4ZDBjOThmNWI1N2NiMTI2NzliZjEzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTBiNjZhZmVkZTY1ZWMwMTMzMjYwNWNiYmU4YWRhZDYzMjM1YmE1YTU4ZDBjOThmNWI1N2NiMTI2NzliZjEzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTI3Y2ViY2NkMWZiOGMxNjQ4OTA3MDM0YmE4Yzg0YjFmNTNkOTcyZjk2ZDlkYTg5ZDY0N2UyZDFhMzE0NjQ1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWIyNDdjY2Q2ZmZiNmRkNDE1ODgyNzFlYjJhYjNlOTk0ZTUxZjQ3NDQyYjc5MDhjMDljNTdmMjgzNzBmYjM1ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d92c6a22a174b5a912bc85fe21bfcda",
+      "statement": "Cassette keys for llm-replay are sha256 hex of the RFC 8785 (JCS) serialization of the OpenAI request body after removing user, stream and stream_options, as defined in common.schema.json CassetteEntry and cross-checked against the rfc8785 reference implementation in CI.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/common.schema.json#L122-L155",
+          "version": "repo-lines-v1:sha256:bdf6e100ab578c1cd969a1c9dc12893525cb42173bbdde30656382bc79e3f380:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzYTQ2ZWNhMjFmMTcxZGU0N2M3YzFkOTM3ZDNlMDM4MzMwMzQzNDVlMGY3YmU2YTdkMTg5ZWUwZDBmYmZhZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyMzE0ZTU5MjcyNjQzMDY5NzVlNDQyNWU4NTY5NjdkMjQ2OTdjZDkxNTkxOTUxODNmMmVlOGY1YzAzNzM5N2IifQ"
+        },
+        {
+          "resource": "repo://scripts/validate_contracts.py#L82-L86",
+          "version": "repo-lines-v1:sha256:efa1a2c0257571c7591e4012340b3403159e13d999391aba8806a630b0f0ddf2:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMyZThmMGFiZWY2NGIwOGY2N2IxMmVlYzI2MjE5ZjlhMmMwMmRiZWFjZmM2ZmU4OGZmM2NjZWY5OTBjNjVhYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFlMjIwZDYyZjY5Y2Y4MTIzMDM1YTNhYWYzZGQwMDlhOTQ4NGExNjVkZWJiODZmMzdhY2UwNWJiMzYzZjIwZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVlNjRkZjdlZGYyZDE1MWUyNjYxMzRkM2FjOTc1ZTM2NDZhZGU4MGFhMTZhMjM3YzZjNjYxMzViZmM1ZTY4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTQwYzU2OWRiMGJmMTljYmUwOTgxZDYxYmUwZWQ3ZDhlMTlkOWExZmU2NmQzZDYzOWRlZTM2MGY5NWQ1OTI1ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_66c5485dc7674218a3a22556c06a3d9b",
+      "statement": "Inconsistency fingerprints are sha256 hex of UTF-8(type, detector id without version, involved keys sorted byte-wise by UTF-8, joined by U+001F) with involved key = Element.key or sourceKey + '->' + targetKey for a TraceLink, and Inconsistency.id = stableId('inc', [projectId, fingerprint]).",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L12-L12",
+          "version": "repo-lines-v1:sha256:64289a540c17e1746521c20515bb36310bbdd9ce0dc2faae45c4e6565bdcea82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQyODlhNTQwYzE3ZTE3NDY1MjFjMjA1MTViYjM2MzEwYmJkZDljZTBkYzJmYWFlNDVjNGU2NTY1YmRjZWE4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjQyODlhNTQwYzE3ZTE3NDY1MjFjMjA1MTViYjM2MzEwYmJkZDljZTBkYzJmYWFlNDVjNGU2NTY1YmRjZWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTM4OGU1MDg4YTQwNjljZjJkZGY2NDJiYzhjMThmMmUwZjI5MGI0M2I0MmE4ZDMzMzI2NzlhODIwYzU5MzQwZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDRlNzI0ODI5YzAzYmQzY2YzMzVjMjA2YjI0YTMwZTcxYjA0YTIxYzM5ODhkZTYzYzcxZTIwNjhmNTE4MGEwZSJ9"
+        },
+        {
+          "resource": "repo://contracts/skills.schema.json#L674-L676",
+          "version": "repo-lines-v1:sha256:d1cd3ce9f6518758a29eb4481e55e7515657a98148dc6eb1f3bb14d90311ebe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzRmNTNhNThlODZhNGI4MGQ2MDUzZTk5MWRiMDBlNDc1ZWI4YzViMTU0ODkxYWM3MGZkYjZmNjRmOTdiNWU0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdiMTEzZTRjZDgyYjc0ODg5ZDFkNWFjYmY5YjRiNDJkZDA3MjM5NWYwNTg0NmY1YmFhM2FlZmYzZDgwMzM3YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmFhZmI2MmMwOTQxMGJjZTE2NjY5N2E4OWI4MjM4MWMzNGQ4NDNmZTc2NjU4OTg5NWU0NDczZDJiYWJhZmY1NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzUxYzljNTIzMjE4MjNjNmY0NGE3ZWZjMmRiYWUzNjNmOTQ4MWNhY2IyY2RhNmEwYmU3OTRjZjM1YjIwZjZkMCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

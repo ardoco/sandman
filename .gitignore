@@ -10,3 +10,5 @@ target/
 TODO.md
 CLAUDE.local.md
 .work/
+
+.github/workflows/openwiki-update.yml

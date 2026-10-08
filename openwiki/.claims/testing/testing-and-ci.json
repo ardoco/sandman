@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:9d6182fa82b052d89858c16597639eb25e2a9ee2de4c89626b10fd05339bfa9d",
+  "claims": [
+    {
+      "id": "claim_c59c9d602d0640af87b5d57951c106c3",
+      "statement": "The Python test entry point `make test-py` runs `uv run pytest`, whose collection is configured in the root pyproject.toml: testpaths = libs/python, services, tools, tests/plugin-stubs, tests/conformance and scripts; asyncio_mode = \"auto\" with function-scoped default fixture loop; addopts = \"--import-mode=importlib\"; pythonpath = [\"scripts\"] so scripts/validate_contracts.py is importable by its test. tests/e2e is deliberately not on testpaths, so the walking skeleton never runs under plain `uv run pytest`.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L28-L29",
+          "version": "repo-lines-v1:sha256:3a43c753947465dec8955fc26d9241ac4d4abef6ddbc6d698de382bb106c3d0c:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2RiMTE3YjY2MWVkZmZhOThjN2NiYmU4NDg1ZjJkM2I5NTk5MDk2ODJlN2RjZjkwYWEyMGQ4M2M3NDdhMDkzYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDQ1YzlkNWYzMGVjZmZmNzk0NWUwMGRjM2I2NjUyYTEyYmJiNTk0YzRmYzgyNGYxYTQxMTA3ODY4OTA4ZGEzYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTI0OGRiYzAyMzIxOTY3ZjI1Yzk2ZTVhZjRkNTkxY2RjZGU4YjVhMDgxZjQyYjA0YTgyZjFiYWU3MmZkNjIxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzhlNGRmY2Y0NGE1YTA3NDAxOWI4ZDEwMDYyMDQ5OTNjMThhNTBlMjE3MTZmNjRjMzM1YTAyYjhiYWZiYmU5MSJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L72-L77",
+          "version": "repo-lines-v1:sha256:cc10153d2812684a8fd5e3f6d504b0e1ea05f0de27eac19ff1687792fde461ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODY3NmU2NDE0NjVhNjU1MWU5ZTljZmZkN2ZhYTFlNmE0MmY5YjcyNDgwOTgxM2M5MDNkN2VkY2I1MmYzMDA2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODM3OTFkMjJmYTJjMjA5ZTllNThlNGZjZWVlY2UwOGU1NTQ5NGJhZjAzY2UyMmE5MzcxMjczOTcwZTdhZTg1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDYzYzZjNGM4YzdkOTA4ZWI0YTE5MzlhNDQxNGUzNWUwN2JkNGVkM2RjMThmYzAwMzAzMWEzNzkxYzIxZTE0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_61e87948c8f04e78bc9181d3b6b92c0b",
+      "statement": "`make test-java` runs `mvn -B verify` over the Maven aggregator (libs/java/agent-lib, libs/java/agent-lib-a2a, services/tlr-agent, services/inconsistency-agent), and the verify phase is itself a merge gate: the Spotless plugin runs `check` with palantirJavaFormat and removeUnusedImports, and maven-enforcer requires Maven >= 3.9 and Java >= 21 and bans dev.langchain4j, org.springframework.ai and org.bsc.langgraph4j (the Java counterpart of the framework guard).",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L31-L32",
+          "version": "repo-lines-v1:sha256:db66e9786908e05c69d3d88ac91e38509060f7078db34ee9ad5015a85ba0a9b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVmY2U3OWJmNDI2Y2Q0NTkxMjUzYWRjMjI3ZTQwNDNiNmM2MmU4MTc0ZTU1YWY2MmYxZWJlZTA3ZTAwMDhkZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDI0ODgyNmEzNmEyMjk2MTMzNTM4M2Q2NGIwNTJlOTkzODhmZThhMDI0ZjA4ZTZhZDdkMmU2ZjFhOWVkNDk0MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDMzMDk4NjUxMDI4NzNkZDhlYmQxNGM5OTY2YTFhNTM5ZGZmNTRjMTZjMGRjOGNjZWRhMjYxM2FkNTI3ZTU0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDJhNzg3MWZmOTVhOTA3ZDRlZTA2Y2YwMjRjNjRiNzk2MjY2NmE4Yjg2YTQyMmMyNDhmY2E2ZjcxOTQ5MGVjOCJ9"
+        },
+        {
+          "resource": "repo://pom.xml#L13-L18",
+          "version": "repo-lines-v1:sha256:b437413d0e3d8529b354976bf02dbab16b6f912c0d52a11ca5889460de3eac74:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2QyMmJiYzEyZTY2NzBjMzk1YzNiMDk0NzYwYTU1YWU3YjRhYzE1NjkyMzg1N2Y1OTZkMWRlOTc4ODUxZWZlZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGUxZmZmZTRkMjVhYWNjMTA0ODg0NjMwMDA5NjA0MTU3MDljNzI1MjZjNDI0MDQ3YTA5YzA5OWIwYTQxMzQxZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGEyMTM0NWFjZjAwOGI0NzIxOTkzNWUyNDE4YWIyNWUwNmYyYjA1MWRiMGU2MzI4Y2UxOGRiNGI1ZGY4ODE4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmVlOTA4NDE2NWI4MzViZDgzNGViM2NhNjE4M2YyZjBhMThhMWI2YTQ0YmIyNTE0OTljNjgxMTUyOWQ2NWU2OCJ9"
+        },
+        {
+          "resource": "repo://pom.xml#L144-L195",
+          "version": "repo-lines-v1:sha256:40134ef6bf6f9989b28b88171f55c501fc7713955ee30428bc8a4183a3fe510b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ZWMzY2U1M2FmMWE5NmVhNTA2NjQxZWIwMzE5ODhlMWY0ZDY1NjQ4ZjdiYjc2NzZiMjRiMjI3OTVkZmI4ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNWJlODQxOTNmZjQ4MjM5ZDA4ZjhiN2RjODYyMDQwODk4OTk5ZjZmNjI5YmQwZDQ5NTBhZDQ0NDA4Mzc0MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1OTdlY2I4YTViYmY1ZjNlZTkzZDNkNDcwNWZiODY4NDM2MzFjZWRmYjhiZmFlNDYxZDkwODU4YTE1NmFmYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4OGViZTAwNzZlZmU4ZGQyNzRmNDdhMjE1ZmRmZTgzM2MwN2I3NDFkYzBkOTg3MjUzMDYzNTFhYzU0NWQxZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc0c604402f04d20990612af913a346a",
+      "statement": "`make lint` is the Python merge gate and runs four checks in order: `make guard` (as a Make prerequisite), `uv run ruff check .`, `uv run ruff format --check .` and `uv run mypy libs/python` with strict = true for Python 3.13; ruff is configured with line-length 120, target-version py313, lint rules E/F/I/B/UP, and spikes/ excluded as throwaway code.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L34-L37",
+          "version": "repo-lines-v1:sha256:61a4243b9c1c5798f9e2fc32a30afb11ec105f35af556787aee76b4054ec9f0c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOThkMDk3ZGY5MDVkNjhiNjczZTM4NGNjOTljZTFiZGEwOTczNGIxNDE1NDRjNjQ1ZTQxNTFkYmU0ZGZhZGUzNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjE4Yzg1YjE1YzUyYzNhOGQ4MGM2MWZhYzM4NTE2OTE4MGMxYjMyOGE3YjMwMGQyZjUwZDAwYzIwNzEyZjRhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODYwOWYyNTVjZTQxZWFmZDU1MmU4M2FkZGJmYzY1ZDY2YWE3OWNhMmNmOGVmOTQxZmI0ZjBiZWJmY2I3NjhmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTA5OTBhMjAwODc0YTczY2YyNDM1MDZhYmFmNzA5YWIyYWU5OTkzNjQ1NTY3ZmUzMjU1MGRiMWFiZDZlNzIyYSJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L60-L70",
+          "version": "repo-lines-v1:sha256:c2a585df3874d2a2f562d5a930e8aa7dcf3b5f8cb86f22abffddd9b62400fe0b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3NDVmYWI4NmIxMjFkYzg1YjRmNzg2NzMzOWExM2ZlZTgwNGM4YTAyZjQ3MTA2NTcyZjJiZjA2NjRkNTk1MWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkM2UwOGY0MDFiN2FmMmU4NzA0NzYzZGYwZTU2MjQ3OTFkY2VlN2YzZWVlZDU1YmNiOGExYmJmY2UzODFiOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzZDE3MWRlNzU0MzFhMDIxYTBkOTRmYTc2ZmFiZjBkNzEzOWM4OThjMWEwYjQ0YjQzY2E2MDkwM2ZhMWI4NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMDM1MTFjNTIxMTdiZWNmMTllOGUwMWJjMzYwNGUwYWNkYWJmZTY2YWI2OWExMmRiNzFkMThlMTZlMDUzODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_37852c9c1e794e2ab03c922c69d4bc29",
+      "statement": "`make guard` fails the build if any *.py under libs/ or services/ contains a top-level import or from-import of langchain, langgraph, deepagents, llama_index, crewai or autogen (NFR-3); tools/, tests/ and spikes/ are out of its scope.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L39-L40",
+          "version": "repo-lines-v1:sha256:40070e513d2425cbaf72cf2273c7b3537546cbaef5e0845af0fb43b9067555a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2MxMDQ2ZTQxNTNjYzY5Zjc4YmZmYzI5YWI5ZjMwZWNlOGYxMjgzM2ZlNzZiYWYzYWRkNDI2NzAyZjUwMDJhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWVmM2FhZTFjZGVlMDU0MmNiN2Q5Y2IzZTk0MzQzNDNhMTgzODBkOTBlNDgyMmVmM2EzN2M3NTYyNjUxZTJkYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGZlNGMxYTcyNjc1NWEyNWM1ZmVlZTNkYzdkY2I5MzM5NzFkYmFmMjkwNGE5YzUxMDk1ZDY2OTUzZGE3ZTE2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTMzN2Y3MjNmOThhOWZkMGJkZDczYzY1NzJiMzA2Nzk5Zjc3MGVjOWUyN2JkNTliOTA2MDhlNDcyZTVhMjk4OSJ9"
+        },
+        {
+          "resource": "repo://Makefile#L4-L4",
+          "version": "repo-lines-v1:sha256:85cb49008c05d5f7cf9601dd8193cd88b0cfa17bd56eb519ba2b0e23c51bc132:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODVjYjQ5MDA4YzA1ZDVmN2NmOTYwMWRkODE5M2NkODhiMGNmYTE3YmQ1NmViNTE5YmEyYjBlMjNjNTFiYzEzMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODVjYjQ5MDA4YzA1ZDVmN2NmOTYwMWRkODE5M2NkODhiMGNmYTE3YmQ1NmViNTE5YmEyYjBlMjNjNTFiYzEzMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjE0ZDI2NDQyMjIzMjk2YTcyYzU0N2JlYWM4NDZiNDJkZjhmNGM0NDc5YjJmNTI5YjU0YTAxNWYzMmI1MzdhMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWUwYzQ1MGJjODJkYzdmNzllNGM1Zjc4M2MyYzZlZWNlMzA0OGI1OWIyNmU0OTRjNTliNWRhMmMxNWZlMzU0YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c72f2198e61f400b8b32e301df30e8be",
+      "statement": "`make contracts` runs scripts/validate_contracts.py, which in a single pass validates the three JSON Schemas against the 2020-12 meta-schema, re-implements the conformance vector rules (stable ids, section/sentence keys, fingerprints, RFC 8785 cassette keys, event envelopes) and checks every expected value as a self-consistency check, resolves every Agent Card skill input/output $ref to an existing $defs entry, validates all OpenAPI documents with openapi-spec-validator, sanity-checks kg/schema.yaml for nodes and relationships, collects all errors before exiting, and exits 1 if any check fails; scripts/test_validate_contracts.py (on pytest testpaths) additionally asserts the repository's own contracts validate and that a corrupted schema or vector is actually reported.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L42-L43",
+          "version": "repo-lines-v1:sha256:79d433bbdbeae5f264bc72de363e0af7f7fcfec9539576556e06796a1208cee2:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVmNjJmZTMxMjJjOWEyOWZlMWZmNjY4MDU2OGZhYjA4YTVlOWU0MGUxZTFjYzA5ODhmNjI1ZWMyM2U4MDdlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTRlNWM2NzYwMTUyNzhkMzVkZWU3YmUzMjg0MjA1ODA5ZjA1MjMwNmEwYmFmMDkzMDQwOTk0ZTY1NzU3YWU0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWQzMDgzYmVmN2E3MTk0ODMzMjMwOTBiNWEzYTBmODU3Yjk1OTgzNWFjMTI0ZDZkYWU1MTA4MDgyNzEwYjA0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFlMTJlZTM1MjM3Mjc4ZmJlZmNmOGE0ZDk4Nzc2ZWEwODRiNjIyOWJhZjU5MjgwNjU0ZDQ2ZmY0YmNlN2ExMSJ9"
+        },
+        {
+          "resource": "repo://scripts/test_validate_contracts.py#L10-L25",
+          "version": "repo-lines-v1:sha256:34fc3b150ef8377334815c0853a5dd21ee7b7425cd907bbb536b02fc4fd829aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjZDYxNzMyMzBkMWJhNWNlNzdjYjIyZGNkNDcxZmIzZWJkNGNhMTBhNzk5YTIxMDI0ZjVkZTMzNWFkMWI0MTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Yzc2M2Y0MTQ4YTQxMzRlMzQxYTBhNGQwZTA1NzQwMzBkYjg2MDBiYzRjYzMwNGUyYzE5YjNhM2RlNzM0MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhODAzMDNmOWFjMzJhMzFhOTgxMmI4Y2FjYjI4M2U4NjFkN2QyMWU3MGQ5MTMxM2VkNDhjNWIxODBiMWZkZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/validate_contracts.py#L56-L124",
+          "version": "repo-lines-v1:sha256:8624c0974ac98583df2c1399b49d7e231231b686ed057ade5ea9cf8ba457dec5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyMDE4YTVmMjA0ZTA1NDRmYjkxYmEzY2I3MTA0ZTcyNmM4MzViMTRjYmE4N2RjMjAzMGNhZDY5NmExMzQ2NmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlMDQ0YWMyOWQ0YzJmZDY2ODhiMGZkYWZjNjkwNDg4ZjhlMzBmOTU1OTcwMDgwNjcyOWZhMjk1YWU0NDViYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiYTMzYTU3MjZjZGQ0ODJlNWE4Zjc0MTM2YjBlNDU3NjBmOTE1YjU1MWQ0OWEwMzdlMzg1ZmY2NThiMjAxOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b970c0dacc0d4db38358bda56b7a502d",
+      "statement": "`make e2e` depends on `make secrets` (deploy/gen-secrets.sh, which never overwrites existing secret files), then boots the whole stack with `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build --wait --wait-timeout 300`, and finally runs `SANDMAN_E2E=1 uv run pytest tests/e2e -q`.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L45-L47",
+          "version": "repo-lines-v1:sha256:5421abebf1d7553bee8ee93c40336965b99f84663d73f2b01519e28c0ab111c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I5Nzc2M2Q5MWE4NTU4MWIzZTZhOGFhYzFhZWY1YzJjYWU1N2Y4MWVhZjgwOGRjNzM5ODk0NWU0ZjUzZTZlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdiMjg1OGZmYzJhODYyMWJhNzkyNmNhMjdjOTRmMmZjYWE0ZTdlYjg4NDZkMGVmNTMxY2JhN2NkYTM0NmVmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODkzYjg1ODFiYmMxZWI0ZmRlOTg1MzA4MTgwZDEzMjk4MWQwNjRmODRkODJmODVmZjRiMzc1MmQ1MTNlM2FhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmNjN2NmZGNhMjY1YzRlOTBjMDM5NThlMjI0NzkzNTAyYTIxNzg3YzhhMDZmZWNlYjQyNDk0MDAyODMwNmUzOSJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L14-L16",
+          "version": "repo-lines-v1:sha256:5de6be829135d852df04d1c3d6d12bd89658a207a9cea6e575ba7c06bedfebbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2FiMjY5ZDYzMTA5NWY0MzcxMWE2MDEyOWZlZWM1MzNjMWYyYmIxNjE4NDVhMzNmMzNlZWY1Mjk3N2I4NjY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzg1ZmVlYWI2NDNlMGUwY2QzM2RlYjllODAwODMwZmU4ZjQzNGEyNWQ3MmFhNmY5M2Y1YzZkMGFjMmE1ZDQzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTJlNzgzN2Q0ODBlMWE4NzFmYjZmZWI3ZmViOTUzYmIxZDU3MjU4NjE5MDYxOGI3MDQ5NmI3YTMyYmY4ZDkwZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9bb359148624ca289c7cbe070870ea6",
+      "statement": "Python unit and REST tests never touch the network: HTTP surfaces are built by create_app-style factories that accept injected transports, and tests drive them in-process with httpx.ASGITransport or stub outbound dependencies with httpx.MockTransport; A2aClient and A2aPluginClient accept an optional httpx.AsyncBaseTransport for exactly this purpose, and the orchestrator tests use a host-routing Router transport that dispatches by request host to the currently registered app so a test can simulate an agent restart by swapping apps.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/plugins.py#L24-L37",
+          "version": "repo-lines-v1:sha256:121e0c1dbdd54c30dacdd687f88a658888bfcd0a3cfeb39efd2fa4e992b0dd47:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkZDhhZWRkYjA5OTk4ZGMxNGQ4MjZjYThiOTg1MGZmN2YwMTQ2MmFkMzhiOGM2MzY4OTRkYjBkNTEyMjQ4ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NzI2MGM5NDIwM2E5NzAxMWJiZWRjMmJhNjg0MzA4NWNjMTNiZGNmY2I5ZDIzOTY1NjdlZGQ2MzE0MjM4YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0YTVhMzNhYmEyZWQyNmFiZmU3YzM2MzExMzVmYTMyNmRjODcwMTFmZGUxY2MxN2IxYTQ4ODZiYmYyMzUzMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1NGZjNGQ2YmRlZWNhOGU3MWNjM2VmNTIwMTg2Mzk4ZTJiYzI1YWRjZTU5MzFkMWI0ZDUwYjBjNmRhYzliMDIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/fakes.py#L107-L115",
+          "version": "repo-lines-v1:sha256:8e6757c8ccc00d6449df310e96dfc4df3639ca1818348cb4587f79ebc011fdac:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ZkOTg1Njg4NTg1MDkwNzNiZGZlYzE2OGM5NDIwMmZkYzMxMmY2N2UwYTU1YWI4ZDRhMTNmNDRkMzZlOTk2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODE5ODBmZDdhNDc5MGQxOGU5ODQ0MDdlMmI3NTJlZDE5NzNhMTk3N2UzN2IwNzZiYmExYjExMTU5NjZjODkxYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjk5OGFhN2FiMzBjYWY5NDNjMjBlN2U1YmUwYzg0MGQxODgwYzFlMDI3MDVhYzJmM2YwMWIzMWUwYTgwNzNhOCJ9"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/tests/test_stubs.py#L39-L46",
+          "version": "repo-lines-v1:sha256:b046739a57fec91f4b2c98a499e4ae691031f21566257ac208de115c9f16c23d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODRjNmRkYTk5OWE4MmIyMDE2ZTk3ZjM5MmQwNWQ1ZDZjOTcyY2FhZTViZjFkYmYxNjJkMzE2OTIwYTQxM2I1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2YwNjRmZmY2NTQzOTU3OWE5NjA0NjBhNmM4OWYyZGU2MzgwMTNlMmE3ZGM4YmFmNzZlN2NmZTliZTc4MDMxYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZiZDAwOTMxNGJjMjcwODQxNjczNGEwMmFlNWZmMzlhMWU0OGEwNTBiZTkxZjQzYjJmYWE5MjAwMmM2MmJmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmM0OTdlOTRhYWNiMzNkZjc5YzdlZTRhZjY4MjJiZDlkZGRlOTBlMjZhM2FkNDE0MjJhNDFjYmQ4NTFjYzIyYiJ9"
+        },
+        {
+          "resource": "repo://tools/cli/tests/test_cli.py#L55-L67",
+          "version": "repo-lines-v1:sha256:bf5109f9fd53808bd19d32ecf92606af37b113b4f7801cb3fe65686c915f89a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyNDQ3NTYxMTM3MDIzOWNkNzY5MjI0YjRkMTY5MTMxZDI4MWFhZjE3MjkwYjEyYmE3NTYxZjQyY2QyMDZhODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMzlkNGVmMTAzYTg1ZmJlOGEyNzYwNTZiOTczMzI1NzM4OTAzM2JhYmQ0OGY3YjhlNjc5NWVlN2JjNmUyYzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxOWJhMWZhZWEwYjFiMjk1ODE3YzczMTQwOThkOGFlM2FmYTdkYzgxOWJlN2NkMWNhZmI3NDRkYWQ1OWE3NjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlOTc3ZjhlOWVjNjVjMTc4ZjQ1YTE4Nzg5NDhiYTAyZTExMTEyYTY4NDNlZDhhNjBhYzc1ODM0YjQ0OWMzNjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_95ebb194e89245a5b969c47c75bc3a7d",
+      "statement": "sandman_agent.testing provides the shared test fakes — ScriptedLlmClient (returns queued responses/embeddings in order, records every request) and InMemoryEventBus (a validating EventSink that stores published events) — and service suites build on them with injectable collaborators: the orchestrator wires FakeSkill (scripted ok/hang/SkillError behaviors), FakeGraph and a Bus that delivers events straight to the consumer handler; the query-service injects a FakeReader (canned Cypher results, recorded queries) and a FakeOwner ASGI app standing in for the three owner services plus a cheap argon2 hasher; the extraction-agent injects a FakePlugin through serve() with a plugin_transport.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/testing.py#L14-L53",
+          "version": "repo-lines-v1:sha256:3c96a10e719d1e2b5a0c3e1131da76d2ae2a416ad2fb37a161c2cf8b63b9ab5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZTE2MzU0N2E2MDZjYTA2MjY4OWMxZGRjNWZhYjhkNjkwZmRhMzI0M2U0NGYzYjU1NDllMGE1ODY4NzQ4NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZWJlNTc3YTQxYWZkYjNjNDBhYjRiMjEyMjY4YzQ2YzgxYWExZTUzOGYwNDQ2N2VmYmIzYjc5MjMyM2QzMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5OTYxMmY1Mzk2Mjg4MzkwMDczNzNjOWMxNzFjYTRlMGQyYWU5MzVjZDIxODc4YTEyNTgwNTdkMjY0Yjg2NTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3MTNlZThmNzA3MDJiMzI0OWU5YWM5MmJkOTY2MDJlMGQ2YWRjYjc4Nzg0MzI5MDE1YzE5OGM2NTE3Y2QxNWMifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/tests/conftest.py#L230-L261",
+          "version": "repo-lines-v1:sha256:eb0ba56b47835720eb28c47403964cc718e427c344d5aa88a3b529962f822ca7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjOWI0MjNlMDNlMTFjOTdiMWIzMTBlZjQ1NzBlNWFhYzMzZDg5MjgyZDIxNWE5NTQzN2EyMWRlNDg5YzBkYjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMmU0NmExNGE0NDU3YjMxYWE5M2NmYjNkOTMwZmEzNDY2ZjJjNTUyMjgwN2Y0ODY0YzNhZTYyMTM3MmQ4YWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/fakes.py#L81-L126",
+          "version": "repo-lines-v1:sha256:f735d10f9acc9103bbace0a59c6dbcbd1435ea8ca416d7e9174cacda123551fd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMzBjNmFhMmM1OGZlOGI1MDU0NzdmNGFhMTcxNTBkZmExMTc5NTIyNjNhM2RmYTE4ZWEyZWI1ZDZlYzNiYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliZWJlNTc3YTQxYWZkYjNjNDBhYjRiMjEyMjY4YzQ2YzgxYWExZTUzOGYwNDQ2N2VmYmIzYjc5MjMyM2QzMjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzNTM3NzBjZWYxZjNlNTg2MmM5ZWUxODYyYTg2MGJiZWE4ZWEzMGU2MjUwN2RlMDcxYWU2YjdmNGEwYzE3MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWYwMmZkN2VjMWQ0NjJjMGNiODE4Yjk0OGZmZTRmNzE1YjJjMmM0MzI2MzBjMjMyZGZlMzRkNDI3NDNmYTkifQ"
+        },
+        {
+          "resource": "repo://services/query-service/tests/conftest.py#L96-L120",
+          "version": "repo-lines-v1:sha256:63b62aa31d374635e01e02f3c3755f15bc5e4def630edb9068a449296028d0c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZDc1OTM0ZWRmZWFlMGFkMjI0MTUxYWU4MzlhN2Q1OTZlNTliYWNiYjY2NDM2ZmUyNjAwNzU0ZWJlNWQ2NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlYzQ4OGE1MzYzNjNlYzRmYmRjNGNiMzA4MTM5ZjAzOWM5NzRiYWUxMzdhMmE4Yzc0MjkyZWU4ODQyZTIwZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyNWRjMTc0YjUyYTRlZjU5ODJiMTg2ZTczZjlmZWJlM2VmNTM1MGUyMTBjNjc0M2RkZmFkNDhmZmEyMWMxYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eaf7cdcbb910494cbeaeb2f0863318a6",
+      "statement": "Integration tests in both languages boot real infrastructure with testcontainers — Memgraph 3.13.1 (--telemetry-enabled=false, port 7687) and NATS 2.15.0-alpine (-js, port 4222) — and skip cleanly without a Docker daemon: Python probes the Docker daemon and uses pytest.mark.skipif / pytest.skip; plain Java tests use @Testcontainers(disabledWithoutDocker = true) with Wait strategies; Quarkus-based Java tests instead use @EnabledIf with a helper that temporarily restores the Testcontainers classloader, because Quarkus replaces the thread context class loader and breaks Testcontainers' ServiceLoader lookup.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/IntegrationTest.java#L23-L36",
+          "version": "repo-lines-v1:sha256:72845f146be8f6e59c2cb363ee951f1e67e286121f20923848041539a535bed7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllNGM5YzA4YzM0ZGRkYzkzMjRiODI0N2M5YzExMzJmY2MzZTEwZWM2ODJjZWQyNTlmNjIzOGYyYTVjMGE5ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2NWJjMjhmNTc1NjdhMWI2ZjM1YmI5MzBiZDZiNGNjYzFlZmRjYTU3ZmE5YzcyNGI2ZWNiOWY0NWFkNjIwOTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4MzI5ZDYyMjRjZjZiNjdjZTFjMDhkMGEwZjg3N2NkZTU1ODc3MjNmMmQ2MWIxNDUyNWUyNWJlN2FjMDkzY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlYjBkZDBjODM4YmZlOTY2NjdhNTBiNDg5ZWFkZjI1N2Q4ZDlhYWVmMjZjYWQwMmVmMDlhMTFiMjZlZTRjY2EifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_integration.py#L17-L74",
+          "version": "repo-lines-v1:sha256:9ec579eae01ef37e22a167b6225122c938eb156943bd668b339b53fced3ba433:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1N2RmMzZkNmJlZGU2NDM1MjljODkwZjU0ZGI0ZThhNzM2YmZmMGQxOTk5ZjcyZmJjZWQ2NjE3MGRlMDBhMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkZjdiMmI3YjI1YjY2NzMyMTYxYzY2M2Q3ZjliNDczZjU5ZTk0YzUzMjlhYmEyMzdiMTdjOWJmZjcwMTE4ZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxMjFhM2QxY2M0NmZiYTVjNWFhMmVmMzhkOWFmZWNhZjJhNWU5MGZjYjhkMWQxOTA4NDY5ODA4YWIxNTYzYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyZTYxYWU3N2ZkN2I4ZDZlMTFlN2EzNzQwZWQyNTM1NDliZjg3ZTBhOWYzNjc5MTM3ZmQwNTUwMjg0MzBkNWYifQ"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Docker.java#L10-L21",
+          "version": "repo-lines-v1:sha256:eaa7b2f12760a1283d0a2b1df8e29d10fa47687a95971cf4a7706a01c7f33421:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNzYzNGZlZDk5ODk5ODM4MGJlNjE3YmQyMDhjZWE5MmY0NDA2Y2U3MmFkMjgwY2NkMjg4YjhiZTVjNjE1NjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNDUxZDY2NTJlNDU1Nzg1NTUyYzhiNzIyYzU3MWU4MGJlZmMwOTJlYTk3NjNhMDIwM2U3OGRiMzU4NTE3ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d6de9a07f3ba45f5a8d4b537bc988287",
+      "statement": "The container-backed integration tests pin the infrastructural invariants identically in both languages: the read transaction rejects writes (and nothing is created), init_schema is idempotent, RunRecorder cleanup_stale removes only facts produced by unfinished runs (marking those runs failed) while keeping facts of completed runs, the Memgraph memory-limit error is not retried (asserted to surface in under 5 seconds), and publishing the same event id twice yields exactly one delivered message and one stream message via Nats-Msg-Id deduplication.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/IntegrationTest.java#L42-L134",
+          "version": "repo-lines-v1:sha256:457b76b953fd4fd39ce19810cfff791761754df1bee3a03dee24e18c95318a69:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NDdiMmM5MzhmOWM5N2QzYTQ1ODM3MjFiMDI2NjRiZDIzZGJkZTEwMDM2NjI1ZDVjM2M4ZGUwMTE2YzgzOTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_integration.py#L77-L156",
+          "version": "repo-lines-v1:sha256:59b39bd3da0091d9bc309ef811ebf5072e018c039ddf2326da11ce73c39e1031:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkZGU2NWQ1NWZjYWMyMDk0MjE3OTdhYWM2ZTJhM2M2NDU0ZmY2NjZiODFiOTk3MjFlNGJhMzFjNTA5YzcyYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NzI2MzEwM2U0MmFiOTQ2MzBiYTNjMzlhYTc0OTVlMDg2NTlkYzUzM2YwMmUyN2Q0NzQxZDQwMTVmN2Q0YzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMTU1MGZhOGNkYWI3ZDA0NTFiY2IwYTkyNDkwMjcyYWQ0OTQwZTgzYzdjNzg1YmVkOGMxYjk5MjQ1YTIyNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_nats.py#L16-L37",
+          "version": "repo-lines-v1:sha256:1a61b3fe6bf386d2665341e3ea9c30de521d50c4f5c7cbd9029dc0cd1b6c507d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMWQ3YjUzODRhYjc0YWQzZjVjZjVhN2Q4MGZkZmNhOTI2MTgxNjc2MmRiYWNkMzc3NjRlMmU0ZTU5ZGIzMzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZjI1NmM5ODk1Zjc1YTgxNTAzMTI2MTZlMGZkMmE2ZGZkNDgzMWE1YzRlNjVkNWM2NmNhODAwZmUyMzljYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiYzhmMjViZGJkYzI4OWJjOWJlMjI5ZWJhMWZkMzk0YWFlOTZiZWQ0YWM5NzU4YWJmOTg5YWM5NjFhODBlZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiZDIxNzdmNDM5OThiNmNiN2QyMmEwY2RlYjI0ZTJkZDcxNDBhYmM2ZjA3NWIyZTRjOWZjMGYwZTJmOTk2YzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_80bf4306019149b9be822820a3635581",
+      "statement": "Cross-language parity is enforced by contracts/conformance/vectors.json: the Python suite (tests/conformance/test_python_conformance.py via sandman_agent.testing.run_conformance) and the Java suite (agent-lib's ConformanceRunner via ConformanceTest) both call their own ids/Ids implementations against the same vector file and assert the returned failure list is empty, so a drift in either language fails that language's CI job; the runners deliberately do not re-implement the rules.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/testing/ConformanceRunner.java#L18-L57",
+          "version": "repo-lines-v1:sha256:585b4ee5c98d45a2fe031b73ce91776269f165eb1b31f5c92aab018c4239c749:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDA2NDhjMDFjMmIxYmJkZDFlZmIwYjI3ZWY4MWUxNjI5NDAyN2FiNGJhNGRiMjBiMWEzNWEwZDcwN2Q4NDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwODU0ZTczYWMwYTk5MTg1MGFhZWZkZjhkNzI5NTQ0Yjc2NjBkYzY1ZWIwYTlkZTAwOTY3MjAzN2ZiYWI5ZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MzU3MGNiYmQ4MmEzOGVmYTAwOTA1YzI3YjU1ODBkMDYwMGUwMjU5NWVhZGM2MjNhZjM1YjY0M2I2MWMwM2UifQ"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/ConformanceTest.java#L10-L16",
+          "version": "repo-lines-v1:sha256:6d7eed261a47538716ebaff43f80498c3f109b27a23f0c41385f42748fd1ade0:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyYmRiMTAxYjY5NGYzYzU1MTQ4MDUwYWE4M2Y2ZjMzNTJjZDdhNWEwODRmNTljMjIxMDFlNWI5YzQzY2U5ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTVmNWZlZDBjYTI5MjQyOWQzMDczN2ZlYTRlNWIzYjIyMTdlNzVjMWM5ZjRmZGU2ZGUyODJhOGY0ZDE0YzcxYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/testing.py#L56-L79",
+          "version": "repo-lines-v1:sha256:f7eb1dacbe2169ed291f9ecebcc20954433ed01bcf9b0e8ff83d3b63017fc293:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwY2VmOTUwODcyOGYxMzEyZTI4N2YwZmM0ODA1MTEyYmRlM2FlZDI0OTU5M2ExZWM5YmM4ZmJlZjBkOTBjZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MmVkOTkwNWE5ODA3NGU0MjBjNDA0YTM5MzlmZGQ4YzkxZDI4OTUwMmU0Yjk4MDU5YjBkMzFhMTBiODNlZDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2NTk4NDEwNTFiNWQwOTUzYjJkM2FiNDQyNjllMWRjOGMxN2E4NDFmMGMyYTI1N2U5ZjM5NjExMmM5YzAyNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/conformance/test_python_conformance.py#L1-L9",
+          "version": "repo-lines-v1:sha256:5a9459822b76e64f604de7114ef066e6c34e81da62af093f9dadb432440d8db4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJkMjJmMjNmZGFmNTUzNmY0OGIxYWY5MWVkYTdiZmIxZTVkMjUxMjJhYjAwMDY2NDUyNWNmOTE0NWJjOWFlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWUwNTZkNmY3OGEyYjc0YWEyOGIzYzk1M2E5MmQ5ZWY1Y2EwYTI1NTBmMDA4MjA1MGIzM2U3MWVkOTAwNDUxYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5bc2824661994b55a867cad8f64c0933",
+      "statement": "The skillInvocation conformance cases require a served skill and are verified per language: Python parametrizes them in libs/python/sandman-agent/tests/test_a2a.py against an in-process serve() app, and Java runs them in A2aServerTest as a @QuarkusTest test agent; the cassetteKey vectors are implemented only by the llm-replay server, which asserts the RFC 8785 canonical form and derived key in its own tests — the agent libraries deliberately do not implement cassette keys.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/A2aServerTest.java#L106-L139",
+          "version": "repo-lines-v1:sha256:cf0bd441b7d74f0faef0a3503ff12bcf8d6a43412bc27ca85a10e5428076850a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMmZiM2JlNmYxZmQyOTQ5Y2E3OGI1ODU0NWNjZDc1N2ZlOTJiOTk0YzBhOTMzNjFkYzYyZDM5NWZiNjE4MzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MzQ3ZGFkMjA2NDAwMTQ0ZTlkMjExZGIxOTk2ZGFlMWZkMTY1ODFiODk4ZDcyNGE4NGMyZTU0NjJiMzljMzYifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_a2a.py#L104-L116",
+          "version": "repo-lines-v1:sha256:fc9d93d92d1648e603b47ba519d5a3267f11949b37b05237d5bf52fe97fd8616:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmMzQ1ODNhNTk4NzY3YmY1NmFlZmViNjVlMjAzM2ExNjUxY2M0YzhkN2U2ZjBhZjNlNWNmZDMyOTNmOTMzYjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwMjY0YWM2ZTI1MWFmMjBjYTE3YmNkNWRiOTZhYmM5ZDlmZGZkYTk0ZDlmY2VjZDA2MWE3NmJmNGRjZjY4Y2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4MjkxYzQyODk5ODE5ZTA3NmQzMzk0NDA1ZTBmNzBkYmMyZjU0NDc5YzI2ZTZhZWQ2YWRjOGJlYjllODQxYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjOGQwYWQzZmEyNDFmZWI2MTk3MjE5ODU5N2Y1NjM2YTIyYzMxNDg5ZmE0MzdiY2FmNjQ0MTMwZTZlYzlkNjcifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/tests/test_app.py#L38-L43",
+          "version": "repo-lines-v1:sha256:bcb7bd8c0c1f490c7ddc38d143dcd2b15b5d51006d8b4299f75cb52073794aec:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDQ5MWExNjExMjhiMmZkOTI4MmZlZDZkZmQ4YzU5YzliMDExODBlMWYyNDFkMzdiMjUwNzkyZWIxNmE3YTFlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzYyMjRmOWYxZTRmMTM0OGE5NjNhYTRlMzFkMGE1ZjU5NzI1YmVmZDMwZDBkZDY5NmI2OGJlODI5NjlhNTk4YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODM0YWEyOWZjY2Q4ODYzNTA5N2ZlYzFhZGRmMmRlYzdkNTBjZDVmYzg5NTE3NDRiZTc2NTg0ZmFmNDNhZDUzOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODQzMjY3OGEzOGUxODc1YTFhYzI1Yjk2MjY1Y2E0N2M2ZjE0NjI5ODU5ZTA1ZGY3YjQ1ZjUwM2Q0Mjc2OGJiNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d42fb60a4e3e4f9ba94dd5e4b2763297",
+      "statement": "REST tests validate response bodies against the OpenAPI contracts at test time: the query-service's helpers.validate builds a Draft202012Validator from the operation's response schema in query-service.yaml with a referencing registry that resolves cross-file $refs into contracts/, and the orchestrator (test_rest.py) and extraction-agent (openapi_validate) do the same against their own specs — so an OpenAPI change that breaks a response fails the language test suite rather than surfacing in review.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/tests/conftest.py#L128-L143",
+          "version": "repo-lines-v1:sha256:addb19422fec1dfde43b63b022844ba13e807227e53059965befdb9e3628b5a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4ZDUzMmVlYTg5NDQ0Yjc0MzgwZDQwOTdmZjg4ZmY1OTIyYmU3NDE1ZjNlNDU4YWNhNThhYWJmY2IwMWM1M2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczZjE2M2I5MzFiMjgyZmYxNDIzMzIwNTEyYWZmZmU0ZjljMjVlNjRjNjEzNDQ5YTA1OTFiYjBhNjE3MTlkM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5YmVjZWU2YzYyNDc1OGExMWNjYzE2YzQyN2Q0ZDA1YTEyNzg3N2ZlM2U2NDVhYWY3NzIwYTdkNmU4ODRiN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5YjliNjVjMjZjNmE4N2I5YzY1ZjQ0MjY4NjFlZGIwMjE5MDY5ZDQ4MWE1NTdmNzlkZTk4MWQ4NGQ5OTUwZjEifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/tests/test_rest.py#L17-L26",
+          "version": "repo-lines-v1:sha256:2624ef538e34ab7076a7543602893dc7975a42746cdd576aeb9866bf30d0d4a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiODBjM2QyODA4MWViNDBmOWViY2NkOWU5NDYyNThkZGNhNGJlNGU2MWY1NTA3ZjZmYjE1YjAzMjQ5ODhhNDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2YyNTVjODIzOGFmYzdhODI5ZmQ5MmU4ODc1ZWRiNDBmMGFmYWM4ZmI4ZDllMTYwZTExMjBjZmNiYzhkMWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3YTJhMDQ3ODg4NTMzMmI1ZDg5Y2MyNTE5ODM5ODA0ODU2YzUyN2Y5NTJkY2EzZWFiZGE0YjhiNzgzMDBiYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlZTNlMzJmYzQxOGVlNzA0ODQ0N2M4OTJhODZkNzlkZWM5ODcwZDFiYjJhOTE1OGU0OTk1MmY4OWJmYmI3NDAifQ"
+        },
+        {
+          "resource": "repo://services/query-service/tests/helpers.py#L29-L52",
+          "version": "repo-lines-v1:sha256:47f67d137c0ca3bf5ca8a30e014c97b3f5edb0cfa11c6cd7e51a6da3afddc7c1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4ZDUzMmVlYTg5NDQ0Yjc0MzgwZDQwOTdmZjg4ZmY1OTIyYmU3NDE1ZjNlNDU4YWNhNThhYWJmY2IwMWM1M2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3MGQ0YWJkZDUzMzk0MGNkMmFiMThiZjgzZTcwNTEwZjYxYzZhYjA2OTY1ODEzNjAxNTRjODRmNGE5NDY0MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4NDlkY2I3OTU3OGMwNDRjYzdhYzlmMTA0ZGY4MzQxM2Q3ODc5MjMyOWRiYmZmZDI2NTY0MWJjZWI3MThlYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxNzIyMjQ3OTNhZDUwMzY4MDQ4MWZiMjM5YWFlNjljMmE4YTNmZTJkYmM0ZjI5MmNjMjg1MWEyZTUyYmFkNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2df7e15a570d453c8e86903913127472",
+      "statement": "The A2A extract plugin stub is contract-tested through the same client the extraction-agent uses: tests/plugin-stubs/tests/test_stubs.py builds the stub app and calls it with sandman_agent.A2aPluginClient over httpx.ASGITransport, pinning element/relation/explicitReference extraction of the mini fixture, DEPENDS_ON import resolution via context.currentArtifacts, non-retryable PluginError for storage paths outside, relative to, or unreadable within the artifact store, and that /healthz and the agent card are public without a token.",
+      "evidence": [
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/app.py#L48-L110",
+          "version": "repo-lines-v1:sha256:0d13f57e6b21a41ac14d8b6aec11fc3206e3b365a15c85bb40950e8c7c06a156:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMTYzZDkzYTI3YmJjOTJlNTEwMmFiOWQyNGU3NDY2YTI2YTUyMzU0ZjZhZDBiYzA1Zjk5NWM3MDQ5NWIxNDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNjdiNDY2Mzc4NzVjM2JiN2Y5MDNiMWRiODczNGI0YTI5NjY4NWRmNGRiZTY2YTRmNmNlZjdmZGM0MTE2M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5ZDBlODk5ZTMyMjQwYmQ2MzE0ZGQ4NDY1MTc5NjMxMDEwNmFlMjBkMWEyMDU4YTcxZmVkYWExMzgzM2FiODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkZDkwZDlkY2Q5NzQ0MTFmZTdkM2FiYWQxMWE3NmNhMTg3YjZkZjM2YjM1YjI3ZmM3ZGQ2NDFkMDIxNDVhZjEifQ"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/tests/test_stubs.py#L157-L161",
+          "version": "repo-lines-v1:sha256:9fb092154711a5fec770c29f789c1ec85541dd30e66ba682e6d6f534f77927c7:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzRkYmU4NTRkMjM0Yzg0NmExYWJjMjFkNmFkZjI0ZjM1YTVmNmJkYWRhNDU1ODNhYjkyY2FlNDU5YTU2YmFjYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2Q1YWU2ZDQ4M2Y0MDU1ODJiMTY4ODg3ODNmMzQyOGYzYjQ1NTE3NGI5MWMyZDdjMTM5YzZkMjk2N2EwNTQ0YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTBlZmI5NmJhN2ZjOWFmYzhhYWNhNTRkYTA2YWQwODlkMmFjMmM3OTcxMDQ5YThlZDMzMTY1NzllYzRjNGFjZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWQwODM5N2Y4YzdmZDUwMjIxZWNhYTg2ZDBiZjliZDA0YzQ4NGY5ZGQxZmVjYzk2NmY1ZTMyMGQxZTFjZmYxOSJ9"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/tests/test_stubs.py#L39-L78",
+          "version": "repo-lines-v1:sha256:d11da10aea40b00247722c577ad501655391fd5339a89963c886b95053a19199:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YzZkZGE5OTlhODJiMjAxNmU5N2YzOTJkMDVkNWQ2Yzk3MmNhYWU1YmYxZGJmMTYyZDMxNjkyMGE0MTNiNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4MTkwYWJkNjM4NjI5ODNiMTZiZDMyNGNjMjRiNmE1YTRiZDQyZjc2ZTMyNjM2M2U3ZjBhNDg2MjkwZDE4ZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmYmQwMDkzMTRiYzI3MDg0MTY3MzRhMDJhZTVmZjM5YTFlNDhhMDUwYmU5MWY0M2IyZmFhOTIwMDJjNjJiZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3MTNkOTU4NWI4Nzg3N2Q2MDBmOTIyNjQ1ZTViZTg1MDk1MTgwMWEwOTM3NTE1NWE0M2Q3NDE3N2Q4NmVhYzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c559bce79604b26b0a1bb40897739c5",
+      "statement": "The plain-HTTP detect plugin stub is tested with httpx.MockTransport standing in for the query-service: the tests assert the plugin sends its own outbound bearer token with a projectId-anchored element-count Cypher query, that a queryServiceUrl hint whose origin differs from the configured query-service (SANDMAN_QUERY_SERVICE_URL) is rejected with 400 problem+json without any outbound call, that missing/wrong/non-ASCII tokens yield 401 and malformed or schema-invalid bodies yield 400 problem+json, and that a query-service failure is surfaced as 503 problem+json.",
+      "evidence": [
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/app.py#L124-L173",
+          "version": "repo-lines-v1:sha256:a8fc09b3d555283cfbb2538222f600a53d8a4e2a6af8e77790086457809b5859:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ODg5MTE3Y2M3YzRmY2IwZmY3ZjQwZWU4MDljZTVlNzgzN2RmZWQ0YzYxNDllZTdiMTM2ODdiNTRkMjgyMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkMDY2ZWVmZDM2N2IzYTgyM2M4N2VlNDA4MWE4ZDA3Y2ExOWFjYzY0Zjc3M2M0ZDkzMmVjYTczMjUzNGYwZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMzdhOTE0ZWI4NzhiMGVlMzdmNWEyNTFjZDQzZTc1YTkyYjNmM2MyNDliOGE4OGM1MGFkZGYyNzVjNmExZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzYmM2NTJlM2I0YTIxZTdjNWVkZTgyZTkwZTUzYWZiNmViZjU4NWQ2YTY1MWY2MjQ1YTc1MTU0NWMyNzViZDIifQ"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/tests/test_stubs.py#L81-L169",
+          "version": "repo-lines-v1:sha256:d7e7f76ad2e9753acc4ba169fc1fb5e6a41c6ea79afed7ca5c1ffc5695502b7d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjOWIwMzJlZDEyM2JiMDI0Yjc2Yjg5YzQ4N2JhMGZhYjIwZWExNDI5N2RkYTI1NzdmNjkxZmFkNjRhYjYwMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3YzM3MTMzNDY4NGZkNjUyNGI5NTJmNDg2MTAxYzQ2ZTg4ZmY1MGExNGJkMTAzNmRiMjI1MTNjYjQwYTMwNTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5NmIzYWVjMjJlZGUzYTM5ODU5MzJiZjcxZTk2ZmY5MGI4M2YwNWYyNTkzZTQzNDg5MzBlNWQ3NTA2NTUzMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_231da9d892544143a9be5d728acbef31",
+      "statement": "tests/e2e/test_walking_skeleton.py is skipped unless SANDMAN_E2E is set; the module-scoped stack fixture first asserts GET /readyz returns 200 at SANDMAN_E2E_URL (default http://127.0.0.1:8080), then creates a per-run project and users, obtaining personal API tokens through the console: login with the bootstrap admin password (SANDMAN_E2E_ADMIN_PASSWORD or the admin_bootstrap_password secret), the forced password change (SANDMAN_E2E_ADMIN_NEW_PASSWORD or the e2e_admin_password secret), and token creation — every run uses its own project and users.",
+      "evidence": [
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L1-L57",
+          "version": "repo-lines-v1:sha256:4cf429310fb93e16f31c583ae65b10503cca87b477b6e2ea0a0718572c9025e0:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwODA4NDQ3MDJhM2ExZTM2OGY5YzVmNjZkMmY5MTgzMmNhYmNlNTA2MTE1ODhmNGVkY2M5YTljNmNhYWIzMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NmZlN2Q3YmY3MTY4ZjY4OTQ1MjM3NjFjZDIwYjE0NDE1NDJkN2U2ODliMjNiODdkOWFiZDNlZDUyNjA2YTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyOTI0MjVmYWIzYjZkZTE4OGJlZjAxMmU1NTljY2I5OWNmMWFiNDBiMjE1Njc2MTkzYmE3MjZiMmZlNzk5MmQifQ"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L136-L141",
+          "version": "repo-lines-v1:sha256:3e140c4bb30128dc84248838119151b2fe8b8734bff92ccdd505afa3e068c5b1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjNiMjIyNTM1ZDQzMzJhZWFiM2RhYWU3OTkwMWU3YWEyYjMwNzIzNjU5YTMyM2QyOTU2YTgxNTBjNjM4OGU0YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzQ4NjMzNWZiODgxMzkwMWNjMTZmZDJhMTM0MThiMWMxOTMwMDI0MjNhOTBjN2EzMjc5ZmE3ODBhYzEyZDJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWQ0YTFmZjQ5ZTVjOTY1MTAzNWExYjUzZTQ5ODAyZWU4N2YwZTNkYmY3OTdiM2NhYTJhNWJhM2ZlYTViMWZiMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_89025cbd49054be99d9039d65c428fe9",
+      "statement": "The walking-skeleton e2e test drives the full analysis pipeline against tests/e2e/fixtures/mini: it ingests snapshot 1 through the real CLI (sandman_cli main) with a project member's token and asserts 6 created versions and a workflow whose steps are exactly extraction-agent/extract-artifact-versions, tlr-agent/recover-trace-links and inconsistency-agent/detect-inconsistencies, all SUCCEEDED; it then checks KG content (three requirements, MediaCache CodeUnit, run tools, explicit-reference and stub-name-match trace links, two OPEN untraced-requirement inconsistencies), triage authorization (viewer 403, stale expectedStatus 409, triager transition to DEFERRED), query read isolation (anchored query ok, unanchored 422, foreign project 403/404) and the CSV trace-link export.",
+      "evidence": [
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L143-L197",
+          "version": "repo-lines-v1:sha256:ab78a79931ef9910e55114cbc0d7f2bcf426cd51d4f38bf80c39408610fd7a20:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYmMxZGM0NDQzYWZhY2IyZmJlOTc3YTdkY2NiMjMyM2Y2NjBmMjRiYjRlOTM0NTg0OWY0ZmQ1YzM2YTg4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NjE5YWJkNjlmOTE2OTkyZWZjODY4NzY1MDAwZWEyZWZmZmI2ZjVlOTUyZGYwNzBlYjNkZGQxZjc2NzdhODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzlhNWNiYjkxNDFjYWZjNmFkZjUzNjMxMTAyZGM2OGY4ZjI2NzBjNTNiN2I4Y2ZhZmZkZDNlOTUwNmFmNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjODhkZGUzZDZhNWRhMjk1MmI0NDk0ZDVmYjZlNGRjZDgwZGE2YmQ0NTYyNjNlZGU2NDMwYjdmMzdmYjlhNDcifQ"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L96-L123",
+          "version": "repo-lines-v1:sha256:68c561cf479e8e1e801762bc5d1635d53c836819ce5ceef9bd552b199ab0be5f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2ZjdhZGQ2Nzc5MWY0ZTU1NWM4ZGNhMDE0ZjhkY2I2MWYwODhjMTIxN2U3ZmNmZTJlOGUyYTQyZDRlOTc0NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzRhMDU0NDAzNzkxMzU3MGJhMDdjMzNjZDFhNTMzZmQyNDg2ZGQ4ZWEzZjdiZGIyZTIyNWNlYjBhMjcyYjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1YTZkMWE3MzEzYjZiNWFhMTNlNmVkM2YyZGIxYzkxOWY0Y2VmNTQzMzQ4YTZkZWNiZmZkMDA3NTJhYmI1MjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YjE2MTgzNmNhMjIzNGY4NzM4OTRkZWQ0MTUxOTllMDMwZTk4MmUxNzNmNTY4NjA2NmJlMGZhNWFjZGZkMTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_79fba03b582148e4b44e8b8451ecb0ac",
+      "statement": "The e2e test pins incremental ingestion and inconsistency lifecycle semantics: ingesting snapshot 2 (one changed file, one deleted) creates one version and deletes one artifact; re-sending the same snapshot creates/reactivates/deletes nothing and must trigger no workflow; the previously untraced requirement becomes RESOLVED with verification confirmed and a system:stub-untraced history actor; reverting to snapshot 1 reactivates two versions and moves that inconsistency to REOPENED, while the manually deferred inconsistency stays DEFERRED.",
+      "evidence": [
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L199-L222",
+          "version": "repo-lines-v1:sha256:e84a44a88152c945884d636ac6e3aab57fed3fd5f671cc8d7ba6514c2f8b34a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiNzg2OTFkOWY0YTdkN2RkNWY3ZjIxNmQ5ZTk2Y2Q0MzVjZTBhOTE4Y2E5NTE5ZGQ4NDE2NWUyNmM5NGY0ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyODY5OGNhZTIxYmFlNTY1MjQwZjlkM2RlZjM3Y2UyOWI1M2VhNzQ5ZDkzYWVmOGVhNTI3NTE5MGM0NzE3YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMzdkYWU3NjU0NjdhMjUxNDBlNjQzYzNhMmU1NzdjMGFkNDQ2ZDdlZmYyZDQ1Y2IxMjQ5ZTFhN2EyMTAyZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_58b33c48a8e046c3871b7c1d4a9a1784",
+      "statement": "The CI workflow triggers on pushes to main, all pull requests and a nightly schedule (cron 0 3 * * *); a `changes` job (skipped on schedule) runs dorny/paths-filter and emits contracts, python, java and compose outputs, where both the python and java filters include contracts/** so the conformance vectors re-run in both language jobs whenever the shared contracts change, and the compose filter additionally covers deploy/**, config/**, tests/plugin-stubs/** and tests/e2e/**.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L3-L64",
+          "version": "repo-lines-v1:sha256:9c6facb424e209db4a8adea008a5ade291f175248c05599351ef03c6dc6bfbb6:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NmRjNDgxNDlmNWE4M2QxZWQ2ZGJiMzliYmM3ZTJiOTAyYWEzZDM0ZDZiZDVhZTRiMjkxYjY4ZGYwY2E3OWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YzU1ZmQ0ZTIxMzIxNDZmNjc5YWIxZDkzMGRjMjZkZDZlMDU4OTYwZWE5NWIyMGFmOGQ4NDI1ZWIwNzMyNWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDQ3OTYwMWI4NDgxNGQyZDEzNWFmMmNmNzQ5YWQ3ZjdlMDIyNzc2MDk5ODc1Nzk0NjMwZWQ2MTBlYjMxMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjNDdmYmZhMjRjYzRhOWRiYWUyNjJhNWU0MTAyMDUzMjFhZDZmOGE3ZGQzMjBkNjczZGFhYTJiZjg4M2EyYTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3acb1c941c964da0a2608621a4e5a0ad",
+      "statement": "The CI language jobs are: `contracts` (checkout, setup-uv with Python 3.13, uv sync --locked, then uv run python scripts/validate_contracts.py), `python` (same setup, then make lint — so the guard grep, ruff and strict mypy gate the merge — and then uv run pytest), and `java` (actions/setup-java with temurin 21 and Maven caching, then mvn -B verify).",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L66-L102",
+          "version": "repo-lines-v1:sha256:b3b4db401e7a3c0378c14d40dccf7f9b06dff43d985991831d4c8aaf505f1d4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZGU4MzZjMTgyNzYxMmZiMzE5YTNjZTZiYjIyY2Y1NWY2MThlOWEyZTgzMDAxZjRkYTQ5ODdjOGM1MjU2YzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYWMyYzdkYzUyNzQzMDY2NGE1MDYwODYxNTdjN2VkNzJhNThkODA4Y2ZkZDUzYmU1OWVkYzAwNDU5ZDJjM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlMDY1MTJjMmU5YjVkNjFmMjJkZjYzNzEwMGQyYTg0YWY2ZjY2YjIzMDg4N2YwMGRhMmQ2YWI0MWRmYzljMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkYjU0MTk0NDM5ZjIxYWQyZTZhMzljYmRmNzNkODU0NzY4MGE0NTc4MDcxNzBhZWRmYjJlYTYwN2ZiNTU4ZmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_865e8e1df45e4115b45eee5fc83cbf50",
+      "statement": "The CI compose job validates compose config with generated secrets in a temporary copy of deploy/ (running docker compose config -q for the profile combinations \"\" and \"--profile stubs --profile obs --profile local-llm\", plus the docker-compose.yml + docker-compose.dev.yml overlay), then builds and boots the stack with docker compose --profile stubs up -d --build --wait --wait-timeout 300 — the same invocation as make e2e's boot step — dumping the last 200 log lines per service on failure and always tearing down with down -v so volumes never leak.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L104-L128",
+          "version": "repo-lines-v1:sha256:e32c6d160abb18b69fb7b2e021a4a65e8ec567fe534bd8a44749ad91abdc5ce4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxODc1ZjU2MTY3YjE0YWNjMjJmMmUzZTk1MjZlYTMzMDk5Mzg5N2JjNTNlOWE5NGRkOTNlNTM3NzIzMWNmZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0YjgyN2ZhZDlhYjYwM2E0YmI5NTUzMzUxNmI3NWQ2YWE4ZDlmMjI2MjFmNTkxMmVkMWI4MzRjZWQ1NzllMWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMWJjMmNhNTZkNmE2OTdlOTE0ODBkZWM2YWZhNjgxYmI0MzU3MjJkMTBlMGVjNWNkMmI0OGJjZWQ1ZjFkZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZDJlMDNmM2NiYzRhM2FmN2FhYzYyMzI0MTMyMjMzMjVjZmQyZmNlMzhkMTY0MWFjNGFmOTYwMDZmNTYwMWIifQ"
+        },
+        {
+          "resource": "repo://Makefile#L45-L47",
+          "version": "repo-lines-v1:sha256:5421abebf1d7553bee8ee93c40336965b99f84663d73f2b01519e28c0ab111c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I5Nzc2M2Q5MWE4NTU4MWIzZTZhOGFhYzFhZWY1YzJjYWU1N2Y4MWVhZjgwOGRjNzM5ODk0NWU0ZjUzZTZlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdiMjg1OGZmYzJhODYyMWJhNzkyNmNhMjdjOTRmMmZjYWE0ZTdlYjg4NDZkMGVmNTMxY2JhN2NkYTM0NmVmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODkzYjg1ODFiYmMxZWI0ZmRlOTg1MzA4MTgwZDEzMjk4MWQwNjRmODRkODJmODVmZjRiMzc1MmQ1MTNlM2FhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmNjN2NmZGNhMjY1YzRlOTBjMDM5NThlMjI0NzkzNTAyYTIxNzg3YzhhMDZmZWNlYjQyNDk0MDAyODMwNmUzOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1ff3c03430884dd6b31a79b6784c93c3",
+      "statement": "The CI e2e job runs when the event is the nightly schedule or the compose path filter matched, with timeout-minutes 20: it checks out, sets up uv, runs uv sync --locked and then make e2e (which regenerates secrets, boots the stubs stack and runs the walking skeleton); on failure it dumps the last 300 log lines per service and it always tears down with docker compose down -v.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L130-L146",
+          "version": "repo-lines-v1:sha256:dbbec895879f23171aac002631e9b5035fbd26ab305f46db4ae47b2609925009:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlYzlhNmVmODIxNDI2Y2I3N2M4MDA4MjdmOTFmN2M5MDFjNzQzZGZkOGM3M2U5YTM5MWI3ZDNiYjg4NmZmMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0YjgyN2ZhZDlhYjYwM2E0YmI5NTUzMzUxNmI3NWQ2YWE4ZDlmMjI2MjFmNTkxMmVkMWI4MzRjZWQ1NzllMWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyMjc5Y2Q3ZWFhY2YxZjI5ZjUxZWYzOTMyMGVhNDQxMzRkZDBjMGVlZjhmYTNkODcwMTE0MGNjYWM2M2E0NGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b3bc9c5358f34020854979dbf1bd7d4f",
+      "statement": "tests/plugin-stubs is a uv workspace member whose __main__ serves both plugin stubs in one process — the A2A extract app on port 8000 and the plain-HTTP detect app on 8001 — and its Dockerfile builds that package; the compose plugin-stubs service (profile stubs) runs exactly this image with the plugin's own outbound token and inbound plugin token as Compose secrets and a read-only artifact-store mount, which is what make e2e and the CI compose/e2e jobs boot.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L295-L308",
+          "version": "repo-lines-v1:sha256:50d2681a2727807f54d3ae8ac50b92320c576fda669226e82d7b552d91a21244:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYWRiZGMzMGE5NGRmN2Y4MmM3YTUyZTFiZjVhODVhMWU1MzNhN2EzNzA2YjhmYjI3MDM0NzA4YzFhZjJjNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiYzVlM2Q1NzkyYTQ5MWNlMWZiM2EyYjVmYTI4ZTljYWJkNmExZWNkNjE0M2Q4MjllYzczMGFmY2Y4ZTJkYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyNDY4NGU2OTY4Njg3YzNiNGQxZmNmYTUxNjY4ZTYyMzdhYzIzMTJmZDQ4NzI1MTZmOTg5Zjk2ODYxNDI2NmMifQ"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/Dockerfile#L1-L20",
+          "version": "repo-lines-v1:sha256:23ab3c386c3942d681478b7aadf5198f309dfd16edf83693a27960cfbe082f3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYWFmMGRjZDY5NmY2NjI5NDcwNmViNDk5OTEyNDQ1MGZiNzQzNjI2ZDZlZTVjYjAyOWMyNzc5MTEzMTE0YzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlOTlmODkzN2E4OGZiYjQxOTRkYzkyNTRhNTkzZjI1MWM2OGJiYzY3ZGFmYjc1YjlkMDhlZTJlYTBkMzFlOTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/__main__.py#L11-L14",
+          "version": "repo-lines-v1:sha256:03ac947f6331cbd50b6bdaac7dcd5b755f44c2796ec6d8e868ab44123c65db4a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDUzNzFkOGIwZTY5ZDZkZmExZjA4NzEzOGMzYzI0MWQyZWUwZjQ2OWRjZjU0YWI4NjkyZDIwZGQ1ZGNjNjViMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyNjI2MTNmOGE0OGIwMTM2NGRjNzJlOTcyOGY4MThiNTgzZjllOWExMzZjOTQ1OGJlZGVlODJkZDhiNzc2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTFjNmMyMjk5NzQ2ZWZkOWZjOTVmNzY4YTk5MTcxNjlhZjg4NmU5MmVkZGJkYmQzNGVmYmNkYjc2NjA4ZTY5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2UwZWVjNzhkMDg1MDE3NGRlNGNjNmJmZDc1ZjFmNTM2Nzc1YjUzMDRlMDVjNTEwMWE0YTFiNzk3NGI3OWJlZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_422dbed5c9a94f07977f2cec90efe069",
+      "statement": "The root pyproject pins the Python test toolchain in the dev dependency group (ruff, mypy, pytest, pytest-asyncio, testcontainers, plus type stubs) and defines a separate `contracts` dependency group (jsonschema, referencing, rfc8785, openapi-spec-validator, pyyaml) that dev includes, so contract validation can be run with `uv sync --group contracts` without any test tooling; the uv workspace members cover libs/python/*, the Python services, tools/cli and tests/plugin-stubs.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L28-L57",
+          "version": "repo-lines-v1:sha256:eeb81f495e56d48b39c1656c8b90c04651084addcf27327d1c3937bfa74e68f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZDQ0OGE0ZDE2NjM4N2ZjMzlhNmQxNDYwYjQzZmViMGQ3N2JiMjYwM2JmNmMzODYwYzZlZTg5MmUwMTY1MGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwYTVlNGIyZDJlMWEyOWZiMmM2NjQ1Mjk1NmFiNzgyYjZkYmVjMWM3M2RkZDMxYWVlMTJlZTVmNjUzM2U3MWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjZTQ4ZDlkMWUzNTcyMGVkN2ZiNjllMDVhYTAyOTc1YjkxNmI4MzY4YmMzM2YzMTk3NmU2MDIyNWE5ZjY2ZDMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

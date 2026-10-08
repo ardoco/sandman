@@ -1,0 +1,5 @@
+# Files
+
+- [Configuration and Environment Variables](configuration.md) - How every SANDMAN service is configured — the Settings.from_env model with SANDMAN_* variables and *_FILE indirection, require() checking that reports all missing names at once, per-service environment wiring in compose, and the YAML files under config/ with their consumers.
+- [Deployment and Compose Stack](deployment.md) - Running SANDMAN as a single-server Docker Compose stack — the services, four-network topology and loopback-published Caddy edge proxy in deploy/docker-compose.yml, health-gated startup, memory limits, the five optional profiles, deploy/gen-secrets.sh secret generation, and the make targets (secrets, infra, up, e2e) that drive it all.
+- [Status, Logging and Telemetry](observability.md) - How SANDMAN services are observed - the StatusTracker and the uniform /healthz, /readyz and GET /v1/status (working/idle) contract, structured JSON logging with the optional SANDMAN_LOG_FILE JSONL sink, OpenTelemetry wiring, and the planned admin dashboard.

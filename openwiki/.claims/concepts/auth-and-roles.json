@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:769857c848e6ea9da678179a5ad9bdd906fc7a8d7769b5096d65c59f852fec95",
+  "claims": [
+    {
+      "id": "claim_081972b7b60c42a9a0b3aef5568d185c",
+      "statement": "Role levels are ordered authenticated=0, viewer=1, triager=2, maintainer=3, admin=4; a user principal's effective project role is their membership capped by the personal token's max_role, and a token with a project_id yields level 0 for every other project; global admin users get at least maintainer in every project, service principals get fixed viewer everywhere.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L13-L65",
+          "version": "repo-lines-v1:sha256:2a3ecb7be5a806f5eb0226d9c247f1cbcbd5449466e3457661064c50ac708968:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlMzQ1MTE5MWQzZWZhZDA3MDU2ZjI1YjZiODIxMWI4ODNlNWRkYjBhMTQ5OTE5NDU1NDM2YTNhZjQwOThiMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjY2Y4OWQzOTk5NjNiMDFkOGZiZDQyYjIwMzEyMTYxODliMWM1ZDM2NWE1ZDg0ZDhhMjI3YWM4YThjNjVlMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyZDg1M2Q2OWQxOGMwMjcwOWI5OGI0OThlYTk2ZWExZjA0ODM3ZTM3YTU2YzIxMjQ5MWZiNTAxZTI2NmQzYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNGE5NDBmNmQ2YTEwMTZhYjJjM2Q2MzVlZTUyMGUwZjQwNjk3ZWI2ZDU0N2I2MWNlNGVjOTg2MDdlNzNhMjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eddb1d5b252e40e7a3f8af5a7063a203",
+      "statement": "authorize() raises 403 for plugin callers on any operation outside {queryCypher, getSchema}, 403 for service callers on USER_ONLY operations or any need above viewer, 403 for admin-required operations unless the principal is an unrestricted admin, 404 when the caller's level for the project is 0, and 403 when below the required level.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml",
+          "version": "repo-file-v1:sha256:934245de1d071ff6a8bab33431ff3e6b9e90ef6a9bf927d94b2d2295b44e07df"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L73-L88",
+          "version": "repo-lines-v1:sha256:98508d847ba7ee0eb3785dbcd06865c71a4ebc979a4806792d3d9af171abf584:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5OTVjMTM1MzYwNTIyNWFkOTdlNTJkODlhM2E0MWY0MzRhNWRiNDcwZGI2OGUzZDgyYjgyMzVhOGQ5ZjBjNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMDcyMGQxM2EyZDFlNmMxNDgwZTA1YTRkNGFkNTk2Y2Y0NjY4ZmRlNGJkZWEwNTkyNzdlNWJjNjM0ZjMzNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5ZDE5ZjViYThlZGU3NmViNTBhNzMwZTljNzU1MzY1YjZkMjY3M2I5MTVlOTYxZmFkMDgzMWY5ZDQwNzJmMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkY2U0OTc5ZDhjMzM4N2ZmNjVmYTcyMTIwNTU3NjYyNTY3NTFhNGM4MTgxZTlmZDJiMWU3ZGFjZTRkZDViMWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_40eec53839b242f8b0fc2964fe67c9e8",
+      "statement": "The per-operation minimum role is declared in the OpenAPI contract via x-sandman-min-role and loaded at startup by load_min_roles; plugins are limited to queryCypher/getSchema and their per-project read grants come from config/query/plugins.yaml loaded once at startup.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/query-service.yaml",
+          "version": "repo-file-v1:sha256:934245de1d071ff6a8bab33431ff3e6b9e90ef6a9bf927d94b2d2295b44e07df"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L18-L31",
+          "version": "repo-lines-v1:sha256:2ee00a21517e769440f9af78e8488eaa3a225f95c13d721901277805b451a00b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxYTJmNGE0YTlhYzM5ZWFlYTBlMTQ5MzY0NDYwMDQ1YjUzZmI4YTc4YTUxZTczYTRkMmE1MzI4Mzg4ZmU3MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlYjFiYWMzOTJhMDc0YzVlMGFjMzg1YWI4YTc1NTc0Y2VmYWVmNTYyNDZjMjkyNTc2NmMzYWQwMmVlMDMwZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5NmU2NzAxYmFkNzJlM2EyZjEzYTMxOTNmMWQ1YmIyMTk0ZTFlOTUxMWZiNGM4OGUwNjFiOWY2YTRmMmFlNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0ed6b56d3dd3455091e44da9dbd0525d",
+      "statement": "unrestricted_admin means admin AND the personal token carries neither project_id nor max_role; only such principals pass x-sandman-min-role: admin operations.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L48-L50",
+          "version": "repo-lines-v1:sha256:82bdbbe06b9bd28d4c208c21622ae9037b0345855e330f2f1c6622eb9195efa1:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNkMDBjZjI3MDk2NGQ0NGExM2RmYWM4NzUyYjA5ZmNjNDM1YjBmMTliMzE2YWJjZjgxYTdhYTY0YmIxMjJkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjMzZTI2NzZkNTNhZGQzOWIwZWJlYjliN2Q1ZWU5NDg2OTZjYWE5ZThjMzUzZjlmMDM0YmE1YTIwNGY0MjQwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk0MDA0N2ZmODViNTQxM2Q0ZTgzMzEwM2NmNmUzMGE0OTQ5YzVkMTQ0OGNkYzVhNGE0NjM0NzVlMzkyNGI4MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTA1YzgyMzM0NGJjZDY2MjA0ZjM0MGNmNGRhNTM2NmE0MDA5Y2FlOThlMGMzYjQwY2FkOWYwODk5NjU2MGM5NCJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L80-L82",
+          "version": "repo-lines-v1:sha256:1edf68ffbb16f7439f9c6f50adef0c5b08fedc2d4393649a75389e3506f29e30:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjhjN2E5MGZkOTBlNmU0ZWFmM2QxZmY1Y2ZkNzgxYWNmYzg0NWYyYjhiMWJiYzQ3ZGRmOGI2OTNkNDQyYzY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDY3MWMwNzc2Y2MwYTVkYzgzNjFmNWQ0YTFiY2NjYjlkMzNmMGMwN2QzNzM0NjBiZWYwMjQzMGY4N2MxYWM1ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjE2ZDFjMDJhOWQzYjA2YzFkODZmZGYzM2IyYzYzZjQ5ZWRmNzIxZGM5ZDY1NmM0NDJhNDlhOGFmNTJiZjY5NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjdiMjhhNDEzZmJlZDZhMjUxNzMyZjI1NGQxNWY3ZjY5NDZlZTlmOGViYzQ4NDRmYWI5ZjhhN2Q0Y2IxZTFjZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2cea0de95974455bdd15724cb416383",
+      "statement": "TokenVerifier maps a presented bearer token to its caller name by sha256-hex comparison using hmac.compare_digest; require_service raises 401 for a missing/unknown token and 403 for plugin:-prefixed callers unless plugins are explicitly allowed.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/auth.py#L15-L49",
+          "version": "repo-lines-v1:sha256:675c6697a66e000a28eb492ee56f380a54476ccde37fd58d3cbd032fc9ea9ae4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmFiZjE3YzZjYjI5MjMzOWM3N2I2ZGI4MTIyMTgzMDVlY2I2YzdhYTUyYTE1ZmY0OTdhYTAxNTcyZDcwZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MDIwMzJjYzU2YjYwMWFlM2FmZGIxNDFmYzEyYzU3Y2E1MjVjZmJhOGVhZmE2NzYyNmQwZTQyYjUwMjk5MDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2MTJkNzUyYTFjNTJiZjE3MmRjMWY2OTg2ZmU4MGY3ZmVmODAyMTRjYmVmZjFjOWViOGViZDBmZGJiMDJiMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxZWYxMGFlMTA2N2E0Mjg2ZmFmMjVjZmU0NWJhNmZjOWRmODZhZDdjNmViNmYxNWU2Y2VlZWRlNzY2MTNmMzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d216c922bcf24b1da09a8a7f22930b9d",
+      "statement": "trusted_actor(caller, headers) returns X-Sandman-Actor only when the caller is query-service, and raises 403 when any other caller sends the header; actor_from_metadata accepts the sandman.actor A2A metadata key only from the orchestrator and ignores it otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/auth.py#L52-L65",
+          "version": "repo-lines-v1:sha256:d0704eca8c3bf4fae1cadbbdcf544c7e3e327502a9bb7c8a9d374010061732e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNzhiZTVmZTZkOTBlNjUzNjcwZDliMGM1MDc4NTFhMTMzMjlmY2E3YzAyOWEyM2FlMzJkZmJmODliYTA2YzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5MGE0YjI4YjA5M2U2MDhkNzg3MGFkMGI1NDM1NDhkYjUyM2I4MjNhZWUxZGZkNzI5MmM4YjQzNmUwNzdhOWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxMmI5YTkzNDNhY2Y0ZWRmZmMwNTg1MTUwMDVlOWMxZmMzNGEwNjM1MmMxNjliZmVhZmJjYThmNjA2OWRjNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f885f74665c14a22a8f2a90b3d13d9e7",
+      "statement": "deploy/gen-secrets.sh generates one openssl rand -hex 24 token per service and plugin (never overwriting existing files) and regenerates secrets/svc_tokens_verify.json on every run, mapping each name to the sha256 of its token file, with plugin entries keyed as plugin:<id>.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L50-L61",
+          "version": "repo-lines-v1:sha256:36b9dad059d18ea023ae3961eb84756c4ba1159ca4584a8aa27a00802ba45d62:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NTJmZDkzYzZhNTRkMjhkMDQzZjU5MGM5Y2EwOTMyMTJjODMwZTA5YzljYWRhZjk5M2FiMDU2MWQ2ZWE5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWJhY2Y2NTliYjAxMzRmZTk1OGY0NjMxYjkwMmY0Y2MyNDYxODg1ODMxMDhiODYzMjJiZDJlNmUzNjQ0YTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMDU4Y2UwNWRhZGNkNDc4MGQ4ZmNkOGU1MTZlMjBmNTIwNWUxMTliY2U2YWFlOTUzMDBjNDA0NzJlYzFlNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYWUzZDBmYjc5ZWFkZDI0MTc2MTkzNGFmZGFmMDA1MjkzZmExYmRiNWRmOGYxMWJhNjhiMGRjMTVhOWE3MzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_10de0f2bfe6c475b9dcc70d72ecd638f",
+      "statement": "When the query-service relays owner operations, Owners.call sends only headers built there — its own service Bearer token plus, for user principals, X-Sandman-Actor: user:<name> and X-Sandman-Roles — never copying any client-supplied actor headers; relay() passes owner status/body through unchanged except that an owner 401 becomes 503, and an unreachable owner is 503.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/forward.py#L39-L66",
+          "version": "repo-lines-v1:sha256:7c12f77c258a989ec7120e20466a7e5ee5be35760f1aa33751abb71f18325cbe:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlN2QyODFjNGZjMzc5ZWEzNDg2MWFjOTBiZDdlZTQyNTk4N2Y4YTIwOTBjODBkZWE3M2E1MTU5ZDJiZTM3NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2Y2QwNDJiMDIwNzhjODMyNWNmMjMyZmQxMjIxYTE4MDE2ZGM1OTlhM2IyOTE5NjgyZDJlZjVlZTY5MmUwNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4ZWE3MjY5N2M4YmZiZjEwOGZjNDdiMTU5YTdmZTk1MTRkYzUxNjc3MjYwNDNlZTE3MGYyZjc5MDBhZTcwOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L212-L216",
+          "version": "repo-lines-v1:sha256:2aa7afe1857cc594d5310efe31633e8d610485ce6186c92a91aabcc6dba36625:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzgwN2NhOTYxOTFlNGE0MjQ2ZTIxNDQ0N2QxMmViNjRhNTZjODMzOWU3NDhlMGI1YzFhODQ5NzMzZmNmYzZkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmVhZWY2MTNiNTIyYzk2YTg0NDI0NmI5MDJjZTA5MmFmZjQwNzM5ZjhkMDAxYTM0YjI4M2QzNTJiOGQwZWZmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWRmMTUxNDViYzE3MGE3Mzg5OGMwNDFlYTQ1NjU2OGEwODdkZmU3NGU4YzBkNjFmMzFmY2FmNjU0NzA4NGZmZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjViZDUyMjkxMTUzZWZmMzFlY2UzOWQ4NTIyNTM2ZjdlZmNmNDI0ZWEzZWMyZjgwNzg1MWUzNDM4ZWMyMGUxNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d4f9076103c47368f263dea5fdd958e",
+      "statement": "Service.authenticate resolves a bearer token to a Principal by first trying the TokenVerifier (service or plugin:<id> caller with grants) and then store.find_token (personal token with project_id/max_role attached); must_change_password users get 403 on personal tokens.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L129-L157",
+          "version": "repo-lines-v1:sha256:a391dc22eb361cac5a233a6a18d455bac967079c7defbb93231e83d16e60403a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlY2UyNjM0NWE1YzgyMDJhNjc5YzllYmVjOTRkYTcwMjVkM2FhZmNhOTgzMzQ2NDk1YWMzY2QxOWRlMWE3ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyMTQ2ZDhmOWM4NTBkYWZiZWY0M2RkYjRmMTlmNjQ5Yjg2YjcxNmYxZTcwYmM3ZDViMThiODMzMDBhZjMyMTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkNTdmMGZiZTdlNzA5YTAxZTk3ODQxNzk3N2RjNjIxZWY5YTI4OTAxNmUyNmViMGYwMWY1YTFmYWU2MTYwNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMGFlY2EzMWIxYWEzYWFkYjhkYTlmNzYzYmQ2N2ZlY2MyM2QwMDcwNGEyOTMzODRmODczZWRiMmE4ZTA4MDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc0cc814c0644f52b759f773dacf72c0",
+      "statement": "The UserStore is a single SQLite database with users, memberships, tokens, sessions and last_visits tables, migrated from sorted *.sql files tracked by PRAGMA user_version; passwords are Argon2id, verify_password hashes against a pre-computed dummy hash for unknown users and returns rows only for enabled users; personal tokens are sdm_+token_urlsafe(32) stored only as sha256 with optional project/max_role/expiry, and find_token records last_used_at on every use.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/store.py#L103-L170",
+          "version": "repo-lines-v1:sha256:096c17e1e1560700d3cf2bcdfd3c756a24a1f9a5f46d1c39ed47563fd99e6220:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0YjIyYTNkNTRkZmRjZWM4OTM2YjQ2NzBlNjhmZWUyZGY1NGIzOTAwOGUyOTVkMGYyMmM2NjE4MDIwYjBhYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmYjU1ZjZlZDBkNmVkZmJmZWRlZGUwYTFlYTU2YjRmOTliZWQyYzY5YjAyZDcxNTRjODNkMGRiM2QzMmFjZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1OGY3YTAyNDdjMzNkMTJkN2U4MWI5ZjJmNGViYWNkODMyZjVjNWY5MTkzNTNmNmJjYTkwOWU1YWZiNjAxMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3NjZiZjAzNjIzYTllY2JhMGIyMDM5OTRkNjE5NjBlYTBmYzkxYjdhZTg5MDQzNTU2OWJlMjdmMjk2MTBiZWIifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/store.py#L33-L45",
+          "version": "repo-lines-v1:sha256:570627c31f14e07e607877b5c39a1ea6d631898ce1c78f787867721dfb569428:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYmI4YTBhMWU0ZjQ2NWU5MzU3MjgwZDFlM2I3NzZhNzI4NWUzMjc3YTA3NTRmYjcwYWYxZmMyODhhMmYyNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0ZTQxOGZmYjhlZjRkN2Y5ODI3YWEzMDEwMWNjMjVjNGEzNTEwZTJiOTdiNjJiN2Q0YTMxZDZjMDViNGRhNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OTg2NWQwM2E3ZDJmMTA4ZWI5ZDA0YzlhZjEzZjQ0YzI4OWI5OGQ4MTA0NDFhZDJhNDAwNzc3MWMwY2ZhM2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzNjkwYmNjMDBhNzE3MjlmNDM1Mzg4NWU1MjkyMDhmMWQ2ZTY0NmJiZjRjZWU5ZjQzZmQ5Yjk1YTQxYmQ4OTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a772ace3b4b247f785ebcc5112824453",
+      "statement": "Sessions store the sha256 of the session id plus a CSRF token, valid 12h absolute (SESSION_TTL) and 2h idle (SESSION_IDLE) with last_seen touched on each lookup; disabling a user or changing their password revokes all their sessions.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/store.py#L172-L198",
+          "version": "repo-lines-v1:sha256:214b4c3018625f45e0443cb7ecd4f2cde2a5891d47027a308041fd45e9b9bbc0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZGIwMjhkMmM5YTU3ZTQ0NjMwNjA3MWZjMDBkNjk3NmI4OTg3NmE5MmViM2UzNjQyMmQyNTIyMGU2MTA3YWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNjU1YTg5ZTEzMWIyZmE5ZDQ4MjY4NGUyN2VlNTUyZDBjMGZjNGM5ZWYxMGFlNTU4MDIzOTJjZDgxZjM1OWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExYTZhMzY2NGNmZGFmYTg1YTViNGNmYmRhMjY0OGE5YjJlN2M4MjQ5NjNjMmZmNmEwNTE2NzkxZmU1OTM0YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMjVmYWE0NTM2MmUzYWY0Y2U1NTFiYTVhYjFjYzQ3ZmQ4YTMyZTMwMjg3ZmY4NDQwNTgxZDIwMDcxOGQ4MWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_257f698ee6d34cf6905e144ba696156b",
+      "statement": "Login (POST /v1/auth/login) is rate limited in memory: 5 failures per username or per client address within 15 minutes yields 429 with Retry-After: 900.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L91-L114",
+          "version": "repo-lines-v1:sha256:f5c2136daf3effd919979a65e8a3a5f25dc6b00a513790a8671c915f56826e45:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZjNiNTE5NTVhZmY5MjBkMjIwNTc0YjRmNDUzOWZmNzIxZTg1MWY3ODFmMWRlZTk1NTUwYWZjYzc5Nzk1NGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkOGNkZDdmYmExN2M4ZTNkOGQxYTVhYzI3ZjQ0OTY5YTE5NTg2NGJlMjRkOWVlZjQ4NWYwZWQ4MWQ4MzJhODgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMjQyYmY2MTc4ODVkZmNlMDAxYzE3ZmFlMzZmYTRiMDQ3ZjUwOTNiYmIxYjhmNDZlNTYxNjllNDE1MzhjY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiMWViN2E2MWYyZDBmMzRmMGI4ZWNiN2NlNjNkOGEyMDUyNjk2OGVmNmEyZWM3MGExZTdhNjdiYTJjYTYxZDAifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L162-L172",
+          "version": "repo-lines-v1:sha256:631d5b1c3c723c99dc364496996d90c4b5c0d0c865c2e0767f3ee1aa7375df0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjOTNkNjg4MWJkY2QzZWJlM2UwMjdhZjA3NDk1YzZjZGZlNmIzNmEwZTZiN2I0MDZmMzY5Y2ZjYmZjYTQ0ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YzQwNGJiMDJiNjY4OGNmNDBkMTFlMmY0NzA0YzU1ZDc0ZmJmNjI1YjhkNTQ1ZGM4MThmZGYyNzc1MmRmY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3MDFjNTQ3ZWNiODUxZmY0NmNkNzUzMjdmYjkxY2I0YzM2OWY5NWZjZjAwZGE0NGE1ODFmNDYwZDI2MWM0ZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0ZTBmNWFiZmVhMzhiYzdiYzQ3MGUzMzVmNTI0YzE5MmI2MGQ5ZGRkZGI3NzIxZWI4NzBmZmVjZTBmOWJlZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_790e118a82fb48ffbbdf959ab77b73d2",
+      "statement": "When the store is empty at startup the query-service bootstraps user admin with global role admin and must_change_password set, reading the password from the admin_bootstrap_password secret file; when the store is not empty the password file is unused.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L63-L66",
+          "version": "repo-lines-v1:sha256:d5ef5f0fe4777190b8edc4bccfd39646d2bb43bb04d4adb6fc17f00fa83c0176:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY0MTNlMWJlNDRlM2M3Y2I4MWY1ZWI2YTIxYmM0ZTE4NTUwNzQ0ODhkNzBlMjQ3ZTBiZjQ2ZTg3YWQ4ZjFkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTk2NTE0NWNmYWZhN2EzNmExNmVmZTNmOWFjNDE3NTkwYzMzZjFjYzNkOGVjMWU4ODFiYmI3OWE1MDU4YmNmMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5M2Y2OWMyMWExMzI1NjgyMGM5NGY0MzFlODRhMDYyYTEyMmRiZDgyNTk2NTJkYTEzM2IzODcwYzNhMGMwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGE2ZWY2YTRmN2E2Y2UwNjI3NzkyZDQ0OTVmOThkNjNkZDVlODI3NjY1NThhZGNjOWZhN2Q5YTM1OGRjN2NmMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b9b9b17c7c74149b256ebe725f21bb1",
+      "statement": "Operations whose path has no projectId (getInconsistency, transitionInconsistency, getWorkflow) fetch the object from the owner first and authorize against the owner-reported projectId; an unreadable project is reported as 404 and the mutation is never forwarded.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L218-L239",
+          "version": "repo-lines-v1:sha256:beab37ae424cd252455756f6f0be8d550cbaff03384e93f5b7aec4076b086699:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMzZhMWMwY2RjNTBiNjlkZTdjOWU1MDBlYzQ1NDFiMzAxODFjZDgwNmM2ZjBkZGNjZDZjYjQ5NjI2Nzc4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNzcxM2RhY2E4ZDlmZTFkNDQ5MzRjZWQ0YTgxNTdmZTA3ZjA1MWIyYjg1YzA4N2I5NjIwMTdkOWQ2YzRjZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2NTc0OTk1ZTY2YjM2ZmYzN2NjODAzNzA0Nzk4Zjc4NDExNDYwODZkODdkNTE0MGY1ZDEwYzYwZDRiNWVhYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5ZDljNGMyOTgzZjI2MWZjYTllMGFiNDY2MDBkMzZlYmE3NjhiMTg1MjA0OTM4MTY0MWEwODRlNzEzMGFmM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e063a09b3bfe418a92863798995a8e73",
+      "statement": "The authorization matrix is pinned by tests: services/query-service/tests/test_authz.py covers every operation × caller kind (including max_role-capped, project-scoped and project-scoped-admin tokens) with a test that the matrix matches x-sandman-min-role; forwarding tests assert owners receive principal-built actor headers, never forged client headers.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/tests/test_authz.py",
+          "version": "repo-file-v1:sha256:6bfa9a31fecc6558a4f0efd69e69632dc8f10084a108b96788c53e5c479f321f"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

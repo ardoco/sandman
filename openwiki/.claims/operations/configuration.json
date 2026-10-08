@@ -1,0 +1,538 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d69520a5d83b5dce4977f61ec1094533ba33f1600a1b5288653c441243c39ce6",
+  "claims": [
+    {
+      "id": "claim_00bca49d7935410388a8001f480dd42c",
+      "statement": "Both agent libraries expose the same runtime Settings model, read once at startup from the SANDMAN_* environment: Python `sandman_agent.config.Settings` (frozen dataclass with `from_env(env=None)` defaulting to `os.environ`) and Java `edu…agent.Settings` (record with `fromEnv()`/`fromEnv(Map)`), each raising `ConfigError`/`Settings.ConfigException`. Fields are service_name/serviceName, contracts_dir/contractsDir, llm_base_url, llm_key, llm_local_key, llm_models_file, kg_uri/kg_user/kg_password, nats_url, service_token, service_verify, plugin_inbound_token, artifact_store, config_dir, log_file.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L17-L85",
+          "version": "repo-lines-v1:sha256:6cb3bd92c6d385573f70a99e45ba88b017516857e8021cd19b8791cf3485c9c0:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhMjUxNTljMjcxMTBjM2RkYjM3MTYwMDA0ZGU0MzAzMjQ2ZDFmYTJkMzljMDM0M2UxNTg1OGY0NmI0NGYxZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmN2U2NTJkODgyNWI2NGM3ZjM0ZDVhMWYyY2Y1NTc0OWUyZDljM2JhMjAyMWU1NzdhY2FjODRhNTdhYThhNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4ZWIyZTY5MGZmODQ2MjllYzY1NTE4N2QxOWRlMmRiNzczZmEzMDJlNTRjYTIyYjY2OTVhMDFhZWJjNzBhMTAifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L16-L90",
+          "version": "repo-lines-v1:sha256:0f01cdd94d3cd59d32296514a9f07c422bb1bfd82f868afeb5a67f16b5d8efdf:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMTVlMmFkODUzOWUyZWRlMzEwZjgzZTQwMWM1NWIzOTg1MTYwY2IzMDM4ZDhjZDQ0MDBjOTYzNTMwMjZmN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxMzRkNGVmMDhjYzlkNzFlY2RmMDgxODRmYWNjODI0MGY2MzMzNTI0NTVhMzc4ZjUzM2Q1OGQ5MGU0OTU4ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b0deeefde0dc4e9584645dfdc7570f09",
+      "statement": "SANDMAN_SERVICE_NAME is the only variable whose absence makes `from_env()`/`fromEnv()` itself throw (\"SANDMAN_SERVICE_NAME is required\"); every other setting is loaded as None/null and checked later by the service via `require()`, so a partially configured environment fails at the service's own require call, not at Settings construction.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L51-L56",
+          "version": "repo-lines-v1:sha256:b4abd3e12da43fa89df77f1d772905999ff88d5d87198f7c9eb40351acd07e40:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWY5MWMwMWM4MjAzODhjMGE5Yzk2MTUxMzFkOGJiMWNjNmZmMjc4MTYyZGNiOWFhMTBmZTZlZTg5MmM1MTMzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjY1YjhhYzJlYTM3OWI0MWYzZjBiODMxZDJhY2YzMmI0MmM5ZDEwYzdmMDQ1MTQ0NzliNmE4NzFmOTE3ZmE2ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjlmNDBiMWNhZTBlZTcwMzI1NTdhZDE0MTI4NDI0NGYxZGM0MzBkZDI3ZWQ1ZTExMWY3ZjJiMmI4MGJiYjE4YiJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L54-L56",
+          "version": "repo-lines-v1:sha256:8f6ad9387359a49607ca65ec227cda64e0764ef548b53af9cdcbdb4d1a355338:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2I2MGIxZjIxZDViMDkyMWUwZTg0NjIwNzM1ZGQyOWVhMzMyN2RiYzIwOTU2OTQxOWE5NzE0MWQyYWViMTVjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTcxZWZiZGM1ZDk1ZjQwZDI5ZmExOTM2ZDI5OGM2NWQ2YjJiZjUzM2M5YzU2M2NlNDZmMjBjMTBiMjQwYjliNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmZhYzdmOWIwZTg0ZGY0MWE4ZGY3ODExNjgyOWVmZDY2MTFmNmI4MDQzYjFkZjI2YzVlY2NlNDMwNjQ5Njc0OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDk3NjAyMzBhYTc0NjgwY2YzM2U1NGFiZDA5ODRjOTMxNTg0Y2M1ZWU4M2Q4Y2IyNGM5YzMyMTZiNTkwNzE3MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9b1779db9784427b6e84954dac723c3",
+      "statement": "For the five secret settings (SANDMAN_LLM_KEY, SANDMAN_LLM_LOCAL_KEY, SANDMAN_KG_PASSWORD, SANDMAN_SERVICE_TOKEN, SANDMAN_PLUGIN_INBOUND_TOKEN), a `<NAME>_FILE` variable takes precedence: when present, the setting value is the file's content stripped of surrounding whitespace and the plain variable is ignored; only without a `*_FILE` variable does the plain variable apply. An unreadable `*_FILE` aborts Settings construction with a ConfigError/ConfigException naming the variable and path.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L138-L148",
+          "version": "repo-lines-v1:sha256:f03c53834bf5f45b101e53897baea7a2cea725b50fe1001994d3ce4a41b0c4dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlMDc2NTM3ZTY3ODc4MTFmZTFlNzY0NGUxNTAwODgzOGI3NzZkMmI1YjQ0MDE2NTgwNmYwMGZkOTFlZjVmNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNTg2NTA4N2FhY2M0ZTMzNjk3NTc3YmUwYTYwYzQxN2FhMjViYzIyYTBjZTUwNDhiZWYzNzYyYTgwOWEzZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzYzhlZjczOGFjNGUyNzNlMWU2MjY2YjMxYTdkMTg0NDRiMWUxOTA5MjQyNjUxOGE1OTM4MGYwOTg3OGJkNWYifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L42-L48",
+          "version": "repo-lines-v1:sha256:753ba0a706f204cbba44f9ef71a29cc70a16dafd300f0b8fe65e1e71db8df6a8:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2RhNmFkZjBmZjNmMjVkYmQ3MTBlNDlmZTYwODAwNTIxMmY5MWZmMGNmMzRkZTMyYmE3NmNiMjQ2MWY0MDIyZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBlNTk0MGE5MDNlMDhkYjY1YzBmMjc5ODg0ZDFhYmM2ZjcyOWQwY2E1YjUwZTA3OTgzZTUwMDg0NDU2YWM2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjUyOTRjZjFmZWFhODc1MzQ0MWI5NjgwMTk4YTRlNWIzZjVmZTk0MGE1YjRmYWFjZDczODEzN2M0ZjMzZjIzMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjFhZmQzYTk3ODMxMzRkOWZlM2FhZDA1YTI3ZWI2YWMzZDkwYTdjZTIyYjAzNzMwY2Q2YjYyMWU5YzFmN2IzMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d203140a6f58450f8e700bb145dd25db",
+      "statement": "SANDMAN_SERVICE_VERIFY_FILE is always a file (no plain-variable form): both libraries parse it as a JSON map `{callerName: sha256(token)}` into `service_verify`/`serviceVerify`, defaulting to an empty map when unset, and fail Settings construction with a message naming the variable when the file is unreadable or malformed. The A2A/REST layers use this map to verify incoming callers.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L57-L66",
+          "version": "repo-lines-v1:sha256:b8d1b8489a31561cb888ff675e063a3b639037431c63f258e0fd6012e8c492b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjMTVhZjBmM2Y0MTk1Nzg1MDkyMzk1MmFmZTQ1MDVhZjY2ZjVjMGNiMTM5NzRhMjQ5Y2ZjNGJjMmQ0NDY3NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZjM4OWZmMTRlZjI3OTQ4YTMzM2E4ZTNiMDIwODBjYmYzOGI2M2MwMjFmZDhhMjg1ZDU2MGE3NzcyMTZkZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzYTdlODAzYTdmODdmNDc3ZGFkMmM3MTllNjI0N2M0ZDk4Y2JjZjczMGI5OGVhYTViMGUwNjdlOTVkZGZkNzQifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L57-L61",
+          "version": "repo-lines-v1:sha256:0844cb881b7a4d06fff03550d84ff2004342ca9f795960fadbf86fb7ff188112:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTJjNGIwNTI3MTlhY2RkNzM2Y2ViMGQwODI4NGVjODkwOGEwYWMyZmE5MjU4ZTc0YjNlYjYxMmEwNmQzZDljZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M4MTkwMmM3N2VmZTcyNGE5NmMzYmE0NzRjZTA0NGJmZjI0OTE0ZDkxZjEwMDFlYjg1ODY1NzIzMmVhYTBiNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGY2YWQ5Mzg3MzU5YTQ5NjA3Y2E2NWVjMjI3Y2RhNjRlMDc2NGVmNTQ4YjUzYWY5Y2RjYmRiNGQxYTM1NTMzOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2U1NDNiYjQ2OGI4MGQzNmFjZjZiOWVlODc5N2I3NjYxNGVkNzE1Yzk4MDM3MGZhY2IwZjk1YzQ2YTQ4ZGIzOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6cb3b2bf2470446d91773bd7450df6f2",
+      "statement": "`Settings.require(*names)` takes component names (not environment names), rejects unknown names immediately (ValueError/IllegalArgumentException), treats null, empty string and empty map as unset, and reports every missing setting in one message that translates each component to its SANDMAN_ environment name: `<service>: missing configuration SANDMAN_A, SANDMAN_B`. Both libraries produce the identical message format, so a misconfigured deployment fails once listing everything missing.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L97-L113",
+          "version": "repo-lines-v1:sha256:8d249f17f0bebd31c098eecc24d4025408b378d5f2e2fdaf04cfdd6918646f59:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllMzZjNjM0MmJiOWY5NTNkYmZkNzU1NTM0OTA1NGUxN2RjMjYwMjRiMDcyMjIwYTQ0ZTMyZDVmNmU0ZTNjZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyOTQ1N2Q1NGUxNjJjMDA0ZWZkNTI3NGEwN2I1MDBlYjVlMzQzNTZlZWRmZTI5Yzc2ZmViOWI0ODEzYTk4NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2YjQ3NmVmOTE4ODM4YjcyMzY0ZWUzZjI4Y2U1OTEwMWRmYTc5NGI3YjljYzkwMWE2M2Y3ODFkODkyMzQwYTMifQ"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LibraryTest.java#L34-L36",
+          "version": "repo-lines-v1:sha256:927e98bc077948cad3424d2bc1933c3c3c87530c94f946d983206aae6536b50f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjg5NWJhMDU4MjkwZGNhYTcwMWVkZWRhOGVhZjkyZjY4NWU4NTQ5ODQ2MDgwY2VmNmViOTY0ZTBjOGZjNzRkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmU2OTc3Mzk2MGMwYTZlZmFjNDVlYjFjZDRhOWVlNGU1MThkYTAxMTkwNDI3MGQyODFiMDhlOTY0ZGJjMGQwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzRlYjQwOWE0YjkxMWRhMDVkNDRkNTFkYTkyZmVjYjIxOWE5NzRiYTY3ZGJiODdkY2JjZTcxMTJhYmFhZTQ2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDNiNzhiZmNjMmFlYWEyNDE3NzRlMDlmNDdkYTM1YTliMTExOWYzNGU4MTRhZjA4OTg3MGRiZGUzZTVkZWM2NSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L81-L90",
+          "version": "repo-lines-v1:sha256:e5891248e13793037f2a16a097b76645d8e1eb976522e774dbe5b397124ee23f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0MjhiNzg3NmMwOGZkMGNmNWIyZmUzM2Q4NzM5NzdiZjM3ZDc1MGMyMzJkMzkxNWRjYmFiMzliMjBmM2FmNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMTVlMmFkODUzOWUyZWRlMzEwZjgzZTQwMWM1NWIzOTg1MTYwY2IzMDM4ZDhjZDQ0MDBjOTYzNTMwMjZmN2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExM2E1NTM3OWU5YjhhYmQzZjEyZDBmZWM2ZGE3OGFlMzI4NWE2MzAxY2Y3ZTlkNjcyOTc4ODFiMGNiMjM1OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9f9965d0e964b75b013c45600b96051",
+      "statement": "When SANDMAN_CONTRACTS_DIR is unset, the libraries default contracts_dir to the repository checkout: Python hard-codes `Path(__file__).resolve().parents[5] / \"contracts\"`, while Java `Settings.defaultContractsDir()` searches upwards from the working directory for the first directory containing `contracts/common.schema.json` (fallback `Path.of(\"contracts\")`). Containers bypass the default by copying `contracts/` to `/contracts` and setting `ENV SANDMAN_CONTRACTS_DIR=/contracts` in every service Dockerfile.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L87-L95",
+          "version": "repo-lines-v1:sha256:909afc025da170410a606d4ab61f532907f9a4f3a9a51b1abe74810e89cfd58d:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmJhMmRiNTVlNTJiZWRhMzhmNDIxNzg4ODMzMTE0YmY0NTM4OTViN2MzNzEyMjlmNzVjNzcwMjFkN2E3NzJlNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDNmMTQwYzc0MGFhMjZjM2ZhZDFlMDRkMzljZGFjYjczMDFjMDAzZjNjYzMwNTY1NTM1MDViYzJmNTAxOWZjYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTNhNjBkOTQyNWZjMWQ4M2Y1OTI2YTczYzJlOWM4OTFmNGUyYzkzNzE4YWFiZThmYTQ1ODYzNzVjNmY5MjllNSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L9-L9",
+          "version": "repo-lines-v1:sha256:c3f6608c87f455867693382d882b7dd945b6d4fa057c3af77039af01245b35a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzNmNjYwOGM4N2Y0NTU4Njc2OTMzODJkODgyYjdkZDk0NWI2ZDRmYTA1N2MzYWY3NzAzOWFmMDEyNDViMzVhMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzNmNjYwOGM4N2Y0NTU4Njc2OTMzODJkODgyYjdkZDk0NWI2ZDRmYTA1N2MzYWY3NzAzOWFmMDEyNDViMzVhMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTk1YWI1YWU2ODg2YzQxZTRlYmI4Y2U2NWFjZDg5MjBkZjUxZjEwNjAxYjljNjdlNzJiMDcxODhlNjRlMWUyNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWVjNjczZTQzYzM0N2IwNTRmYzkxN2U5YzY3MWFkYjFhMGYxOTEwOTMxMjE5N2Y0ZTQ1Y2M3NWJmMmRmZTY4MCJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/Dockerfile#L16-L17",
+          "version": "repo-lines-v1:sha256:cde22cc45111d2422f3002635b3ad489d0df892daa2f404f1abe58ec84f27f2a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTUyOTlmZDJmOTk5NTEwZTU2ODZhZGY0M2QwMTVmMGY4MDBlNzA2MzEwYTU0N2VjODc2OTEwZGVlMmYxOWEyNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE0ZTVmOWNjZWRjNTNiOTllODY0MjczNWRhNzk2NDNiNzczYzdhOWYxZmVlNzk4Nzc3OWQ3MDU2ODFiODc4OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGI1ZjZmYzU3MmE2MmJkZGE1YmNhNGI4MTgwMWU1ZTI1ZDhhZWJiNTg4YWE0YTAzZTZkNjA3MDg5MzYyYTAxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGJhNTgyZjk0MGU4OTA4YzY1ZDEyOTRiNGUwMDQwNjBjZDFiY2ViZDExOTVjZTg4Nzc1MDQ1YjgwY2U5OWQ0MyJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/Dockerfile#L14-L15",
+          "version": "repo-lines-v1:sha256:e35f304c68fb17f5ea6f1310a9e8ee36ba87e58fb2009133b65dc172c2a3e414:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTUyOTlmZDJmOTk5NTEwZTU2ODZhZGY0M2QwMTVmMGY4MDBlNzA2MzEwYTU0N2VjODc2OTEwZGVlMmYxOWEyNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZiOTY0ZTI0ZDkzMzBmYjM3Zjk1MzI3OTRjYWNiMDkzMTM4YzIxMDJiZDM2OWEyYjdkYTc5Mjk1ZDE0NjcxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWRmMGRhYmNmZWY3NDVmNTQzMWZiZDA0ZjRiM2Q2YTlmYzVhYTZmMzgxMjVhZjI0MTgzYTg4YmJmZDIxMjJiZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTU1MDRjMDM5OWQ3MmM4MjVjZGFmMTM2M2U1MzM3ZGJlOTE4Mjc5N2QzNTg2MDIwZjI1OWRmNTVkOWIzYmI5OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4d97db3130344c9bacabdf4b10a7ebcd",
+      "statement": "Java agents get Settings/Contracts/StatusTracker injected rather than constructing them: `A2aServer` in agent-lib-a2a provides `@DefaultBean @Singleton` producers calling `Settings.fromEnv()`, `Contracts(settings.contractsDir())` and `new StatusTracker(settings.serviceName())`, so an agent overrides a bean only when it needs non-default wiring. Java agents additionally load their Agent Card from MicroProfile property `sandman.agent-card` (env SANDMAN_AGENT_CARD), baked into the Dockerfiles as `/contracts/agent-cards/<agent>.json`.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/A2aServer.java#L139-L157",
+          "version": "repo-lines-v1:sha256:74a945fd51557c7436d626f34ccd875068cd4c5fff33cf2a2f8b69b9fd9e76d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjAwZTlhNzRhMzY4NjkyZDIxZTZkZGM5NDMwZDg2YTE3MWU5MDMwOWU0NGI0NjMzODYxNWEyYzllYTVmMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5MzE5M2M0YzM1MjYwZmRkMDY0MWQzOTViMzllNDY2ZDdhNDZlNDM3NDdmYjY4ZDc1NTM3NzUyYmVkZjE1MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/Dockerfile#L15-L15",
+          "version": "repo-lines-v1:sha256:66b964e24d9330fb37f9532794cacb093138c2102bd369a2b7da79295d146716:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZiOTY0ZTI0ZDkzMzBmYjM3Zjk1MzI3OTRjYWNiMDkzMTM4YzIxMDJiZDM2OWEyYjdkYTc5Mjk1ZDE0NjcxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZiOTY0ZTI0ZDkzMzBmYjM3Zjk1MzI3OTRjYWNiMDkzMTM4YzIxMDJiZDM2OWEyYjdkYTc5Mjk1ZDE0NjcxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2QxMDQ1MDFmODQ4NjYyM2Q3N2E4NDAwOWMxMTcyZGJhZTA1NGUwNWZjNGU0MjE0ZDc3NWM1MDY1MzJiOGRiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTU1MDRjMDM5OWQ3MmM4MjVjZGFmMTM2M2U1MzM3ZGJlOTE4Mjc5N2QzNTg2MDIwZjI1OWRmNTVkOWIzYmI5OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_659271c62ed745ec987ebea762735b18",
+      "statement": "Each service declares its own required settings at startup via require(): the orchestrator requires kg_uri, nats_url, service_token and config_dir; the extraction-agent requires kg_uri, nats_url and artifact_store; the query-service requires service_token always and kg_uri when no reader is injected; the Java agents require kgUri for the KgClient bean and natsUrl at first publish; the plugin stubs require plugin_inbound_token plus artifact_store (extract) or service_token (detect).",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L64-L64",
+          "version": "repo-lines-v1:sha256:3456df4cf7d9450aaee8c509a6fd51e4964f96558feb316c0252332defb28588:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ1NmRmNGNmN2Q5NDUwYWFlZThjNTA5YTZmZDUxZTQ5NjRmOTY1NThmZWIzMTZjMDI1MjMzMmRlZmIyODU4OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ1NmRmNGNmN2Q5NDUwYWFlZThjNTA5YTZmZDUxZTQ5NjRmOTY1NThmZWIzMTZjMDI1MjMzMmRlZmIyODU4OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTlhN2ZlOTI3MWYxMDYyMTFmZDc4NjJhM2UxYTk3ZGI3YWE2MTAzY2JmNjJkZjA0ODI0ZWVmNDM0YjM4NTYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGU0OTcxYjA5NTRlMjFlNjBiZGMxYmRiNWQ2ODg3NjE1MmJmYzExN2RlZmFiMmJhMGFlYTdhZTE1Mzg3ZjQzNSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L177-L178",
+          "version": "repo-lines-v1:sha256:b8e25ed6e51b77d7f1a564674ffe548ef2ba5273f07f6cac66dd2e874357d264:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVkMmRkMTIzYzRmOTg4MjdhNDgyM2NkZjQxNTI5ZjgzNmY1NjQ0NjMyMWNmMWE5M2I3MTliNTlkZDM5ZmM0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjQxMmI4Y2JiZGEyYTlmMjQ2OWIzZTJiNzBhOGY5YjgwZjZhYTM3OWFiYTBkODg0ZjU1MjY2ZjQ5ZTg4MmQ5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzZlMDRkYTQxYzdiZDcwMmE5ODA2ZjM1YmIzNzdkZDNjZDgxZTkzYzg2YzA5YTJiN2I0ZDhmYWRlNTQ2MWVjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWY4ODBkNzFmODQ3ZDViMjZmNzI0ODBiMTM2YmMzNWE3NTU0MjM5NWEzYTY2Zjg4ODZkY2Y3NTlkYjg2YmZhNiJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/app.py#L88-L94",
+          "version": "repo-lines-v1:sha256:76202e120a7324bad0028c544bc0f9bd783bf15aae0bca3c741938e71c5009ea:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmVmYzk5OWMyZWIzZjYzNzQ4YjEzNmYyZDU4NmM2MGRjODk0MDZlMGY1YjI2MjYxYTVkNmRiYjM1OTcyOTAyNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I1NGM2ODkwNTBhNTk2MmM2ZmI5MDgyYjI1ZGZjNTUxMTU1NjMxZmIwZWMxNjI5ZDMwODAxZDMxZDIwZWQ3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTkyNjRiYjVlNjhhNDA1MWMyMjJjZmNhOWNjMWJkOGRhMzNlZDg3MzNlYjg2ZWNjYjcxNTI2MWQzMTFiYTIwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjU2OGI1M2M2MWUxMGJmNjE3MTBmOTVmNTQzOGY5NjdiZmRjNWE0YzI0M2IyMmU1ZmFmNmU0ZjM3NWQ1MDNmMiJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Beans.java#L40-L43",
+          "version": "repo-lines-v1:sha256:a3e488339e75a4a1429ceabbfac8607b7098fa3d12eb99ce2acf103944757375:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmYyYTMzMzAzNzE1Y2E2MzE2NzRlZTQwNDdkMzM4N2MzMzFhNDUyNWI3YjkwMzc0MzgxNzlmYjEyZDY0NGI3OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGQyODUxNTExZTQ3MzVmOTc0ZTkwMTdkMzcxNmQ2NzU0YzJjMjZlMTZhZDhlMDdlMzQyY2YwZWMxYzIxNTFmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2I3YWU2NGUyZjRkOWZmN2E4MDU5ZDRkZDJiNmU3NWIxNmMxMjEzM2JhNjg5ZjUwMjQwNDJlM2M4MzIzN2RiZCJ9"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/app.py#L107-L128",
+          "version": "repo-lines-v1:sha256:2704a54887b2027b8da9763000fa0325586738dfc35a268a285fac0467d153cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzNDYxMDQyMzhhZDhlNjc1ZDRkODFlYjM1ZDI1Y2EwZWExOTM4ZWE5MDk2ZmFkZmFkOTVmMDM3Y2Y2ZjU1MjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNWEwZWI3MzQ5ZWZhODY5MDU1YTE2MzRjNjc2Y2Q5OTdlMWRjNzAyM2NmNmQyMjk3NTk1N2RhYjgxZmNhOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5Y2JjZDBiZDhjNzQ2N2RmYWI3N2RhNTY5MGUzYjY5NGQzNzI4MzQ5Y2ZhMDAzYzI2MDljNDdjNDU2Y2JhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1NGVkZTk0Y2I1NDA1ZThhMGViZTM3MmM5Mjc3MWQ1MjVjYzEwNmFhMGM5MjAyYzU5OTgwZDM0NzZiMTEzMzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_448fae1f70ee4117b9172d79962d2935",
+      "statement": "LLM access is gated per project policy: Java `LlmAccess.forPolicy(settings, llmPolicy)` first requires llmBaseUrl and llmModelsFile, then requires llmKey for cloud-allowed projects and uses llmLocalKey (raising PolicyException \"local-only project but no local virtual key configured\" if absent) for local-only projects; Python's `ModelSelector` mirrors the contract. The tlr-agent only builds LlmAccess for approaches with `usesLlm() == true`, so the enabled `stub-name-match` approach never resolves the key files.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LlmAccess.java#L21-L38",
+          "version": "repo-lines-v1:sha256:56313dd231c97f94d0387a94b62521aaed9318025d8def46da4e91f7fe54bd05:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYjI2ZmI3MmU5OTliZTIyOGVlNTNmN2QyZTUxOTFmNTk2MTI5MTk0ZGEwMDk2M2IxZWJhNTRlYzU1ODZlYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNGFjNDk4OWQzNWJjMjBhZmI2ZjU5MjhiOGQ2ZWQ0NGE0MzY5NDhiYzM5ODQwNmYyYTM5N2QzMjBhMmEyNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMWY4ZTBkMTQyZWMwYWIxNTBiYjI1NTI3NWIwYjUwYWFlODNkZjAwNTI1ZDYzMjdhNGVlMzMyNzJmZTM3OWMifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/llm.py#L140-L162",
+          "version": "repo-lines-v1:sha256:33dd0bbb36378d8213bbcfecb6724221c369206deebbf596577171e2f4c3d244:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmOWQ2Y2UyN2RlNzhlZjRiN2MzZjI5NjEyYjcxZWE4ODdiMWZjYzg1MmJjOGMyMmQzYjhhODZiZGU3YjAyMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2OGU0YWE5YjlkZWNmZWRiNmEwOTQ0ZGIzMWJhZTQ5YzZhMjJlYTk0NGNmYjVkNDFiNzc5ZGJmMWMyZTRhYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5YzBlY2VlYmM0YzBjZjMyNDkwYTgzNDAyZjkwMWQ3ZmZhMzM4Mzg5NGMxNzRlMWFjMjhmZDlmY2Y5YTU5NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L126-L131",
+          "version": "repo-lines-v1:sha256:8f8bdfc7c73e7119b47bb55d53d782c13d57550debf61cb889b5453685ab2be1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzg3OGEwN2Y1ZTcwYWEyNTU1NmVhMDBhZWRmZWE0ZGY5ZWY5OWVlODZkMjc0Mjc1ZTAzYjdlOTdiNGZjYWQ0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDM0Yzg5OTNlNTAwODlkNTI0YmQ0YWMyNmNhMGNmYjk3MTRiMGFjYzc3M2NjNTZhN2IxMTVjMGQ0MTQxZTMyNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGUxMGMxMWViOWZjYzg5OTQwNDE0NjRmYzZjOTlhYWYwYzFhZDgzYjM0ZmI2ZDRmNTlkZjg0NGEwMWMyMzVmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTYzYjk3Yjk3NmM4YTE5MThhYjc1NGQ5ZTRhMGNiZGFkOGNjYWJmYWY3MmQzMmI0ODMzMWY0MzJlOWJmOTAyNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3d0bf179002e41bd836c4f9309ebf5fd",
+      "statement": "The presence of plugin_inbound_token flips authentication from service-token mode to plugin mode: in Python `_authenticator` returns a constant-time comparison against the inbound token yielding caller \"owner\" when set, otherwise a TokenVerifier over service_verify; in Java `A2aServer.caller` checks the inbound token with MessageDigest.isEqual the same way. Hence the same Settings model serves both agents and plugins.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/A2aServer.java#L84-L100",
+          "version": "repo-lines-v1:sha256:9a5b9d9e045e3d946730546ea884c2793d9de701c37b0aed33899a0453d4575d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4YjlhNWRkNDdhMzkxNDI3MDQ0NzhiOGM5ZDg0M2I1YWM2YjU2MDNkNzM3OGRhOWY3MzVjNDU1MTZlNTg0YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlYWEzOWJiMDc2ZDdlYTJlZTU4ODA0MmM3NGE2NWI1ZWJmM2FiNjI4MzY5NzcxZGNlNDIxOTY1ZGI0MDYyOGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyY2Q0MTc2M2Q5NDZjODYxMDRjMGViODQ4ZjRlNDQ4ZTNhMTdjMDI1NzgyNjBiYjAwODk3MDVhZGQ2NDRhMjgifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L250-L266",
+          "version": "repo-lines-v1:sha256:a3501abcafc494dd86003b5a5e4681aa06e9a7dd668d0aa8d39465a2f5071717:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2OTFlNThjYzYzNjYyNTg3OWUwODMwZGM0NzU2M2U2MWIxMmU0MjhiNDM3M2MyMmVjMDJlY2NjYjY2Yjk0MWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmZmNhZGMzM2QyNjNmOWFlY2Y3ZDgzMmMyNTllN2E2OTU0MzZhY2NhODA3YThhN2RjYTIxZjg3NjIxMmIxZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1Zjg5YjllOGIwMTA1ZDY2ZTMyN2ZmYjQ2M2FhYTMyNmUwODhkYjVkNzc0MGU2OGE5ODMxM2Y2MjdmZDQ5ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3ZGRlNjc1Y2NiMGViZWMzM2ZkNDg5MTQ1MjFhNDkyNjliZjYwMjk1NzUwOGE1YjU1ODVlNDg5OWY1M2IyYmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_44428c2904dd4e2883418139e5376ab7",
+      "statement": "Settings never expose secrets through logging: Java's `Settings.toString()` is fixed to `Settings[serviceName=…]` (\"never print secrets\") and `LlmAccess.toString()` likewise omits the key; library tests assert the rendered string never contains key material.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LlmAccess.java#L68-L71",
+          "version": "repo-lines-v1:sha256:2d7c14254d1bb2a76568deeb284a5e659fd914620beea99680889b6a5e18203f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWRjMmIzMTFhYmU4NzU3MmU4YTdjYzBkOTk2YTY1ODQ0MDc2ZTUyMzJkMjFiN2E4NTQ3NWY5YjQwNTViNzQ5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTU0OWU5MDBhOTlkOTgyNGE1NWZhMzU2MDBmNTY0ZmY0NzRlYWU5NzM5NDEzYzZlNmM0OTE3MzhiMzkyOTliZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L150-L153",
+          "version": "repo-lines-v1:sha256:12d9a5c265b3adb4131eaa637bdebc4ebff38072a79996f7b3f4f8288d547617:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWRjMmIzMTFhYmU4NzU3MmU4YTdjYzBkOTk2YTY1ODQ0MDc2ZTUyMzJkMjFiN2E4NTQ3NWY5YjQwNTViNzQ5MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk5YmRlZmVlYWNhNjM0MGUwMjkwZGM4NmU4ODljODlkNWUxODlhYTViYTQ0YjU4NWIzYjcwNzM0ZjRhNjJkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LibraryTest.java#L108-L108",
+          "version": "repo-lines-v1:sha256:15fd734e59910b7474c72b29b0ea299221616f47968d5ecc9b1138f3412ee359:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTVmZDczNGU1OTkxMGI3NDc0YzcyYjI5YjBlYTI5OTIyMTYxNmY0Nzk2OGQ1ZWNjOWIxMTM4ZjM0MTJlZTM1OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTVmZDczNGU1OTkxMGI3NDc0YzcyYjI5YjBlYTI5OTIyMTYxNmY0Nzk2OGQ1ZWNjOWIxMTM4ZjM0MTJlZTM1OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNhMjlmYjk3ZTA1NTcyZDdjMTUwYTEwMjBmNzQyNzcyY2RhMmQ5ODAwZWUwODE1ZGViZjEwY2I2ZGJhMGRjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZThlYWYzZTFkYjI4NGY2YTZmZDRlMDY2YWUyZmI2NTRhZTY4ZmRmY2YzZTdlNGRjYTRjMmRkMjE0YTQ5YjlkMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_acbbc0b2b8194318bc52e0d19a93315f",
+      "statement": "config/ holds the operational YAML files, mounted read-only at /config with SANDMAN_CONFIG_DIR: extraction/plugins.yaml, inconsistency/plugins.yaml, orchestrator/rules.yaml, query/intents.yaml, query/plugins.yaml and tlr/approaches.yaml (plus the planned llm/models.yaml, referenced by compose but not committed in M0). Each file is loaded exactly once by its owning service, unlike contracts/ which is fixed per task.",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://config/inconsistency/plugins.yaml",
+          "version": "repo-file-v1:sha256:d05ff31e95edd48d2f1e43392ee492f5b02b33330493e9a00ff28c753dbd458f"
+        },
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://config/query/intents.yaml",
+          "version": "repo-file-v1:sha256:d42448a18ecd4e72bc7854c0f6c3fcdc56b257f58921de3cfb932f6b07a12838"
+        },
+        {
+          "resource": "repo://config/query/plugins.yaml",
+          "version": "repo-file-v1:sha256:d0e0a14602d14dcb1309dfbd6da6dbb7fc5c4103afd3ffd63cfc6bbe1478e001"
+        },
+        {
+          "resource": "repo://config/tlr/approaches.yaml",
+          "version": "repo-file-v1:sha256:05a745b7331f1a09f917ad4ab96320da6369414133bf389f606d1586fc5212ef"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L9-L21",
+          "version": "repo-lines-v1:sha256:43efb4013ad325e8ee049711c1f3274fc2787af0cbe532f5168249f171d7bc61:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjZDlhMGRlMGExMmIwNWQ4NmE1YjhhOTgyNjM1NmI3ZWUwZmFmMzk2N2M1Zjk3MTM5YTc1OTFlYzlkOWNjMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1OWRhNDU4NGUxMDA0MWVkNDEyNDM5OGI1ZjAzNTY3N2Q3NTRhMmE2NTQyMWJmMzIxM2YyNDlhMjBjMTQwN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxZGU0YTY2MDc1ZjQ4Zjg5NTg3NWU2NDkwNDI5YzE2Y2E3MzBkMmE4ODIyNTNiM2VhMDgwMmU0ODZlM2Q1NWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3MmE4YjhjZDdkZjU5MTUzMDJhYTMxMGE3NWE3YjNmYzdhN2E1NjJkMWRjNTBhZmQ4ZTg0MzQ3OTBkZDg1YjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5ce95b93eab043b7a8838174f7af8a97",
+      "statement": "config/extraction/plugins.yaml is loaded once by the extraction-agent's Service: the raw file's sha256 becomes `config_hash` (fed into run input keys and trace-link ids), `plugins[]` routes artifacts to the first plugin matching kind/format/glob (non-matching artifacts use the stub extractor), and `explicitReferences.patterns` supplies the regexes whose matches become explicit-reference trace links. Plugin calls use the configured tokenFile (the plugin's inbound token) and timeout (default 10m).",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L68-L72",
+          "version": "repo-lines-v1:sha256:51a4f045b6fb10b120679e185ea738e623ad60b6382eb5535c303bb29600bf56:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEzYzM0ZTE5NjY3Yjc4MjRiNjgwZTFhOGY0YjYyNjBiMDI4OWQ1ODlkMTYyNmQ2YTU3NzIwNDc5MGVkMmRhNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGM3YzRkYjY4MTBmNTI0ODJmNWY0OTM4MzM2NmY0NDhkMjg4MGI5NzQwN2RhNThkYjhmN2RlZTI1YzExMWEwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGU0OTcxYjA5NTRlMjFlNjBiZGMxYmRiNWQ2ODg3NjE1MmJmYzExN2RlZmFiMmJhMGFlYTdhZTE1Mzg3ZjQzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWMyMTFiYTRlMDE3ODZiODU3NGFmMDZjYjMzYmUzNGI4ZTMzNTljMWY2NWI2Yjk0Zjc5ZTBkOThlZjI4Nzk3ZiJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L119-L133",
+          "version": "repo-lines-v1:sha256:75d3136d7c79e91a6f043cd977c26f2340dc8f41ccf96c640ae748342f7580e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiM2RlNjcwM2JhNDVjOWUzOGMxNDk2M2Y4MWJlMDg0NzdlYjg4ZmZiODUwZjc4ZmJlOGY1ZGQ2NDRkN2ZjNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZWI4OTY1ZTI4YjhmYjFlZTQxOTRjNGJjMmUwYTRlYjQ3YTk1ZGQ2ZGFkYWM5MzY1MDk1NmQ5ZDgyYTYzZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViZDE2OGIzOWNhOWRmMmQzMTZkZTUyZGI3YjgzZDk0NWMwN2Y1ZGY4MGUzOGY2MjM4NTY4OWJkOWVmMWQ5ZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMzI3YzBjNWE4ZGY3NGZjMzMyMWU1ZDZkZTI3ZjVkZTRlOWUwZThiZDhkMTc4ZTQ5NzJhZWY2Y2IyZmIwMmUifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L83-L98",
+          "version": "repo-lines-v1:sha256:58e051601eae1442170df7a373f1d0c7f2a407c03d812c77b602d6a23a10c0dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkNmFmNjgzN2E2MDlhYWVkNjE5NTMwZmEzMWU4OWE5ZGY1ZGFmNzNlYjE2ZjMzYjRlZDdkZWUyYzkyNTBlYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhMGQzYmM1YWQ2ZDljMjViNWY5YTZkOTQ0ZmI3YWY1MGQ2ZjI1MzgwYjI5OTBhNzU4OThhNTUwOGJkZmY0N2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMTgxZmRlYTZiZmFjODEyMWY3NDNiZTY5ZDg1MTQ0N2I0Yjg3ZDNiYjg1NGM2OGRhODNjYTM5NmU5Y2NhZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7bfbce70a9c4c7294c5f1a913f75234",
+      "statement": "config/inconsistency/plugins.yaml is loaded at CDI startup by `DetectorRegistry.load`: `detectors` switches ServiceLoader-registered detectors on/off (an enabled-but-unknown id fails startup with ConfigException) and `plugins[]` registers plain-HTTP detector plugins (transport other than `http` fails startup with \"http only\"; an unreadable tokenFile fails startup). Each plugin's inbound token is read from its tokenFile and its timeout defaults to 10m.",
+      "evidence": [
+        {
+          "resource": "repo://config/inconsistency/plugins.yaml",
+          "version": "repo-file-v1:sha256:d05ff31e95edd48d2f1e43392ee492f5b02b33330493e9a00ff28c753dbd458f"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectorRegistry.java#L29-L68",
+          "version": "repo-lines-v1:sha256:92fab8d076d7103f5e1ca0c4233cfc3f4f08d3612f41591b8e16d6fe99984916:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMGI3MzhiNGZkNTg2ZTY5ZTI1NDAzNDgwMGFjZjVhMzc0ZmNiNjNiMjY3OGY2YTMyZGRmYzMyZGUyZWFjMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllMTQyZjUyMzJiZWQ4NWExMWM2MDEzNGJiYjg3YmY4ZjA1ZDhiMjE5OTIxY2I5MDRiMmQ2YTA0NDVjNDZhMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExZGNjZmEwNjJlNDE3OTM2ZTkxMGQyOTE0YjYwMDZmZWI1ODVkNzVkZTg5M2MzNmI2NGEzOGI2N2VhZjE2MmYifQ"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/PluginTest.java#L165-L182",
+          "version": "repo-lines-v1:sha256:01eed46e093b46e8dc6450fce42877060606a89062d32bf5b10741de5ad74605:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjOTJhOTIxMmVmOTk0NzkxNDExYjdhMDA3YjVmNzIwNDUxODhhMzgyMTVlNGRmMDI1YzkxMGM0OWY0NzlhMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33e02489a7d0487cb8172046d90f2bc0",
+      "statement": "config/orchestrator/rules.yaml tunes only timing, concurrency, retries and TLR kind pairs — the event→step rules themselves are fixed in code (plan()/manual()). Keys are debounceSeconds, maxConcurrentPerAgent, timeouts per skill, poll.initial/poll.max, retry.maxAttempts/retry.backoff, and tlr.kindPairs (source/target artifact kinds plus the approaches passed to the tlr-agent). `Rules.load` parses durations like `30s`/`2m`/`1h` and merges timeouts over in-code defaults.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L27-L61",
+          "version": "repo-lines-v1:sha256:af4c21a8d7a5dcfbbbd52790ce6cdedb44bd52859fdcc27e714a6ffa440173ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNTQ2YmIyMmJkNWYzZmE5YmFkM2EyYzAxNzc2NDlkMjhmYmNhM2RhOTFmMGMzZTBmNjAxNDMxZmI4MDE4YTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_acd41e9fc4b943ceb5faad021a946185",
+      "statement": "The orchestrator executor uses each rules.yaml knob at a defined place: debounceSeconds coalesces mergeable steps into one pending step, maxConcurrentPerAgent caps running steps per agent in tick(), timeouts[skill] (elapsed since attempt_at) triggers A2A cancel plus a retryable TIMEOUT failure, poll.initial/poll.max bound GetTask failure detection (completion comes from events), retry.maxAttempts/retry.backoff re-queue retryable failures while keeping the project lock, and kindPairs decide which changed×current artifact kinds get TLR steps (empty kindPairs skips TLR and routes unlinked changes to detection).",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L304-L334",
+          "version": "repo-lines-v1:sha256:5821db014af4b75d64f44bd5d80f0dad7eb1f0b1b719a1fcab5e89e6e9cf8c6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMDYxYzg3YmY1Y2M4NDhhNWM5ZTE1YzhlMTFiZjY0Y2YzNjczNjY3ZTFmOTRkMzZlMDM0ZWRjMzQ2ZGZkZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNjU0ZjY3YjNhMzAwMDkzNjE1MjljNDA3ODE4NjM2NzU1YmQxMGI1ZGUyZjEwMzIyZWZlODdjN2I3MzE5ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWU0NGY3NjE2NDZlNjBmZDQ2ZDQwOWRmYTc4MTZmNGY3NGMyMzY4NDBmNWZhYWZmNDhiYmNlYTJhY2Q3ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhYzY5MGQyMDRiYTgzNTQwZmNjZWUyNmMzYWE4ZWFiYTc4N2JjYzkxYTg2MjkwYmEzMTVhZTNlNjA1Y2E2YmIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L405-L437",
+          "version": "repo-lines-v1:sha256:ecee12c2d397ae0df7a5008bfaa0580218a88702036cd1f3810146f2f3474891:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZjZjOWMyZTU4MThjNmJmZWE5ZTUyMGI2YzAwZGYwOGMxYzNlNWE4MmM3Y2YxZDRhM2IwOTliZGY5ZGE0NzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNjZmNjllM2M0ODI1YTdmY2MxMDk0OWQ3ZWIxNzcyMjlkMmUwODA4NDU0YWRiZDc5YmM4NzRhZTc1MGRhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhOWMzYjJjNjYzYzc4OGI4Njc3YzA1YmRmZGUxMzE1ODVmNWQ0ZjExZWFjYWEyM2JlODkxYzEwYzU4M2ZiYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMTYyNTE0YjQ2ZGNlNjZhYzlhMjRhYTAzYzZiMjlhMDZkOTM3MzIxZGE1NWRmNmU0OTgwODZiOTM5YWRiOWUifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L117-L132",
+          "version": "repo-lines-v1:sha256:aef084af0528a3dfb0bb5404311329060c94067dabbb94f8abd2b06308e5b067:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmOWQ1N2JjNjU2YjFmODNjMzQyMDE1OWY2MDczMjM3YzZiYTFkMjk0MmZiZTQ2MmJmNjg4MTI5NWZhZWM1OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMDliMDUwNDNhMzUyYTQ3MjU2Nzg3OTU3NTk1NGMwZTNlZmJkOTg0MzBlODhiYTI0NzJjZjUwZTdiOWQ4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMmE2OGVmNjk2ZjlmNDgzNWFkNzEwMDkzM2Y1ZDA0Y2MwNjI2YzJhMmYxY2Q0YjVmZTQ4OWMyZmFjODk0MjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyOWMxYThkOWZhM2QxODQ2NjE0ZDk1ZDlmMjY1MWU1MmU5YjEzZGM5OGQyOTE1ZGM4ZjRjYWQwOWY3YThmMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ff0837b7ec34025a7cfdaf0813ed3d7",
+      "statement": "config/query/intents.yaml defines the M0 NL-query stub loaded once by the query-service's `Intents`: each entry has an id, a regex pattern that must fullmatch the normalized question (named groups become Cypher parameters) and a fixed Cypher template; every template must pass the Cypher guard at load time or startup fails. $projectId is bound by the service, never extracted from the question.",
+      "evidence": [
+        {
+          "resource": "repo://config/query/intents.yaml",
+          "version": "repo-file-v1:sha256:d42448a18ecd4e72bc7854c0f6c3fcdc56b257f58921de3cfb932f6b07a12838"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L72-L89",
+          "version": "repo-lines-v1:sha256:dec70e2d46db10f4c31eaef2d06394527128847269e766d5a43e16d67076368f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZjk1ZGJlNTZkY2NjOWQzZWVkY2Y1ZWM1NDQ5YTFhZGQyYjQ1ZDNmYmNkOTVlMTNhZmVjNjBmMTFjMDk1MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhZDgxMjRjMzBiNmJmYWZhOTBhMmI4MDdlNzlmMDUwYWVkYWM5ZGI0NGZlN2FiNDZmYjc0YzA4ZGNlYWQ1YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNzhmYzIxYmMxZjBlY2E0MzhjZWVkYWE2MTFmMTY2OGVkYmEwNjA4NzYyMzcwYjA2NTZiOTM5ODQzMjVlZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViZGU4NzUyYTJkNTNmMDE5NDM3MzlmMTk3NmM1NTllMTdkZDkxNTc1ZjZiODU3OTE3NDIyNjNhNzZiMDU3OTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d83dddd005944fe39b95c8c38a83a521",
+      "statement": "config/query/plugins.yaml grants plugin read access: `{plugin-id: [project, ...] | \"*\"}` loaded by `load_plugin_grants` at startup. A plugin principal's effective level in a project is viewer only when grants are \"*\" or the project is listed; an absent file yields an empty map and grants nothing, and local-only projects should be granted only to locally operated plugins.",
+      "evidence": [
+        {
+          "resource": "repo://config/query/plugins.yaml",
+          "version": "repo-file-v1:sha256:d0e0a14602d14dcb1309dfbd6da6dbb7fc5c4103afd3ffd63cfc6bbe1478e001"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L29-L31",
+          "version": "repo-lines-v1:sha256:e5fdde57954050f984c9a386dee04cd96f56ee270423a477cbcd125d3efd7d6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGIwYThhODIxN2RhZTZjNDU5ZDM5NWY2N2Q4Y2JmZGFkN2NjYmViNDU3MDBjMjIyMDAxN2VlM2Q0NGFhMGZmNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViMWJhYzM5MmEwNzRjNWUwYWMzODVhYjhhNzU1NzRjZWZhZWY1NjI0NmMyOTI1NzY2YzNhZDAyZWUwMzBkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZiZDAwOTMxNGJjMjcwODQxNjczNGEwMmFlNWZmMzlhMWU0OGEwNTBiZTkxZjQzYjJmYWE5MjAwMmM2MmJmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjZTNmMjRhYjQ3YzJmNWE5ZDMzN2YzNzdlZDg1NzNmYTU2NTg0MDc2NDAyZjFhZjA1NGEzZGVkNjE5NDYyZiJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/auth.py#L52-L65",
+          "version": "repo-lines-v1:sha256:5bdb1c62941b1ffea0056070f779bc1d816109156d21972e7b6b5de91ff61c94:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZTdkY2JkNmE1OGM3MzM4MWI5NzIwNDcyOWU4NWJkOTk2OGVkZjhjNTlmNTNmZjVmZTQxZmRmMDBlYTczNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjY2Y4OWQzOTk5NjNiMDFkOGZiZDQyYjIwMzEyMTYxODliMWM1ZDM2NWE1ZDg0ZDhhMjI3YWM4YThjNjVlMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlMGZjZDhkZmVlZGNmZmI4MWY4ZTQ1ODFmYjJjOGI5MDlkYTVmMjQxNTg0ODY3MWYxYTAyYWQzZmZkYThjZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNGE5NDBmNmQ2YTEwMTZhYjJjM2Q2MzVlZTUyMGUwZjQwNjk3ZWI2ZDU0N2I2MWNlNGVjOTg2MDdlNzNhMjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b2ecc5a6ea74850a001f43858682dd6",
+      "statement": "config/tlr/approaches.yaml switches ServiceLoader-discovered trace-link approaches on/off with default params: `approaches.<id>.enabled` plus `params` (shallow-merged with per-request overrides via `Approaches.effective`). Only approaches listed with enabled:false are collected as disabledIds() and have their links deactivated at startup; approaches absent from the file (e.g. explicit-reference) are untouched.",
+      "evidence": [
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Approaches.java#L24-L59",
+          "version": "repo-lines-v1:sha256:9d57db47e6a9019ad029e58884ebd4e4f822c7f06e220e9a96cfd984346c3927:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1Njg3NDNmMjdjY2NkMWI4NjQ1NzBhODc4Njg1MDFjZDU1OTFjYWViNzM5OTgyZDcxOWMxMDZjZTU4OWNkYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRlNjQ1MmMyYThkYWY0MWY1YjE2MzQ2NDM4NjgyYWQ2MmM5YzNiMmU5ZGEzMDEwZmIwOWVlY2E5YTg1MzA4MmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhZTY0NGYyMTIwODcyNDE4YWU0NGYxM2M4MjUwNDllODZjOGQ0NjU3YTQxNzAzNDg2ZWNjMzg3NTRjMWY5MzIifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Beans.java#L51-L57",
+          "version": "repo-lines-v1:sha256:06cc8f8ee6772db1fffd74241954f91c63128adb19aed7843c84100fa24cf0ae:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTYyM2ZmNWYzZjJmOTM2OGMxMTU3ZGM4MTBjMDQwNTQ1MDhjN2QzZmMxMTNiZjBkMGVjN2Q1YWExN2M1OWNkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGQyODUxNTExZTQ3MzVmOTc0ZTkwMTdkMzcxNmQ2NzU0YzJjMjZlMTZhZDhlMDdlMzQyY2YwZWMxYzIxNTFmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmQ2Y2VlZWE1Yjg2MmQyZDVlZThiNjMxYjBlNjM2MjEyYzFiZjZlNTdmMzY4MTQ0MGVlZmVkY2NiZWUwMjk1YSJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Beans.java#L85-L89",
+          "version": "repo-lines-v1:sha256:90529c9875ea7e0ae731ec0eececd3aa9e79119f81ac77fe3efff727c950fbe1:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI1MmQ2YTUyYmZmYTI2MDE4NDk0Zjc1ZTExMTUwM2Y4NDk2Mjg5NDI5MmVkYTUxMDYyMDdjNzYwYmZmMjk4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDE4OTU0MjEzYTc1YTlkZmVmZDg0ZDU2MDUwM2I5OTI3YjdkZTIzMzUxYjExYjM3MDgwMjc0Y2I2YTE5MWQ1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_40785255c922452e90fa544fd05ad62a",
+      "statement": "Configuration is part of run provenance: the extraction-agent hashes the raw config file bytes into `config_hash` and feeds it into run input keys and trace-link ids, and the tlr-agent hashes the effective approach parameters (RFC 8785 canonicalized) as its configHash — so changing these YAML files invalidates run identity and prior results by design.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L68-L72",
+          "version": "repo-lines-v1:sha256:51a4f045b6fb10b120679e185ea738e623ad60b6382eb5535c303bb29600bf56:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEzYzM0ZTE5NjY3Yjc4MjRiNjgwZTFhOGY0YjYyNjBiMDI4OWQ1ODlkMTYyNmQ2YTU3NzIwNDc5MGVkMmRhNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGM3YzRkYjY4MTBmNTI0ODJmNWY0OTM4MzM2NmY0NDhkMjg4MGI5NzQwN2RhNThkYjhmN2RlZTI1YzExMWEwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGU0OTcxYjA5NTRlMjFlNjBiZGMxYmRiNWQ2ODg3NjE1MmJmYzExN2RlZmFiMmJhMGFlYTdhZTE1Mzg3ZjQzNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWMyMTFiYTRlMDE3ODZiODU3NGFmMDZjYjMzYmUzNGI4ZTMzNTljMWY2NWI2Yjk0Zjc5ZTBkOThlZjI4Nzk3ZiJ9"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L125-L133",
+          "version": "repo-lines-v1:sha256:249f138e9591480ca6dfe8c0764a0463722126da4a3c9cbcc0f8381cf0896a4b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDczOTg4NGE5ODFlODM0NGFjNTJhYTIxMjg1NGNmY2MwNTllODJkMjBmYjIxMzkyNzBiZWYzMjdmMDk5MmYxZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNlYjg5NjVlMjhiOGZiMWVlNDE5NGM0YmMyZTBhNGViNDdhOTVkZDZkYWRhYzkzNjUwOTU2ZDlkODJhNjNlOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWYwMmUyM2E3YWJiN2MwYjVhNzJjZWExN2YzYzkxNjIxM2Q5MGIxZmNkNDFhMmQ0YmJkMjJjMDdjMTQxNmZhMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjEzMjdjMGM1YThkZjc0ZmMzMzIxZTVkNmRlMjdmNWRlNGU5ZTBlOGJkOGQxNzhlNDk3MmFlZjZjYjJmYjAyZSJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L99-L121",
+          "version": "repo-lines-v1:sha256:b7865f4dd009c8d9a9c0e9f69d36109b2f0181fc18db697bae8b8f3baa7add1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljYjZkMmYxODRmYTE0N2Y1NWVmZWVkMzI3MzA2ZmU2ZjRmOGFjNzgyYTM1YWRhMmNmNTg0ZmNjOTVhMThiOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3NGYxMGQ3YTI0Y2Y1YjE1MTE4YTlkNTM1YzU3MmRlMGNhYTlmZjVkNjkyMTI4NmM2MDRkYzZiNWVlYWM2MDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMDI2YzAyNzk0YWI5ZWY1YmIxZTc5ZDM1YTFmOTBiMzJkYzVlNWVhN2NjNjNhOGQ5YzE0NjVhNmQyMDdiZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4NWU5Y2NmOTYyNmUwYmVmZjVlZGNlMzAyZGIyMGU0NDdmNTg4ZjE1MTUyODQxMDY1N2FiMmZjOTA0YjQxOTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ed140ae3d8b4b5c97d94c95d7b283f8",
+      "statement": "deploy/docker-compose.yml shares an `x-agent-env` anchor across extraction-agent, tlr-agent, inconsistency-agent, orchestrator and query-service: SANDMAN_LLM_BASE_URL=http://llm-replay:8000/openai, SANDMAN_LLM_MODELS_FILE=/config/llm/models.yaml, SANDMAN_KG_URI=bolt://memgraph:7687, SANDMAN_KG_USER from MEMGRAPH_USER (default sandman), SANDMAN_KG_PASSWORD_FILE=/run/secrets/memgraph_password, SANDMAN_NATS_URL=nats://nats:4222, SANDMAN_SERVICE_VERIFY_FILE=/run/secrets/svc_tokens_verify, SANDMAN_ARTIFACT_STORE=/artifacts, SANDMAN_CONFIG_DIR=/config, SANDMAN_LOG_FILE (default empty) and the OTEL_* pair. Each service merges it with its own SANDMAN_SERVICE_NAME, SANDMAN_SERVICE_TOKEN_FILE and per-service extras.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L118-L136",
+          "version": "repo-lines-v1:sha256:22dcd7651bb6ac7a40fe53e6fb5be24d534022ff86daace6ecd89095c35bd9e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZGYyYzUxODU3MmVmZWEzY2IzMzJhOGU2ZjJmNWQzYzc5MmEyYWFlMDY4ZjBiZTZkODBhOTRiNDg1M2I3YWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiNjY3Y2I2Njc3NjJlYzkyZmVkNTkyMzlhMjc1MGQxY2Y0ZDg5Y2EyNDRlNzRlMDNhODBjZTk0NTAyNGYyMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MGUyOGFhZGU2NGY5NWFiYTIzMzlmMzRjMTE5NTlmNzBlNzRjNmQ0ODU4ZDkxZWY0NDhlMjAwNzFiOTZkMWQifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L9-L26",
+          "version": "repo-lines-v1:sha256:877e9e6745203c3f43014fd9eb2e8637db6f53b0b159b8074a37fadd0517a126:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjZDlhMGRlMGExMmIwNWQ4NmE1YjhhOTgyNjM1NmI3ZWUwZmFmMzk2N2M1Zjk3MTM5YTc1OTFlYzlkOWNjMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMzQ3YWVjMWY4OWM3NTBlZjY5ZTcyOGQwYjEyOWRkODMyY2MwZGZhZWQ3MzgyZTMwMjQ1NjAwYjBjMmY2ZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxZGU0YTY2MDc1ZjQ4Zjg5NTg3NWU2NDkwNDI5YzE2Y2E3MzBkMmE4ODIyNTNiM2VhMDgwMmU0ODZlM2Q1NWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2ZmMxZjM1YjE0ZjkzYTQzYTQ4NWE4OTljN2RlOTU0ZGFmNDMxMDk5Y2ExOWUwOTYzNzE5ZWNhODhmZDIzOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b394b7e14b24fe084f401d7cebc2660",
+      "statement": "Per-service environment beyond the anchor: orchestrator gets SANDMAN_STATE_DB=/data/orchestrator.db and SANDMAN_AGENTS as a name=url comma list of the three agents; query-service gets SANDMAN_USER_DB=/data/users.db, SANDMAN_ADMIN_PASSWORD_FILE, SANDMAN_SESSION_SECRET_FILE and the three owner URLs SANDMAN_EXTRACTION_URL/SANDMAN_INCONSISTENCY_URL/SANDMAN_ORCHESTRATOR_URL; the dashboard (profile dashboard) gets SANDMAN_TARGETS plus its own state DB, NATS monitor and gateway URLs; plugin-stubs (profile stubs) gets SANDMAN_PLUGIN_INBOUND_TOKEN_FILE and a read-only artifact store; llm-replay (not on the anchor) gets SANDMAN_LLM_MODE, SANDMAN_LLM_UPSTREAM and SANDMAN_LLM_RECORDS_DIR under the experiment.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L185-L193",
+          "version": "repo-lines-v1:sha256:e74d64d0c05dd05e33f927ea62d45da731ab98453f4d2960821b37301f1e7afd:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkwYjhlMGQ0OTU2OTBjNDk4NDNmYWIzYWExZjE4NTYzZTljYzg1YWE0OGNiNzBkZjJiNWJlZjJjZTNjMGFjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjk0ZDk2MzljYWY5MTc5NzE2NjdhNzE5M2Y3ZTYwMjg3Yzg1OTI1OGU2MDU5OTUwY2FiYjZkNmM1ZTBlODljZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDMwMjAzZmVkOGRiZjdjYzQ1MjlhNGQwZmM5NWFiYWVhM2ZiMGI5MjU4MWI2MDg5MjI3M2E5NmIzZDRiYTIyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzU4YWEzZDcxZjZjZWYwNWM1ZjVkNTllMjBjMTY2NzEyNjZiNTI5OWJmZmEzNDhlN2U3ZTU4OTM1NzRiYmQ1ZSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L209-L236",
+          "version": "repo-lines-v1:sha256:ba54a923cd7066f2e3b96fbb61be11d01a7a7dc7c9033826bc2406e55927fe94:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjZWQ4MjFjZjU1ODVjOTg4NTJmYTM1ZGJlYTQyMDhkNjE1MWViMDVjZjk1MjlmYWNiM2I3ZDU1YTMyNjE3Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlYjg0ZTg2ODE0OTg4NmM4MGM4ZjBkYzY2NjBlODU5MmMxNGI2ODQyODU4Y2Y3YTViZmYxOGUzYWI2NTdlYTMifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L238-L268",
+          "version": "repo-lines-v1:sha256:461639d742eed4543c5e047ed58113d4b19349e3c73bc947e81807ca4c83a34f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYWI4NmE2NTIwMDRkYjJmODVjMjFiMTI4ZWFkOGEzZDc0YWYxMGQ4MmVjMDIzODc0ZTQ1OTAyMmEwYzZlNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ODU0ODI1MTEwNWFhZTE4YmU4ZGZiYjg2MTA2ZmQ4YTljNTgxZGI0MzI1MmE4MThjZDY1YjEzYjk1MjhjZGQifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L295-L308",
+          "version": "repo-lines-v1:sha256:50d2681a2727807f54d3ae8ac50b92320c576fda669226e82d7b552d91a21244:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYWRiZGMzMGE5NGRmN2Y4MmM3YTUyZTFiZjVhODVhMWU1MzNhN2EzNzA2YjhmYjI3MDM0NzA4YzFhZjJjNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiYzVlM2Q1NzkyYTQ5MWNlMWZiM2EyYjVmYTI4ZTljYWJkNmExZWNkNjE0M2Q4MjllYzczMGFmY2Y4ZTJkYWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyNDY4NGU2OTY4Njg3YzNiNGQxZmNmYTUxNjY4ZTYyMzdhYzIzMTJmZDQ4NzI1MTZmOTg5Zjk2ODYxNDI2NmMifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L92-L115",
+          "version": "repo-lines-v1:sha256:46c3654ea376006ecd43f14668cb90bafbe18955832f48846478685b16943287:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZDkxYWVjYzhiZDgwM2UwZDJmMDY0MjMwNzI4MzdmZmY4NDcyOTEwZjk4NmQzMGZkZjk0ZjJiYTAyMjBmOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMjZkYjlmOWYzMzJkMDc1ZjA1ODNkZGJkZmMzZWJjOGFmYTA2MjVlMDNmMGRiMDMwYzMwNjkyMTQ5NDE3YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZmI0MDE1ZDRmMzU3ZmFmYjgxYWNlY2NmOTI4OTc5N2JmNjljY2IwN2Y2YTNlN2RlMmZlMWIwYWY4Nzg0ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0ac4f4ba5fd44e99b311e535d0796cc3",
+      "statement": "Service build() factories read extra environment variables outside the Settings model, and the orchestrator/query-service entrypoints exit with the service name on ConfigError: orchestrator `build()` reads SANDMAN_STATE_DB (default /data/orchestrator.db) and SANDMAN_AGENTS; query-service `build()` reads SANDMAN_USER_DB, SANDMAN_ADMIN_PASSWORD_FILE (bootstrap admin created only on an empty user store, flagged must-change), SANDMAN_COOKIE_SECURE and the three owner URLs; the extraction-agent reads SANDMAN_MAX_ARCHIVE_BYTES (default 1 GiB); llm-replay's own Settings.from_env reads SANDMAN_LLM_MODE (validated against live/record/replay), SANDMAN_LLM_UPSTREAM (required except in replay), SANDMAN_LLM_RECORDS_DIR and SANDMAN_VERSION.",
+      "evidence": [
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L72-L72",
+          "version": "repo-lines-v1:sha256:8c7c4db6810f52482f5f49383366f448d2880b97407da58db8f7dee25c111a08:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGM3YzRkYjY4MTBmNTI0ODJmNWY0OTM4MzM2NmY0NDhkMjg4MGI5NzQwN2RhNThkYjhmN2RlZTI1YzExMWEwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGM3YzRkYjY4MTBmNTI0ODJmNWY0OTM4MzM2NmY0NDhkMjg4MGI5NzQwN2RhNThkYjhmN2RlZTI1YzExMWEwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTgzYWUzMzYzNjQwMzI0NTE3YzFjYWQxY2Q3NzBlYzZmZGY0YWFkNmQ4M2Q2NzM5NzMwNzI5NGVhODBhMjIxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWMyMTFiYTRlMDE3ODZiODU3NGFmMDZjYjMzYmUzNGI4ZTMzNTljMWY2NWI2Yjk0Zjc5ZTBkOThlZjI4Nzk3ZiJ9"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L41-L51",
+          "version": "repo-lines-v1:sha256:0565ff65f909bf4d0378244b77bf6d875dff3ad2b8b48776dc5d5bff7e056888:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyMGI0NTNmNWUwYzkyZDVmNmMyNTFhNWVhMTk2MGQ3MmYzYmQwNzk1NmFlODU3ZGEyMGUzMWE4OGM1NTk2OWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyMjU3MmI1NTRkMDIwOTUxMzY2ZGQ3ZWMxMjNkN2YyNTRmMTU4MGY3NzE3OGQ0NWJhNTYyODEyZDllYTZhYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxYzJhMDVkYmMwZmFhODBjNjZmNDY1MmJjNjBiMTk3ZDM3MjVjNzRmODY4NzQ3ZjRkODE5NDdmMGJlZDI3NjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMWZiZGU5NzA2MGQwMTdmNTFjNGY2YjcwMGQ2M2E3ZWQzYWNhMjYyYTViNWExNDNhNTFlMzk3MzllMGQ2ODcifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/__main__.py#L8-L12",
+          "version": "repo-lines-v1:sha256:7d4b251e3799b7c17bca0f8c1647d067ab4c3692114bcb83301b1490901ca0f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWMxMmJlZGFlYzQ0NWE4ZDY2MTFhMDFjMmI2ODc0NzQ5ZWE1ZmNjYTlmYmY2YTIxNzgzNWQ5NDdjOTNhYWFlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTI2NWEwZmRlMmI2N2M5NWI5Y2IwYjgxMTU1MjRhZjE2NmVlZDkzZDNkOTI2ZTQ4OGRlNDgzZWFkMTIwZmY2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWQ3YzUyNTg3MGZjNzE3N2E0ODVlMDI2NDM3NWQwNGU3MGU3MTZhZWQyYjBlN2E3ODc3Njg0YjZjNjA0ZmJhNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk2MGIyZDVmMjg3MjEyZDc4MzQ3ZTE2NGRmYzVjZWYyMTM1YTE2MGM3N2I3OWRhYzY4YjgyYzhjMTI2NmM4YyJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L173-L190",
+          "version": "repo-lines-v1:sha256:ed05c03b7d743edeba8e8a5092d7c14f968ba728344896cd8e68b5977fbf6bcd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1NzQ3OWNiMDZlM2UwMDMxNmY2MzdiYzA2MDMzZDJlNWFkM2ZjZmE2YzhkYTdmYzE5MDI0MDBlMDdiYTQ5OTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOTZlMjI2OWY4NzY5ZjdhMDcxMmUxNTA2YmJmNDgwNDM3YTY0NjE0NWVlYjQ4ODY1YTI2Yzk1ODUyMjhhODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0ODdkMWZkZjI3NGRmMzYyN2VlZDg0ZjJmNWE1MjQ1ODdkYWIxYzk0OGY0MmQ5MzdhNjJhMDFkNWZmZTA0ODIifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/app.py#L402-L418",
+          "version": "repo-lines-v1:sha256:51adade8cf7fec398e45fe3d9c59a6584c3baf31190386c489e74e30066ff304:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViMjVjM2FjZDlkNGRmYmEwZDI3ODRiNDBiMzlkYWIyM2ZlYWNkYzFlMzI4ODZiNTI5NzE5ZDJhMjI5ZjFjNmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlZmFjOWE2YjY4ZDA5NDRmZDMzNmRjOGYzOTM4YjhhMTVjZGY2YzQ2ZWJiODViNDk4MzViODIxNGNhMDE5NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5715f386562c449b96251191b107cb5d",
+      "statement": "The dashboard's SANDMAN_TARGETS is a name=url comma list of the six status-reporting services (the three agents, orchestrator, query-service, llm-replay), and the dashboard deliberately does not depend_on the agents (\"it must show them when they are down\") — the target list, not the dependency graph, defines the system overview. The dashboard image is planned for M1; its compose entry already defines the environment.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L238-L268",
+          "version": "repo-lines-v1:sha256:461639d742eed4543c5e047ed58113d4b19349e3c73bc947e81807ca4c83a34f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYWI4NmE2NTIwMDRkYjJmODVjMjFiMTI4ZWFkOGEzZDc0YWYxMGQ4MmVjMDIzODc0ZTQ1OTAyMmEwYzZlNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ODU0ODI1MTEwNWFhZTE4YmU4ZGZiYjg2MTA2ZmQ4YTljNTgxZGI0MzI1MmE4MThjZDY1YjEzYjk1MjhjZGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dbd769fbd909463e9852f822b4fff61c",
+      "statement": "deploy/.env.example (copied to deploy/.env) holds only deployment-tunable values — MEMGRAPH_USER, SANDMAN_LLM_MODE (live/record/replay), SANDMAN_EXPERIMENT (LLM cassette directory name under data/llm-records), SANDMAN_LOG_FILE (default empty) and the OTEL_* pair — while all secret material lives in deploy/secrets/, generated by deploy/gen-secrets.sh which never overwrites existing files and regenerates svc_tokens_verify.json on every run with plugin entries under `plugin:<id>`.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/.env.example",
+          "version": "repo-file-v1:sha256:fc1db9113b57b739bc14a19315fe058ac5b0e204ec826cd37f8235dca8dc2fdf"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L365-L389",
+          "version": "repo-lines-v1:sha256:44817b055d7863451f3f5a296a3ae931a527d9f33bb370180e8326c615e16054:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNjllNzU5NTc5NmZhMDIxMWMyYjdkZTgzZmNlODJmM2FlNjFkNzkwODc1NWU4OWYxOTIxNmJlOTJkNTE4MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzYzhhOTM4ODA1NjFjNGI5OTkzZWNhZmFlMDU0OWFhZWQ1YjU1Y2NlMWFmMjQyODIyYmEwYjM2MmJhOWQyMjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlN2QxOTJhYzAyYTYwYzBmNTFiZDM0YzdkNTdiZGNlOWQwNjZkYjIxZTc0NDBiMzAwZWM5N2Y5NjlhOTE2NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L50-L61",
+          "version": "repo-lines-v1:sha256:36b9dad059d18ea023ae3961eb84756c4ba1159ca4584a8aa27a00802ba45d62:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NTJmZDkzYzZhNTRkMjhkMDQzZjU5MGM5Y2EwOTMyMTJjODMwZTA5YzljYWRhZjk5M2FiMDU2MWQ2ZWE5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWJhY2Y2NTliYjAxMzRmZTk1OGY0NjMxYjkwMmY0Y2MyNDYxODg1ODMxMDhiODYzMjJiZDJlNmUzNjQ0YTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMDU4Y2UwNWRhZGNkNDc4MGQ4ZmNkOGU1MTZlMjBmNTIwNWUxMTliY2U2YWFlOTUzMDBjNDA0NzJlYzFlNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljYWUzZDBmYjc5ZWFkZDI0MTc2MTkzNGFmZGFmMDA1MjkzZmExYmRiNWRmOGYxMWJhNjhiMGRjMTVhOWE3MzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_195e1b1ad4514b3fbff9e998ef4d2f56",
+      "statement": "Java agents resolve their YAML file with a MicroProfile override that falls back to the shared config dir: `sandman.tlr.approaches-file` and `sandman.inconsistency.plugins-file` (set by tests via application.properties); production resolves `tlr/approaches.yaml` or `inconsistency/plugins.yaml` under settings.configDir() when set, otherwise next to the contracts dir (contractsDir.resolveSibling(\"config\")), so SANDMAN_CONFIG_DIR wins.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Beans.java#L36-L61",
+          "version": "repo-lines-v1:sha256:19a391f84e7105b3a78a67739e935abb70c6a4616444dd0c46a5520a122a522b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmODFjZjc1OGU1Y2U0ZTYzOWQxNDY3YWRhOGM0MTc2MDAzOTEyMWVmM2FhZGIwNjhjMTY1NDJhMGMyYWNiZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5OGQ4NzQyOTY2OWM5ODY3MzgxN2Q5ZDI4ZGM5NGYzZGNmOTA2M2VkODE1NzEwODBkMWUxZjkxNTViNDNkZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkMjg1MTUxMWU0NzM1Zjk3NGU5MDE3ZDM3MTZkNjc1NGMyYzI2ZTE2YWQ4ZTA3ZTM0MmNmMGVjMWMyMTUxZjMifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Beans.java#L35-L57",
+          "version": "repo-lines-v1:sha256:9a84b48e168722af4c013613f4c9d2d6be5a7da0b07b78ead2985ef31953f584:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3OWZmMjc0M2Q3MTM3YzcxNDM2NTY2ODI5OTIwZDc0MzA4M2RhMmRhNjc2ZDNkMGVlZGQ4ODNiNmIyMWM4NjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5OGQ4NzQyOTY2OWM5ODY3MzgxN2Q5ZDI4ZGM5NGYzZGNmOTA2M2VkODE1NzEwODBkMWUxZjkxNTViNDNkZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkNmNlZWVhNWI4NjJkMmQ1ZWU4YjYzMWIwZTYzNjIxMmMxYmY2ZTU3ZjM2ODE0NDBlZWZlZGNjYmVlMDI5NWEifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/test/resources/application.properties#L1-L2",
+          "version": "repo-lines-v1:sha256:b9cb17ffa9dd0a5c7c72393d4dc7546b7c67fe5aa5d142f8e7a07b4d1c330db4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzdkNWEyODdhOGUwMjg2NjZlYzNkODkwYjJkYzZiYjc0MjU3NGE2NjA1YTRkM2Q4OWM0NzU2MjgyMGI4ODkwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTFjZGY0ODRhYmYxNDAwZjU4M2ZmYjk1ZTRmNDAxZTA4YzNjMGI4OGRmOTk3ZWYxYTg2YzlmMTQ1OWE4YmIyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNmZWZiNTNlMmJhZjk3YjA4M2QzZmI4YTUzOTdjNGRiMGVjYjQwMTI5NDA0ZDMxNjNjYTBhYjM5MjAzYjIwNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e6aadf440dbd495f8a414d9abfe0a777",
+      "statement": "The inconsistency-agent reaches the query-service through MicroProfile property `sandman.query-service-url` (env SANDMAN_QUERY_SERVICE_URL, default http://query-service:8000) rather than through Settings, and passes it into DetectionService for triage-related status queries; its Notifications consumer additionally appends one JSON line per new/reopened finding to settings.logFile() when set.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Beans.java#L39-L69",
+          "version": "repo-lines-v1:sha256:aa867167a641533b9f577ffd140cf9ac99919b257d1fc74de1ae68f6d8646278:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5NzJlMjQ0MmY0MzhmYmViOTdhODdlMGNlYmFiNDdkYTg0YmU4ODg3MzllMGVmMWY1OTgzMTFmNzM4YTA5ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0Mjk3NmM1MDUyMWU5OTNiYjZlOGQ2MGVjNzVmNjc5MGMzYzIzNzM2ZmJmMjk4OWIxZmIyYTIyNWFiMGQ2ZGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlMGJjMGYyMDYxODIwNzY3ZWEyMzFiNTgxNGVlNTM5NGEzZDM4MzBhZGM3NDcxMjk4YTNiODEyOGU3YjZkNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5MzE5M2M0YzM1MjYwZmRkMDY0MWQzOTViMzllNDY2ZDdhNDZlNDM3NDdmYjY4ZDc1NTM3NzUyYmVkZjE1MTUifQ"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Notifications.java#L13-L35",
+          "version": "repo-lines-v1:sha256:789368b6b197c54bfdaae8cc0a43e7db6f1edb24dce72324692960158facc839:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYmFiN2NlYjA2ZTVlM2Y2YjAxMTk2ZDBiYWEyMmY3OWNlM2FhOGZlYTdhODVhOTAwMDJhNTk3ZGQ0YmE2MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4ODljZTFiYjQzOWZlNzQyZWZkMTdkNWE2MjhhYTBmNGVhMTUyYTM0YWVlMzgyMzllZWYzOTIzNzkzZTcxNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64eddbcbdf864fb69c8d74d58879e99c",
+      "statement": "Both Settings readers treat an empty-string environment variable as absent (Python `plain`/`env.get(name) or None`, Java `plain` returning null for null-or-empty), so compose's default-empty values like `SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}` cleanly disable optional settings instead of producing empty paths; path-typed helpers skip Path construction for empty values.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java#L128-L136",
+          "version": "repo-lines-v1:sha256:85c7a757ea6b546855262008044d194680c93c0c9e4d69e56e9066437fa19235:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzcwZTNkNTNlZjdmM2FjZTI4M2RhODIyNGY1MjNmZDA1OWUyYzg0YWEwZmVlOWMzMjBkMmUxYWVkMTA1OGQxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWY4YmEzMDk1ZmRlMzgxY2VmMDI0ODBlMzhiODZlMTljMmU3ZDRhNDI5MTk0YzYyOTNlNTc4NWM5ODhjMWM0ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWMxM2YyMWRmZTE4M2UyYTQzYWFhNTMxODFjZjZmZDFjOGVlYzg1NTA1MjJhNTA4YWYyOTkwOWNlMTYyOTVkZiJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/config.py#L42-L52",
+          "version": "repo-lines-v1:sha256:a4f8b034f9915cf9aa3e57c8df6663f3694274e84f615bc4df94ec8f4c47b99c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYTZhZGYwZmYzZjI1ZGJkNzEwZTQ5ZmU2MDgwMDUyMTJmOTFmZjBjZjM0ZGUzMmJhNzZjYjI0NjFmNDAyMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1NTJlZjU0M2I2NTRhZTU1Nzg5N2ZkZWQyNmQzOWUwNmY2MDg3NThlYTVlYjc4ZjM3ZjQ2YTM2Y2FlYTAyMGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1Mjk0Y2YxZmVhYTg3NTM0NDFiOTY4MDE5OGE0ZTViM2Y1ZmU5NDBhNWI0ZmFhY2Q3MzgxMzdjNGYzM2YyMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwOTE5NDc0MDc4OGQ1N2Q2ZWMwNTc5MTVmNDRiOTAyMzJjNjY2NmFmZTdhOGI1OWUwOWRmOTU5NWNjYzBkYTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ce63e18dc5af407c92514aa28c3aa3f4",
+      "statement": "Settings behavior is pinned by mirrored unit tests in both libraries: `test_units.py::test_settings_read_file_secrets_and_report_missing` (Python) and `LibraryTest.settingsReadFileSecretsAndReportMissingNames` (Java) both read a *_FILE secret stripped, parse the verify file into a map, assert the exact combined missing-configuration message (\"tlr-agent: missing configuration SANDMAN_KG_URI, SANDMAN_NATS_URL\"), reject unknown require() names, fail from_env on the missing service name and fail on an unreadable *_FILE path.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LibraryTest.java#L24-L41",
+          "version": "repo-lines-v1:sha256:e6b59af2378d190aa82d869c1ec2fff3d4c02d9dede0012ebf8c3b41da3d1180:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5YTBhODVkNmRmZTgzZjQzZmEyZDk5OTJmNTBjYTkzOGVlZDQ0NThmYzQ4YjE4YmJlYzUwZGRjOWFiZTliM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MGViMzdkYTg0NWQ2NDUxMDBmYTNjNTA5ZmJmZWUxMzU0Mjg0MTY2ZmM1ZWI2ODI0MGJiYjZjZTZkYWZlMGIifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_units.py#L23-L37",
+          "version": "repo-lines-v1:sha256:aed0a9c259244214d188f9d9a73be1d47ba4e39d96f5d58f933399d8e95fd173:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMGY4Yzk3YWFmYWQxMzg4NGRiYTYwMDA4ZDIxNDg5OTMxYjJiM2Y5ODM3ODEwZjgzNGNiYzI2MDEwNjlhYjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzODk0NGJhZmQ5Yzk1MzU1ZTQ4MzQwMTk4NjAzZjU4ZTc3ZTZlZTNhZDU1YWM1MjdlZmU4Yzg4YjE4ODFiMDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZjkzMDgzYzE5NzEyMWI5ODI3MDBiYThhZmFiZDE3MjJjZjFkM2U3NDA0NTA5ZTgwZWZhMjcyNDdmNjJmMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjODJkNTg0NjYxMWU5ZTI5ZWMyNzdlODkxMDJjNDVkYjdmNjMxMWRmOTA0NzhjNmM5MmMxNWQ2MjljYzViODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c21286a5e6c440c89d3c13f3daeb6db",
+      "statement": "OpenTelemetry tracing is opt-in through standard SDK variables: Python `setup_logging` activates the OTLP exporter only when OTEL_SDK_DISABLED is set to \"false\" (default true), and compose passes OTEL_EXPORTER_OTLP_ENDPOINT through from .env with the same default-disabled semantics — so a default deployment emits JSON logs to stdout (plus the optional file sink) without any tracing backend.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L19-L21",
+          "version": "repo-lines-v1:sha256:74b9025f5fb410a1b325b3bf9072aeb4847028c213ee42d1b196b08e7c382464:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA0Yjc1MzE2NGQzYzg1MjkwMjc4M2YzY2U2MzZjOTVjNjc0YTNlYWYyMzAxNzViNDI2NGZjOTFkNzY4MDczOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU5ZGE0NTg0ZTEwMDQxZWQ0MTI0Mzk4YjVmMDM1Njc3ZDc1NGEyYTY1NDIxYmYzMjEzZjI0OWEyMGMxNDA3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZhNmM4ZTk3NTg5NWU4NjI2OTY3ZTM1ZWNmOGRlN2VlOGQzNzE1ZTZmZmQ5ZTczNTg3YWZiY2ZiYTYyY2FhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzcyYThiOGNkN2RmNTkxNTMwMmFhMzEwYTc1YTdiM2ZjN2E3YTU2MmQxZGM1MGFmZDhlODQzNDc5MGRkODViMSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/telemetry.py#L52-L74",
+          "version": "repo-lines-v1:sha256:c6022c55ec05a0d0abfd0d2acb62dadef4f8b5b11e0ca4f7b3b68da91e84c76d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwOWZmNWFhNWM0YzEzYTFlM2YwZWRhZTU5MjI3Nzc0MDQxZGQ4YTllMjk5NzA5MTk5ZjY5NTU0ZjVjY2Q0N2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4Y2EyY2FiY2ZmYTg0YTMxMTkxNWViMDc1MjM1ODJhNjYyMDRiOWNjMmFkZjJlOTdmYzE5ZjMxMDNhYjM5ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlZGNjMWI4ZDM1MDVmZTQwNzEwOGEyM2Q3NWM1NjkxNDI0MmRiNWQxYTZhMGVlNTMxM2IyOWNhYzdmMTE1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwMTI0M2RkYTA3YjFjYmJlNzc4YjhjZWRmYWJkOGM5NGUyZGI1MjNiNWMyOTk3MGNjYWE2Y2RiYzAzNGFlOTcifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

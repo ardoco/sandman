@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e2ddd71fe3657ad737808c48698f8d57f33b440c0b1605e2c0b11ad86c46badd",
+  "claims": [
+    {
+      "id": "claim_14105e32471849bb82102a9900b4981c",
+      "statement": "Every SANDMAN service exposes the shared.yaml contract GET /healthz (liveness, unauthenticated), GET /readyz (readiness with per-dependency checks, 503 when down) and GET /v1/status (ServiceStatus: service, version, state working iff activeTasks > 0, optional lastActivityAt and free-form details), with /v1/status requiring a service token (401 without).",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/shared.yaml#L133-L159",
+          "version": "repo-lines-v1:sha256:0eae5ee86a058104b45f893944163f8cb9f18ae2979b902ed0868197a51332ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1OGQzNDBjNDc4ZmEyYzFhZGJmMTAzNmZlZjQ5NzU5YzJiMDYxYTAxZTFiMzA3MmYzNjEzZjU2ZTE5YjQ4ZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZGNmNzc2MjA3YmY2MzU1NDQwYTkwMjgyOWU5YTQ5NGUyNGFhYTAzMzQ4NThiN2ZlMzE4ZmQ5MzJkMTJlZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzNGI5YmQzMmNlMDRhZjlkYmRjZGE0NmVlZDIxY2ZjYzExZDhmMGE4NmM5OGFkNTIxODllM2M2NzZjZTc2MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://contracts/openapi/shared.yaml#L67-L81",
+          "version": "repo-lines-v1:sha256:f2653cae8f9a66b52961852b691679582e7a7215591eeeb65f4a6dd49f6ce8bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDA2ZDQ2N2Q5YjQxODU2Nzg1M2ZjMGE2ZGVlYjQ4YTI2MWU4YTNlNjFlMmExZTFiYjczODgwMWUzMDAxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNWI4ODI0MTUyNWE3ZTViZDk3ZmEzZDZkZWIyMTgzZjUwZGU4MDBiZTM2OTMzN2VlNzQ3Y2M5NmVjNzMzYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxNThlMWIzMjgwNTk0OGI5NjE4M2NjNDYzMmFjOGZlZmI0YzYxOTEzN2YxMjY1ZGQ4ODY1MzBhYjcxYWViMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzNzlkOWMwOWVlYzdiNzNlYjZjMjYwMGRlNTcyYTEwZjVhN2RmY2JiZmY2OTQzY2FmMjcyZWY0ZDBkZTg5MGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a505ccb00d3f4213b71750108b634880",
+      "statement": "StatusTracker (both the Python library and the Java agent-lib) counts in-flight tasks via track() and reports state working iff activeTasks > 0, stamping lastActivityAt on entry and exit; the Python track() is an async context manager, the Java track() returns a close-exactly-once AutoCloseable Active handle.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/StatusTracker.java",
+          "version": "repo-file-v1:sha256:35f3aa7b1721a0dbd2dd52bccc44a4fbdc93bdfa8702223129b0b6aa81bff4ee"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/status.py",
+          "version": "repo-file-v1:sha256:c0f538a6b4e345e00dfcf7e11f15f469e24e02a03f83af10aa0d232493976f4a"
+        }
+      ]
+    },
+    {
+      "id": "claim_b2c34cb171834b5997beefbb4650523f",
+      "statement": "The Java A2aServer registers GET /v1/status (401 without an accepted token), GET /healthz and GET /readyz as Vert.x routes and provides StatusTracker as a @DefaultBean agents may replace; SkillExecutor.execute wraps each skill run in status.track().",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/A2aServer.java#L103-L157",
+          "version": "repo-lines-v1:sha256:a02889ffe7fa3c4e6428f8d1715683bace6e3d0e327e80c556d23fca95e3a69d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNGVkNzgzZWEzYmEwOTRiMTUxYjE1ZDY4YmY1NmNiNzI2ZDIyODhhMzA0YTZmYWE1YzMxZjg1YmVkMjIxMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkNjczNzAzNzI4MmQzYzljMDcyYjc5M2M1YTBmOWE1YjZkNjNlOWYzOTNmZDE2YjhkMmNjOWQ2NzIyODViMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_06a67c95263b4cbcbf0176d36f3f0ad0",
+      "statement": "The query-service Middleware wraps every HTTP request in tracker.track() except paths in QUIET = {\"/healthz\", \"/readyz\", \"/v1/status\"}, so monitoring endpoints are not counted as in-flight requests and polling /v1/status does not distort the working/idle value it returns.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/app.py#L52-L71",
+          "version": "repo-lines-v1:sha256:d96801e609d57d8c2ab762702fab5bd06f9d6155cca07982ef0700be9aab514e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyZmU0ZDQ2MTgwNmQzNzIwMmEwYWM0MmQ5ZTBmODJiNWQwNzQ4YTA1MzljYzBlYjZlOWQ5NjA0YWRjZTEzZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImExNTAxYzBjNmZlMWNhMGJhZjQyOTZmN2U5ZTRmODQyMDY4ZGE2MjM1NWQzOGMzNzkyY2IwOTViMGI1MzM4ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3MDE2MjhlYzRkMmExZWY3ZmE3MTFjYWQyY2ViNjlhNmY4ODA2MjU5NDg2NjcxODIzM2UwOWMwN2ExOGY0MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3MzYzNTU1YjRhMmM4Y2M0YjI4Mjg1MDYyMWRkOTEyMWEzYzQ2ODI1ZGNmMjk2N2UxMDVkMDg1NGRlZjk3MmIifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L40-L40",
+          "version": "repo-lines-v1:sha256:59cc12609182b2064e97c01b91ae20d5dc945577fdb4f90651ca1596826719d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTljYzEyNjA5MTgyYjIwNjRlOTdjMDFiOTFhZTIwZDVkYzk0NTU3N2ZkYjRmOTA2NTFjYTE1OTY4MjY3MTlkOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTljYzEyNjA5MTgyYjIwNjRlOTdjMDFiOTFhZTIwZDVkYzk0NTU3N2ZkYjRmOTA2NTFjYTE1OTY4MjY3MTlkOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEwNDNhOGY4OTFhYjYzNDI5MmQ5N2VmNGYwZjRmZGNhMTVkZGE2Zjk3ZWU4ZGE5NDkzNmJmYTM2MmZkZTUwMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDhiZmYxMGM5NTU0ZTExMjAyY2QzN2MwOWZmMzBlNzA2YzRhYWU5ZTk3NWMzMTYxOGU5YTkwM2NmMTY1NjUwZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d5865ad0b244b46b19be0630c84f1c2",
+      "statement": "The orchestrator and llm-replay derive status differently from the tracker pattern: the orchestrator's GET /v1/status sets tracker.active/last_activity from its SQLite state (runningSteps, max updated_at of workflows) and returns snapshot(counts) as details, while llm-replay counts proxied LLM requests in an active counter and exposes mode/experiment/entries/hits/misses as details.",
+      "evidence": [
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L202-L215",
+          "version": "repo-lines-v1:sha256:1bf9dd08c9c977b04e8d36c9e57ee9fbb4db1e7f07baf75633c403c5cdce282f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzZTNlMjE3MTM2OTVlMTA0YjZkM2MzNjYyYTlhZDlhMmYwYmQxY2UzZmQ0MjQ0YzIwMDk4OWE4Yzk1YThjYzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMjU0ZTk3YzVmNDhkNDhlZThkNjgyMGExM2ZiM2JiNWYxOGMyOGU0YWRmZWQyYmM1MjdjM2E5YjcwY2RjNzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYmJlODc2YmYxMmEzNDM3ZWYyYTc0NWVmZjM3M2JhMzQxZGNlNzYxODQzYWVmNTMzNTFkNDhjYzllZjc4ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhNDFmZmQ3OGUxYWQ1NjVhYjM1Yjc2MmIzZGRkYTAwMWIyZmRkZDU0OTRkYmM0N2Y1Mzc3MDhmOTgzZDkxM2UifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L99-L104",
+          "version": "repo-lines-v1:sha256:8598140282411568c10222fafc962a29cccc212ccf8a35ab635c0aebab8ff888:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzhjYzJkYzZmYmQ5NmYxMGM5ZWMwMDBhMWI1ZjdkZTQyNTFmOWJlNWM1ZTg4NWViOTQ4OWRmNzgwM2FhZjdkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGQxMDJhMTVlMmM1OTE3OGMxODNkNGE3NDRkZWEyYTU1MjBkMDY4NDI1MWQxNzJjMmNlMTJmZWIzZGE2NTExMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzdiN2YzZmY5NzNjZjQ0MDNmN2FmYTAzNWI5NTFjN2I4ZjJjZmU3ZTAwMWEyZmNkZTY2NjQzNmEyNmZmMzk5YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDY2NGYzYzI1YzI5NWJlMTZmN2FkMWEyODBhOTlkZGNhYmM2YzA4OThhNGZlNDdjZmNmY2JmM2QwNGM2MjhmMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1fbee63243824d99bbd0caa5032d4624",
+      "statement": "Python services log structured JSON via setup_logging(service, log_file): JsonFormatter emits ts/level/service/msg, merges contextvars-bound fields (workflowId, taskId, runId, projectId, actor), current-span traceId/spanId and the per-record extra={\"fields\": {...}} dicts used across services (e.g. orchestrator audit and dead-event entries), and formats exceptions as error; Java uses the same field names as SLF4J MDC keys (MdcKeys).",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/MdcKeys.java",
+          "version": "repo-file-v1:sha256:d391a7a7feffe91e99b0dc4b8751101cb27916b6eb7266924c0cebe4a5319765"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/telemetry.py#L17-L60",
+          "version": "repo-lines-v1:sha256:0ee620154f872fb706c23c588bb3ef9dd1a1dec50f472cc5d45134c75dd996e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyOWU1MjcyMDQxZWQ0MGNkNTJhMzRkNDAxZmU5MzZkODk3Yjg3NmMyZWQ1ZjMyYTAwNDE5MTZlM2Q5NGM1NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYzBiYTA5MzUxNTIyMzE4MzFiMjJhYWQwNDI1NDVlOGYzNGZkNGE5YTQzNDM4OTA2ZTFhYThiODBhMTRhNzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNjU0M2U1YjgyOTRkYjdkNDRkNTM5ZDdjOTc0ZTU1YmM4Y2E0ZmYzODgzMTEwZDAyMDIxMTk3YWY1MWY0YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxZTg4ODVlM2IxOTdhMDMxMjRhNTIxOTYyN2ZkY2FkMGJlNjU1MDIzYmM3MjdhM2Y1ZTQ3MzA1NjRjZDk3OTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_80afb31c558848cda64adb52e2fb5c6a",
+      "statement": "When SANDMAN_LOG_FILE is set, setup_logging adds a rotating JSONL file sink (50 MB, 5 backups, parent dirs created) alongside stdout; compose services mount ../data/logs at /logs so the sink lands in the repository's data/logs directory.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L126-L128",
+          "version": "repo-lines-v1:sha256:358aa3d71f6cef05c5f5d59e20c16671266b5299bffa348e7e7e5893574bbd5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEzZjRkOTY2MWU5ZDJjM2UxYTI4OWU1ODMyMjk5YmVhMTRjZGI2NGJmODg2NjFkZjcxN2IxMmZhMDJkMDExZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI4OGI2NTg2NTA4OTQ4OWRhOWViNDk1ZjhiNWU4MmRhMmE3OWJiNjVlMWJjMzQxZjUxZDlhZTAzODE5ZDQzNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODg5MDZlNmU4MmM1MjZiMWZjMGExMWM3MWFmYWZmNWI2MTA5YmIxOTQzZTE1OWQ3MTk4NTk4ZDdlMDdmOTZlYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWEzMGQxZmIzNWI4NjhjZDgyOWZlYjc0YjI0Y2FiMGI4YTc1YzA5NjJmNjJlN2RkNDAzZDZlZjM1ZjY0ZDRhOSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L19-L19",
+          "version": "repo-lines-v1:sha256:b04b753164d3c852902783f3ce636c95c674a3eaf230175b4264fc91d7680739:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA0Yjc1MzE2NGQzYzg1MjkwMjc4M2YzY2U2MzZjOTVjNjc0YTNlYWYyMzAxNzViNDI2NGZjOTFkNzY4MDczOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA0Yjc1MzE2NGQzYzg1MjkwMjc4M2YzY2U2MzZjOTVjNjc0YTNlYWYyMzAxNzViNDI2NGZjOTFkNzY4MDczOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTZhNmM4ZTk3NTg5NWU4NjI2OTY3ZTM1ZWNmOGRlN2VlOGQzNzE1ZTZmZmQ5ZTczNTg3YWZiY2ZiYTYyY2FhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmVlZWY4OTRlZTA5NGJlMTY4NTY5NWQ2YTAyODQ2Mzc0NWNhNTUwNjZkYTdjM2Q1YWUxNjE5ODdmMzBmODg4MCJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/telemetry.py#L52-L57",
+          "version": "repo-lines-v1:sha256:78595ce8874448a100ee0b1f35cd003a59c6612560f5de194c7e7411f2d0a30d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTA5ZmY1YWE1YzRjMTNhMWUzZjBlZGFlNTkyMjc3NzQwNDFkZDhhOWUyOTk3MDkxOTlmNjk1NTRmNWNjZDQ3ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM2ZjdmNTVhNWRhYWE4ODVkYzk0OGJhNGQzNDcyMmRjMjNiNjM2ZmZlZTNjZjY5NDVlYzcyYWI3NTY2ODIyYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2VkY2MxYjhkMzUwNWZlNDA3MTA4YTIzZDc1YzU2OTE0MjQyZGI1ZDFhNmEwZWU1MzEzYjI5Y2FjN2YxMTUzOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGMyMzY1YWZhN2I3NTA2NDE0YWRhMTcyMzY0ZDY4ZmY2YjBjNjQzMGQzODAxNzFkMmY1ODVmNWFlZTYzYmY4NCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d00e3189b2a741548f47c991faccb950",
+      "statement": "OpenTelemetry is opt-in: setup_logging installs the OTel SDK (TracerProvider with service.name, BatchSpanProcessor, OTLP exporter) only when OTEL_SDK_DISABLED=false (compose default true), exporting to OTEL_EXPORTER_OTLP_ENDPOINT such as http://otel-lgtm:4318 under compose profile obs (grafana/otel-lgtm:0.35.0), whose Grafana is published via edge-proxy on 127.0.0.1:3001.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L20-L21",
+          "version": "repo-lines-v1:sha256:91db344161ba88e011aafd1948615c81a621eb4186bc3ca16f85cc4e0486ee1d:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc4ZGE1MTc4YTdlZWQ5MzBhYjExNzhkYTQyNjc3ZTJhMWI3YzkwYmU1MDU0MzE4YmRiNTQzMWIzMjBjYzBjMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU5ZGE0NTg0ZTEwMDQxZWQ0MTI0Mzk4YjVmMDM1Njc3ZDc1NGEyYTY1NDIxYmYzMjEzZjI0OWEyMGMxNDA3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjAwNzI1ZWM3MTJlYjdmNTdmZWEzOWYxMGVkMGNhZTBkOWM5YTg4ZmJhMjFmNjA5NDNlNTdjOTA0MDRkZTlhZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzcyYThiOGNkN2RmNTkxNTMwMmFhMzEwYTc1YTdiM2ZjN2E3YTU2MmQxZGM1MGFmZDhlODQzNDc5MGRkODViMSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L310-L317",
+          "version": "repo-lines-v1:sha256:c8e5060a7872a2b850286527eabbee3d4059d37bbb6ae4d4cd5fbb03d2e23004:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE1ZjdlOWJlNWY0OWI2ZTUwNTc1MDhiZTI3OTdiNDg3N2Y2ODk2NzIwMzRhYjc2MzI2MjE2NWI1MzEwOGVlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDk0MTVhNGIxMTg3NzA0YjIwOTJkZmMwOTE1YWIyOTRmMWI5ZDk2YjQyYzcwN2QwNDRkMTNlZDlhNjZhYTE0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjQ5MTk3OWVhNjljNjdiOGQzN2RhZWJlM2ZlMGJlOWIyMTg5MzM3MjkzYTVhMDE0MjkwNDcwYTMzZDhjY2RjNSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/telemetry.py#L61-L74",
+          "version": "repo-lines-v1:sha256:24842a9b5bb2352012357adae339d82b6bd6ce50d07b7505c684fe12de01ce20:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1Mzk5YWNhNWY5OWQ4YmY2ZjIxZDI2ODA3NDQ2MmJlZmU3YjI0NmY4NGNhZGFjMzcyZDhlMDE3ODA2YTgyMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4Y2EyY2FiY2ZmYTg0YTMxMTkxNWViMDc1MjM1ODJhNjYyMDRiOWNjMmFkZjJlOTdmYzE5ZjMxMDNhYjM5ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjMjM2NWFmYTdiNzUwNjQxNGFkYTE3MjM2NGQ2OGZmNmIwYzY0MzBkMzgwMTcxZDJmNTg1ZjVhZWU2M2JmODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwMTI0M2RkYTA3YjFjYmJlNzc4YjhjZWRmYWJkOGM5NGUyZGI1MjNiNWMyOTk3MGNjYWE2Y2RiYzAzNGFlOTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b9e4ca236d484d32b4119d296d4a1ff2",
+      "statement": "telemetry.trace_headers() injects the W3C traceparent of the current span (empty without an active span); it is propagated as extra_headers on every LLM chat/embedding call and stored in the traceparent field of the CloudEvents envelope (alongside correlationid/causationid) so event consumers can resume the trace.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Event.java",
+          "version": "repo-file-v1:sha256:99e4b0d78f0be35ecb319448604c0e22af920af3a6619833996d957d330ec06b"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L99-L122",
+          "version": "repo-lines-v1:sha256:8e11c6d63eab94f15860ba70e549bd2155244c497960e7d9e7b506ecd3896e0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4MTVjM2U4OTE1MjQzNTU3YzBkNzE4NGVlMTNmNDZkZjg5YTQ1Y2ZiNWMyMmFlOWI3YjgxYzlmY2U0ODNkODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwM2U5ZmYyMmRiY2RjNzc5MGQwYWMyMjc2NmQxZWRhMDU1MTUyZjZiYjY2MzI3ZGUxMjM1ZTM5ODViYjg2OWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlMTAyYTE5YmE2NTQwZmFhMjNhMTQ4NTZkYmM0MTMyZTQ5MjFkYjA4OWM1NjA5NThjZGQ2ZDlkYTAwZjkyODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMDZjMTA3MDIyZTMwNjEwYWMxNDllYjdkMTEzN2QwMWQ3ZjQ4OGRjNGE2YjFiMjNiZGMwNDk5OTJiODEyZjUifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/llm.py#L103-L110",
+          "version": "repo-lines-v1:sha256:57bb4f797708da40db5850609d2a2fa66c1aa717fd7647578889e5f921cfa4d1:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzRiZDIzZGRjYmFlNDBjOGJlOWMxZWI3ZDgzMzIzMjgyMzIzNzBmM2U2YjZlZGI0MWZkNWJmNDEyMWQ3ZDVmOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDY0MThhNjYzZWUwMGM1YTAxYzFiZjg3M2U3NWU1OTM4Yzc0ZGUyNmZiODc5ODE5NTYzNDlmYjNhNDkyMzg0NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2I3M2I2NmIzY2U3ZWRjY2ZlZjM4MmU5NmJlZjIzMTI2NmRlMTJmNDVkMTE2MzA3NTg1M2UzMDg5ZGE1YzIyOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6f9a4b91d7f4487984867684c9f475d0",
+      "statement": "The admin dashboard (ADR-0016: separate service, admins only, vendored Cytoscape.js/uPlot/htmx, cAdvisor via optional profile resources) is wired in docker-compose.yml under the dashboard compose profile with SANDMAN_TARGETS listing every service's /v1/status URL, own admin login and SQLite history (30 s samples, 14-day retention), published by edge-proxy on 127.0.0.1:8090 and depending only on Memgraph and NATS so it shows downed agents - but its image is not yet in this repository and arrives in M1 (T1.9).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0016-system-overview-dashboard.md#L28-L40",
+          "version": "repo-lines-v1:sha256:bc7ddb05dec168acf814f2074e7ad8bda13ff38dfc7b92dbc64a4a8ae0c8f443:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhN2YzNTBmYTE0N2ZjMGExZjkzYzI5ZDc2MWFjNmZlZDRhNzM3NzA1N2I2NTY5NDUxNjY0N2MyYWM5YWNmZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiMGEwNDgxOTUxZjhkYjIwNzRiYTY3NWZjNTM5NzUzMzZjZjljNDg2MmM5MTcxNTNlYjAzYzBlNzUzOWMwNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxYTEyYzhjMjE0YjU5MTdlZGIyYzRkYTZmYjlmNmZlZmZmYzQ1YzE1NDU5MWYyZTk5NWI4MzlkZDU0NWI3ZjIifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L238-L268",
+          "version": "repo-lines-v1:sha256:461639d742eed4543c5e047ed58113d4b19349e3c73bc947e81807ca4c83a34f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYWI4NmE2NTIwMDRkYjJmODVjMjFiMTI4ZWFkOGEzZDc0YWYxMGQ4MmVjMDIzODc0ZTQ1OTAyMmEwYzZlNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ODU0ODI1MTEwNWFhZTE4YmU4ZGZiYjg2MTA2ZmQ4YTljNTgxZGI0MzI1MmE4MThjZDY1YjEzYjk1MjhjZGQifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L270-L279",
+          "version": "repo-lines-v1:sha256:4dc2324f1f4a7bfb9a69d3d2611935f4afedb629572b18fdfa84125987a96063:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzI0NDBmNGM0MmM1YzAyNjlhMzQ1OWNmZGZkNjFjZGNlZGYwMDkzYTg1Mzk3OTM5MWU4NTNiOTM1ZjM3MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyOTk1NzkxNTI0YTg4YmM1NWFjYmExZGFiNWI2Mjg3NTNjOTVhNjY4MzA3YzBiMjhjNmJmOGY5NjcxN2ZlYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkYTAyYzE3ZTg0OTQ4Y2Y3YmNkOWJjYTMwYzM3M2I2ZjU2YjlmN2MyOWNmZWU0ZmM0YjBlMjE3MGIyMDQ1ZGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ac1300bc30514099bfa3fa0827994c1e",
+      "statement": "Compose healthchecks drive readiness from the same endpoints: Python services poll http://127.0.0.1:8000/readyz (py-health anchor) and Java services curl http://127.0.0.1:8080/readyz with a longer start_period; depends_on service_healthy conditions chain startup.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L109-L114",
+          "version": "repo-lines-v1:sha256:da9aa10a8eb14849f7fa566f5f8aae5af09487be24dd845db81f0a6be1cd9593:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWU2NDIxZjMzZGU1NjIxYzk3NGYzYjlkOGE0ZjdjMGViZDBkYzlmOTYwZTdmOWU3MmRiMGI1MDI3NWU5OGZlZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjk1N2Q2NGNiMDRiZjc1ZWI5YTlkN2E4ZjY4YTAyZTE4NTczMDlhMmRlYzhhNmFlNmVhMDRmNWFjYWEyZGI2MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTU5MGFkNGIyNGMyN2I0YTBkZmFkYTUwYmQxOGE4MTdjYzNmYWYwMWZiM2YxYTQ1MjlkMzI5MDExYjIxOTU4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGI2NjdjYjY2Nzc2MmVjOTJmZWQ1OTIzOWEyNzUwZDFjZjRkODljYTI0NGU3NGUwM2E4MGNlOTQ1MDI0ZjIyYyJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L155-L161",
+          "version": "repo-lines-v1:sha256:6d94c65b294dfa15423c440f765c14f1b7531b5f482c8a47c457332545e04791:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDIyYmNkMDA2MDM2MTQ1MWJkNjVlYzBhZmU1MGQ1YzMzYmVmNWUxNzk0YmZjYjU1MWY2MzAxZDJkZGE0YWQ3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTUzMWUyNjAzOThhZDYxMDkxNGRmYzI4ZjA0OGQzOTI2NGJhN2Q1MDMyNzhkZDJmOGJiMWM0YzE0YjQ5OWQ5OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDkyYjdhODNkZDRmZmY5Zjg1YTZhNzA1OGQzNTU0NTI2M2RiZDVkZTQyMDA4YjMyZjU5NjI2MmY0OGQ2ZjFiZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGNiNmIzZGQwYjQ5NjNmNDJiODA0YzI2N2M3MDM1NDRmYjliMzk1ZmYxNWE3Y2ExYjA2MzMwMTA1Y2Q5NDNkZiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

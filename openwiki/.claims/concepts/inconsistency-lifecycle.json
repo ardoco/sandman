@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:4ee241a31c586defb41a1607fee7e40200785ec2da4f1f4e96f3eafd51a6f47a",
+  "claims": [
+    {
+      "id": "claim_1a08515ad1bb4e8f8fe7b3650ce868b4",
+      "statement": "The inconsistency lifecycle has exactly six states OPEN, DEFERRED, ACCEPTED, REJECTED, RESOLVED, REOPENED, defined canonically by the pure Lifecycle class in the inconsistency-agent.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L27-L30",
+          "version": "repo-lines-v1:sha256:8c1b86a227e12ce68cded93a321422380c630c7d207342009fd299223488e14d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTM1Njc3ZDA1NWIwM2NjYmU2ZmZlNGExOWIwNjIxZTY1ZGE4OGNhZDkyZWFiM2FiMWE5OWY4MTE3OWIyMTY1OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmY1ZTcwZGUzM2ZhOTY2ZTVhZTE0ZDFlYmFmYjJjMzNmNWUzY2JjZDM3ZDdmMDQ5Mzc1YTAzZTMxYmRlNmFiZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA3YmFmODVhMDBlZjg3NzRlNDc0NzkxMDA4OWRiZDIxZTI5YjQ4MmQyNGQ5ZTA4YmM3OWRiNjY1MmMwYWY2YiJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Lifecycle.java#L16-L23",
+          "version": "repo-lines-v1:sha256:83e8a48bfc09c653fccc8132f9814e261985747968cb6efb29ed9eea06d4b755:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzY5Mjk4M2MxM2M4ZDczYmQ1ZGI0ZGI3MWJhZjU2ZmI5YzZlNGM0MjM2N2YyMGM0ZTM1MzljNzlmZGYwMTM1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWVhODc0YTJiNmEzMjcwNThhYWExN2ZiZTU0MTU5ZWQzOTFjNDU4YmYwZjhmYjM4YTgzYjQ5OTM3ZjU0OTMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjc2NzI3OWI1ZTE5MGE2NjMxOGQ0YTc5OWRlM2Q2ODc0ODZlZjgxNGZlNzFlMTdjZDZkMjgxNjY2OWQzNDE0MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_81799431aa0e42739ce6bd30a32bc843",
+      "statement": "User transitions allow OPEN/REOPENED to DEFERRED/ACCEPTED/REJECTED/RESOLVED, DEFERRED to OPEN/ACCEPTED/REJECTED/RESOLVED, and ACCEPTED/REJECTED back to OPEN only; RESOLVED has no user exit, and the query-service mirrors this exact table as USER_TRANSITIONS.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Lifecycle.java#L28-L35",
+          "version": "repo-lines-v1:sha256:c4966dfa6d47511d95b43a48629f75109b80a0b3537afbab797b5d48aa927e00:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTQ2NjA3ZTM5OTdiZTkxZTBiNTA0ZTAwMjlkNTQ0NGRhNTYyYTU4NDVlMjU4ZDcxNzkxOGY5ZDljNmUyYmEzZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzc4MjY1MzFjY2M5MjQ4ODZlZTBlYzU5OGI2MWYxNmI1NDg4YmM0MmI4MDc5OWJmMzg1YjZhYTVjZGVkMDRkYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTU3NmU1OThhY2NkYWQyZWRiM2M0NmZlZDJmYzNiYzVhYzBjMTZkNDg1MTAyNTI1N2FmYzYyNzY4NThkOGM3OSJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L25-L32",
+          "version": "repo-lines-v1:sha256:253de077ac732a358b64b9190a0d6bab937ddf22f0bb9f9e4ba73a962e847075:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBjMDQ1ZDE4YzQxZTA2NjY4M2E4NDY4YTkxM2ZkZjgzNmQ0N2E0ZDk5ZWRiOTg1NDJhODY2ODJmNWVlMTIxMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMThiNThlNGEzNjZjZWM2OGU3YTkyOTAzZTA4MGY2YTIwOTU2MDJiNzJmOTUwYzAxNjM3YmQ5OTUxMmQ5MGZkNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWQ4ZTFiZGY4ODQyYWE5YTQwOGMyMTZhMzQ1ODFmNWU2YzMxZDk2NTkyNzI2Y2JiNGJlZGQyYmM2ZWEzMTQ1ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjI3YmM5MDliMDM0ZjAyZjk5ZDI0YjNkY2QzZmM3YzA5OTdhYjA3OTJmY2FmZTE3NWYzZTEzNWE4MmNiYzYwMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_27af567efaae4d48a8af48012b7853e3",
+      "statement": "A reason is required for user transitions to ACCEPTED, REJECTED and DEFERRED; blank reasons are rejected with HTTP 422 by TriageService.transition.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Lifecycle.java#L54-L56",
+          "version": "repo-lines-v1:sha256:286f1a43f6890781373c98917d3f4a55d750ca5119f59daa115d9d73cc707af3:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDNlMTNlZDNkNGIxZTU3MDJhMWZhZmRiNTAwZWIwOTc4MjA2ZmEwOWJiMTI4ZGMyMTkyOTc4ODFkZWQwOTRjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmViOTdmY2I2NjI2MDI5MDI0YWU4N2YyYjViYjI5YzQ5MTI4NTM0ZmJkYjFmZTAwYWMzNzljZmQ0Y2EwYzY4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTU4NTE2ZDE5M2QwYzdkN2UwYWIwM2ZjNzk1ZWI2ODM5NTYzNzY3N2FmZmNjMzY5N2U4ZTY2YzEzMGIwNDEzMyJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/TriageService.java#L192-L197",
+          "version": "repo-lines-v1:sha256:786392b0146c0ac4e35027b85a4cac9faf13653398ce841b6e03204b48cbcfe7:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTU3MTFiZmJkYzNhMzZlYjExNjc4ZjcxZjJkMDM4M2ZjMWRhYmU0NWNkYTI5YmY0MTc4NDE0Y2ZhY2Y4MjEyMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzUzMmUwOWU4ODFlYTBkODlmNWY0YzYzNzE1ZWMxN2U1MGVhNzg2OGFmNzMyZGNhMzQxNDc3NmFlMGQ2MjdjYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDIxNDdmYWFmZTFjYTdhN2EwMGQ1YTJmMzlkNjc0NmI1OTdlMDUwNTk2YWViOWU5ZTkyMDU0MjVhODIwZTMyMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_70a17303119a4f72a9efe6859ed80b2e",
+      "statement": "User transitions use optimistic concurrency: the caller passes expectedStatus, the guarded Cypher only matches WHERE i.status = $expected, and a concurrent change yields HTTP 409 while a forbidden transition yields HTTP 422.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/TriageService.java#L187-L208",
+          "version": "repo-lines-v1:sha256:00508adf601f35ba4adf9f77e463d12220085592c163479f8d33ecb8306e6b6e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2NjA3ZjVlYTA5NWYyYWEyYzRjMjcwMGYxNTBjY2M3NGE1NjJmOWE2ZjM5Y2FjMzRiNjFlNGE4MDFhOTlkN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5MzFkYmViZWE2YTE2YjY3OGY5MGIwOGZjN2FmZmM3Y2QzODYwYmMyZGZiMGQyZTVjYzgyYmRiNzg1ZjFiY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3YWEyM2M5NWI1MmNmYTY0MmM0MmNjYzA4ZTE2YzEyOTg2Y2QxNzA3YTVmMWRlNGI0ZmQyZWY1NTNjNTlhMjMifQ"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/TriageService.java#L54-L63",
+          "version": "repo-lines-v1:sha256:607fb5a1a19e254a7821158acb5f80aa015c4afd603795f7abbf4831fff033a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0YWI5Y2RhOGYxMjVjYmU0ODI1Yzk0YzdkZDdjNWI1OGVlNWY0NmNjZTBhMDM4NTUwZmYzOThhNjhjOWQyZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NmUyNmE2YjhmZDdhNzgzMjE3ODFlNmZmZDFjMThkNTRmOWIwODgzNWU4ZjE3NjMxZDhiMDZjYmQ1MDdlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZTM2M2IyZWYzODY4ODE5ZmJjNWU5MjNiMTA1ZDE1ZWNkNWQ3ZDU0YmIzY2FhN2MzYjdlN2IyYmYzYTAyMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2ODVjNTg2MzI1OTVjMWI5YTNjZTk3Yzk3NmFlZjg0ZTdlMmYxNTcyZjAxZDM2YzVkMGZkOTQzN2I0ODE2YjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1d0cc07e7ad24f1f971ed6cccba11a8f",
+      "statement": "A user transition to RESOLVED sets verification=pending (an unverified claim), and a transition to ACCEPTED or REJECTED snapshots the current evidenceHash into acceptedEvidenceHash.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/TriageService.java#L54-L63",
+          "version": "repo-lines-v1:sha256:607fb5a1a19e254a7821158acb5f80aa015c4afd603795f7abbf4831fff033a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0YWI5Y2RhOGYxMjVjYmU0ODI1Yzk0YzdkZDdjNWI1OGVlNWY0NmNjZTBhMDM4NTUwZmYzOThhNjhjOWQyZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NmUyNmE2YjhmZDdhNzgzMjE3ODFlNmZmZDFjMThkNTRmOWIwODgzNWU4ZjE3NjMxZDhiMDZjYmQ1MDdlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZTM2M2IyZWYzODY4ODE5ZmJjNWU5MjNiMTA1ZDE1ZWNkNWQ3ZDU0YmIzY2FhN2MzYjdlN2IyYmYzYTAyMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2ODVjNTg2MzI1OTVjMWI5YTNjZTk3Yzk3NmFlZjg0ZTdlMmYxNTcyZjAxZDM2YzVkMGZkOTQzN2I0ODE2YjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c9c953804d64893b02bbd6877ad2b13",
+      "statement": "After a detection run with scope S: re-detected RESOLVED items are REOPENED; re-detected ACCEPTED/REJECTED items are REOPENED only if the new evidenceHash differs from acceptedEvidenceHash, otherwise only lastRunId/detectorVersion are touched; re-detected OPEN/REOPENED/DEFERRED items are refreshed in place.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L29-L29",
+          "version": "repo-lines-v1:sha256:2cfc8eff12ee7bde3942b367aef898a670b0e6dd763ab19bffb12b1f40800457:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNmYzhlZmYxMmVlN2JkZTM5NDJiMzY3YWVmODk4YTY3MGIwZTZkZDc2M2FiMTliZmZiMTJiMWY0MDgwMDQ1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNmYzhlZmYxMmVlN2JkZTM5NDJiMzY3YWVmODk4YTY3MGIwZTZkZDc2M2FiMTliZmZiMTJiMWY0MDgwMDQ1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjdhMWIzOGIyY2NhZTk4NGE2MWYxM2E1ZTk5MjAzNDdkNGFhNTU4ZjliN2YxMjZmMWY1M2I5MGY3YmFlNWZiYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDhlMzhmYzk4YWZlOThjYjFmYWE3MjNlYzZjNTQ3ZjRlZmZkMjdjM2UwZWNjODBiOWM1YjMwNWY5MDI4MjZhMCJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L294-L306",
+          "version": "repo-lines-v1:sha256:1c9e9456cbb70b82a3f03970f8f6d4ed283ae2e7e1d8c5fd0737710bb75d1d25:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyNzZjMzQyNjM3Mjk0NTM1MmZmZGY1ZmE4NTc5YTA0ZDk0NTAyZGRjNzM3NWU3MThjZWEwYjQ2OTQ0NDRjMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwODZiMjEyNmNiNDViY2U2ODI3ZGVhZjcyNjdhYzQwZDJiOTg4ZTFiMTdjYjU1Y2MwZmY3ZmI5YjQ0ZDgzYmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyY2ZlYzVkMGIyZmMzNTc5Y2ZhMDQxN2QwZjM5YmMxZTcyZTMwYzFiMzNiNTZjZDUwM2UxMDEyZWQ3NzMwMzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9ce2d2a74b914ae9a4ec4ccd212ccf0b",
+      "statement": "An item that is not re-detected, is fully inside the run's scope (every artifact of its involved keys in scopeArtifactIds; absent scope means whole project), and whose detector completed in the run is auto-resolved to RESOLVED with verification=confirmed and reason not-redetected; failed or unselected detectors never auto-resolve their items.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L83-L85",
+          "version": "repo-lines-v1:sha256:4f4d18e0f6f778eb0c994b9270fa1fa1a71b5ed52a7ff5ac6f08dbc9cf95c699:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWU4YjgxNThhMGVjZjIwNjViMTU4MmY0MDk4OTM0ODY4NTlhN2IwOWJhYmE3ZmY5MWE5ZjIyNWQxZTQzNTEyOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzRmZTM1YWJiMGYxZjg5MDJhMWU1MjFiYzMzNzE4ZjY1ZmI2YzZiNmQzZmQ2NjljMjU5N2QxMmRhNmEyODEwNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDliOTQ5NDU5NThmNTRlNmQyM2NhYTUyNjZiZGM2ZjcyNTgyMGY4NGMyM2RjYzMwM2Y1Yjk3YjQ2NTk5ZTgyYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGZiNDYyM2M4MjNiNDYzOGI1OGUyZmQxYzI5YjNjYThkMzcyOGM5MzQ1OTYyZWRmNzMyMTA3OTgxMzQzMTRkYiJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L308-L316",
+          "version": "repo-lines-v1:sha256:fad9325aac692a57180c762cd0673279b9fa23a72c93a9eab2fbb8146b7a9e9d:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZjNjdmYTI0ZGMzYTBlOGRmNmQzNzU5NWM1OWY3ZmFkYWQwNWFlNjAxYzI2MDhiMTNjNjQ2NTY2MzI3YzJiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmNlOGQxMzdmYTQ0YWM2NjQ4YjNhNGE2ZjU2ZjUwYmFiYTY3NzM0MTQ1ZDA0NzRhNGU1NTU2OTdmZDI2YmVjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDY3OThjYjliNTNiM2U1ZjQ4NDAxNTNlY2E0ZWE2Yzg2NjA0YmI2M2Q4ZGYwNjUyYjhjMDZlMTkyYWE0MWY4NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b80ff5e3abf84af3b9a44f07b2a8851d",
+      "statement": "Every detection run resolves auto-resolvable items that involve an artifact without a current version (reason artifact-deleted, verification=confirmed), independent of scope and detectors; a later re-detection reopens them.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L86-L86",
+          "version": "repo-lines-v1:sha256:e091c567932671d2a0404a663f9298c0a922821fb8f514b195cc9092e7f48d21:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA5MWM1Njc5MzI2NzFkMmEwNDA0YTY2M2Y5Mjk4YzBhOTIyODIxZmI4ZjUxNGIxOTVjYzkwOTJlN2Y0OGQyMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA5MWM1Njc5MzI2NzFkMmEwNDA0YTY2M2Y5Mjk4YzBhOTIyODIxZmI4ZjUxNGIxOTVjYzkwOTJlN2Y0OGQyMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGY0ZDE4ZTBmNmY3NzhlYjBjOTk0YjkyNzBmYTFmYTFhNzFiNWVkNTJhN2ZmNWFjNmYwOGRiYzljZjk1YzY5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGM0NjAwOWJkMmQ2ZGY1NDRjMzNmYWY2ZWM4MWJmMzAxNzJiZmJiZGJhMzAyN2JjNTZiMDU3ODVlYzI0OWNmYSJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L286-L293",
+          "version": "repo-lines-v1:sha256:6b06ae395c9988ac8e7004ef149d9c6a7d095c49edddee3cf45d2a6850357557:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTJiZGJlYzM5MDk5NThiMzMzMTEyYzc1YzJhZGQ2ZTFmZGZlZTIzMjI1NGMyYWQwMjEyN2Q3ZjNmNDJiM2RiMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDJjM2U1NjU4YmNjZTI5NmI1NjA0ZjEzYWY0NmNmYjJiN2Y0ODQwMzlkMThhYWIzN2I5YzE2OTljZTM2OTI3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODE0ZTlhMWFhZDJiMGViYzM5NDhkMDFiZmEzM2FkYWIwMjRjNjQ3YTdjODNhY2JjMWRkODEyZDJjMGVlZjQ1ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4924c580fa094a8cb07b5631af31963e",
+      "statement": "Only OPEN, REOPENED, DEFERRED and RESOLVED-with-verification-pending items are auto-resolvable by non-detection causes; ACCEPTED, REJECTED and confirmed RESOLVED are never changed by them.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/Lifecycle.java#L58-L64",
+          "version": "repo-lines-v1:sha256:c822173e92040687d52d8ec6b2350204defb0ad7480a5464c6414af34a537dcd:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjQ0NTVjODdlYjZlNTFlYWZiZjAyOWVjNjgwZTU4MDIyNjA4N2Y2ZTBmMGRmMjJiM2UxNTc1MDNkYTc5MDFiZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODgzOGQwNzg2ODBmZjljZTJmYzA5OWJiNzFmNjM5Mzk1MDljMDQ0OWU1NGExOTljZmJhMzQ2ZmQyZTY4ZTRmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e8e8598fffb45179ae466ea438adb73",
+      "statement": "System transitions are conditional on the pre-detector snapshot status: each write guards WHERE i.status = x.observed (and verification for resolution), so a concurrent user transition wins and the system write is skipped.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L87-L87",
+          "version": "repo-lines-v1:sha256:0c46009bd2d6df544c33faf6ec81bf30172bfbbdba3027bc56b05785ec249cfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM0NjAwOWJkMmQ2ZGY1NDRjMzNmYWY2ZWM4MWJmMzAxNzJiZmJiZGJhMzAyN2JjNTZiMDU3ODVlYzI0OWNmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM0NjAwOWJkMmQ2ZGY1NDRjMzNmYWY2ZWM4MWJmMzAxNzJiZmJiZGJhMzAyN2JjNTZiMDU3ODVlYzI0OWNmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTQ2ODg5OGQxM2FjODEzM2EyZTZkNTgyMmM1NDVmNDgxNWJjYTRhNjE5OTBjOGUzMmY4Yzg5MThkNjU3ZWMyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L94-L95",
+          "version": "repo-lines-v1:sha256:6fd34cf7c8c704a25cd52bb427f6c20977b63f6d844a6f35ff3cc99e6f2d7eac:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWE1NGFmMjNhZDJlY2U3NjBkNzNhNTkxMjMzNjZkNzYyNGMwY2ZjODBiOGJkNGU2MzhlZjhhMzFlZjIyYTA0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjJhZTQwZjgzYzBjOWQyZDc5YmVjODU0Y2Y1ZmI4NDZjZDI0YzJmNzdlMDRmNzdmMTRjYmQ2MzYyMDU1N2VkNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmFhMzAwYTY5NDJmMjFhNDE2MzQzNWNiNzVmNzQxZmE0YzI3NjA5ZGE3OTk4MzRhN2JkOTgwZTAwY2IwOTFmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmMyNTdlM2YwYjRlYjRkY2E5ZDhjNjQ4YmViYmFhYmMyMTVkNWI3ZjI4ZDQyZjg3OThhZGZiYjg1MTY2NTI0NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_659261a8aee94d648deecf27f7b5b869",
+      "statement": "A failing detector does not fail the detection run: its entry in detectorRuns is marked failed and the run completes as partial, but its item types are never auto-resolved.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L111-L115",
+          "version": "repo-lines-v1:sha256:3d8ac388f90b00c4af61667d406e6453ece16be75521e7683ec5e14c3f9fc24c:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTU4OWUyNTYyNjJlODA5ZGUzZjE1YTAzY2EyMTA0ODUwNjkzMWI1ZGQ5N2FhZmExYTY4NmEzZDY1MGUyMjUzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUxM2EyMTI5NTMxNWU2YjYwMzcwZTcyYTcxMWQyMDI1Y2I1NzViN2JkOTExZjg4M2E0NWI0MGQ2MjFjMWNiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmQ5YTU1Y2JmZjkzNjkwZTY4ZmNkOTE1NjUxMzI2MTQxOWRjOGQyNDdiM2Q3NDVmOTczMDA1NTFmYjUxOTg3NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTIxNjczMzYxYTQ4ZmEwYjkwZjNiYjI0MTQ1OGI5YmJmODMyMWRmZmJhNzk5ZjFmNTY0MmUyMDU0YTM1MTc3NCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1975db5516684331833f04142e7b7834",
+      "statement": "The fingerprint is sha256 over the finding type, the detector id without version, and the involved keys sorted byte-wise by UTF-8 and joined by U+001F; a key is an element key or sourceKey->targetKey for a trace link; the inconsistency id is the stableId over projectId and this fingerprint, so matching survives new artifact versions and detector upgrades but breaks on element renames.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L81-L82",
+          "version": "repo-lines-v1:sha256:4f107de711335ee00b99262ca5bc4bfcc3ad9852e42967dbaf0d25e2badd8529:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjYxYzc4NWY3Mzk5ZWEwNzA0YzFkZWRhNDFlMDNkZTZmMzgwMDcxMDk1M2RlY2FmMDE0ZTFmZDA5OTk5NjRlNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ3ZWFjYWQ3NjcxMDkzOWVhZTg0ODljNmMyMTBkNzhiMmZmMGQxMjNjZGMzMjY3Zjk1YjQ0MjQ5YTM5ODUxMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGY0ZDE4ZTBmNmY3NzhlYjBjOTk0YjkyNzBmYTFmYTFhNzFiNWVkNTJhN2ZmNWFjNmYwOGRiYzljZjk1YzY5OSJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Ids.java#L75-L80",
+          "version": "repo-lines-v1:sha256:5df4ac0fb4558ac2f870cd210a772afb4f58a2b68fb4f18f7a38be97d5176b98:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTY0ZDg5MjZkNmQ3NDk2YWFhOGUxYTBmMWY4ZGIyYWJkNDBlZWRlYWZmZWMzYjg2NDJlM2YzOTlkZDY4NzI5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmIyMTc3MGM1NjllMGE3YmU5ZGFmOTI2NjE1NzIxMjU3ODRjYzhlYTY3NDI0MmU4ZmNiMjdkMDRlM2FjMDY5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWRlYWRmNmRiZDU5ZGJlYjVlZjg4YjE5ZjQwYmE5OWIwMzYzZDRhZTM1Zjg1MWIyYWVhYzAxNjYyMjU1NWZiNCJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L226-L255",
+          "version": "repo-lines-v1:sha256:7de42f7583d48aabd3d91c821bf5a8c6af59a0b0e4ef90849a53683f462954f2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzZTVhZjcxMzRiNDIwOWQ2MmI4NjljNzFiM2ZlYzA0ODA3ODRmMTM3MjBmOGJmNDk4MzkyZGI5ZTBkM2NmOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYzI2ZDZlNDYwNTI1MjgxMDBhYzk5ZWJmYTc2ZWNlOWEyZGEyOWRhMjhiNzA0NWI2MzVhOTgyN2M3N2ExNGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2Nzk1NzUwMDlkODM2YTQ5OGRkYTY2MTBkYmE0ZTRlMGMxMzAyYjI0ZGZlNWUzZjI1YWViYmVlMGE4NjExZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiNDBjN2E2Y2U3ZTUwMzc5M2QwNjJhMTE1ZmYxOTQ1YzI4ZDBiOGE5ZDkyM2U5M2MyNmFmNGI4MmM5YWUyNWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6a66df86a79749189fb57193d685a6a0",
+      "statement": "The evidenceHash is sha256 over the distinctly sorted involved keys' current element content hashes, capturing current content rather than just identity, and it drives the ACCEPTED/REJECTED reopen comparison.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L247-L253",
+          "version": "repo-lines-v1:sha256:b3e4686478b46c52c0f570654bdbad7cdf7a3a162c30071c50437f33778609ef:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZmMWI2ZGNlZWZjMjU0MTFhMDg4NzNmMmFjMmRkNzQzMjM0YzU0YWY0ODY2ZDE4MDAyNzZmNWQ1YjVmOThiOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzU4YzA3NTQ5YmIzNTZlZDFmYjM1NDUyMzEwNGY2YzE1NTAwM2ZmMjg2NTgxNTE1OTBhNjljZDRkYjNkZTQyYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjgyYjZjOTQ1MzZiODlmYWE4YjM4YzBlZGUxZmE1ODBjZTI0YWVmZmFhYjgzZTFhZjA2MjcxMzJhY2IzM2IwMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTZkYTczZjM3M2Q3MDJiMGRjY2VjNzBkYmU1NTFkNjE5OTQzNjg3ZjQ2ZmI5M2RiYzZiY2JiOTUxMWU3OGNiYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8db807e31e99442a9af04ba3b6638af3",
+      "statement": "Every user and system transition creates a StatusChange node via HAS_STATUS_CHANGE recording from, to, actor (user:<name> or system:<detector>), optional reason, and at (plus runId for system writes).",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionService.java#L359-L366",
+          "version": "repo-lines-v1:sha256:3668477c68f9530c7fb8f0605567107920d26b405393371331a502007fef56bd:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTZhODA0NGIzN2UxYzZiY2RiZTIwY2YzZjY4NzgzZWYyMmI3OGM4N2NiZDFhZmFiYTQ0NWI4NTYwYzQzM2Q1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDRmZjU0ZjgxNjZkNjAzYjllODljMDI0OTcyMDZhZDFmMjg4ODZmODJhZDFhNmJhYTJjOTA0NzIyNWU5NzA1ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWYwNDgxZGE1MzY1MGY2NjRlN2QyYmMwZjkzMzAwZmMzZmJjODJhZDMzNmE2N2YzNzcwNjViYmEwY2FmNTdkNSJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/TriageService.java#L54-L63",
+          "version": "repo-lines-v1:sha256:607fb5a1a19e254a7821158acb5f80aa015c4afd603795f7abbf4831fff033a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0YWI5Y2RhOGYxMjVjYmU0ODI1Yzk0YzdkZDdjNWI1OGVlNWY0NmNjZTBhMDM4NTUwZmYzOThhNjhjOWQyZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NmUyNmE2YjhmZDdhNzgzMjE3ODFlNmZmZDFjMThkNTRmOWIwODgzNWU4ZjE3NjMxZDhiMDZjYmQ1MDdlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZTM2M2IyZWYzODY4ODE5ZmJjNWU5MjNiMTA1ZDE1ZWNkNWQ3ZDU0YmIzY2FhN2MzYjdlN2IyYmYzYTAyMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2ODVjNTg2MzI1OTVjMWI5YTNjZTk3Yzk3NmFlZjg0ZTdlMmYxNTcyZjAxZDM2YzVkMGZkOTQzN2I0ODE2YjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_89ce530dadb043cf84803cf311ac95fe",
+      "statement": "The triage detail view exposes the ordered StatusChange history and live allowedTransitions from Lifecycle.userTargets, and the query-service INCONSISTENCIES export assembles the same history for clients.",
+      "evidence": [
+        {
+          "resource": "repo://services/inconsistency-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/TriageService.java#L171-L182",
+          "version": "repo-lines-v1:sha256:1c13f26c8fb3b4e87d6b1a92ba677bed5c6d0aef52b1173c70ec230f7884a72f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkMjQ1NGQyNzFkMWFlMzI5OWExY2Y1MzNkOTRhY2U1ZjUzYmIzMmJhZmZiZDJiOGQ2MmZhYWMwNmY2MmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhNzE4NmNlZTA5YTEzMjBiNTYyYTYwMDE3NzViNGZlOTliYWQ2NzVjNmI0ZGJlNGM2YjU5YmU4N2M2ZjdiZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyMDQwNDUwNDM1MDQ5ODVlYjU2ZWVkOWEyZjRiNjk0Y2EyMzdmMmE4M2ZlNjQ5NmVkNDk3NjdiZmEyOWNmNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4YzE2ODNhN2JiNGE0NTg1ZDE0MDI0ODM2N2YwMmI0ZTk1NDU4ZGVkZGNkZDUyMDhkN2VjZmNhNGQyNGJjMTcifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L54-L60",
+          "version": "repo-lines-v1:sha256:ebb3afc2ed1d8bae1ee1ddb2e4c451179f429ecf7d3c9ba264ccfd4a3b835132:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg5MjAzYjQ3ZjNlYjExNDI5ZDYzMjRmNGE3ZjVmZmU5YmY4YWM5MmYxOGYyZWY5NDQ2OGRmMDFiMzY0N2ZlZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDAwZTY3MGZkZGFjMTA0ZjE5ZjY1Y2M2NjI1MzE1MGU5MmUyMzIzNWMyMTAxZWVkNTE2NDJlOGUwZWY4ODE5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDI5MGYxMDZjOTRhZTQ4MzQ3ZTg2ODQ5OWEwNzFhN2NjNjVjOGQ3NDAyMGRhNzBlYzk5OWQ0MjA0MDI3MThhYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a8a21b623dee4ab1ab6f6a8a4de800ca",
+      "statement": "The lifecycle decision is confirmed by state-machine unit tests over all allowed and forbidden transitions and a scenario test detect, accept, change artifact, re-detect, REOPENED.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0007-inconsistency-lifecycle.md#L41-L41",
+          "version": "repo-lines-v1:sha256:d8161099992abbc3eaeed27c8d627f3f9b3083a0de2b4008d1b6ee32531c1de0:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDgxNjEwOTk5OTJhYmJjM2VhZWVkMjdjOGQ2MjdmM2Y5YjMwODNhMGRlMmI0MDA4ZDFiNmVlMzI1MzFjMWRlMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDgxNjEwOTk5OTJhYmJjM2VhZWVkMjdjOGQ2MjdmM2Y5YjMwODNhMGRlMmI0MDA4ZDFiNmVlMzI1MzFjMWRlMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTM4ZWY4YWFjYzY1MzZiMmI4NWZlYzIzZDE0ZDA3ZmQ0ZjU5MDA0NTA3MTMxYmQ1YWQyZjQ3ODViMzI4NTlhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTU3MWRiMjQzMjBiYjlhMTUxZDdlMDczZGU4MGQ2ZDc1YmM0ZTY5YTkyODJkYmE2ODE5ZGZkNWMwYzgwNzk1MSJ9"
+        },
+        {
+          "resource": "repo://services/inconsistency-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/DetectionScenarioTest.java#L96-L100",
+          "version": "repo-lines-v1:sha256:eb89f59c4c96ca6f27ca3a7fb2076e5bb44d0bb0da35eee95a120c1e37f2f55f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODViMjM2ZDBlNmYxOTdlZDFjYjQ3MWVkY2M4YTZjN2NhOWNkMjYxNjlkZjg5YjA0NGNlZmU3ZGJjZDliOTczNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODJkYTUwZDA1NDhjZjNlMTBlOGYzODhmMDdhMmEwZTBlMzdiM2E0NDg3YjgwNzM5ZTA1YzcyMWJhODlmZmU5YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmI1NjhlMDYzZDJhNTYwODI1YmE1NWZlNWJkYzMzOWQzNDJkNTU3OWI3YWVkNjM2ZGE4MmJjMDdhZDUxOGNhOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNkZGM4YTEyYjM3NjU3ZGJjMGFkZDQ3ZjE0YzlmOGM4M2E5MDMyMGViOTllODk3N2FlNDlmYWVkN2UwMjk1NCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

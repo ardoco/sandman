@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:8abbf92163aef35c07ae65fb6b83cb8357d93cad7df9d51a3923f8d6a48b4ae5",
+  "claims": [
+    {
+      "id": "claim_28ba1551b46646caa9923d1f526ea0f7",
+      "statement": "The Bifrost llm-gateway (maximhq/bifrost:v2.2.6, APP_PORT 8080) is the only egress path for LLM calls: agents run on the egress-less internal network, reach LLMs only via llm-replay (SANDMAN_LLM_BASE_URL http://llm-replay:8000/openai) which forwards to http://llm-gateway:8080/openai, and only the gateway sits on the egress network; provider keys live only in deploy/secrets/gateway.env read solely by the gateway container.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0004-llm-gateway.md#L89-L95",
+          "version": "repo-lines-v1:sha256:a15a981e5e4661e140481c82f43e76877c05e167a1eb8bce4201cfc3bb2b3763:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGYzYmU4ODBmYzJiZDc3OGFiYzAyYzdlZDk5ZmE1YmNkMDA1YzMyMDdkOWRmYmU1NDlhNGQyZWQzYjlkZjIxYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE4MGUyYjZkYmJhNjI4OGMwYzYxOTg3YjM0MGY1N2JmM2ZlYjRmNDU2ZGM5M2JlYzk0YjEyYjU2MTEzMTBmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L345-L352",
+          "version": "repo-lines-v1:sha256:3bce065da0c3221b06817fc5cf68e91541a9817dcec72306ba90022c5c541447:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGUxODhlMDVhNzBjYzkwZDdjZTg4ZjMwYzdlYWI0N2NmMzgyMWE1MDljZmQ0NDU0NmU3ZmYyN2Y5YWIwYTg1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFjMDIxM2FmNzliMDhhMzYyNTJkYzJhNDdiMDZmNmY4YjA2NmZlMjM3NTQ0ODYwNTBhNGY1YzJlODJlNGU4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTk1NmZkODJlYjMxNmNiOWI2MDg3MTY1ZWRhNDIyNDFhZTlmZDljMjhhYjFjNzczNGVmNTBhODI1YmI0MGZjNCJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L69-L90",
+          "version": "repo-lines-v1:sha256:8f8b76ef70874d70a7415966a5c976b84275c8bc43ffa1836fc4203304aee601:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTY2NzkzNzAzNjM2M2RmMGZmNTAwMDI4YjNiZGMyYTRmNGVmYjU1ZGQzOWI4ZTY4MmE3Mjc0NDFiMTE3N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNjJkMjQwMzA1NzJiZjQwMGQ0M2E1MDY1ODgwOTA0OWM3MDlkNmM3ZWFkYzIxMzQxNjljMDk3ZTNkYjcxZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MTU4NGVlZmVhMmFmOTIzNTFmZmQwNWUyNTI2OTdmMTYyODMwNjJlMWNjMjllOGRlOTEzNjM1ZjllODEyMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ac0a64887cf46deb3d5ac400d7889df",
+      "statement": "Gateway governance is declared in deploy/gateway/config.json mounted read-only at /app/data/config.json: enforce_auth_on_inference true, enable_logging true, SQLite config/log stores in the gateway-data volume, providers openai/openrouter/ollama with env.* key values, admin auth (admin / env.BIFROST_ADMIN_PASSWORD), ten virtual keys, six budgets and two rate limits; the file contains no secret values and the gateway starts healthy with empty provider keys.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L76-L82",
+          "version": "repo-lines-v1:sha256:64851944a1c42bd1da037b4d184a4e258e11b2183a2acf26433097b6277a9731:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjhkYWJkNjgwZTcwNDA4ZTQyOGNlMTBjNGMzZmEzYTEzNWFhOWI1MjA0NmZlOGZkNThlMWFiOTc0M2VlYWEwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViNWYyNjBmYmFlYTI1NWQ3ODg1ZDYzZDQ1NDY2YmI4MDgwY2NmMGMxNDljYWViZTY1ZTA4N2FjYWUzNWFhZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTI5NzE1YzhlOWU5NmFlM2RmMTM1Zjg3NmI5NjdlNjE2OWM2MmUyNDVjYTY0ZmYyZWQ5NWQwN2QwMmVjM2Y2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGY3YTk4YzFmOWU2MmJmOWJiNWE2NDA4Nzc1ZTk1MWM0YTVmNGI2MjVkM2EyZjUwYWFiMGEyZGZiZWQ3YTNmMiJ9"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L1-L78",
+          "version": "repo-lines-v1:sha256:ecf94ecd9c881be8098b7c07d58a77703443f0932530b19f465a29ccb6a16a05:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNDhlYjUwNTYxNjY2ZjYzMjUyOTgwNzNkNWQ2NWFiNTdkOTYxZmVjMTExODhhMmYyYWI3NTQ5NzE0M2NkOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzMjkxZDQzM2FjZWMxOTljODVjYTIzNTEwMjMyZjNhNDk0M2UwZWZlYjc0YmI2YWY0OTYyNmE4YjBjODUyOTcifQ"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L380-L434",
+          "version": "repo-lines-v1:sha256:c7e79c4c7cb77a5646e1263410469cd85c7a7b646acea9bb53218e2e5d3f5ac2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3YzdiZGM1NDdkYjZmY2IzMDllMDg0N2U2NTdlMWUxOTY5NWNmZDFlMDY0NzU4ZmU5NmZmNmNkMzAxNTU5MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0N2ZlZTRhY2NhMzA5MDIxNzMwMTE1YzhhZmQwZDk4ZDBjNDEyOWQwNjc5Mzk4Zjk3ODVmYTNkN2MyZmM4NjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L10-L12",
+          "version": "repo-lines-v1:sha256:a99ea7f829d4268e412b7960ab67ebb7e65e1471f953e8a180496b92fa150678:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWVmZjMyNDQzNmRjMjY1ZjFjYWYwMzVhOGQzYTUzZGI4ODhkOGYwMWRjNzg1NWE1ZDJjNDAzM2I3YTUxYzNiNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGYyZWViYTEzZGRlOTc4ZDFlY2M4MWYwMjcwYzc1YWI5NzY2ZTRlYThlM2Y4Yjc5ZWQ0YmFhZDY1NmExZGU3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmZiZWE2MzRkOGUwODNiNGZjZTQ5Mzc5ZmIxOWU3MmRhMmUzMTZlMzhlNzZlMTdkMjliMjA5YzU3ZTQxNDRlMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTI1OTNkZjJjMGM2ZWM5ZWVmODEwYTAzNjQyNzdlMmFmNGZlZDAwZGY4MzBjM2UzODgyZDEwNTZiOGEzMmJjOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f3ef9738c6d240a78a91310a4fee7948",
+      "statement": "Each LLM-using component gets a second Ollama-only virtual key <component>-local whose provider_configs list only the ollama provider, so local-only projects cannot reach cloud providers; the gateway rejects a -local key on a cloud route with HTTP 403 provider_blocked (spike T0.4 check 12), enforcing the policy for code the project does not control.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0004-llm-gateway.md#L89-L93",
+          "version": "repo-lines-v1:sha256:dbed3a177ce6f8731b28863d50955db5c6068c688085f9b13f2fa23ab5e5dfd0:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTNlMjdmZjg4MmFiYjI1ZTI1NGQ1YmIxMDM0NmQyN2Q4OWMyOWVkNjZmOWFhNDVlNjU3ODQ0MTFiNTRiMjE1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE4MGUyYjZkYmJhNjI4OGMwYzYxOTg3YjM0MGY1N2JmM2ZlYjRmNDU2ZGM5M2JlYzk0YjEyYjU2MTEzMTBmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWVlMjhkMGY3NzJmMWM5ODRmNGQ2OWIzNzVmYTQ3YWU0OTA3NTI5MDU4YTA0YWIyMDE4Njg4MTAzNjc0YTQxZiJ9"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L303-L378",
+          "version": "repo-lines-v1:sha256:f11a149904c8c2091ee6a75f1254e71655208f7d8f8d1e69882bb0c799e3c5c4:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5NWI4YzViZjg2Mzc0MzY3MWRlZjNmNjMwZWIyMzJkNTlhN2E2MzRhMDcwZmM0MzZlZWMzN2E4Njc0ZTZjMzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNjJmNjBkODU5MGE1NzljZjQ2ZjhkNjczNzhjNGM1NzJiOTYyY2VjY2RiOTBjN2E1ZjdiNDJiOTYwNzgyYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1OWY5MDQ5YjkwYzdhYTkzNzQzOWQ3ZmQ1OTU1MDMwNTlkODAyZTBlZjNjYTY5NWI4YTUxYjNhZDYzZTExZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5OWU4OGMxMjJkMWI4ZjJmNjc5Y2ZhYzUyM2ExYmQ5NTA5ZTg1YmZlOGM5OTNhZTU3ODg3OWMwYmE3MTFkODgifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L18-L18",
+          "version": "repo-lines-v1:sha256:5787556f136983f97d1843bec26acdbf353b46420573dbc2563e4846ed61e3da:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4NzU1NmYxMzY5ODNmOTdkMTg0M2JlYzI2YWNkYmYzNTNiNDY0MjA1NzNkYmMyNTYzZTQ4NDZlZDYxZTNkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4NzU1NmYxMzY5ODNmOTdkMTg0M2JlYzI2YWNkYmYzNTNiNDY0MjA1NzNkYmMyNTYzZTQ4NDZlZDYxZTNkYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTUwMWEwOTEzYzUyZTBkNTA0NDhmZmQxOGZkMjAzOTk2MjU2MGI1NTE2YjkxNzc3YWNhMjkwZTgyZDM5MzdiMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzU1MmIxODM2YWRlMjAxMmI2YTQ4YzNlODBjMDUzYTI3ODA2OGM2MWNjZjQ0ZGY2ZGI3NjcyYjc3MTMzMWQxYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c406fba2e4434e958894c2a1006bb23c",
+      "statement": "The ten virtual keys are: cloud keys vk-orchestrator, vk-extraction, vk-tlr, vk-inconsistency, vk-query and vk-experiments (openai/openrouter/ollama), plus Ollama-only vk-extraction-local, vk-tlr-local, vk-inconsistency-local and vk-query-local; values are env.VK_* references in gateway.env, and gen-secrets.sh writes the same values into per-component compose secrets llm_key_<component>[_local] mounted into exactly one service each (vk-experiments has no compose secret — it is for evaluation scripts). LLM-using plugins get plugin-<id> and plugin-<id>-local keys added by the operator (none in the committed config).",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L365-L389",
+          "version": "repo-lines-v1:sha256:44817b055d7863451f3f5a296a3ae931a527d9f33bb370180e8326c615e16054:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNjllNzU5NTc5NmZhMDIxMWMyYjdkZTgzZmNlODJmM2FlNjFkNzkwODc1NWU4OWYxOTIxNmJlOTJkNTE4MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzYzhhOTM4ODA1NjFjNGI5OTkzZWNhZmFlMDU0OWFhZWQ1YjU1Y2NlMWFmMjQyODIyYmEwYjM2MmJhOWQyMjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlN2QxOTJhYzAyYTYwYzBmNTFiZDM0YzdkNTdiZGNlOWQwNjZkYjIxZTc0NDBiMzAwZWM5N2Y5NjlhOTE2NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L62-L379",
+          "version": "repo-lines-v1:sha256:4b4f387ec5964ef2bc39799cdfb7f6fc866a827f1b00af46d361f0d1ad66a97c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzE4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2N2IzOWJjZWVmYTA2ZTUzMjJjY2ZjMDIwNGJjNmJjZDIwM2Q1NzI1YmM5ZjYwYWQxOTI2YWM3ZjY0NzUyYWI2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjNjNkNTM1Y2UzODA2M2Q2YjRjNTFkOGMzODZhN2Y5YjNlNTgwYTE0YTEwYzA3YjE5OGRmYWYxOWM5M2EzYmZlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjYTJlYmZjZDMxMDZkNTVkOWY1ZWY4NjcwZWY5OTFmOTlhMmE5MGExMmY4N2YxNmE5NDA2MWRiNTA0YzNhZjk1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIyZWFiMzYzMDNmZGE0Y2FkODJmMjQ4Njk0MTVjZDdjMmZjMTIxZjAyYjM3NmY3OTAzZWJlYWM5MTQ0ZGNlYjQwIn0"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L27-L48",
+          "version": "repo-lines-v1:sha256:e7885eb3a42e8d25756ce6c62b3b4bc4b3d42f708d03e6971550d45e6ec3f742:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0ODlmZDdjMWMzMzdmZTIzNDFiNDdhOTIxOGZjZjAwNTgxZWE4ZmJiODNjOTY0MzkyYjBmZWRmYmQwZGIwNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNjJiYTEyZGU4YTViOWMxYmZjODcwNzRhNDg4OTVhMWU4MDRkMTljZmUyZGQzNTkzMmU0MDQ0MjE1OWY2MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzMTk2MjJlOGY0N2Y0NjEyODIzNWUwYTkzYWU4ZDcwMmI2YmU4NjA1ZTM2ZTM4MTc3OTE5NzU0YWEwMGMwNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_07f861c2ea624017ad352324acee0fd3",
+      "statement": "Budgets are monthly (reset_duration 1M) USD limits per virtual key: b-orchestrator 10, b-extraction 20, b-tlr 50, b-inconsistency 30, b-query 10, b-experiments 50 (placeholders to be set by the operator); rate limits are rl-default (60 requests/min, 200,000 tokens/hour) and rl-heavy (300 requests/min, 2,000,000 tokens/hour), with rl-heavy attached to the tlr, inconsistency and experiments keys (and their -local variants); the -local Ollama keys carry rate limits but no budget.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/gateway/config.json#L380-L433",
+          "version": "repo-lines-v1:sha256:f42b1ce37517964b97677f3d9e434c9498af05c480f804c6493423e7b0d45df7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3YzdiZGM1NDdkYjZmY2IzMDllMDg0N2U2NTdlMWUxOTY5NWNmZDFlMDY0NzU4ZmU5NmZmNmNkMzAxNTU5MGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDI0NDU4MmI2ZmIwM2QyM2I4NDE1YWJlY2QzNDZiMGM5ZjQ2NmI2Zjc1MmIwNjgxODljZTdlOWEyZGMzNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0N2ZlZTRhY2NhMzA5MDIxNzMwMTE1YzhhZmQwZDk4ZDBjNDEyOWQwNjc5Mzk4Zjk3ODVmYTNkN2MyZmM4NjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNzM5YTA2YzFjYmIxMjQ0ZTMzNjNkMzhiY2Y5ZmE1MGNlODRmZWQzOTljMjE5M2EzYzdmMDhkNTk5MThiMmEifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L15-L15",
+          "version": "repo-lines-v1:sha256:a20497abd81766f21034614745748eeb1b2ed2ce41f502f4ccac31fc77c32ecc:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVjM2E0NmNiOTg2YmI4ZmRlZGU5ZWNlYmZlZjg1MTFlYzQ3NmM2NzA0N2FmYTgzNDhmNDEwZDNkMGY4YmE4ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJmNjk2MWU2ZjgzYjUwOWRhZmY2MGVhNmYzODU0NmQwNTc0ZTRjZGY5YjQ3YmVjYTJlODdkY2I5MzkyYTQ3MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e892d8dd1ab14043b1338b80e38548d3",
+      "statement": "Budgets and rate limits must be edited in deploy/gateway/config.json (then restart llm-gateway, since the file is mounted read-only): in Bifrost v2.2.6 the admin UI cannot save a standalone virtual-key budget (the form sends an empty reset duration and fails with 'invalid reset duration format:'), although the 1M value in config.json itself is valid.",
+      "evidence": [
+        {
+          "resource": "repo://TODO.md#L8-L11",
+          "version": "repo-lines-v1:sha256:06270a2b20c317f3ed9a319b5ac0ea027970d8a8dc89c6065c49146f29aaec51:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGE0ZDlmZjBhZWJhNDdlOGJkZTk3OWY1NjJjYzZjZTFhOWMxYTlhN2YxNmQwMDE0ZTA1YWU3OGE4NjIzNWE2OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWQzMGRiYjA4NTNiMjY0YjU3MWFjMTdmNGZiZjRiNjdiNDA5YTZiNWVkZWYwNzU5N2EyNzljMDIyMWMyNjgyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzM2ZWE2ZDdlNTY1NzgxOTYzN2UxNjhiOWU0NDg5MjhjN2IzMTA2NTFhMmMyM2ZjOTU4MGU1N2U0NmM3OGM1MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjM5YzhiOWI1ZmMzYzE5MzY2NDQ4OWE4NjQ2N2M1YjQxM2U0NzVhN2ZmZmQyNjk1MTkxM2NmZTI4NGE4NzUzYSJ9"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L15-L15",
+          "version": "repo-lines-v1:sha256:a20497abd81766f21034614745748eeb1b2ed2ce41f502f4ccac31fc77c32ecc:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVjM2E0NmNiOTg2YmI4ZmRlZGU5ZWNlYmZlZjg1MTFlYzQ3NmM2NzA0N2FmYTgzNDhmNDEwZDNkMGY4YmE4ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJmNjk2MWU2ZjgzYjUwOWRhZmY2MGVhNmYzODU0NmQwNTc0ZTRjZGY5YjQ3YmVjYTJlODdkY2I5MzkyYTQ3MSJ9"
+        },
+        {
+          "resource": "repo://spikes/T0.4/gateway-results.txt#L12-L18",
+          "version": "repo-lines-v1:sha256:f21ff590b84317bbe511ef8999aa7c6c9c917ea9a2aa122071a3c3ea3070d90c:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzgwNzQyZmNiN2Y2YTBjYmJkYWIwYzJlNGQ2ODg5Y2ViZDg5N2JmNTJlMzMzOTAwODE5MjhiZjM3ODIwNzczNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzlkZjU3NGU4NzViZWE5YmU4YjQwYTYxMTc3MjViYjdmZTQyMzA2OWEwNDYxOTdlZWE1MzM4YTU2YmNmZjFmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWIzNzQzYmE1M2ZmMDhjYjVhNmEwOTQ3ZjVkODhlNzAxYTJlYzM5MWZjODIxMjNkYWY4NWZhN2Q3M2M0OGM4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_96d0989df8bc4dc19e55f9e10dec0894",
+      "statement": "Gateway error semantics measured in spike T0.4: missing or unknown virtual key → HTTP 401 (enforce_auth_on_inference); exhausted budget → HTTP 402 body budget_exceeded, with the first crossing call still served because Bifrost counts spending afterwards; rate limit → HTTP 429 body request_limited with no Retry-After header; -local key on a cloud route → HTTP 403 provider_blocked; management API, request log and /metrics without admin credentials → HTTP 401 (also from a container on the internal network). Python OpenAiLlmClient maps 402 to BudgetExceededError, which the skill layer reports as non-retryable SkillError BUDGET_EXCEEDED so the orchestrator blocks the workflow; 429 stays with the SDK's own retries.",
+      "evidence": [
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L15-L15",
+          "version": "repo-lines-v1:sha256:a20497abd81766f21034614745748eeb1b2ed2ce41f502f4ccac31fc77c32ecc:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVjM2E0NmNiOTg2YmI4ZmRlZGU5ZWNlYmZlZjg1MTFlYzQ3NmM2NzA0N2FmYTgzNDhmNDEwZDNkMGY4YmE4ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJmNjk2MWU2ZjgzYjUwOWRhZmY2MGVhNmYzODU0NmQwNTc0ZTRjZGY5YjQ3YmVjYTJlODdkY2I5MzkyYTQ3MSJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L198-L204",
+          "version": "repo-lines-v1:sha256:634d8f4a9eb57757d5497f4a37f601e66ea8259cb93ac99fca12680b5722ba76:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDY5MTI4NWMxM2Y3OGNjNGZmYTFhNWU2MzA0NGE0NTUyNmVjYTNiOWJhMGIwZDJlMDY5MjY2YTc1ZWE3ZmI5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE5ODExNGE1YjJjYTRjNmRiMzhjYWQ2MWNkMGIzYTE1Yzg5ZDQ4MzAzYTk3MTA0ZGI0OTM2NTYwODUzNWJlNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDlhYTlmMzQ3NjQ3NzljMTlmYWEyZjY0ZTQ2MjE3YWM5ODgwY2QwYWY2M2ZjZWFlMDA3MTcyOGE5YWNiMjAxYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjE0ZDgxMDdmZGQ4ZGM1Y2RhYTkzY2U5ZjQ4Yjk4ZWY3NGNkNWI4Zjg4OTQ1Yzg4OTg3ZTdmYTI3ZTA0NTVhMCJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/llm.py#L20-L26",
+          "version": "repo-lines-v1:sha256:0ab2503aef169070bbbdc8281040763e8181122d95d7605503858b6d037b4cb8:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODQ5ZDU1N2FkZTE3N2Q1YjNlNDllZmFhYTcxMGU4NGE4MGM4ZjdlNTdiMTQ3YzVhYWQxYmYyYTUyODFjMTkwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmNjZGNhNTczNzlkZGQzY2U0NTQ3ZDA2Y2QzMmVkMTMwOTA1NGRiYzZiYzI1MDE5MThmNzllYmUzZTFhZjFiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDE4OTUyN2ZjZWI2ZWEzNTA3Y2U5NmE0ZWRiMzFmZGQ5OWQxZjRlNmI1MzMwMmI1ZTViMWZlMDg5ZjdlYjUxNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjZTNmMjRhYjQ3YzJmNWE5ZDMzN2YzNzdlZDg1NzNmYTU2NTg0MDc2NDAyZjFhZjA1NGEzZGVkNjE5NDYyZiJ9"
+        },
+        {
+          "resource": "repo://spikes/T0.4/gateway-results.txt#L12-L17",
+          "version": "repo-lines-v1:sha256:aa447f973886b9e73f8f6f03da6abbf9cd9a9bbf75f83bf99d79c374c13738f5:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzgwNzQyZmNiN2Y2YTBjYmJkYWIwYzJlNGQ2ODg5Y2ViZDg5N2JmNTJlMzMzOTAwODE5MjhiZjM3ODIwNzczNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODU4ZTc4NzFhZjY5MDA0YjVkNzYxMmI1M2U4MzQ3MWZmZDkwZTVmODIwODlhYzYwYTcxNzY2NDMyNWRhMTMwYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWIzNzQzYmE1M2ZmMDhjYjVhNmEwOTQ3ZjVkODhlNzAxYTJlYzM5MWZjODIxMjNkYWY4NWZhN2Q3M2M0OGM4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzlkZjU3NGU4NzViZWE5YmU4YjQwYTYxMTc3MjViYjdmZTQyMzA2OWEwNDYxOTdlZWE1MzM4YTU2YmNmZjFmOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c7e4afc2aed9422e84fe8d2ac8ce9bdf",
+      "statement": "Python ModelSelector (sandman_agent.llm) reads the routes from models.yaml and implements the project LLM policy: chat_model/embed_model return chat-local/embed-local for policy local-only else chat-default/embed-default, and client(policy) returns an OpenAiLlmClient with the cloud key or, for local-only, the local key with local_only=True — raising PolicyError when a local-only project has no local key configured; with local_only=True the client refuses any route not ending in -local (PolicyError), and OpenAiLlmClient maps a response_schema to OpenAI response_format json_schema (strict true), sets user=run_id, forwards telemetry trace_headers(), defaults temperature to 0.0, and returns the gateway-resolved model name in ChatResponse.resolved_model. The Java mirror is LlmAccess.forPolicy (no Java LlmClient by design, ADR-0010 D-7), which configures LangChain4j in approach/detector adapters with the same -local restriction and a toString() that never prints the key.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LlmAccess.java#L21-L66",
+          "version": "repo-lines-v1:sha256:16821bde0f24cbd4523ade84832c3a8f440e510eb6c43b7930bf3ca0d51daeb1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYjI2ZmI3MmU5OTliZTIyOGVlNTNmN2QyZTUxOTFmNTk2MTI5MTk0ZGEwMDk2M2IxZWJhNTRlYzU1ODZlYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNGFjNDk4OWQzNWJjMjBhZmI2ZjU5MjhiOGQ2ZWQ0NGE0MzY5NDhiYzM5ODQwNmYyYTM5N2QzMjBhMmEyNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzYzhlZjczOGFjNGUyNzNlMWU2MjY2YjMxYTdkMTg0NDRiMWUxOTA5MjQyNjUxOGE1OTM4MGYwOTg3OGJkNWYifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/llm.py#L140-L162",
+          "version": "repo-lines-v1:sha256:33dd0bbb36378d8213bbcfecb6724221c369206deebbf596577171e2f4c3d244:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmOWQ2Y2UyN2RlNzhlZjRiN2MzZjI5NjEyYjcxZWE4ODdiMWZjYzg1MmJjOGMyMmQzYjhhODZiZGU3YjAyMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2OGU0YWE5YjlkZWNmZWRiNmEwOTQ0ZGIzMWJhZTQ5YzZhMjJlYTk0NGNmYjVkNDFiNzc5ZGJmMWMyZTRhYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5YzBlY2VlYmM0YzBjZjMyNDkwYTgzNDAyZjkwMWQ3ZmZhMzM4Mzg5NGMxNzRlMWFjMjhmZDlmY2Y5YTU5NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/llm.py#L80-L137",
+          "version": "repo-lines-v1:sha256:14cb7c44e5e9e86a6073e91d872ccb3fc79f9451532e7b6d51ad3adb6b61ef00:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZmJhZTBiOTFkNDRmYzBkNDlmNWRlNjkxZGE2ZmM0MzFmMjYwMTM0YmY3MzFlMGUyMWY3NjQ4MDk0MzM0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExYWQ3YzMyNzhjNTRiYzRkZTRiMzFkMTZkNTYxNjE5YTZhODZjN2NiNWE4ZTE1MjVhOWM2NmY3NTVjZTc4MzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlMTAyYTE5YmE2NTQwZmFhMjNhMTQ4NTZkYmM0MTMyZTQ5MjFkYjA4OWM1NjA5NThjZGQ2ZDlkYTAwZjkyODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg3ZTA5ODcwOGYyYTAyYjBkYjEyNjQ3NGNkNTliMTgwYzAzMjNlODM1MDUwZTNmNDQzMDI2ZGE3YTM2MmQ4NzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_26d8b1c347c745bc818d6bf1f29533a9",
+      "statement": "Agents never hard-code provider models: logical routes in config/llm/models.yaml (mounted read-only at /config/llm/models.yaml, value SANDMAN_LLM_MODELS_FILE) map chat-default, chat-alt, chat-local, embed-default and embed-local to gateway model names of the form openai/<model>, openrouter/<vendor>/<model> or ollama/<model>:<tag>; concrete models are not committed yet (open TODO), no cross-provider fallbacks are configured, and the gateway-resolved model name is recorded on each Run (Run.model keeps the route, Run.resolvedModel the resolved name).",
+      "evidence": [
+        {
+          "resource": "repo://TODO.md#L10-L11",
+          "version": "repo-lines-v1:sha256:ff6a2005c14142d13b59641e35a43d8d41354181d48cba63cf343cdfc810c27f:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2FjOGQ5Y2FjMGQ3MjdmNGQ2YWY5N2YzYzJjM2NmZTNkZTljZmRiOGNiMDA5NDEwMmFjYmVlYzNmOWFlMGUwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWQzMGRiYjA4NTNiMjY0YjU3MWFjMTdmNGZiZjRiNjdiNDA5YTZiNWVkZWYwNzU5N2EyNzljMDIyMWMyNjgyZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2RlZDQzZWVjMDYwMGY5MGVjNmNiMGM4YWM1NWNlZDUzMWZmZDdlZWNiNTdkYzZiZDQyMjE1NzRhOTkyYzA1YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjM5YzhiOWI1ZmMzYzE5MzY2NDQ4OWE4NjQ2N2M1YjQxM2U0NzVhN2ZmZmQyNjk1MTkxM2NmZTI4NGE4NzUzYSJ9"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L148-L174",
+          "version": "repo-lines-v1:sha256:14e65f3337b61858f343f422bff1c9d1b4ec7001c221636d1136605c93eb5ebd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiYjljYTMwOTZiMDE4ZDg4OTJkMGZhOWQ2ODRiZjI0YWE0NGZjOTEwYWU2YmI3ZTZmZDA0Nzc3OGQ3NmJhMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzOWRmMDRmNzkyNTE0MmJlNTlmYzAzOTVlOTkxMGY3YjM1MThjNDFjMGI4YzI1MzEyMzUwOGU5YzM4YzNlYmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4ODYxMzcwNTAzYzE0MWNhMTYzMWEyNjQ1Zjk1YzA4ZTNjMDNiZDg1YTgyMmZkYjA2OThjZjUwNTU2Y2Q3NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1MGM3NjA4NjVjMTFkMjc2ZGFlNmQyZmNmYWJhYjNkMTAxMjgzMGJhNzU3Yzk3MTg0YjY4ZWU0MDBkZTRlMjkifQ"
+        },
+        {
+          "resource": "repo://docs/stage-1-analysis-architecture.md#L979-L993",
+          "version": "repo-lines-v1:sha256:76fece58aba9324b9139c3e371f9a3f2cda57710796ee4c11c87b0ecf0762cd8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjMjg4ZTgyMjZjZDQ4YzNiMjkzNjZlMDhiYWU5ODhmMGExNTk2NmFmOGJiZjQzM2Y3MDFiZGUwZWU0OWVhZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNWYzZDI4ZDg3NTdhZDJkNDA0ZTE4ZGQzNzlhYzA0YmNlZTBlMjgyMDQyNzM1M2JlMmFkOTQwMjJmOTIxODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmZkZjBlZDE0NDBiNWIyMjIwZjZhY2U1OTBkZWUzNDcyYmNjM2FkN2E0Y2I4NDYwYjQ4ZjA3N2VhNmM0MTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2ZTQxODIwNDQ5NjM2M2JjMDlhNGU3ODc4ZTJkMzZhNmFmMzZiMzk2ZTRkMGYxZWU4ZTFlNTI1ZWMwYTc5ZGEifQ"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L114-L122",
+          "version": "repo-lines-v1:sha256:340d86ee1a8ffc6655f148b2b6d7cc9f5420edd709c2cc982f3040a0d1c19803:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjVlY2ExOTE4YTI4YzE2M2E0ODkwN2VlNzJiNDdjZGRmNGZmOTZjMGRhYTE1YTJmMWEzMTMyZDMzZDA5Y2NlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjMDZjNTYxZDVjMzI3MzQzNjg1MjY4YTQ2YjMzOTFmMzk5OGVlZTg5MGQyYmU1MWYwZDIxY2M0YTUzYWU2ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTFjZmEzMTc0YzJjZjM1MDlkMGFkNzdhMTFhMDA4ODk5ZWUwMmExOTAxMzc5NTlkNDY3YzM0Zjc3ZjBlNmVjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTA5NDM3MWU0YjRjZTBhNzljZTlmMjU5NjI4MzY5YjA0MTMxMjAyZWU2YTRhZjEwMjIxZmY0ODE0MzAyZTQ0ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b0ce8efa29441b1b719d605ac564c5f",
+      "statement": "Ollama runs only under the compose local-llm profile (ollama/ollama:0.35.1) on the llm-local network — internal:true with only the gateway and Ollama as members, so local models are reachable only through the gateway — plus the egress network for model pulls; the gateway reaches it at http://ollama:11434 via the provider entry's ollama_key_config.url with an empty key value.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0004-llm-gateway.md#L89-L93",
+          "version": "repo-lines-v1:sha256:dbed3a177ce6f8731b28863d50955db5c6068c688085f9b13f2fa23ab5e5dfd0:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTNlMjdmZjg4MmFiYjI1ZTI1NGQ1YmIxMDM0NmQyN2Q4OWMyOWVkNjZmOWFhNDVlNjU3ODQ0MTFiNTRiMjE1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE4MGUyYjZkYmJhNjI4OGMwYzYxOTg3YjM0MGY1N2JmM2ZlYjRmNDU2ZGM5M2JlYzk0YjEyYjU2MTEzMTBmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWVlMjhkMGY3NzJmMWM5ODRmNGQ2OWIzNzVmYTQ3YWU0OTA3NTI5MDU4YTA0YWIyMDE4Njg4MTAzNjc0YTQxZiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L319-L336",
+          "version": "repo-lines-v1:sha256:193552ca5691ab3a47a06e97cc923048c569711171fbd35461d89d877314bae2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlYmE2Zjg3NDdkZTlmZTNmMmUwOTU4NmNiNmI0OWYyOGI3YjEwYmIzMmE0YmNmYTdhMzVkZDgzNjQ1YjdhYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZDM1NDg3NTU0Njk0ZDEwNzk2YWU3M2E4ODNlNTk2N2Q3ZDMwNGNhYzZjODczNzVmYjM4MjcxNWMxNjQ1MzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3YmZkNmUzOGYzMzI2YmJiMDhkNTAyZmI5NTE3NzA2NTcwYzQ3MTY4NzVkYzcxNTUxN2ZjNThlZjZlZGI0ODMifQ"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L46-L60",
+          "version": "repo-lines-v1:sha256:144970ac4097e4117ed6e73435d12bfeb46de7fcd0cc38991739c7abf1617706:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzNGY5NGIyNzgyOGQ5ZmI4YzQ2ZjhmNTY3OTE1YmQ0ZjI4MzgyNzliMGEwNWZhOGU0YTlmNmM4MTAwZDg5MjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkMWM1YTE3YTc5MGQ0OTNlY2UzZjgwM2Q5NGExMGU1MGFjOGNjNmM3ODkzNmU1NjU1MTk2NWViOTBiY2E1MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzZjY5NzE0MmNhYjU2OTMzZjVmNDg1ZjdhMjM3NTY2ZGZkMzBiMzI0NzI2NmY1OTAxOWI4YTNkNTc2ZWU4ZjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9297520f39e4b39b8311a6721e44be5",
+      "statement": "The gateway admin UI and request log are published on 127.0.0.1:8081 (compose mapping 127.0.0.1:8081:8080) behind the governance.auth_config login (username admin, password env.BIFROST_ADMIN_PASSWORD, generated by gen-secrets.sh into secrets/gateway_admin_password and never mounted into agents); the request log uses the SQLite logs_store, /metrics exposes about 20 bifrost_* series (cost_total, input/output_tokens_total, error_requests_total, latency histograms), and the request log does not store the traceparent header — LLM calls must be correlated via OpenTelemetry and the user field (run id), with 30-day retention as a still-unverified design target.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0004-llm-gateway.md#L91-L94",
+          "version": "repo-lines-v1:sha256:7bb9080a259c3aab73578e3b07a9b7ba9ab091d924039f4a33bd00cfc80d9db0:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk2ZmQ5MDJjMTcyOGYzZWMyMTQxNmNhYzAwMTMwMjFlY2ZkNTlhOGExOWZjZWIzN2JlZDFkNTc4YjcwYmYzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzg4NjhiM2Y1Zjk3YWUzZmZlYTQ4NGI3Y2Q0YjljZjFkYjA4MjNjMTI2NDI5Y2Y1NTk2NTY2YzA1Y2YyYWY0MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGYzYmU4ODBmYzJiZDc3OGFiYzAyYzdlZDk5ZmE1YmNkMDA1YzMyMDdkOWRmYmU1NDlhNGQyZWQzYjlkZjIxYiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L81-L83",
+          "version": "repo-lines-v1:sha256:8e5beb3176e800e692052dc9a4997b03dd781a18c9c54a826fc26ae258b727d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGZmNzUyN2U5ZTg1MTgyODgwMDY0MDliNDQxZWMyYTZhZDVjM2Q2ZmMyMWEwMzNlNjdhYzZkZTI4MDNkMzM4ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjFkOWQ2ODM3ODcyOGRmYzBhYWMxMjFkZGJjZWM0YzY5OWQ2YmU0YTExMTBmZWQzZTY5YTMxNmVkYmE3N2U5YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNhNGE5MzVkZjU4NmQ5MWY4NTA5MTJjMmE3MTcwNDY2ZDA0OTFjY2NiMjZhZWQxNjg4YTM2NDRmZGQ5YzY1NCJ9"
+        },
+        {
+          "resource": "repo://deploy/gateway/config.json#L62-L67",
+          "version": "repo-lines-v1:sha256:2177b86869e9f5ea8759137ad034cec5001c751588b2150fb21e04607d14dd46:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdiMzliY2VlZmEwNmU1MzIyY2NmYzAyMDRiYzZiY2QyMDNkNTcyNWJjOWY2MGFkMTkyNmFjN2Y2NDc1MmFiNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWYwY2RiOTcyYTdiZmI3ZWQyNDZmOWZmNjcyMzg1ZTU1ZjQ5NjhmYzExMDQzZGM1YjY4NGQ1MWRmYTMxZGJjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2EyZWJmY2QzMTA2ZDU1ZDlmNWVmODY3MGVmOTkxZjk5YTJhOTBhMTJmODdmMTZhOTQwNjFkYjUwNGMzYWY5NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTFhYWY5NDFhYWY3NjBkZTlmMjEwZmY1ZmNlMDZjOTdhMTZkZGFiYjg3MzBiZTU4YzFjNTJmM2RmMDNjNGJkYyJ9"
+        },
+        {
+          "resource": "repo://spikes/T0.4/gateway-results.txt#L9-L10",
+          "version": "repo-lines-v1:sha256:32e246d54569d202cd0ed7def529620bd28b9b27b696a285a8f17e16a9a05948:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzRjZDFlNjg3NGQ3ZmU1ZmQ5ZjY4YzRkNmE4OTRmYjJlMDI5NWRlNzkyMzE0OGY4YzZiYzg1N2Q1YmY3NTg3NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJkMWU3ODhlOTUxMzVkMWMzMjllMjZiNTQ3ZGZiOWVmMzVlYjA4NzRlY2VlNDE1Yjg4ZmZlOTIwN2FjOTE4ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE4ZmJkODA5YzBmNmNhNzNkM2IyYTQ3NDU0NGUxODcyNDI1M2I3Njk1NmQ0YjBlOTkzMzNlYzMwOGM2NTUxNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTczYWI3OGRkNDU5NzgyOWM3ZDYxYzFkMDI3MzIxYzU0NTYzMjZkZWM5MzM5YTVjYTI0ZDBhZTE3ZmM4MjU0MCJ9"
+        },
+        {
+          "resource": "repo://spikes/T0.4/gateway_checks.py#L96-L110",
+          "version": "repo-lines-v1:sha256:e7d19851c453a993eca6dcc490dbb237c335523d00821bb53ad8d66cd68fc4a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MTMzNjY0ZDhhNTc5NWIxNGNlYzVhY2Y0YThhNjNhNDZhZmZiYjc5NjE0ZDU1MjlmNWU0MGM5M2IwZmNmOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjYjU3ODM2NDY0MzU1ZTA5MTFjMWIzZDFjYzE1NjczMDQwMDRmN2ExMTkyZjA0ODNjNTJmYzJlM2U1NjIxNGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxODhkYzNjMTM3MWVkODMwMTg2M2U4MTBiNjdjMTdiYmMyMDVlNjc4M2VhODE2Yzk4YWZmNDNiZjQ3NTM3MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkNjEwOTEwZGVmNDhiYTM1YjJiNDY2Zjg1OGVmMGFkYTUyNjBjMzY3ZWZkOWQ3NjQ0N2Y4OTg5ODFjYmFmNGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_da0acb732c664273a65fafe3e8479447",
+      "statement": "deploy/gen-secrets.sh (idempotent, never overwrites) generates the VK_* virtual-key values into deploy/secrets/gateway.env together with BIFROST_ENCRYPTION_KEY and the BIFROST_ADMIN_PASSWORD (which satisfies Bifrost's >=12-character upper/lower/digit/special policy), writes the same VK values into per-component secret files llm_key_<component>[_local], and leaves OPENAI_API_KEY/OPENROUTER_API_KEY empty for the operator to fill in gateway.env; only the llm-gateway container reads gateway.env (env_file), so provider and admin credentials never enter agent containers.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L76-L79",
+          "version": "repo-lines-v1:sha256:b8514e179ce00800277f22b7f9161df4506671bf1b0d66fee0979661191c8666:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjhkYWJkNjgwZTcwNDA4ZTQyOGNlMTBjNGMzZmEzYTEzNWFhOWI1MjA0NmZlOGZkNThlMWFiOTc0M2VlYWEwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ0MmFjZjFkMmU3ODM4MTY5YmYzYmYzN2M4ZjQ1MWI3YmMzYzdiYzU2MzJiNDEzOTFjNmQ2MzY1OWQ1MmFmMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTI5NzE1YzhlOWU5NmFlM2RmMTM1Zjg3NmI5NjdlNjE2OWM2MmUyNDVjYTY0ZmYyZWQ5NWQwN2QwMmVjM2Y2NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2NmNzMxM2U2MTAwMTE3N2RmZjBhNTkyMjgyMjQ0YzFhOTk0YmRiNTU0ZDM5ZDJhNjNlY2Y0NTYzNjM0YjNkYSJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L1-L6",
+          "version": "repo-lines-v1:sha256:0bb2a2baf7c708c15eb368a2c03b13ddc5d173725d89c4309ae7694789ea243d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWI4NmQxMTJkZThiZWQxMDI3ODZhNGExZmE5MDE4MWIzZjA4NDFhMjBhMWFiY2EyNTVmODA0NjIzNmI4YjAyYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2M3M2U4YzBmODdlNGFlZTU3NWE2MGNjZTc4YjJhMGE2ODBhZjFiYTk4NWZhYWM2ZjVlOWU3MGVhMmZhNDgyYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWZhNDQxMjc2NDMwNDJmOGEzZmI2MjIzN2Y5ZDBkZjdiNTJmYjJjMjkzM2MxNGMwMDJlNzhhOTFiNzA4ZmNmMyJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L27-L48",
+          "version": "repo-lines-v1:sha256:e7885eb3a42e8d25756ce6c62b3b4bc4b3d42f708d03e6971550d45e6ec3f742:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0ODlmZDdjMWMzMzdmZTIzNDFiNDdhOTIxOGZjZjAwNTgxZWE4ZmJiODNjOTY0MzkyYjBmZWRmYmQwZGIwNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNjJiYTEyZGU4YTViOWMxYmZjODcwNzRhNDg4OTVhMWU4MDRkMTljZmUyZGQzNTkzMmU0MDQ0MjE1OWY2MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzMTk2MjJlOGY0N2Y0NjEyODIzNWUwYTkzYWU4ZDcwMmI2YmU4NjA1ZTM2ZTM4MTc3OTE5NzU0YWEwMGMwNDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9bfb64e7e5904716b8fd0cb40eec7a61",
+      "statement": "The llm-replay proxy (services/llm-replay, Starlette, port 8000, upstream http://llm-gateway:8080/openai) sits between all callers and the gateway: modes live/record/replay from SANDMAN_LLM_MODE, cassette key sha256 of the RFC 8785-canonical request body excluding user/stream/stream_options, only chat/completions and embeddings recordable (streaming rejected with 400 streaming_not_supported), replay misses return 404 replay_miss, and it forwards the caller's Authorization header unchanged — it holds no keys itself; because the cassette key contains the gateway model name, re-pointing a route invalidates recordings.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0010-minimal-agent-library.md#L91-L94",
+          "version": "repo-lines-v1:sha256:b54590b37765743ef62aa99a1a209ccfece817d6bedf34078f98d51302a0628d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQ1NWY1OGZhMDExYzg1MWE2NWU4ZDk5NTc3MDFiMDc3ZWQ5ZmZjZTczODI5ZjMyYTU0NzAyZmVjZTNhZGQ4OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzk2M2EwNmU3MGZiZjJiOWIzMjc2Y2E1OGMzOTc5NWU4NThkMGU1MDlmNjdhYjk3MzgzZTlmMDQ1MWJjMDIxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzE3ZDA3YjIxMWVlYjc3ODI1MWZlNWNiYWU0NjBkNjk5NzkyMTUzOTkyM2UzYTc4NzQwMTE3NjM2ZjhmZWJjYiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L92-L108",
+          "version": "repo-lines-v1:sha256:22d8086d3acb0a868249a23f323e378b8a19c5acdb6225b685c0b351fadd42f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZDkxYWVjYzhiZDgwM2UwZDJmMDY0MjMwNzI4MzdmZmY4NDcyOTEwZjk4NmQzMGZkZjk0ZjJiYTAyMjBmOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNDI5Nzc0YmE2NGIwZGNiODkzNmE5ZGUyNDRmMzMwOWNkZjg3ODFjNzFhMTEzYTg4YTczMDZmNTE3YWZkOTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMjZkYjlmOWYzMzJkMDc1ZjA1ODNkZGJkZmMzZWJjOGFmYTA2MjVlMDNmMGRiMDMwYzMwNjkyMTQ5NDE3YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNmE4MWNhNDU5MGExYWZlNGUyOTFjYzQyMjM3YTgwYjg4YTAyOTg1YmU2NGFiZWU3NDY1MmEwMDQxZTczYjIifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L142-L169",
+          "version": "repo-lines-v1:sha256:c2990c5b58c6a313d46868cad6f2a9f9893e978abcfd5255349768a74ee3ef59:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NWE0NjkwMTY1MmQ3YzZiYWY2YTYwOWY1MzFmYzkwZWYyNjk3YmEwYThiNTRkMjNlOGNlNWM1N2RkZWUzZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllZDEzMzk3MWRlNzBiODNlZWMzOTYwZDM5MzAwY2I1MWMzZjJjOTk2ZjhhNDcyNjc3NDk2ODlkMDBlZDQ5MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhNzQ0YzhiYWJmYjViMmE1ZDgwNDQ4ZDY1ODYwMzc0MmUyNDg4YWU2ZjJlODhhNDE4YmFhMjc2ZGIwYjE4ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmYmUwM2Y0NWU4NWQ3NmY3OGFlOWEwYzM5MTFhMmM4MGUxNTQxM2QzNGViYmNmYmQ2YzMzNmYxYjRlNjBlODUifQ"
+        },
+        {
+          "resource": "repo://services/llm-replay/src/sandman_llm_replay/app.py#L24-L60",
+          "version": "repo-lines-v1:sha256:528f367000ec19a13f1f31ca88ce77b41bb8cbe70ef35ba266b33aef1c801ff3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlOGI4M2I5NWZjZGFmZjUzOTE2NDM1MWRkYjgzYTM1YWM1YjhhMWM4YzExNzgyOWRlMjk5OTY0NjU2MDM2NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4ZTA1ZWQ5ZWU4Y2VlN2RhMzA3Y2RmZTQ3MDk3MzlkYTYwZjBjMzFiMTVhZTYwNTBhYjAwMGU3NjFiZjg0OTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMGMxZWM4ZjQ3YjIyZTI3ZGNlZWQwN2IzZDA0NGMzOWFkZDhmODI2NTEyNTVmNzlmMTU2MzZjNjA3ZDdlZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhOTFjOGNiOTI3NDNjYjk3MGNmMmZlMGUyMjUyMzIwYjdhNzUxMTkxZDVmYjIyODU0ZWFiMjllMTAxYzk2ZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_05d682d3f81e49f8a5a06bbebb0f41e1",
+      "statement": "Project.llmPolicy (enum cloud-allowed / local-only, required in contracts/kg/schema.yaml, set at project creation via the extraction-agent API and stored on the Project node) is enforced twice: clients pick the -local key and *-local routes for local-only projects (Python ModelSelector / Java LlmAccess / plugins via the llmPolicy field of PluginExtractInput and PluginDetectInput, where a plugin that cannot comply must error rather than call a cloud model), and the gateway independently rejects the Ollama-only key on cloud providers (403 provider_blocked).",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L14-L23",
+          "version": "repo-lines-v1:sha256:634797cf2866730108d6a5d25c6ad623bd255d65e5aac423a49a7a4045157d72:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjODdjYmY0NmNlYmQ4NTZjMGI5OTc2NzExYWJlYTdmYzI4MTU2MzA4YzcxZTMwYTlhMzgwYjNlOWQzODEzZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNjU3OTE2MjRmMTA1Yjc2NzlhMDk1MmI0YWI4ZmNjMDZjZjRlNzU2MzI5MWZkZDgwMjE1MGNmMTYzODk3NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNTgyZDU0ZjE4NzExZmM4Y2YxMDNlOGMxMGUzZjUzMWFjN2VmOGY2ZTg4OTZiZTg2NTkxZmI0MWQxNDEzOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4YzFjNzc0Y2FlZGIwZTgwM2EwYjIwZjJmZDZiZDYyNDAzYTdjN2Q4NjhhNjY2Yjc4YzI2OTMxNzFmODVmODgifQ"
+        },
+        {
+          "resource": "repo://docs/plugins.md#L45-L53",
+          "version": "repo-lines-v1:sha256:6698ad98337c6ea102dafa146826baf3aede48e1eaeff246e1a714acba783462:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBmNjM0N2ZjYzViZTEwNzJkMDlmYjFlNjk5NzJmOTFhODc0OTZjYTY2OTEzZmI4ODk4OWY4NTc3ODQ5MzkxZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGMwYjI2ZDdjM2M0MjhiMjk1NGEwYmM0OTY1MDE0NmI1ZjkzMTEwMzAxODU2MThjY2MyZWI2MWQ1OGE4OWMxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTYxMGUxYzFmNDUyZDUyYzhhZWE3YjgyNTkyMmY2NThjM2QyZTRiMjJjZTJlODc0MTM0ODg5ZTAxZjhjMGU1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDE4NmZjMjM4MzgwODQ1M2ViZDBmMTVlNDBkZjk0MzM3ZGI4NzhiNTg2MTJkMzMyNzZiODZjMWI1NmNmYTFmNCJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LibraryTest.java#L82-L109",
+          "version": "repo-lines-v1:sha256:530fcb6247917b8c726f6b8c289c04110ad139b8c52c46334802463b2b861aaa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmYzZhNmJkYWUzMGI4NzljOTcwY2YxNWJjMTZjOTBmZGM1MDA0YzAzOGExZGQzYzI3MWQ5NzgwZTBjZTNlMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjOGU5ZjcxYTIxMjgxMzdjY2U0Njg1NTA2MTU5ZGZhY2Q5MWVjYWM1ZGUyMTQwZDlkYzU5ODA4NzU0NWJkYzAifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_units.py#L40-L52",
+          "version": "repo-lines-v1:sha256:8cd3de728bfcb0fb09ec9699bf11de922cf27e168165670db6c8fb13cd463e7f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1MjAxM2YzOWEwZmJmNjA0YTEyYTFlMjFhNmIwYzYyODNjZmUwZWJhY2E4ZGVlZGY5ODYxN2VlNjE2OGMwNDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MWJmYzk5Njc0YmY4YmQ3ODAzZWMyMzA3YTQzNTdkNDFkNGQxNmRlZTJiMGM1ZGZjNzNjZTYyMGI2MThjMTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2NTQ4ZDI2NjNkNThmNmVhMGU4ZjlmM2IzMTE4NDYxOTFiYmY0NTc0YzhlYmRkNjY1MjRkYzNlODg1NjAxMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiMWM3ZDA1ZDFiZmMxMWNmNmNlNjE3NDM5YjNiMTRkNjk1YzYwZTdmZWU5MmE5NTQwMGFjYmI0ODgwNWFiODUifQ"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/app.py#L54-L57",
+          "version": "repo-lines-v1:sha256:f47865ccbf2e1500203d5fec22277d8b6a0e2d13985b736b3ea43878236f2dd1:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODYwODM2YzZlNmFkMjJlYmQzMmE3ZTk5ODVjM2EyYWExZjMxNzNhMmNkNzMzYjdkZGE1MmQ5ODZkOTkzMGIxMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGIyMTMyNTRkNzUwYjMzZTc2NDE2NDA3MWRlZWM1YWIzMzg1NWRmZGIyN2ZhMzI1NmZhYzdhNDlkMzA0YTJkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWM4NjVkNmY5MDBmN2M1MjNmNjQzZTlhZWI3OWJkMGM4NjFkZWY2OTE0MTk4NmE5N2Y5MDlmYWEyNTJlMmU5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzNhNmU2ODVjNDQ4YjNiMDU2ZDIxNGI3OWNlZjAyYjJjNzRlZTZiMjA3YzllMTE2MzA5MTAwODI2Yzc5YzExZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6574817824464f2fb0abbff3d66128b5",
+      "statement": "ADR-0004 chose Bifrost (single container, SQLite default, Apache-2.0, OpenAI-compatible, virtual keys with budgets and rate limits in the OSS build) with the LiteLLM proxy as recorded fallback (change triggers: runtime-gated governance or missing provider); the decision was proposed until spike T0.4 verified virtual keys, budgets (HTTP 402 budget_exceeded), rate limits (HTTP 429 request_limited), admin auth, -local key isolation and keyless startup in OSS v2.2.6, and was accepted on 2026-10-07.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0004-llm-gateway.md#L34-L56",
+          "version": "repo-lines-v1:sha256:6edf66083bcf7f815de6bb9f6334b8d5f071aa8364e20e6a0712c2be47d79317:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkYjhhMDg5MzI5MzdmNGJkNTRjMjJlNDk3ZDExYzA2YzA1YzI0NjZiMDJhOTBhYmM3NDdkZTg3ZjFlYmY3OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxOTAzMTFmZmJkMzYxNTIyOTVhNWE2YjU4ZDE2NjJjYjQyZDgzZGU3Nzg4MmY4ZDY4M2I4MDQ0MmYyOWY0N2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1MjViMzhjZmU0YzkwMTE2MWUwZmQ0ZWUxODZkMTMwZTlhMjgxYWJhZGUzNWFhMzBmNTk0ZDMyOWZmOTdkNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmZjIwZTllY2M0NDMyOWZlNmM4YTMyZjQyMzY5OTU4ZTFjYjBmOTE2NmI5MGYyZmFmNWU1NzkzYjkzZmE3NWUifQ"
+        },
+        {
+          "resource": "repo://adr/0004-llm-gateway.md#L91-L95",
+          "version": "repo-lines-v1:sha256:2ba56a5cfed4acb481340477c12993a9374a783eadfe0ccce1fa21220ab5ec4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk2ZmQ5MDJjMTcyOGYzZWMyMTQxNmNhYzAwMTMwMjFlY2ZkNTlhOGExOWZjZWIzN2JlZDFkNTc4YjcwYmYzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGYzYmU4ODBmYzJiZDc3OGFiYzAyYzdlZDk5ZmE1YmNkMDA1YzMyMDdkOWRmYmU1NDlhNGQyZWQzYjlkZjIxYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmEwODYyNDQ2NTY1MDcxZWQ1NDZlYWIwODAxZDc0OTM4MzFlNWYzOGJjYTI1ZmI3ZDViMDk1ZTYzMDZjMWY0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L10-L19",
+          "version": "repo-lines-v1:sha256:5b31be4d26c316f94f1243b14ff40ee8567fc803237f595fbbe9109767f04a75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZmYzMjQ0MzZkYzI2NWYxY2FmMDM1YThkM2E1M2RiODg4ZDhmMDFkYzc4NTVhNWQyYzQwMzNiN2E1MWMzYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNDczNjMzOWZkZTA5NDUwODY5NGU4OTA5MTJkMjc2YmNhNzA5ZmY3ZDIxZTI1MDJjZjFiZDg3OTY0NjJkMjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmYmVhNjM0ZDhlMDgzYjRmY2U0OTM3OWZiMTllNzJkYTJlMzE2ZTM4ZTc2ZTE3ZDI5YjIwOWM1N2U0MTQ0ZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYmM4MzllMmNhMDczNTVjNGQwNzdlOWJjMWIyZDNjMjg5ODZkZTk2NDkyMmYzMTRkZjhkNzQzYTAwNDM1NTYifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L44-L48",
+          "version": "repo-lines-v1:sha256:be9a57459944e87f9f05dbe7bbdd4a07e8c431d4564752c2c7ac26783ac9443d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZiNTgwMDA1NWMyODkzODRhNTQ1MjBmYTM4ZjdiNzk4NGU1MGJkNzg0MjYxZTFmYzhhY2RhYmQ2NDc1N2UxZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzJkYTY4ODhhNTYxN2I4MTJmZThhNGFlMmJiZmQxYjNlZWZlNWVjODE5MjZmYTQ0MDE0N2ZmNjU4YTA0NDQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGM5ZDZlZGFkZDdiMWI2OGJkOGQ1NGZiNjRmZDhkM2Q0YjllYjNiMjc4NmZjODk2OGRmZWNkM2ExZTY4NGE1OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVhN2E1M2JjZTI5ZDUxZTlkZjU4N2I2YzE2YjRhYjE5ZTFkZTM2NDkzNWIxYzZmMjkyMGY2NTg1NjBhNWNlMCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

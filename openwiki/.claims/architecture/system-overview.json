@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:db0d78d24c41eca8975273e734c2cec9c24c02ea32d3e5aea5ec177449fdc54f",
+  "claims": [
+    {
+      "id": "claim_cf0d9bae164b42bdb287b9b71647ead6",
+      "statement": "SANDMAN's default Compose stack runs six SANDMAN-implemented services — orchestrator, extraction-agent and query-service (Python/FastAPI), tlr-agent and inconsistency-agent (Java 21 on Quarkus), and llm-replay — plus four infrastructure containers: Memgraph (Bolt 7687), NATS JetStream (4222, monitor 8222), the Bifrost llm-gateway (8080, admin UI published on 127.0.0.1:8081) and the Caddy edge-proxy (publishing 8080/8090/3001 on 127.0.0.1).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0001-language-per-component.md",
+          "version": "repo-file-v1:sha256:7b024cb4ddfd2c2b670382f90735411e0b0b801bf280016a800f7f1018ff24d9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L28-L345",
+          "version": "repo-lines-v1:sha256:563e7a2badf6db06170c6ebd943c207b1cf7293f4c028f9c3c4f0e3c14da1e8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzE4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYTczZmNjZGM5OWVhODM1OTY3YzdkZWU3ZWZiZWQxZjNjYTg3MjYwZDkyOTMxODUwZmRkNjZkYThjYjEyZjFkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwZTE4OGUwNWE3MGNjOTBkN2NlODhmMzBjN2VhYjQ3Y2YzODIxYTUwOWNmZDQ0NTQ2ZTdmZjI3ZjlhYjBhODViIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwNDc3ZDZkNTYyYWYzMzc4OWU5NmJhYWVlYmMwMWE0MmU5YzIwZmIzMmQzMWNiM2YzZTk3MTRkYjdkYzMyNDE3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMDVkM2M3NmJiM2JkNzI5NmQ1MGM0OWE3YjMzY2NjNWExNDdlOWIwNmE5NjBhMTk3OTU1M2JhYTJlZmQ2YjVlIn0"
+        },
+        {
+          "resource": "repo://docs/stage-1-analysis-architecture.md#L50-L59",
+          "version": "repo-lines-v1:sha256:2af1170b8f1960aea9ca75cc1a63f12aa5fb50e16f4db698db2e33a1e2640128:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllODMyN2E2NTE2N2NlMjVjNzI1ODg1ZDA0NjlhODZlMjY2MDRhYTc4ZGQxOWZjNzQ2ZTI5NGQ1MzcyZTQ5NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiODk5NzkzODdhYzg5NDUzMmVkNzEzNTY4MDkxZTlkNzIwNTA5ZWQyMmE2ZThhNjcwNzRkZjBlNGI0OTg3YzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZDNjNjMwMjk0OTk4YzI2YzI0OGVlOGQ2MzQ3MGFlYjk0YmRlNWQ0YjY5NDE4YWEyZjM0ZDVhZGRiMTFkY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwZjU1MGNmYWQ0ZjM0ZmY0MmViYjRkMTdhYzMxMWJkNWI0MjBiOWRiOTVmNzYxMjZkMDcyOTU5OTA5Yzk2NzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7abafddd87b344bc968a91acac11d2de",
+      "statement": "The language split is a deliberate decision (ADR-0001): Python for components dominated by document parsing and LLM-prompt iteration (orchestrator, extraction, query), Java 21 for agents whose core is existing Java research code (ArDoCo/LiSSA) run in-process; the Java agents use Quarkus only because the a2a-java server integration is CDI-based, decided in spike T0.4 check 16.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0001-language-per-component.md",
+          "version": "repo-file-v1:sha256:7b024cb4ddfd2c2b670382f90735411e0b0b801bf280016a800f7f1018ff24d9"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L33-L34",
+          "version": "repo-lines-v1:sha256:7ca5f45c9e555e5c869f0de55ff5b90974fe5dda90fee74fbff2d4439eeee9b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGNkMjMxYmUzZGQ0OWEyMGZhMWE4YjdlMTI0Njc0NjA0NWM1MzU5NjNlMGUyZWFkMmFmMzgyZjE0MjU3Y2IyOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTdiZmEwODFjYzYyOWNjMGNkMzcwMWM2NWM5ZjYwZjMyN2JlZTQzZmE4OTc4ZTJhYzA1YTA5NmNjOTRmMTgxZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDEwMzc4MWEzYmU4YTFiMzk1N2RkODVhMTk5NWQ1MzNkOTBlMTMwOTc4NTFjYmQwMzQ2YWU3ZDZhYTNhYzRlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjY3MWIyNTNmNGQ5ZWNkNTg1MjJhMWIxZjc5NzdkZmFkOGYzMzQ4OWJjYjU5MTQ4YmIyYTRlNTQ0Mzg2NWYxOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7550f645d623439e8b0a3fd5741c8d6d",
+      "statement": "The communication rules (ADR-0002) assign each interaction its simplest fitting transport: A2A 1.0 (JSON-RPC, returnImmediately) for orchestrator-to-agent commands, NATS JetStream CloudEvents for domain events (the only step-chaining signal), plain REST for user queries/triage/uploads/catalog lookups, Bolt for all KG access, and OpenAI-compatible HTTP through llm-replay and llm-gateway for all LLM access.",
+      "evidence": [
+        {
+          "resource": "repo://docs/stage-1-analysis-architecture.md#L50-L59",
+          "version": "repo-lines-v1:sha256:2af1170b8f1960aea9ca75cc1a63f12aa5fb50e16f4db698db2e33a1e2640128:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllODMyN2E2NTE2N2NlMjVjNzI1ODg1ZDA0NjlhODZlMjY2MDRhYTc4ZGQxOWZjNzQ2ZTI5NGQ1MzcyZTQ5NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiODk5NzkzODdhYzg5NDUzMmVkNzEzNTY4MDkxZTlkNzIwNTA5ZWQyMmE2ZThhNjcwNzRkZjBlNGI0OTg3YzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwZDNjNjMwMjk0OTk4YzI2YzI0OGVlOGQ2MzQ3MGFlYjk0YmRlNWQ0YjY5NDE4YWEyZjM0ZDVhZGRiMTFkY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwZjU1MGNmYWQ0ZjM0ZmY0MmViYjRkMTdhYzMxMWJkNWI0MjBiOWRiOTVmNzYxMjZkMDcyOTU5OTA5Yzk2NzUifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L345-L421",
+          "version": "repo-lines-v1:sha256:2d2a7b2b2a95fdbd1371a603db01f13ed9ebf5b5564b2fc637c9c4dee7e41695:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwZjg0MTg3OGVkYTUzYmQyYTVmMzYwY2VhODQ2OWIzYjYzNmU1ZTk1MjQ3YzI3ZThmMWNmNjgzNmY4NTc4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZjFjZDQwNWIyNTY4NDc2YTlkN2I3MGVmNjljOWJkMTIxYWVlZGEzOWI4MjZhNzNjNWY1ODg3YjljYzAxMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmYTJmNzgzNWZkNDljMDk1NmJhMDcxMjU2MGI5ZTk3NTY0ZmNkYTY0ZDY1YjI2NDcwNDZiMjA4NWUyN2NjODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxZDY3NWI3NDhiMDAyNjg0Y2NiM2MzY2QxMDhiYWRiMjkwZmYxOGJmZTZiMDQ2MjIwYTI0NzMzZjE2ZjY3ZmYifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L336-L372",
+          "version": "repo-lines-v1:sha256:b6db13462a85616061aa4a3a7b05471656ac58b5d304bef5a93c47bc119b302e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNWU5ZTA4NGRjNzNlNTk0MDk5YjVkODgyNzkxNTgyYTEyNjNhZTM5YmMyNTUwYmM0MmRiYmViMmEyYjAzZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOWVhZGUzYTY3NDE4MzA5NWUyZmYyNDI4YjM2ZTMxMGRlY2Q3NGE0OWZhZWMxNDY1ZWE2M2U1YTU4NDJlOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhNmE1NmUwZWY4ODU4YTcyODhlZjdjNDFjM2VlNWYxZTZiZTg0NmQyNWY3NzgwOTY1NmJiNmYxOTBlYjE3YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMTQ2ZjkyMDhjMmMxNjA0ZmRlZmRiODRhNjYxMzRkOTZlMTE5ZDUwODQzMmEwZDJiYjEyOTQ1ZTExZjQwNTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf0615c89ef24960b77e1be1c60c856b",
+      "statement": "The orchestrator stores the A2A messageId in SQLite before SendMessage and completes a step only when its completion event (causationid = messageId) arrives; GetTask polling (30 s initial, growing to 2 min) exists only to detect FAILED/REJECTED/CANCELED/lost-task/timeout conditions, with per-skill timeouts (extract 15 min, TLR 60 min, detect 30 min) triggering CancelTask and a retry.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/a2a.py#L381-L414",
+          "version": "repo-lines-v1:sha256:39bdb8868da0c260b0cdc90bc96125bc5f58e4de1448da35762fd5e681f90c30:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmNDk1NGExODc5OTVlYmFlYjA0ODQxYWMyYjUxYzNhMTU2ZjQ3Y2FhYzk0MzY5MTk4ZWQ5ODFmMDMzOWFhZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZmQzYmUxZjViOTE5ZjdjNTgxYWNmMjEyODBhYmZjMGE0NDg4ZDhiY2Q0NDhmYzllNDlkNzE3ZThhZWNhN2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0ODUwMzk2YWU1YzJkMmVlOWFlNzhiNjkzOTM0Yzk4OTFmOTgxZTc0NzZlMDNiZmI5NzhmOWYxODAwYjIxZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmNjUzN2JjODJiNDQ5YmQ2OGZiNmQ0NjZkNGM0MDNmODdjZGYyODFkYWJiNGRlZGQyNzcxMTM0MjY3NTMzMDMifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L336-L386",
+          "version": "repo-lines-v1:sha256:e792fab1746b0105aff385612011973ed873358f0c2982f55421d6994eda568b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNWU5ZTA4NGRjNzNlNTk0MDk5YjVkODgyNzkxNTgyYTEyNjNhZTM5YmMyNTUwYmM0MmRiYmViMmEyYjAzZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjOGE0M2RjY2RlYjcwMDQxODY2NTQxYmMxMzEyYWQxMTdhNTg3ODg2ODJlOTUyNGFhOGQxZjQ5MjlhMThiMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhNmE1NmUwZWY4ODU4YTcyODhlZjdjNDFjM2VlNWYxZTZiZTg0NmQyNWY3NzgwOTY1NmJiNmYxOTBlYjE3YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0MmQzMjI3OTI1ODUyZmE1YmE3ZmMxMWEzMDI2M2ZkMzNhMTM1NmIxYTRiNWU1YjBkMjk3OWRmMDU5N2M4YTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b46bbd8d59c41cd9d5d2e8cc9b6a966",
+      "statement": "Domain events use a single JetStream stream SANDMAN capturing sandman.> with file storage, 90-day retention, a 2-minute duplicate window and Nats-Msg-Id = event id; the CloudEvents subject carries the projectId plus correlationid/causationid/traceparent extensions, and the catalog is exactly five event types (ingestion.completed, extraction.completed, tracelinks.updated, inconsistencies.updated, inconsistency.status.changed).",
+      "evidence": [
+        {
+          "resource": "repo://docs/stage-4-review.md#L29-L37",
+          "version": "repo-lines-v1:sha256:4e78b5e104ae0906c2ec4fd7d9bdb75383f58f346e3bd6efb5187f27a761d9fc:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTY1ODE0MmQzN2I0OTIwNzMzODg1MWVmMTc1NGY2OGNiOTliZmNmZjI1ZTgyNzY1YTQ0MDgyZDgxNDUzMTNlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTY3OTgwMDIzZThiODhjMTcxMDlhNmJhNjU4MDU1Yjk5MjFlNTg3Y2Y5MWIwZmY0NWJmMDA2YzM1MzY1MjYyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNkNjM3N2FiZTU5ZDA0OGMxNzdiNTQwZTMzZmNjNmY1NGQ4MzAwOWM2NWRjMDI2ZmY0MTAzZDAwYWIwYmY2OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGM1MmY0MWJkZDYwNWQ5NTc2YjdmMDkzNWI1YTY5NzNhZTRjZjgyOGNmMjNhOWUzZWZmNjVmM2E4MmFlMDUzNyJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L125-L155",
+          "version": "repo-lines-v1:sha256:7d4f48874d74e09d54e8f40a2a49a3a0438b5bda326648f595004092f3467dea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxOGMxZTUwMWYwNzdlOTYxOGI2NmYzYWExM2RmOWI0MGNhMWY0ZWVjMzhmMmIxMzQ5ZGM1MzY1NzFlMTViYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1M2Y1OGU5YzY3YWIyOWIwNmRmZGRjYjYyYWIyM2U1ZDlkZjM0NmIwODM5MzMzMzg1Y2UzMjViYjRlYjU4OGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1MWMxNDI5YjFlZDQyZWI0NGY1ODQ4MDVmZGM1YmIwZDNkZjA2NTg0M2Y3OTQ4OGM4NjM5ZTgxM2EyODY3MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhY2U2MGZkZTU3N2NmZjA0YWFjNzgwNGUyOTk3Y2VhYjhlNDc4OWI5ZmRmMjc4MzlmZjYwNjc5NmI5M2JkM2MifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L20-L31",
+          "version": "repo-lines-v1:sha256:addcd8e81eea4fd7dbfd0a2eddbdebb283d0ceaf1a0613943d27ef052096591b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkODlkN2UwMzJlOGU3YWRjNWQ0ZTU0OTVhMWZiNWY5ZjkyNDcxMDNjMDU3YTgxYjcxMDA2MjkzODFlMWE2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiMzgwNGRmMTUzYTliMTkwOTgwMTBhNjYzNTcwYTI3ZDBlZTYxZWQ5N2M3ODUxYWI5NDcyYTJmN2VjZWExZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNDRjMjdmYTFlOWUzZGFkZjliYTA1NWExN2E0MWFhNzMwZGFlM2ZmOWRmZjQxZmE3MzhhNDg4MzgzYTljYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4YjNkZjc3NGZlODk1YjUwODVjMjNlODg0YzU1NThkNTk2MjEwN2M4ZjUzZTQxNjQ2N2E3Yzk1YmM4YzRjZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22748eb2564d4af69b0f61624d45d40e",
+      "statement": "Agent skills publish exactly one completion event per task with causationid equal to the A2A messageId; the producer ordering is commit KG writes, validate output, publish and await the JetStream ack (3 retries with backoff), then report COMPLETED, so a publish failure after the KG commit fails the task as retryable and the retried task republishes safely thanks to deterministic ids and MERGE.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L133-L155",
+          "version": "repo-lines-v1:sha256:ad8362b1c7d40f95ee431cdeded0d5d7f3497d5a31ac5d9859cf01858a68bc4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczZWIxNmY4NThjZGMxZmI5ZTU4ZmZiOTk3ZGZmODVkNTJmOTE3YTUzMDYyOGRmZGNhZmIyMzEyNzg4NzUxOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1M2Y1OGU5YzY3YWIyOWIwNmRmZGRjYjYyYWIyM2U1ZDlkZjM0NmIwODM5MzMzMzg1Y2UzMjViYjRlYjU4OGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmMWI1NTc2MTRhZmExN2E2ODVjNTQ4ZjUzZGI5YWJlNDA2ZmUxZjJhNmY4ZDI3YWQwMDBjMjU4OGUwODY3ODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhY2U2MGZkZTU3N2NmZjA0YWFjNzgwNGUyOTk3Y2VhYjhlNDc4OWI5ZmRmMjc4MzlmZjYwNjc5NmI5M2JkM2MifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L32-L86",
+          "version": "repo-lines-v1:sha256:03e2de90494fc3336dd274e057d28704621df9d3f54183e0bb489c1622d80bf6:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4NDc2ZTI5NjZkYmFlMWE0ZGFkNWJjNGI3YWViNDBiMzQzYzdhMTcyNjIxODU5ZDIyMjg3M2JjNTg5Y2EzNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVjMmNhN2U4ODdmMDlhNGZhZmU1YWE0ZmVmNDE3ZDFkMzBmMjUxNWRiYzQwZTM0ZWE3OTU1ZGJlYmU2MGUyODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4MzJlOWMzMTFhNDI2OGI0ZDFhMGQxZTc4MWI2MzYyZGZhZTgwODRlZTY2NWFiZDkwOGJhN2M1YjE5YzJmZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_917d364129d641d4b4aa42a598f0d5e3",
+      "statement": "The query-service is the only user entry point and the policy decision point (ADR-0013): it authenticates users, checks per-project roles, and forwards owner operations (ingestion to extraction-agent, triage to inconsistency-agent, workflows to orchestrator) with its own service token plus X-Sandman-Actor/X-Sandman-Roles headers built from the authenticated principal; owners accept these headers only from the query-service token, and the orchestrator is the only trusted forwarder of sandman.actor in A2A metadata.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/auth.py#L38-L64",
+          "version": "repo-lines-v1:sha256:3c753055196aff1615c8c4813966a1ef3485b99772b2fa0c675970ff421fc976:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMDU1NDczMjJkOTMzMGMzZWE4NjcyMzc2ZDAxZTBjOTE2ZDllNzEyOTFjMzE1NjI1N2YwZjkzZmExMDI0NGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjNGIzZmM1NGRmMTA3NmJkZTg1YjAzNDcyOTQ4NTg4OTQ4NmFmZDFiZjhkMzA5NGI0ZWZlODkzOWY1NWIyNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1YjNkNzk4MjlhN2EzYmRlMWM3MjcxZjdmOGZkNjlmYzgxYmY3YTdhMzQ4NTU4ODQ1OTcwN2Q4NjMxMGI0MTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5MGE0YjI4YjA5M2U2MDhkNzg3MGFkMGI1NDM1NDhkYjUyM2I4MjNhZWUxZGZkNzI5MmM4YjQzNmUwNzdhOWUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/forward.py#L21-L66",
+          "version": "repo-lines-v1:sha256:966c7040b95433cdc57cf2b166442063ae7ef2694a5dac4e5d88658f72765f30:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3ZGU0YWNhN2UwYTQyNTlmZTNmNTI0MmQwNmI5MTNiNWNlOGRjZTUxNzAyZjdkZWZkYWRlNjEwOWViYzVjZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2Y2QwNDJiMDIwNzhjODMyNWNmMjMyZmQxMjIxYTE4MDE2ZGM1OTlhM2IyOTE5NjgyZDJlZjVlZTY5MmUwNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4Y2I5MjIwYTEzNmEyZGMwMzlmOWQzMmI4ZjliMGI0MGIwZjVkZGNhZDI5YWM5MDg4ZTE0YWNmODQ2ZDcwNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/service.py#L251-L256",
+          "version": "repo-lines-v1:sha256:4f6bcbbd903c147e4f844ef4085de996a5f5df2647a7b962c30972568e7394c6:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTlhYWU1YjZkYjEwODI3ZDRkNmE0ZGQ0MWVmNGMwMTc4ZTVkOWVmOGZlNGJhM2FmYmYzNzg0NzhmYWUyMzFlZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQzY2FjOTUxM2Y5ZjQ1ZjFlYmU4ZjdiZTQ0MDRjMTJjZDliYjA3M2MwMDg5M2EzZmU3ZGU1ZTUxYzk3NGQ4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjAyNjQzNDIxMDkzMTdjYTA5NTQ2Y2UwZjczMTRjMThjMTM4N2Q4NjNiMjkyODk1ZTJiYWUxOGE5ZDU5YmYxMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmNjMzNkN2I2ZTYwM2UxNTE3NTk4NjYyOTJjOWMwMWEwYWUxODVkZWQwNGI0ZDUzYzJhMWMwNzFiNzJiZjY3MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2bc763e82ed24dda87da851c487494ab",
+      "statement": "All KG access goes over Bolt through the shared KgClient; reads run in read transactions (which Memgraph rejects writes in — the primary write guard for the user query path) and writes in write transactions with driver-side transient-error retry, except that 'memory limit exceeded' is deliberately converted to a non-retried MemoryLimitError in both libraries.",
+      "evidence": [
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L21-L23",
+          "version": "repo-lines-v1:sha256:e6ae102e20af298ed9ee7ed33bd5e58e9d9eec41d6ad840a7bad23cbb9272725:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU3Y2Y4OGUzYWE3MjY5NzgwNGZhN2E2ZGNkYTRlNGYxNTJlZThhYWEzZTVjZDMyOWNiM2VjNTUxYmFhMmY0ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWRkMjVjNzZjOTE3YWFhYjMwY2FlNzJlMDhkOTc1Nzg1MmZkNzEzZjRiOWQ1OGI4ZjliZmMwMDNlZDNhZmMxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjEzZjhlN2NkNTAxNzhkODI0Y2UyZjUxMzIxOTBlZjE0MWQ2ZjUwMmRlOGEyYTg4OGM0YjgwODEwZDBmNDVlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWRkNzFiOWQ3YzFjNGVhYWE4ZWFkYzZjMWJkYWJkYzc5ZDQxNzQyOTUyNzE3Nzg4YTdmNDNkNDk4ODJhNzFmMCJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/reader.py#L55-L89",
+          "version": "repo-lines-v1:sha256:1fb6c86dec561fbd8ccc73180b894fa49075f890357a27f21014eef5f2b3fe91:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxMmEzZjc1NWMyOGM4ZjliODZlZTZlMDlmOGUzNDZmNjE3M2I2ZjBiYWFhZGU2NDM1Njg2ZWMwMWRkMjZiNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxZDI5NTMwMjk3ZGZmNzk2ZTc2YTFiN2VmNGI2MzA5OTIwMTMzNTYxZTMwMDJmNGNjYzU2MTIzYzdlYTdiM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlMThjZTMyZTQ4Zjk5YjE0NjNmZDgxYzE3MGFlZjIyYTdhNzc0YjM2OGVlOTQ5OTMwYzgyOTlkZjI0ZmJhM2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2d9685abfcc44a1d9d394f3b0bccdaf1",
+      "statement": "Every LLM call goes through llm-replay (http://llm-replay:8000/openai) to the Bifrost gateway; because the internal network has no egress and only the gateway sits on egress, gateway-only access is enforced by the network itself, each LLM-using component holds a cloud key and an Ollama-only local key, gateway budget exhaustion (HTTP 402) becomes SkillError BUDGET_EXCEEDED and ends the step BLOCKED without retrying, and local-only projects are enforced by the gateway rejecting cloud routes for the -local key (HTTP 403 provider_blocked).",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L69-L115",
+          "version": "repo-lines-v1:sha256:770ad8999f4cf2cd23d157983a31e992331e31d61297028f48c27b153b9fca6f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTY2NzkzNzAzNjM2M2RmMGZmNTAwMDI4YjNiZGMyYTRmNGVmYjU1ZGQzOWI4ZTY4MmE3Mjc0NDFiMTE3N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNjJkMjQwMzA1NzJiZjQwMGQ0M2E1MDY1ODgwOTA0OWM3MDlkNmM3ZWFkYzIxMzQxNjljMDk3ZTNkYjcxZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxZmI0MDE1ZDRmMzU3ZmFmYjgxYWNlY2NmOTI4OTc5N2JmNjljY2IwN2Y2YTNlN2RlMmZlMWIwYWY4Nzg0ZGUifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L15-L18",
+          "version": "repo-lines-v1:sha256:041f850c63e94e3604f21eadb1aa1ba85c3c8faecaa71a4e01be34a6003552e4:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTIwNDk3YWJkODE3NjZmMjEwMzQ2MTQ3NDU3NDhlZWIxYjJlZDJjZTQxZjUwMmY0Y2NhYzMxZmM3N2MzMmVjYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTc4NzU1NmYxMzY5ODNmOTdkMTg0M2JlYzI2YWNkYmYzNTNiNDY0MjA1NzNkYmMyNTYzZTQ4NDZlZDYxZTNkYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVjM2E0NmNiOTg2YmI4ZmRlZGU5ZWNlYmZlZjg1MTFlYzQ3NmM2NzA0N2FmYTgzNDhmNDEwZDNkMGY4YmE4ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzU1MmIxODM2YWRlMjAxMmI2YTQ4YzNlODBjMDUzYTI3ODA2OGM2MWNjZjQ0ZGY2ZGI3NjcyYjc3MTMzMWQxYiJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/llm.py#L16-L26",
+          "version": "repo-lines-v1:sha256:50d66c21aa5a5bdac42d39d940aae79a25d642bbf7274c23dc2d3a4d07a084b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjOGM2MTU0NjczZjJjM2M1YTUyNGE3ZDExOTA4NzZkZWM0MjczNjYzZTU4MGJlYTgzYjFiNjVkOTFiZTA1MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjY2RjYTU3Mzc5ZGRkM2NlNDU0N2QwNmNkMzJlZDEzMDkwNTRkYmM2YmMyNTAxOTE4Zjc5ZWJlM2UxYWYxYmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NDU4YTg1NTM0NjU3N2U3MmU5NDNhZDJkMjJkODZmMzgyNGEyNDk1ZGZhOTY5M2RmMmM1MzdmMDM1MjAyYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwY2UzZjI0YWI0N2MyZjVhOWQzMzdmMzc3ZWQ4NTczZmE1NjU4NDA3NjQwMmYxYWYwNTRhM2RlZDYxOTQ2MmYifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L397-L398",
+          "version": "repo-lines-v1:sha256:779143ac48ab6f26bfff78d705cd17cf6fceb6e6b64ccc1d41df5e1154842231:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzM1MjY5NTY2MjQxMzlmNGZlYzQ1NGM5OGZiYmE4YzZmNGRlN2JiNzUzNTM1MjU5MDUyNDdiZDMzN2NmNDU5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2NmZGVkOTQ1MGRiNTEwNzJkYjcwZThlYzFiZmYyNDAyNjg5Njk5MjJjOWE0NjJkMDA4NmEyM2ZiOTZjOTNkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2E4NzY4ZjEyZThmZGVlYTdiM2VmNTFjNmE0YTNhNWI4MzdiYTc4NDY1ZjIyMzExZWE1MWJlYTY2MTQ4MTRmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA0NjQ0ZjYwZTBmYWEyNjRhODNhZGYwZjI2YTc1ZDFkYzY3ZDcxYzMyNjg2ZjIwMGMzMGFjYTQzZjcyNWI1OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_26ae3a52c19d45f2b0e7a4dd1fafa838",
+      "statement": "The orchestrator (ADR-0006) is a deterministic rule engine: every event is processed exactly once via an inbox keyed by event id, steps are deduplicated by actionKey = sha256(agent, skill, canonical input, trigger id), mergeable steps are debounced (10 s) and coalesced, the executor enforces a per-project pipeline lock plus a per-agent limit (default 2), all state lives in SQLite, and workflow status is derived from step statuses; an optional LLM planner is planned for M6 only.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L26-L37",
+          "version": "repo-lines-v1:sha256:1196221b5338b782ebd05ad72cb30c75ec1ec4d99095d82082bb051c595946ac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYzdkY2NmOTZhNmE1MTc0MGFhYzJiMDBlNjFlNjFjZmI3NzdlMmJlNDdjZjk4YWZhZGE3NTY5MTNmMTE3NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3NmUxZDcyYWZiOTcyOTExNDdlOTI2YTU5OTFmZTMyMmU4NzcyODU5OWUzMTEyYTJhZWQ5ZTgxZTM0OWMxMmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2M2IzMTVjYzk2M2Q2ZTFhMDk5Mzk0Yjk5YTUyNTkxZmY3YTFhNDk4Y2IyMDk2MzVjNzFhZDU0ZjE3YWEyZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmODZlYWE2Yzk0ZWY0ODliZGI1Y2VhYzlmMjk4NzVhMTAxNTcyNzc0Mjg0NjJlNWYwOWZmMzg0MzBkY2U3YTIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L304-L334",
+          "version": "repo-lines-v1:sha256:5821db014af4b75d64f44bd5d80f0dad7eb1f0b1b719a1fcab5e89e6e9cf8c6f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxMDYxYzg3YmY1Y2M4NDhhNWM5ZTE1YzhlMTFiZjY0Y2YzNjczNjY3ZTFmOTRkMzZlMDM0ZWRjMzQ2ZGZkZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNjU0ZjY3YjNhMzAwMDkzNjE1MjljNDA3ODE4NjM2NzU1YmQxMGI1ZGUyZjEwMzIyZWZlODdjN2I3MzE5ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWU0NGY3NjE2NDZlNjBmZDQ2ZDQwOWRmYTc4MTZmNGY3NGMyMzY4NDBmNWZhYWZmNDhiYmNlYTJhY2Q3ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhYzY5MGQyMDRiYTgzNTQwZmNjZWUyNmMzYWE4ZWFiYTc4N2JjYzkxYTg2MjkwYmEzMTVhZTNlNjA1Y2E2YmIifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L97-L140",
+          "version": "repo-lines-v1:sha256:38497cd5fa03700925229a76f1ea1698d5c5d8c4db774468b94b1999c6256899:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzZTk4NDFkOWU4NjYwMWU2MDEyOTZkYTE2OWRlZTIzMmZjNWY4YTQxM2VkMWM4OGI0ZDMwZDIxMmIxNmJkOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYTU5ZDVhOWQzYzNlZTZhMmM2MGYyOTY3ZjE3YjhjNjhjMDFhMmY5YjUzYjgwNzM5Mjc3YWJlZGM0MzAyYmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxY2ViNzFiZWE4NjI0NzRiY2YzZTg2NmM3NTBkYWM4NzFmYjcyNzU4MjVmYzhlMDQxMGU1N2EzZWVjNDcyZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMGVkYTU4OGUxMGIxNmFmN2U1Mjk0Y2UzZjFiMWU3MjFiMDAzYTUzYjUxZTAwMDAwNzIwZjZhYTBkZWRiY2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c6def7d28c7c4631894f8e93b69ab135",
+      "statement": "Events that exceed max_deliver (5) or fail contract validation are recorded in the orchestrator's dead_events table and can be reprocessed via POST /v1/dead-events/{eventId}/replay, which moves the event back into the inbox; durable pull consumers ack on success and nak with backoff (5 s, 30 s, 120 s, 300 s) on handler exceptions.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L170-L210",
+          "version": "repo-lines-v1:sha256:2559e02b8451b7f8a00983f15d6e6b66e9770090df7a19773e9e40da718cf184:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkMzRhNjExYWM2NjM5NzhkMjhmZGJhNWU5M2RhMjExMDI0ODI2ODUzMjI3ZmNmM2YwM2IxZTUyYTdkYTNhMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNWM4MjYzMmZjODJkNGIyYzM0MGY0MjU1OGJhM2RmYTMxYzc2NTVkZjZmY2MxNjhiNGZkY2U1N2ZhYzYwNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZDRmYzAxNWJlZTU3ZTM5MjE0YzA0MjQ5OTk5MDA5ZTA5ZWNmZDg1NGFkNmEwOTgwMWM3MjI4Y2Y2MTZmMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2YTAxOWIyMWNkYjg4NjBkNzUxNWNjMzI4MjhjNjU0MTM0ODA5MGJhMTBlN2MxOTcwYmNlY2JmNjZlY2NiNjcifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L148-L154",
+          "version": "repo-lines-v1:sha256:693d4faf4235fe90b17ba1e492a08b6efb3c95e681b6d0d8b08c6e046c0be9a3:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTNkZTUwMjNjMjA1MDE1Mzg4YWQyMWFmMzkzZTUwYTZmYzNmYjNmMzgzNTIxMTdmM2I2YWE4OGUzOTQyNGY3MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjg4YmU3ZTJjOTcwY2U5YTliN2MwMDQ4Mzc3Nzc5MmZhM2ViOTM2N2VjMjhkOGEzYjMzMWQwMGFmYzRhMDUyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGQyYTc2ZGNkNDNjNTQzNWI3Mjc5M2NlMmMzMTRlNzVkYWNjZDk2MzE1ZGQ5ZGE2N2Y0MGI3YzFhZDZkNjA1MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmRmYjI5YzQwMjU2Mzc5NzA0NjhiZmJlMTA4MmNmNjZkZWYzMzhkNGU0NWYzNTNmYWJiYjlmZWI3ZDhjZjBjYyJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L82-L95",
+          "version": "repo-lines-v1:sha256:e99c1e1289bf4d6b8b36598e4b9d4c02d4a15bac771d2d5c811d1caaf78686db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTdmYmJhMDRmZDg0ZTI3MjIzNmQxMDk4NjIzYjE3MDAwMGNiMmIzYTFhYTkxZWU3MTdjNTdmYjMzZjljMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMGFmMjUxZTYzNGZlNGQ1OWY0ODU4M2IyZjhhNDYxM2JkMmI3OTczYjdjOTQ0OTE1ZjVjN2ZkNjcyMjg3MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZjNkOTQ3NWViNTIwMTRkYjE2ZjY0OTEwODRkNDYzMDNiZTdkZWIzOGY2Y2IxYTMxYzk1ZDY1ZDFhOGIyNzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7cd5f83d2b334b499a458a6962514fa2",
+      "statement": "Each KG node type has exactly one owning writer (TraceLink is co-owned: extraction-agent writes only explicit-reference links, the tlr-agent the rest); other components read the graph and request changes through the owner's API, and every writer records provenance via Run nodes with PRODUCED/DETECTED links, while readers see only facts of finished runs (active facts).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0005-kg-schema-provenance-versioning.md",
+          "version": "repo-file-v1:sha256:856563ba401155bc49bad2a5e98a24c519d4da129406f01ea562332442198b92"
+        },
+        {
+          "resource": "repo://contracts/kg/schema.yaml",
+          "version": "repo-file-v1:sha256:d58fed081ebfb9fcfe52ff4eb8570c03ba849bc9d0c719203e15a122ca83cbe1"
+        },
+        {
+          "resource": "repo://services/extraction-agent/src/sandman_extraction/extract.py#L24-L24",
+          "version": "repo-lines-v1:sha256:df5a01203f7194a5cdc6194bb9c077f61adcce99dd408b9fe061f21e8a2f3dfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGY1YTAxMjAzZjcxOTRhNWNkYzYxOTRiYjljMDc3ZjYxYWRjY2U5OWRkNDA4YjlmZTA2MWYyMWU4YTJmM2RmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGY1YTAxMjAzZjcxOTRhNWNkYzYxOTRiYjljMDc3ZjYxYWRjY2U5OWRkNDA4YjlmZTA2MWYyMWU4YTJmM2RmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWQzYzA3OTQwMmU3NjcyOTNiNTgyZTg4ZDY1ODU0NjA2MzNmZWJhNTJjYWIyNTk2OWE2OGRmZmYzYzFjYzFiYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDlkZGFmMjJmOGZkMmY3MDE1YmM4Yzk3ZmI1NzA5MjM5ZTdiM2Y1NWI3ODRmZTk5MjEwYTJlMWI1YTU5OTRlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c5324b36f4274465842ba71d656e54c1",
+      "statement": "Plugins are external systems (ADR-0012), never SANDMAN agents: extraction plugins implement the A2A plugin skill sandman.plugin.extract, detector plugins plain HTTP POST /v1/detect with identical payload schemas; plugins never write the KG, detector plugins read the graph only through the query-service with their own plugin:<id> token (granted per project in config/query/plugins.yaml), owners call plugins with the plugin's inbound token, and in M0 each owner implements exactly one transport (extraction via A2A, detection via HTTP, decision D-7).",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://config/inconsistency/plugins.yaml",
+          "version": "repo-file-v1:sha256:d05ff31e95edd48d2f1e43392ee492f5b02b33330493e9a00ff28c753dbd458f"
+        },
+        {
+          "resource": "repo://config/query/plugins.yaml",
+          "version": "repo-file-v1:sha256:d0e0a14602d14dcb1309dfbd6da6dbb7fc5c4103afd3ffd63cfc6bbe1478e001"
+        },
+        {
+          "resource": "repo://tests/plugin-stubs/src/sandman_plugin_stubs/app.py#L124-L173",
+          "version": "repo-lines-v1:sha256:a8fc09b3d555283cfbb2538222f600a53d8a4e2a6af8e77790086457809b5859:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ODg5MTE3Y2M3YzRmY2IwZmY3ZjQwZWU4MDljZTVlNzgzN2RmZWQ0YzYxNDllZTdiMTM2ODdiNTRkMjgyMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkMDY2ZWVmZDM2N2IzYTgyM2M4N2VlNDA4MWE4ZDA3Y2ExOWFjYzY0Zjc3M2M0ZDkzMmVjYTczMjUzNGYwZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzMzdhOTE0ZWI4NzhiMGVlMzdmNWEyNTFjZDQzZTc1YTkyYjNmM2MyNDliOGE4OGM1MGFkZGYyNzVjNmExZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzYmM2NTJlM2I0YTIxZTdjNWVkZTgyZTkwZTUzYWZiNmViZjU4NWQ2YTY1MWY2MjQ1YTc1MTU0NWMyNzViZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b1f93cb1d6841f293f5ee6eae7c6aa5",
+      "statement": "Deployment is a single-server Compose project with four networks: internal (no egress, all SANDMAN services), egress (gateway plus Ollama model pulls), edge (edge-proxy only, publishing the internal web UIs on 127.0.0.1 because Docker Desktop cannot block egress via masquerading — spike T0.4 check 13), and llm-local (gateway and Ollama only), with health-gated startup, per-service memory limits and Compose file secrets generated by deploy/gen-secrets.sh (one token per service plus a shared svc_tokens_verify hash file).",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L345-L389",
+          "version": "repo-lines-v1:sha256:90d2aeebb0011c045c0adb1792470670d3f3a4963cfc6d345f9e2e3ebd70c9ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlMTg4ZTA1YTcwY2M5MGQ3Y2U4OGYzMGM3ZWFiNDdjZjM4MjFhNTA5Y2ZkNDQ1NDZlN2ZmMjdmOWFiMGE4NWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzYzhhOTM4ODA1NjFjNGI5OTkzZWNhZmFlMDU0OWFhZWQ1YjU1Y2NlMWFmMjQyODIyYmEwYjM2MmJhOWQyMjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxYzAyMTNhZjc5YjA4YTM2MjUyZGMyYTQ3YjA2ZjZmOGIwNjZmZTIzNzU0NDg2MDUwYTRmNWMyZTgyZTRlODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L50-L90",
+          "version": "repo-lines-v1:sha256:9419f4598b77d3e04a3b74b49aaa29e8e0e569dcbf4b1fd228ba6e94c2c2e31e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1ZDY0YzlmNWJjYTg0MzAwMGVjOGI3MWI2MWI1Yjk0MTY5NzVhZmFhOTA4M2ExODczZjg1N2Q1NGRkNDAyOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZWJhZTM0MDk4ZWMxYTM0YmFlZmE1MzM4MTcxNGI3MTBiYmU4YTE1M2I3OTE2YzFjMjcwZTgxZWMwZWY4ZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MTU4NGVlZmVhMmFmOTIzNTFmZmQwNWUyNTI2OTdmMTYyODMwNjJlMWNjMjllOGRlOTEzNjM1ZjllODEyMTkifQ"
+        },
+        {
+          "resource": "repo://docs/notes/spike-T0.4.md#L30-L44",
+          "version": "repo-lines-v1:sha256:a40b6e6f4edd5fde8e2ca8b2cdaf4ed0892a7eecd19e141c1c2bc853b6f3a4b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlOWEzODdhOTEzMDZlOWVhMzk3YTRiMDE5OWQ4NjBlNmQyMWM2ZGExMGYxZDc4ZTFjNjc2NTI5Nzg4ZmYxMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YjU4MDAwNTVjMjg5Mzg0YTU0NTIwZmEzOGY3Yjc5ODRlNTBiZDc4NDI2MWUxZmM4YWNkYWJkNjQ3NTdlMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2NTYxZjc5ZWM3ZjFiNWEyMGI4MDBhYTAwY2E3ODhlYjNhZDFhOWRmNDZhMGQ2ZGMzNTk1MzNkZWJhOTk1ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZTA5YjY3ZGMzOGQzNDBhYjZkM2FmMGMxNjFlZGM3NjgyMDNiYWU1MTFjMTVlZjg5ZTJkNGFjZDU1N2E4YjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7718749962f041a4969bb660c276c96f",
+      "statement": "The system-overview dashboard (ADR-0016) is a planned M1 component: a separate admin-only Python service on port 127.0.0.1:8090 behind the dashboard Compose profile, depending only on Memgraph and NATS at startup (it must keep working when monitored components are down), polling every service's /v1/status and /readyz, reading the KG in read transactions, and reading NATS monitoring and the gateway admin API — implemented as of M0 only as a Compose entry with no services/dashboard code.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0016-system-overview-dashboard.md#L28-L50",
+          "version": "repo-lines-v1:sha256:aa39c35e15a82415ed4592161fb239107fed97b0cd70ef544913f6a30a09d63f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhN2YzNTBmYTE0N2ZjMGExZjkzYzI5ZDc2MWFjNmZlZDRhNzM3NzA1N2I2NTY5NDUxNjY0N2MyYWM5YWNmZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxZjg4Y2QwYjQwNDdmNDVkNDAzNjMzNGViY2I5MzU3NTUyMWUyNTc1ODk2YWFkMWI4ZjhkZGJjYjYwZWY1MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiMGEwNDgxOTUxZjhkYjIwNzRiYTY3NWZjNTM5NzUzMzZjZjljNDg2MmM5MTcxNTNlYjAzYzBlNzUzOWMwNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1NzFkYjI0MzIwYmI5YTE1MWQ3ZTA3M2RlODBkNmQ3NWJjNGU2OWE5MjgyZGJhNjgxOWRmZDVjMGM4MDc5NTEifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L238-L268",
+          "version": "repo-lines-v1:sha256:461639d742eed4543c5e047ed58113d4b19349e3c73bc947e81807ca4c83a34f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYWI4NmE2NTIwMDRkYjJmODVjMjFiMTI4ZWFkOGEzZDc0YWYxMGQ4MmVjMDIzODc0ZTQ1OTAyMmEwYzZlNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0ODU0ODI1MTEwNWFhZTE4YmU4ZGZiYjg2MTA2ZmQ4YTljNTgxZGI0MzI1MmE4MThjZDY1YjEzYjk1MjhjZGQifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L3-L4",
+          "version": "repo-lines-v1:sha256:3e4d9d3774cf7f91ac52d5aa5f74b6f9b6601a559acc7a12869d8a465d4b7625:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U4OWUzM2U4YzNlMTI3ZDMxOWM0YjRjY2UxOTg1ZDEzOGViYTUyMGIxYjM5MDEwZDZjY2Y2YjY2MWY3MmM1ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzdkNDQ3Njc4NTAyMWRkMmRkN2U5ZDAyYTNiZDZlMzU5ZjU2NDVmZTAyZmQ2OTI1NzdiYTg3YjY2ZTAyMjc1NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJiNmEzMzQzMzgzZDQwOTEwMmM4ZmE5ZWJiYzBiYzdiZmU2MTgzODVjNTRmOTE3ODkwY2Q4ZDYyNTE4MDY3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2Y3ZjY1ZTBiYThjNGY1ZTkyZTVlM2QxODMxMWU2ODIyNjVlYjVhMjEzYjBjNzNhNDBkYjg3YzA4OTIwZjhmMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6302e0c9f69b4525af0dadc31cd8cda6",
+      "statement": "The M0 walking skeleton is fully implemented: all six services exist as contract-true stubs (real A2A/OpenAPI servers, auth, KG writes with provenance, events) with trivial intelligence (stub-name-match TLR, stub-untraced detection, file-level extraction), and tests/e2e/test_walking_skeleton.py proves the whole chain against the stub profile (ingest, extract, TLR, detect, triage, auto-resolution, revert/reactivation, role checks 403/409, read isolation, unchanged re-ingestion triggering no workflow) without needing an LLM provider key.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L45-L47",
+          "version": "repo-lines-v1:sha256:5421abebf1d7553bee8ee93c40336965b99f84663d73f2b01519e28c0ab111c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I5Nzc2M2Q5MWE4NTU4MWIzZTZhOGFhYzFhZWY1YzJjYWU1N2Y4MWVhZjgwOGRjNzM5ODk0NWU0ZjUzZTZlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdiMjg1OGZmYzJhODYyMWJhNzkyNmNhMjdjOTRmMmZjYWE0ZTdlYjg4NDZkMGVmNTMxY2JhN2NkYTM0NmVmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODkzYjg1ODFiYmMxZWI0ZmRlOTg1MzA4MTgwZDEzMjk4MWQwNjRmODRkODJmODVmZjRiMzc1MmQ1MTNlM2FhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmNjN2NmZGNhMjY1YzRlOTBjMDM5NThlMjI0NzkzNTAyYTIxNzg3YzhhMDZmZWNlYjQyNDk0MDAyODMwNmUzOSJ9"
+        },
+        {
+          "resource": "repo://config/inconsistency/plugins.yaml",
+          "version": "repo-file-v1:sha256:d05ff31e95edd48d2f1e43392ee492f5b02b33330493e9a00ff28c753dbd458f"
+        },
+        {
+          "resource": "repo://config/tlr/approaches.yaml",
+          "version": "repo-file-v1:sha256:05a745b7331f1a09f917ad4ab96320da6369414133bf389f606d1586fc5212ef"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L143-L222",
+          "version": "repo-lines-v1:sha256:77d6f4b3ec25e0ffd7d92fade78e5bec171fe254f1aff72362e3fe7d7cb3a9ce:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYmMxZGM0NDQzYWZhY2IyZmJlOTc3YTdkY2NiMjMyM2Y2NjBmMjRiYjRlOTM0NTg0OWY0ZmQ1YzM2YTg4MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyODY5OGNhZTIxYmFlNTY1MjQwZjlkM2RlZjM3Y2UyOWI1M2VhNzQ5ZDkzYWVmOGVhNTI3NTE5MGM0NzE3YjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzlhNWNiYjkxNDFjYWZjNmFkZjUzNjMxMTAyZGM2OGY4ZjI2NzBjNTNiN2I4Y2ZhZmZkZDNlOTUwNmFmNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_596ea2143c9d4ca7a98de9f84bf5c9e2",
+      "statement": "Every SANDMAN service exposes GET /v1/status returning the shared ServiceStatus shape (state 'working' iff activeTasks > 0, version, lastActivityAt, service-specific details), which together with /readyz and /healthz forms the feed for the planned dashboard and operators; the shared endpoint was introduced with the dashboard requirement (FR-21–FR-23, contract 0.3.0).",
+      "evidence": [
+        {
+          "resource": "repo://docs/stage-1-analysis-architecture.md#L43-L48",
+          "version": "repo-lines-v1:sha256:e69dfabe1cb79faf080afd3c7b10fe3b6d019ee0b67f96ca9f6a64b1cfd8df90:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDkxMTcyNTkzYjdjZDA5YzE2YTA0OGZlZGRkMGE5OGQwZGVjOTFkNDc4YWY5N2I5YjBkNDMxYTZjOTllMDBhMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE2YWY1N2UxNTdhOTc2ZmE0MjgxNGQ0MzJmY2JhYjY1MmUyYTEwNTk0ZjdhYmU3OGU1MWRkMzg3NjNmZDhmNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGZhODZlM2JlNGVhY2Q2YjU5NjVmMmUwOTAzMzBjOTA4M2NmMTc3NGZlYTUyMDQ1NTg3ZjRiMTAwODU2OGVlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTVmNGM0M2MzZDdjZDA3MWE5MTZkMTQ0YzgwMDgxYjg5MTBkMjU5Y2RiYmFhNTc2YmE1ZjQ1ZTAwM2FhOTI4MCJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/status.py",
+          "version": "repo-file-v1:sha256:c0f538a6b4e345e00dfcf7e11f15f469e24e02a03f83af10aa0d232493976f4a"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

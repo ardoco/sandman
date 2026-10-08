@@ -1,0 +1,6 @@
+# Files
+
+- [Agent Libraries (Python and Java)](agent-libraries.md) - The two minimal shared agent libraries under libs/ — their module surfaces, the A2A skill-invocation glue with its validate–publish–complete ordering, and cross-language conformance via contracts/conformance/vectors.json.
+- [Contract-First Interfaces](contracts.md) - How contracts/ serves as SANDMAN's single source of truth — JSON Schemas, A2A Agent Cards, per-service OpenAPI documents, the KG schema contract, and the CI validation pipeline that keeps all implementations in sync.
+- [Knowledge Graph Schema and Persistence](knowledge-graph.md) - The Memgraph knowledge graph contract — node labels and relationships from contracts/kg/schema.yaml, the single-writer-per-node-type rule, active-facts visibility, Run provenance, and the deterministic id/key/fingerprint conventions that make re-runs idempotent.
+- [System Overview](system-overview.md) - The top-level SANDMAN architecture — six services (orchestrator, extraction, TLR, inconsistency, query, llm-replay) plus Memgraph, NATS JetStream, the Bifrost LLM gateway and the Caddy edge-proxy, the communication rules (A2A commands, event-only chaining, REST queries, Bolt for the KG) and the Python/Java language split per component.

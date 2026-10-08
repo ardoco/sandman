@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:648106911bb90a40dc81a43ed27f97187ade2524c080e733316aa2f1ad3540c6",
+  "claims": [
+    {
+      "id": "claim_8898937f33c34a21866e279eb246853a",
+      "statement": "SANDMAN uses NATS JetStream as the event bus: one stream named SANDMAN covering subjects sandman.> with file storage, limits retention, 90-day max age, 120-second duplicate window, and Nats-Msg-Id set to the event id.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0003-nats-jetstream-event-bus.md#L28-L32",
+          "version": "repo-lines-v1:sha256:a55a81dd66e15dc777ebf2bc3d3f50f54ca630efd247995a1e5ff7e6e0a64785:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRiOGEwODkzMjkzN2Y0YmQ1NGMyMmU0OTdkMTFjMDZjMDVjMjQ2NmIwMmE5MGFiYzc0N2RlODdmMWViZjc5OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZThlZjg0MmNjODM1NTk0MzI5YTBmN2U4YzM3MTUwZWVhN2I4ZmY2NmI2YzJkMzA0OTU0Y2MzNmRjYmIxYzk3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmJiNTkzYTk4MjcyOWFmZjQ4ODg3NjYxMjgyOTg1ZmM1MDBiMGE5ZGFiOTU2ZmZiMDBkNTMwMzgzMzg3N2RhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA3YmFmODVhMDBlZjg3NzRlNDc0NzkxMDA4OWRiZDIxZTI5YjQ4MmQyNGQ5ZTA4YmM3OWRiNjY1MmMwYWY2YiJ9"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L20-L31",
+          "version": "repo-lines-v1:sha256:addcd8e81eea4fd7dbfd0a2eddbdebb283d0ceaf1a0613943d27ef052096591b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkODlkN2UwMzJlOGU3YWRjNWQ0ZTU0OTVhMWZiNWY5ZjkyNDcxMDNjMDU3YTgxYjcxMDA2MjkzODFlMWE2ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiMzgwNGRmMTUzYTliMTkwOTgwMTBhNjYzNTcwYTI3ZDBlZTYxZWQ5N2M3ODUxYWI5NDcyYTJmN2VjZWExZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNDRjMjdmYTFlOWUzZGFkZjliYTA1NWExN2E0MWFhNzMwZGFlM2ZmOWRmZjQxZmE3MzhhNDg4MzgzYTljYTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4YjNkZjc3NGZlODk1YjUwODVjMjNlODg0YzU1NThkNTk2MjEwN2M4ZjUzZTQxNjQ2N2E3Yzk1YmM4YzRjZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9cb986e6dac44abda1cd53afbab651a2",
+      "statement": "Events are the only signal the orchestrator chains steps on: every A2A skill task of the three SANDMAN agents publishes exactly one completion event (extraction.completed, tracelinks.updated, inconsistencies.updated) with causationid equal to the A2A messageId, only after output validation and after awaiting the JetStream publish ack, before completing the task.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0003-nats-jetstream-event-bus.md#L82-L84",
+          "version": "repo-lines-v1:sha256:03bc88f0e292d373e6170653798c10b24b0d142f0df56bfb9b9d49e1821285b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY2Mjk4NGQ4YzQyNTMzMGUyNzMyNWUzOWI5YzgzMjNkZjE5NWUyMzRlZTBkZDIwYjlhY2UxYzg5NDdiNDAxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmQ4NTQ2YzQxMmJiYTk5MjY4NjQyMTE4ODY2ZGUwNWRiNzc4Mjg2MjY5OWQwYWNhNjJjMmUxM2ExZTVkYjI4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIwMzNiZTM5ZjgzZmVhZGZiMzhlMWM4ZTg2NmU0M2MzNjlhYTdkN2E3MTQ5MTMwZTUwNDk2Y2Q4YTQ1YjI0NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://contracts/events.schema.json#L5-L5",
+          "version": "repo-lines-v1:sha256:3a7224f7ef78fa940bfc37b6f5038c05615ccfe77826037611ff9c3638c06a41:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2E3MjI0ZjdlZjc4ZmE5NDBiZmMzN2I2ZjUwMzhjMDU2MTVjY2ZlNzc4MjYwMzc2MTFmZjljMzYzOGMwNmE0MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2E3MjI0ZjdlZjc4ZmE5NDBiZmMzN2I2ZjUwMzhjMDU2MTVjY2ZlNzc4MjYwMzc2MTFmZjljMzYzOGMwNmE0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWU4ZmRkMzE4ODY3M2I4ODAxZWNjZGEyYjNjZTU1ZTg4MTE5MmE5YWEzMmE4ZDg0OGU2ZWJkMTA1OTA2NDcwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2JlZmY4YTAxYWYxNzE3MTU4MGNhNDRjOGVkMWNkZDI4MDYyYjI0NjhmMTNkZDVjM2E2ZTZiOTgzOTNmZGM0MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ad83ada27114b4ebfdc331e604c1c99",
+      "statement": "Events use a structured CloudEvents 1.0 envelope with required specversion/id/source/type/subject/time/datacontenttype/data and optional correlationid (workflow id), causationid, and traceparent omitted when null; NATS subject = type and subject = projectId.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L8-L31",
+          "version": "repo-lines-v1:sha256:37acc3703801936c3ff833c64aed59e5059d030d2c35e008819a5d5fc661cd40:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkZTcwYjk5YjIzNTZkNGIyMTAwYTIyMzYzMDRkY2NlZjk1ZDcwMjE3YTRlNzE0NzJjMjcyMjM4MDFkM2UyZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NzhlMjUwM2I4Y2YzN2EwNmY3ZDZmMGEzYTZiNmZlMzU2OTFmYmNhYjUwYjg3NzVjYWI2ZmFiYzcxYzU5MmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxMjkwNDRkMWE5ZWU1NWQ5ODE5NzZlODVmMzllM2FjMTE5MjI1Nzc5MzJmMmU5NThmYjVjN2ZiNzg0MGMyZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhOTljZGUyMDg0ZjEyYjU4M2Q4OTBkY2UwZjI2NGFiYTgzZjUyOWI5YTM4N2ZlYWY5YmQ4ZDZmMzg1ZWQyMTkifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L38-L79",
+          "version": "repo-lines-v1:sha256:308a912005a3d64ab41fa7082bdd7dfa9e65ec2e1d6ec9599ef16add88f4f150:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2OWExMzk3NWMyNTZlYzgzMjBlMjAxNjA4M2M5NmRmNjM3Y2EzZDM1YmViZGUyMzE0YmVlM2E0NzExYjU2Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZDMzOGU2NDZiOWY1ZjQyM2EwNTBlZDMxNWQ2Y2MzZThjZDU0MTYyNzU0MGViMWUyNjE5YjExZjFkNGY1ZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkMTJiYzVjODQxYzA2MzRmYTM2ZDZjOGJkZjYwNGE3Njk5ZWY2OTI1YTFjMzc4MDQwYWMxYTE4MmE2OWJmYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3YzdkNTFlYzlhNTA1NDJiOGVmZmIzOWNkNzZlNDA0MmM3YTkzOTFiMTY3NzM3NjkwM2YzYTRlYjBhNDZkNmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c4b82b0b8a9948a7b6fe18233c0e3556",
+      "statement": "The contracts define exactly five event types (sandman.ingestion.completed, sandman.extraction.completed, sandman.tracelinks.updated, sandman.inconsistencies.updated, sandman.inconsistency.status.changed), each with a schema-validated data payload; payload changes are additive and breaking changes get a new .v2 type.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L15-L44",
+          "version": "repo-lines-v1:sha256:3a5f4683595472620c1e0738d3650ebedd0aad43333995074e49b4e28416a879:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2YzczMGM1MzgxOThmMmMxNTYzYTM0NmVkNDBmMmJlMGY1ZjE2ODM3ODNiMDFjY2Q4MjI3NWI3NWU5YzVmNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MjIzOWIxYmQ4MmI4NWVkNTBjMThhYmU2YjhlOTk3ODc1NWRhYzZmZDgwNDA5MjRjOGE4ODBjNTJmMDY1ZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2N2I5MzdjMjQzMmNmNDgxNTYxN2Q4NWFlNGNjMjIxZDNjMDc0MjAxNmIyNDE0YmIxYWE0ZGJjYjNiYWI2OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzYzIxYWQ1YWFmNTMwYWIwYzdkYjUyNmYzZDVkYjU4OTk1MjBjZjFjM2JkNTJjZTkxMjU5ZTE5ZWQxMmQ0OTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0eb7dd85c5f94bc8b9806815484b5243",
+      "statement": "sandman.ingestion.completed is published only when ingestion changed the current state (at least one created, reactivated, or deleted artifact version), with mode, per-project seq, and created/reactivated/deleted id lists; reactivated versions are handled like created ones.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L46-L63",
+          "version": "repo-lines-v1:sha256:3baedc4afc11b39734690c83877bde2a9162781abdd4c8f839923612c267ac5c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiOTM1ZGFhZjI5ZjlhOTg3NTcxNzljOTViYzQyZmM5ZDNmZmFhOWJmMGVjYmExYzcxMDRiODBjMjA5YWQ3ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkNWQ3YmZiOWIyOTgyNDRhMDg3OWVhNDEzNDUyZmJhNGNlZDY2ZWE2MTFmOTU1ZGU1ZTUxNDlmMmNlZjI0YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmYmI3NjNjYmY3N2MyNTU4YjE1YWNhOTQ0Y2M0ZTBmZTNkYTgxZTQzNmFmYTI2MWUzOWYyZWY3MmNlM2EyM2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8b4160b14b7c4cdf8730f4271540ce6c",
+      "statement": "The three completion event types (extraction.completed, tracelinks.updated, inconsistencies.updated) require causationid; tracelinks.updated is published once per recover-trace-links task listing every approach run including failures.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L28-L28",
+          "version": "repo-lines-v1:sha256:0421dcf3f3cda0b4dccca6da6a83c34ab7c5b7309e199bcd5b223639da9a4299:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDQyMWRjZjNmM2NkYTBiNGRjY2NhNmRhNmE4M2MzNGFiN2M1YjczMDllMTk5YmNkNWIyMjM2MzlkYTlhNDI5OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDQyMWRjZjNmM2NkYTBiNGRjY2NhNmRhNmE4M2MzNGFiN2M1YjczMDllMTk5YmNkNWIyMjM2MzlkYTlhNDI5OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEyODFiZDI5ZWM0OWRmZmUyOTY4YzU2YWVkODgwZTJkYWI0M2I0OTQ1N2NmYTA1ZGFkNDBkZTYwYjJkODVkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjVkZGNlOWE1NDFhYzBhODFkMWMzMjA2YzgxNzU5YWVjZjgzYTU3OWJkMWFjNmE3NTFiMzkzMjMxMTExMWQ5OCJ9"
+        },
+        {
+          "resource": "repo://contracts/events.schema.json#L36-L89",
+          "version": "repo-lines-v1:sha256:5773515cc54433cc123a12972e7fc569a24e53d6f89cb266c66b9868bfd00708:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjAyZDczNzU5NWJlYzNlMTgyNjgxYTJlM2JmYTk2NzY3YzZhNDU0OGI4OWYxNDJlMzg4ODUwNjcwYTYzMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNDY0ZmQxZjY2ZGQwNzNiZjk5ZmNiMGIzMzcyZmQwZDM5NjQ3ZTNmYjQ3ZWM3ZmRhZGVmZTVkODIxMTY1ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkMTJlYzBjODNkM2NlZmQ1ZDUyNjBhMTllYWQ3ODE1OWZiYjU2NjVkMTA4YjNjZDkyYTE4MDlhYjcyZmE1NjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_de6774ebb9c74fb0b9f0ca114d463b29",
+      "statement": "Consumers in both agent libraries are durable pull consumers with filter subject sandman.>, explicit ack, 60s ack wait, max_deliver 5, max_ack_pending 100, and backoff (5, 30, 120, 300) seconds; handler exceptions nak with the backoff delay for the delivery count, successes ack.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/EventConsumer.java#L45-L86",
+          "version": "repo-lines-v1:sha256:d1ad250ca0c04893f8ad23e777b466d8f86e5beadabbd34929a53ebbb1cdab3d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4YjMxODc4ZGVmMGFhNGViNjYwZGI0OWMwZDdmNWM3NzNjYWE2ODllOTcxMjEzNGZlMzBlNzg5ZDVmNzk3NDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1OGM4MzkzMjI1NmExNTdmMzE4OGVjMzcwMDA2OTM0OTA5MGVhZGUzOWMwZmQ1NDlhNTRiZGJjYjgzODZhYzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L170-L211",
+          "version": "repo-lines-v1:sha256:d5ef05de0b02552672f99623ae74565e35f07847f06657bb14725b137f9d851b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkMzRhNjExYWM2NjM5NzhkMjhmZGJhNWU5M2RhMjExMDI0ODI2ODUzMjI3ZmNmM2YwM2IxZTUyYTdkYTNhMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTAxOWIyMWNkYjg4NjBkNzUxNWNjMzI4MjhjNjU0MTM0ODA5MGJhMTBlN2MxOTcwYmNlY2JmNjZlY2NiNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3ZDRmYzAxNWJlZTU3ZTM5MjE0YzA0MjQ5OTk5MDA5ZTA5ZWNmZDg1NGFkNmEwOTgwMWM3MjI4Y2Y2MTZmMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e386ca0c099947d6a6ba7ab00a42f132",
+      "statement": "The Python EventPublisher validates each event against events.schema.json before publishing, retries transport failures three times with backoff (0.5, 2.0, 5.0)s, then raises PublishError; ensure_stream idempotently creates or updates the SANDMAN stream.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L125-L164",
+          "version": "repo-lines-v1:sha256:d0d8ee38b536727e6d9121ac917a3b88f29f2d392336f4033faf9d91ff28337c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxOGMxZTUwMWYwNzdlOTYxOGI2NmYzYWExM2RmOWI0MGNhMWY0ZWVjMzhmMmIxMzQ5ZGM1MzY1NzFlMTViYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNDUxYjUxZGMwNGUzZmVmZjA3MjM0NDhhMzk4MGIyMGQ2MjU3MjU4Yzk0YWE5ZDY4MmI1NTAzMDA3M2M4YTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1MWMxNDI5YjFlZDQyZWI0NGY1ODQ4MDVmZGM1YmIwZDNkZjA2NTg0M2Y3OTQ4OGM4NjM5ZTgxM2EyODY3MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzNmFjMTU1NDA4NWZhYjY5N2UyYTAzYzY3NzJjMzJjMTFjYWRiNGIwMjRiYzYzYzRhMjQxNTgyOWMwZGQwZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae57a9b1b9de4418b1a0a5979e897068",
+      "statement": "Producers follow 'commit KG, publish and await ack, then complete task'; retries are idempotent via the duplicate window and inbox dedup, and REST intake returns 202 only after the publish ack, so a crash between KG commit and publish is covered by task retries.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0003-nats-jetstream-event-bus.md#L36-L40",
+          "version": "repo-lines-v1:sha256:40402975a328bf3b3aafae78b7828983d2ab2b56a32f87fdefeded200d38e56e:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGJjZjc5NjFlMTAzNzAyODk0Y2E2NzYzYzM4YTYzZGMyYjIyNDFlMWNhMDIzNzRkZjNmMWQ1ZmI2ODQ3ODRlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA3YmFmODVhMDBlZjg3NzRlNDc0NzkxMDA4OWRiZDIxZTI5YjQ4MmQyNGQ5ZTA4YmM3OWRiNjY1MmMwYWY2YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzYxMWQ5ZjYxZTE5MmZiOTJmNGQxZTUwMmUyZWI3M2JkZTYxNjU2MjU0NTNiNGFjYmE0NmE2NDQwMGZjOTg4MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_143c0029d257425aa4a223186d5be0de",
+      "statement": "The orchestrator validates each consumed event against events.schema.json on intake and processes events exactly once via a SQLite inbox table keyed by event id: the inbox row and the resulting steps are written in one transaction, and already-processed event ids are skipped.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L82-L120",
+          "version": "repo-lines-v1:sha256:845375ce5e56bfa8554498ea7f2be50fef44e127bd042d099188c2d089378839:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTdmYmJhMDRmZDg0ZTI3MjIzNmQxMDk4NjIzYjE3MDAwMGNiMmIzYTFhYTkxZWU3MTdjNTdmYjMzZjljMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZDUyNGRkYTJkOTBhNDk0YzBkYzg0ZDUxYWZlMDc2ZTg0ZDEzZTYzZDQ1MjUwOGY5OWI3N2JlMzEyOTc4MTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMGFmMjUxZTYzNGZlNGQ1OWY0ODU4M2IyZjhhNDYxM2JkMmI3OTczYjdjOTQ0OTE1ZjVjN2ZkNjcyMjg3MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxZjI4ZmUxMGUxNWU3YTQxNzNmY2QzOGQ1ZWNlZjkzMTk4M2JhZDJjM2ViNmM4OTIzZmQyZjhiODYxMzI0NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5fb91ea8b074ae496bb09adc21e9140",
+      "statement": "Contract-invalid events and events failing on the final delivery (delivered == MAX_DELIVER = 5) are captured into the dead_events table with error and timestamp instead of looping; other handler exceptions are re-raised for redelivery.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L22-L23",
+          "version": "repo-lines-v1:sha256:2a0bdc0a948bcc11c003a2c7dc11ad118dd969ff4facda5fdb6634c0ea69c875:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmViNmJlNjU2N2I5YTBlNDBlZTNiOTc4YjViMmM3ODlmOWFiZWI5NTk2MDVkODkxYzc2YjQ2MTQ2YzM2YThiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzEyOTdhM2Q4YjE3Mjc0ZjM4MzZiYmM2MmFkZjE3MWM1MTQzNzBhNmI3MmRhODQwZTAxMjljYWExZjZhNzFhMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA0NGMyN2ZhMWU5ZTNkYWRmOWJhMDU1YTE3YTQxYWE3MzBkYWUzZmY5ZGZmNDFmYTczOGE0ODgzODNhOWNhOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzM1MjNiYjdhNzlkZjVlZTY5NDIzNmI1NzY0Nzg2NTkyMDY2ZGQxODk5MDQzYzViZmY0N2YyNzVlZDI1NGYxMSJ9"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L82-L95",
+          "version": "repo-lines-v1:sha256:e99c1e1289bf4d6b8b36598e4b9d4c02d4a15bac771d2d5c811d1caaf78686db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTdmYmJhMDRmZDg0ZTI3MjIzNmQxMDk4NjIzYjE3MDAwMGNiMmIzYTFhYTkxZWU3MTdjNTdmYjMzZjljMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMGFmMjUxZTYzNGZlNGQ1OWY0ODU4M2IyZjhhNDYxM2JkMmI3OTczYjdjOTQ0OTE1ZjVjN2ZkNjcyMjg3MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZjNkOTQ3NWViNTIwMTRkYjE2ZjY0OTEwODRkNDYzMDNiZTdkZWIzOGY2Y2IxYTMxYzk1ZDY1ZDFhOGIyNzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f04ad015be4249018fbe361812c493b4",
+      "statement": "Dead events are listed via GET /v1/dead-events and replayed via POST /v1/dead-events/{eventId}/replay (202), which moves the event back into the inbox and processes it; a failing replay returns the event to dead_events.",
+      "evidence": [
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L144-L154",
+          "version": "repo-lines-v1:sha256:913e53b9a0e148e4e528a13046e24f6ce3d36fa41a2dbe52d4a1635c11b911bb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkZDk5MTk5NWUwMTY1OGZjNDU4NjkzMTk3OTQ0MjQ0ZDliNTViYjc4ZTlkOWYxZTQ1NTM0YTliMmMyYzI0ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4OGJlN2UyYzk3MGNlOWE5YjdjMDA0ODM3Nzc3OTJmYTNlYjkzNjdlYzI4ZDhhM2IzMzFkMDBhZmM0YTA1MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3ZmE0NzhlN2U5YzBjZGM5ZDE5NTkzMzIxODIzM2E2NmQyMjk0ZWI0ODA4OWM3MDE5NGFmODA0ZjMzNTYxY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkZmIyOWM0MDI1NjM3OTcwNDY4YmZiZTEwODJjZjY2ZGVmMzM4ZDRlNDVmMzUzZmFiYmI5ZmViN2Q4Y2YwY2MifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/orchestrator.py#L234-L261",
+          "version": "repo-lines-v1:sha256:773018fdd5a9b4fbae3cbb5aad7a703ac967f8db754fb8a8efb936f1602d0d23:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxYmVjZWU5MGUxYjYxYzk5YzlhYjA5N2M2ODE2NDg2MzA4MWRiNjk2ZjM1MmU2NDgxYzQxODg4NGY0NmQyN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMDEwNWUwYTY4NTIxYzNkMzMyNjE1MzkwZTg1OWUzOWNmMjQxMjc0YTdkNzgxZDE5NmEzYWRhMDdiMTBmZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0NWU0NmMzNWMwYmRiYjk3ZTZjZTNhNjZmNmEwOTg4ZTYzY2U1YzYwMDBkNGFkMWJhZThlNmY0N2I2ZmIwYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYjNjYzZhODZiOGU2NTE5ZGUwMWE5MTM0YmEyZTQ3MzliNDhjNDVjMTA0ZjkwYmQxYjU0ODA2MmUzYmNiZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_697184cfa4be4ba192294c3cb65941ee",
+      "statement": "The orchestrator's durable consumer is named 'orchestrator', filters sandman.>, fetches batches of 10 with 2s timeout, and passes the delivery count to the handler so dead-event capture happens only on the last delivery.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/src/sandman_agent/events.py#L188-L197",
+          "version": "repo-lines-v1:sha256:ada8d8d11c308d73300ee92467e6f72605341d2f5fa4b3bfdfa8081727a734f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlNTY4MWIyNjkwZmI4MjEzZDQwYTFlNzM4OWZlMjNhYjY1NzBmNmRkNTI4YjcwMGExNTFkZGUxMmJiOTViMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1NjQyNDkyZDNlMjJjNTlhOGEyMjJkNWM2MTJhOTkwZTA5NDVjN2E5MDg0OTkxNTFkODJlZGJiYjhlNmYxZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiYjNmMWU2MTFiZDY1ODNiM2UyYzE0ZGRhYjg0NTJlYmM2NTdjZDY2OWExNmFjZDNmYzkxYTc5YWJhMzhlNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkM2JhYzhiNzVkYTNlZjZjMjM0N2ExN2JkOGRiYjBlMTc4MmM0YmVhNWU3MWNiODM1OGE4NjE0NmIzZWI3MDYifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/app.py#L159-L170",
+          "version": "repo-lines-v1:sha256:a80f51b1c2a1c87884a815408778678fd8f4c33c806f39f2aff2ff7172b4df05:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMGM2YTYxZjhkYzZjYWE3NzViYTllYzVlNmQwNDFiY2VhN2Q0Zjk1MTIyOTdmNzc3YWJlNjYxNDEzMTk4ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YmNiYTE5ZTdhZmI2YmUxYzk2NjNkODllOGZiNDdmZDVlZDZiZjYwOTgxMjI1Mjg3ODA3NDM1YmI3NzY1ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlZmFjOWE2YjY4ZDA5NDRmZDMzNmRjOGYzOTM4YjhhMTVjZGY2YzQ2ZWJiODViNDk4MzViODIxNGNhMDE5NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyMGEzYWRmZmFjMWRhYTVlOGMyMTE0NTZiZGViYmIxOTI1MzQ5YjU0NmEzMjI3NGU4Nzg1NGZhMTdlYjJlMjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_602009ec38ae470d844a6ad55f6aaba3",
+      "statement": "ADR-0003 chose NATS JetStream over HTTP/A2A push, Redis Streams, RabbitMQ, Memgraph triggers, and a KG outbox because it provides durable at-least-once delivery, producer deduplication via Nats-Msg-Id, a replayable file-backed log, fan-out to later consumers, and small Apache-2.0 footprint with official Python and Java clients.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0003-nats-jetstream-event-bus.md#L12-L32",
+          "version": "repo-lines-v1:sha256:84a8e376cee5286fcb1a10cd25f17846c2d929be01dfa9ab0cf41bab5aeb1f1d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlODI5MDI4OTI4NjVkMWZlYWIwZTRhMGMwNDEwZjkyYTQwMzA0ZTdiZjFkZmQ0ZGM4YjE5NGNlN2QyZjAzMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4ZWY4NDJjYzgzNTU5NDMyOWEwZjdlOGMzNzE1MGVlYTdiOGZmNjZiNmMyZDMwNDk1NGNjMzZkY2JiMWM5NzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMDEzZGU3OThhNWZmMGUxNGY3YmMwYTkwZDI5YmQ2OGVjZGI1Mjc2ZmIyNjEyNDA5NDllNzMxMWViMzYwZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwN2JhZjg1YTAwZWY4Nzc0ZTQ3NDc5MTAwODlkYmQyMWUyOWI0ODJkMjRkOWUwOGJjNzlkYjY2NTJjMGFmNmIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

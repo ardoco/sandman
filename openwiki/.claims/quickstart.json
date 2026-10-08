@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:b5f6c8584a41dea0b8dfbd6cf1826e4ea4c4900f7d133d9d8a8f0f7f65d3ca7f",
+  "claims": [
+    {
+      "id": "claim_e50fe24180774453a761ed8c42b36d4e",
+      "statement": "SANDMAN's build tooling is fixed: Python parts are managed with uv only (uv workspace at the root, Python >= 3.13, < 3.14, single uv.lock), and Java parts are built with Maven only (JDK 21 via maven.compiler.release=21, enforcer requiring Maven >= 3.9 and Java >= 21); CI runs uv sync --locked and mvn -B verify.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L72-L102",
+          "version": "repo-lines-v1:sha256:72ba76b21005ee1077f66aa86719fa4005d99b7cbb1b7e77b2dbe6c1e7a0f0e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0NjIyZGMzOWQzY2YwOWNjNmIzMTQ4YWVlZTg1MTk5ZTQ5NjlkYTgxMzEzYTE3YmJmOTk4NjFjZTk3OTI1ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYWMyYzdkYzUyNzQzMDY2NGE1MDYwODYxNTdjN2VkNzJhNThkODA4Y2ZkZDUzYmU1OWVkYzAwNDU5ZDJjM2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmZmRlNTU5MWMyMDM5M2E1MmI1ODM1NjdjZDFjZTNkZmUxZjU5NWQyYTg1NDFkNGY4OGFlNjBmMzYzMmVlYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkYjU0MTk0NDM5ZjIxYWQyZTZhMzljYmRmNzNkODU0NzY4MGE0NTc4MDcxNzBhZWRmYjJlYTYwN2ZiNTU4ZmQifQ"
+        },
+        {
+          "resource": "repo://Makefile#L26-L33",
+          "version": "repo-lines-v1:sha256:805250349880c9b06948f95c5290f944b6fb9f4da47746fcfc2b73732414c66b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjgyMWVlM2JlZDg4MjBlNjNkMzRjMTg2MDFiY2U3ZmQxMDU5ZmUzOWE1MDk3OTRmNGRiNzVlYjZmMTNlMGYzNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWE3MGM0ZGVmMTliNTA2NTZmZDE2YzBjZjg3ZDhjYmVmYTE1MTU1OGM2YzE1NzUyMGMyZWVlZWZhMTI3ODJhZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWNkOWE4ZDdjMTA2YzE3ZGU1ZDY2ZDUyNGU4ZjZmYjc2ZGRhZTJiOTVjMTA4ZjNiNTk5ZjQ0ZmZjODlmOGNiYyJ9"
+        },
+        {
+          "resource": "repo://README.md#L5-L12",
+          "version": "repo-lines-v1:sha256:a8c9f2eba2932189f838cf4c200efc8f0b13f277607559b11e03627ee3db92ee:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdjMDZjNTYxZDVjMzI3MzQzNjg1MjY4YTQ2YjMzOTFmMzk5OGVlZTg5MGQyYmU1MWYwZDIxY2M0YTUzYWU2ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2FlMTk5ZDlmMzkzZjA1MGVjZmVhMWNhMTM5MzczYzU0MDIyNzhkODY2YmZmZDQ1NTdiNmFiM2ZjOGFmZDdiNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGVjNTQ3ZTEyZjM0ZWM2NjlhNmI3MzI1ZjhlZmYxOTU2MzhlODBlYjQ0NjE5OTI4MjI1YjExZDJhY2I3OWVhMyJ9"
+        },
+        {
+          "resource": "repo://pom.xml#L156-L172",
+          "version": "repo-lines-v1:sha256:fb5b32289d0fa3e9ea511ae39370b6cd26043a2218f6fc7eb7a418150fcfe350:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllZTJhNjI0MjE3ZWI4YWJlZGE4ZDcxMTU2OWVlNDJjZGNkNzU4NzNkZGE0NTBjMzdlZjhhNjJhNDNkZDk5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNDQwNjcwY2YzMGY4ZTNlOTlkMDhiMmMxZjhhMDlmYmQ2MDQ3MDU3MjU0YTNjOTZlMjkyYjZkOGY3NzE0YzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwZWQxNWFiYTI1OGZhOTEwNmNiZTg4ZWI4YTkzNmY4ZDYzMjQ0ZjBmODk3NTVhNzU3OGU4NGMyODlhZmZkNWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxMmU4OGJiNjVkNjI1YmY2MjhhY2MwMTMxN2IzMTZlMGNhMjJkZGY5YzUwZGQ5NWNiZTRmNTUwMmNlZDVlNmMifQ"
+        },
+        {
+          "resource": "repo://pom.xml#L20-L22",
+          "version": "repo-lines-v1:sha256:c35a8d1a55aacdd3769820444e7582fa25e5115c0668399852bd1dbd4b2b3a37:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjAxZDQyOTFlM2NlYWE2NWYzOGY3N2U5ZjI2ZGI3Nzg0YWE2Mjg4Y2I3ZGE1MTRiOWZjNTY0NWQzODlhMGRmMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTNiNDlmNzM1NzFlYTMwNjk1ZjEyYmNhNWI3YTNlMDliM2RjMWRkY2ZmYmFlYzZmNDY1MTU3NWRlYjM5NzE5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWE4M2M1OTNlMWY4OGIzNzQxZDMyMjEzZmE5NThhMzc3Zjk3YWI0YWI4ZTIzYWU3Y2E0ODg3ZjhiNDc2MGRiNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjA3MDBmZDAwNDg3ODhhZjM4ODZhNWQ4ZTI3M2E2OWEwMWU5ZjA4YzcwYmY5OTMwNzMxZThiNjFhMTk2ZGRjZSJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L28-L37",
+          "version": "repo-lines-v1:sha256:6fa364ebfde229db373f3406279b7f7a96b4a639cb5bd25fc255f979e389eb4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZDQ0OGE0ZDE2NjM4N2ZjMzlhNmQxNDYwYjQzZmViMGQ3N2JiMjYwM2JmNmMzODYwYzZlZTg5MmUwMTY1MGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwYTVlNGIyZDJlMWEyOWZiMmM2NjQ1Mjk1NmFiNzgyYjZkYmVjMWM3M2RkZDMxYWVlMTJlZTVmNjUzM2U3MWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4NGI4NmI2MjEyOGI2YmJkNGE1MmQ0ZDM4NjYzYTZmNzk3NWMwMDNmN2FmZTU3NzEwMDQ3NTlmNTllYWJmZDQifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml#L5-L6",
+          "version": "repo-lines-v1:sha256:2e6ad7342010a9db51aaa6e7a81a48234db121ff029ff46dc005c61720ccea27:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRlNTg3YTA1NTYyZmRkM2EyZGMyNTM1OTM5MDk1ZDQzMzVjNGZlZTA2N2FhOTBjZjhmN2RjZjRhMWIwZmMyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ5NWY1ZTllZGUwMTgxNjA0M2MwNzk3YWNlOGRhMmFjNGU5OWE4YTZhNjEwZmE5ODU3MGVmMzRiOTM1NjEwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2ZiZTM0NGViYmNlYWVmNjIzYzEwMGNhM2I4ZjMzODk3OWFmNTczZjg1N2Y5N2MwYTQ3ZDY2MWU2ODJjOWZlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODZhM2U4NWVhYmIzMzU3OTk3YWNjY2RkYjkyNDM4NmE1MTc3OWRjNThlODJkYmJiN2Y4MDRlOTI1Mjg1MzcwMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cee1a6185d9c4f948deeb511196530e7",
+      "statement": "Java naming is fixed by the root POM: groupId io.github.ardoco with sandman-* artifactIds (sandman-parent, sandman-agent-lib, sandman-agent-lib-a2a, sandman-tlr-agent, sandman-inconsistency-agent), and all SANDMAN Java code lives in packages under edu.kit.kastel.mcse.ardoco.sandman.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L7-L7",
+          "version": "repo-lines-v1:sha256:42a1cb2261588346bc3e6d34af82a407504f827e5c04f0d131e75ac1ae9f796d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJhMWNiMjI2MTU4ODM0NmJjM2U2ZDM0YWY4MmE0MDc1MDRmODI3ZTVjMDRmMGQxMzFlNzVhYzFhZTlmNzk2ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJhMWNiMjI2MTU4ODM0NmJjM2U2ZDM0YWY4MmE0MDc1MDRmODI3ZTVjMDRmMGQxMzFlNzVhYzFhZTlmNzk2ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTJjN2UzYThmNjNkMGQ4MGY4MTM5YmNkMDcxYjc0ZTFiZDI4MTZkY2E2ZThhZTljZjNjYTI2NzkxMTkyMWYxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzY5N2NhZjViNzVhOWYxMDY2NzhkZDcyODQxZWM3Y2Q4MDE5ZDI0NDQ2YmE3NWZlOTAxMDQyMGIwNjU2OTMzMyJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/pom.xml#L14-L14",
+          "version": "repo-lines-v1:sha256:49b03788fefbc51e2677cc4136aaa7eafbcf7508189cf8aa7988b9e1fcd58f58:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDliMDM3ODhmZWZiYzUxZTI2NzdjYzQxMzZhYWE3ZWFmYmNmNzUwODE4OWNmOGFhNzk4OGI5ZTFmY2Q1OGY1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDliMDM3ODhmZWZiYzUxZTI2NzdjYzQxMzZhYWE3ZWFmYmNmNzUwODE4OWNmOGFhNzk4OGI5ZTFmY2Q1OGY1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzQyYjc5NjVmZTE4MTU0NmM3NDE5MWVlODA2MmNhMGMwMTNjNDNjZjIyZGQ0M2YzYWZlZTU2NzRkMDQ0ODZmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjdiYTMyZmQ2ODUwM2M1NjUyYTg5ZTY1ZDZlZWQ2YWEzZWFhNzU2NTdmZTRmZjAzOWZmYzE5MDQ0MzNlNzdiMyJ9"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/Settings.java",
+          "version": "repo-file-v1:sha256:b074a65d2002037fbe17deaee107aeca21a07e9179b9af4e0b12272837a2d130"
+        },
+        {
+          "resource": "repo://pom.xml#L7-L18",
+          "version": "repo-lines-v1:sha256:2666e42ade025a8f9f3469505267001596c63d8c80f3e1179c58dde178b71e67:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZGZhNDdhNDA4ZmUzYzVkYjk5NjZmZTA0ZTFmZmU1ZjRjN2NkOGQ1MDRjNzVmNjkyM2Q3YTIxMDMxMGQ1YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlMWZmZmU0ZDI1YWFjYzEwNDg4NDYzMDAwOTYwNDE1NzA5YzcyNTI2YzQyNDA0N2EwOWMwOTliMGE0MTM0MWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMGJkMzZlNTZlMDMwYjJlYzQ2MWFlZDkyM2U3YmYyOWM4NWE3NzNmMjYwNDdjOWQwMjhhNzNkNjNkMzI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlZTkwODQxNjViODM1YmQ4MzRlYjNjYTYxODNmMmYwYTE4YTFiNmE0NGJiMjUxNDk5YzY4MTE1MjlkNjVlNjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4cb74a616f1846cc8c6b21a53f7c77dc",
+      "statement": "Agent frameworks are forbidden (NFR-3) and the ban is enforced from two sides: `make guard` fails if any Python file under libs/ or services/ imports langchain, langgraph, deepagents, llama_index, crewai or autogen, and the Maven enforcer bans dev.langchain4j, org.springframework.ai and org.bsc.langgraph4j dependencies (LangChain4j tolerated only as a transitive dependency of the reused ArDoCo/LiSSA adapters).",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L4-L40",
+          "version": "repo-lines-v1:sha256:b90844915344b0a2853eb11f7197c6778e111d4c4e0b065f9b7ccf2c77d895f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1Y2I0OTAwOGMwNWQ1ZjdjZjk2MDFkZDgxOTNjZDg4YjBjZmExN2JkNTZlYjUxOWJhMmIwZTIzYzUxYmMxMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllZjNhYWUxY2RlZTA1NDJjYjdkOWNiM2U5NDM0MzQzYTE4MzgwZDkwZTQ4MjJlZjNhMzdjNzU2MjY1MWUyZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNGQyNjQ0MjIyMzI5NmE3MmM1NDdiZWFjODQ2YjQyZGY4ZjRjNDQ3OWIyZjUyOWI1NGEwMTVmMzJiNTM3YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzMzdmNzIzZjk4YTlmZDBiZGQ3M2M2NTcyYjMwNjc5OWY3NzBlYzllMjdiZDU5YjkwNjA4ZTQ3MmU1YTI5ODkifQ"
+        },
+        {
+          "resource": "repo://pom.xml#L163-L171",
+          "version": "repo-lines-v1:sha256:82e388186cadac6779754b290bb4ee704833348e1afe851481f3b292a58abd9e:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzUzZTFiMTc3ZmM4NTJjZmEzMTU5ZDhkMjg4OGIzMDgzMTFlNGRjYmI1MmNlZWU3YmRiN2Q4MTk5OWRkYjg2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDczMWJiOWNhMmY0N2VlYWEzY2Q4NzZlY2I3MDVhZTlhZjFiNmMyZGU0YTdiNGQwMGUwOWJjNzE3NzU2ODg0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWMzZDg2MGJjMmIzZjJkMTI2MGE5NzVkMzBkYjdkMGU3OGQ4NmI3NGRlNWJlYmRlOGViYzNiMWM0Y2Q1OTk2ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjJkYTFmNDY1MmY1MDk2Y2EwODMxMGMxNTJkYzQ5MTI4Y2IxZmZlNjQ2ODVjNDcwMDRiMmEwYTA4NzcxY2I1YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b9b15fb455d400f98c097a2b0d9f339",
+      "statement": "All developer entry points are make targets: secrets (deploy/gen-secrets.sh, never overwrites), infra (memgraph/nats/llm-gateway with dev ports), up/down/logs (docker compose -f deploy/docker-compose.yml), images (--profile stubs build), test = test-py (uv run pytest) + test-java (mvn -B verify), lint = guard + ruff check + ruff format --check + mypy libs/python, contracts (scripts/validate_contracts.py), and backup which intentionally exits 1 as a T5.3 placeholder.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L8-L50",
+          "version": "repo-lines-v1:sha256:0a2423f659a37cb35a258eae49063b3d204ac79edc9dfff8989f4af57c3c3762:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNzIyZDUyY2M0MzAwZDUyNmEzY2UwZWYwZjRmMzg3ZWNkZjE5MzI0M2QzZWE1ZmVhNjEzNDI2MmM2NzU0M2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNmQwMWQ0MTJiNDEyM2Q2YTk4MmVjOTBhMWE5ZGJlMzQ2NDJlNmU1ZDVmMDM0MmNiOTQxMzFiOTBlOTE5MmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlMGM0NTBiYzgyZGM3Zjc5ZTRjNWY3ODNjMmM2ZWVjZTMwNDhiNTliMjZlNDk0YzU5YjVkYTJjMTVmZTM1NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml#L72-L77",
+          "version": "repo-lines-v1:sha256:cc10153d2812684a8fd5e3f6d504b0e1ea05f0de27eac19ff1687792fde461ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODY3NmU2NDE0NjVhNjU1MWU5ZTljZmZkN2ZhYTFlNmE0MmY5YjcyNDgwOTgxM2M5MDNkN2VkY2I1MmYzMDA2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODM3OTFkMjJmYTJjMjA5ZTllNThlNGZjZWVlY2UwOGU1NTQ5NGJhZjAzY2UyMmE5MzcxMjczOTcwZTdhZTg1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDYzYzZjNGM4YzdkOTA4ZWI0YTE5MzlhNDQxNGUzNWUwN2JkNGVkM2RjMThmYzAwMzAzMWEzNzkxYzIxZTE0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5bab3a487074430797c5047de8bf96ea",
+      "statement": "`make e2e` is the only target that blocks on stack health: it depends on secrets, then runs docker compose -f deploy/docker-compose.yml --profile stubs up -d --build --wait --wait-timeout 300, then SANDMAN_E2E=1 uv run pytest tests/e2e -q; the walking-skeleton test itself skips unless SANDMAN_E2E is set and talks to http://127.0.0.1:8080 (the edge proxy).",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L45-L47",
+          "version": "repo-lines-v1:sha256:5421abebf1d7553bee8ee93c40336965b99f84663d73f2b01519e28c0ab111c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2I5Nzc2M2Q5MWE4NTU4MWIzZTZhOGFhYzFhZWY1YzJjYWU1N2Y4MWVhZjgwOGRjNzM5ODk0NWU0ZjUzZTZlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDdiMjg1OGZmYzJhODYyMWJhNzkyNmNhMjdjOTRmMmZjYWE0ZTdlYjg4NDZkMGVmNTMxY2JhN2NkYTM0NmVmOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODkzYjg1ODFiYmMxZWI0ZmRlOTg1MzA4MTgwZDEzMjk4MWQwNjRmODRkODJmODVmZjRiMzc1MmQ1MTNlM2FhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmNjN2NmZGNhMjY1YzRlOTBjMDM5NThlMjI0NzkzNTAyYTIxNzg3YzhhMDZmZWNlYjQyNDk0MDAyODMwNmUzOSJ9"
+        },
+        {
+          "resource": "repo://tests/e2e/test_walking_skeleton.py#L1-L27",
+          "version": "repo-lines-v1:sha256:177a9f889f5725d83b88ce51704290ebe158b041cfc631c879fd3e259a9b1aac:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwODA4NDQ3MDJhM2ExZTM2OGY5YzVmNjZkMmY5MTgzMmNhYmNlNTA2MTE1ODhmNGVkY2M5YTljNmNhYWIzMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYjc1ZWZiYzZhNTUyMWUzNDE1Zjg5NmQ1YmQzYWQyMzdhYWUxMTA0NjNkZTVkYmRkYmU4ZmFjOWY3Mjc5YWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3ODFkNzFkZTlkNmNiMWNhM2I2Yzc4YjUzMzE5NjRjNmI2ZWFlYmU3NjE3ZTdkMmQ5YWM5YmRkMzc5OTNkNDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b38fcce2f5894e4d9d4394dd88d78c20",
+      "statement": "The default pytest run (`uv run pytest`, i.e. `make test-py`) never executes the e2e suite: the root pyproject.toml lists testpaths as libs/python, services, tools, tests/plugin-stubs, tests/conformance and scripts — tests/e2e is excluded — so the walking skeleton is reachable only through `make e2e` or a manually started stack with SANDMAN_E2E=1.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L28-L47",
+          "version": "repo-lines-v1:sha256:0aece05a839ff19bb6279160cf854d2c39f0d047e64c1992abfac94e31a6b5ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYjExN2I2NjFlZGZmYTk4YzdjYmJlODQ4NWYyZDNiOTU5OTA5NjgyZTdkY2Y5MGFhMjBkODNjNzQ3YTA5M2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YjI4NThmZmMyYTg2MjFiYTc5MjZjYTI3Yzk0ZjJmY2FhNGU3ZWI4ODQ2ZDBlZjUzMWNiYTdjZGEzNDZlZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyNDhkYmMwMjMyMTk2N2YyNWM5NmU1YWY0ZDU5MWNkY2RlOGI1YTA4MWY0MmIwNGE4MmYxYmFlNzJmZDYyMTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjYzdjZmRjYTI2NWM0ZTkwYzAzOTU4ZTIyNDc5MzUwMmEyMTc4N2M4YTA2ZmVjZWI0MjQ5NDAwMjgzMDZlMzkifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml#L72-L77",
+          "version": "repo-lines-v1:sha256:cc10153d2812684a8fd5e3f6d504b0e1ea05f0de27eac19ff1687792fde461ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODY3NmU2NDE0NjVhNjU1MWU5ZTljZmZkN2ZhYTFlNmE0MmY5YjcyNDgwOTgxM2M5MDNkN2VkY2I1MmYzMDA2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODM3OTFkMjJmYTJjMjA5ZTllNThlNGZjZWVlY2UwOGU1NTQ5NGJhZjAzY2UyMmE5MzcxMjczOTcwZTdhZTg1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDYzYzZjNGM4YzdkOTA4ZWI0YTE5MzlhNDQxNGUzNWUwN2JkNGVkM2RjMThmYzAwMzAzMWEzNzkxYzIxZTE0MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2797350deb14303857214789a202a81",
+      "statement": "Container-backed integration tests are part of the ordinary test targets and auto-skip when no Docker daemon is reachable (e.g. the Python library's Memgraph/NATS tests use a pytestmark of skipif on a docker.from_env().ping() probe), so `make test` works without Docker but does not exercise real graph/event semantics.",
+      "evidence": [
+        {
+          "resource": "repo://libs/python/sandman-agent/tests/test_integration.py#L1-L27",
+          "version": "repo-lines-v1:sha256:7c5b0d1b62858dcf8903b0935945190aa150789d962f69f221dcf8fd1ff5d1a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmMzNmNDQ2ZDY0MTU3MDgwODY1OTgxN2I1N2ZmOGY5YWFiZTE4ZDRhMmI4NDE1MDNlYmI4NTBkNmQ3MjQwOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4OTI3MjM5MDNlNTUyYzc1Y2IzNTkyNTA1Y2U0N2Q3ZDJhY2RmNTZlMjk3MTFjYjZlNWY5YmQ2OWEzMjk1YjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMDBlZDc5YjNkOWVkNDQyZmUzNDk4Mjg5NDI2MWE0MjczMTNiMmIyZGZjZDVjNTUyYTliMjQ2NTI0OTE0ZWIifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml#L39-L50",
+          "version": "repo-lines-v1:sha256:5b811fdab75263975bf4c4fa4233ffeda7ade6de7e03601250fbcf4665d50a9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYjc0OTliMWNlMWM0ZjRiMjUyN2YzYTMyODRjYWM2YjZhMWUzYmY0OTg4YjU2Nzk4MmMzZGM4ZTlhMTdmMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyY2MxODhiNjE5YWJhODE5MjQzMDRjM2NhNDgwMjg3NWM4NDNiZGJkNzI1MzkzYjI2NmQyNzkyMjc5ZDA3YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlNDc0YmI3OGZmNWFmYTY3NzU1YWY0OTM1YjdhOTA4MjkyOGI2NGU5OTdmYzlkNTJmMDUyMWM5YjVhZGE4YTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1398aee5e6e4a11b71d926f86d88649",
+      "statement": "`make up` does not start the plugin stubs: plain `docker compose -f deploy/docker-compose.yml up -d --build` launches only the default profile (six SANDMAN services, Memgraph, NATS, the Bifrost gateway, llm-replay and the edge proxy), while stubs, obs, local-llm, dashboard and resources are opt-in Compose profiles.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L14-L18",
+          "version": "repo-lines-v1:sha256:5abbee7aba6f634ff139e7b5f497d9cc5fa3416256f4b72688ff5271885fc606:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWFkN2FkOThmODE1NWE5YmQ1NzMwOWM4ZWI0NTE5ZGRhOGZjYmEzNGQ1YTRiM2ZiODIwMzgwNzdiMTY1NjRiYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjlkMzU5NjAxNTUxYWJmZjU2M2E4YzVlM2U4MjFjMGYwOTAwMWI5MzNiNTYzYTY0NDJhODNkNmVkYzE4NGEwYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjY0YmMwZTk2ZjBlYzhmMzI3MjJhZjFkZjlmMjllN2M1ZDdhOWQ5NDVkYjlkNmUxZGE1ODcxY2EwZDFjZDIyNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFkOTIxNTZjNmZiNTdhZGE0MjA4OGI4YzdhZTk5YzQxNmUwYjA3YTNkN2Y5Y2MxMWJhMDAwNjZhNmJkMmFmMiJ9"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L238-L337",
+          "version": "repo-lines-v1:sha256:f56f45bec0e3e02ba9b692bf2ef4e9647c32582ae8849b07ae70e882c43fa75b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkYWFiODZhNjUyMDA0ZGIyZjg1YzIxYjEyOGVhZDhhM2Q3NGFmMTBkODJlYzAyMzg3NGU0NTkwMjJhMGM2ZTQwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMWI0NGFlNGMwOTgwMjBlNzZmYTIxNjlhMGMzZWU1NGEzMDQyYjU1MGY0Mzk4NDcxMTFjZDkxZjYyOWZmM2E2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmYjIwNzkwZGRhN2UzNDNlMjVkZWIzZTI2YWM5YzE3NTQ4MTFiYzNhN2JiYmQwMjMzOTFiZDg5MDg2ZGEyMDA3In0"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L3-L6",
+          "version": "repo-lines-v1:sha256:ae0eed439eee82a000636e64374488e1a3246c2ec47b2f0ab04c79116c9d89c8:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U4OWUzM2U4YzNlMTI3ZDMxOWM0YjRjY2UxOTg1ZDEzOGViYTUyMGIxYjM5MDEwZDZjY2Y2YjY2MWY3MmM1ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RkMGIzNTNmMzI0NGMxNWIzMGU1NDVjZjQ2Mjg4NjU4YmQxODI5NWUwZmY0MDJiN2M4ZTU1YWFlYjFkNmVlNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJiNmEzMzQzMzgzZDQwOTEwMmM4ZmE5ZWJiYzBiYzdiZmU2MTgzODVjNTRmOTE3ODkwY2Q4ZDYyNTE4MDY3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGZlMDBiMzYyMDhhNjY5MWNiNzNmYzNhNDgxNDVkYjg4ZTBjMDAxMjY3ZTUwMGZiNWY0MWRiMWFiNDY0NmNmZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_26f42b234a214539a76adf8eb799240a",
+      "statement": "The Caddy edge proxy is the only published web entry point of the running stack: 127.0.0.1:8080 reverse-proxies the query-service (console and user/agent API), 127.0.0.1:8090 the dashboard, 127.0.0.1:3001 Grafana (profile obs); the only other published port is the Bifrost gateway admin UI on 127.0.0.1:8081.",
+      "evidence": [
+        {
+          "resource": "repo://deploy/docker-compose.yml#L270-L279",
+          "version": "repo-lines-v1:sha256:4dc2324f1f4a7bfb9a69d3d2611935f4afedb629572b18fdfa84125987a96063:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzI0NDBmNGM0MmM1YzAyNjlhMzQ1OWNmZGZkNjFjZGNlZGYwMDkzYTg1Mzk3OTM5MWU4NTNiOTM1ZjM3MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyOTk1NzkxNTI0YTg4YmM1NWFjYmExZGFiNWI2Mjg3NTNjOTVhNjY4MzA3YzBiMjhjNmJmOGY5NjcxN2ZlYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjQ0YWU0YzA5ODAyMGU3NmZhMjE2OWEwYzNlZTU0YTMwNDJiNTUwZjQzOTg0NzExMWNkOTFmNjI5ZmYzYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkYTAyYzE3ZTg0OTQ4Y2Y3YmNkOWJjYTMwYzM3M2I2ZjU2YjlmN2MyOWNmZWU0ZmM0YjBlMjE3MGIyMDQ1ZGYifQ"
+        },
+        {
+          "resource": "repo://deploy/docker-compose.yml#L80-L90",
+          "version": "repo-lines-v1:sha256:f225c7636395325dd59259240029dbf4e714ba9e5fe7d506e3783fb944f88f9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlNmM5NTM0MDI4YmEzYTY0MTNkNGUwMzYzY2NmZTU4YzA5NTdiZTE4NzMxZTEyZDE5MDdmZGNkOWRmMjAzNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MzFlMjYwMzk4YWQ2MTA5MTRkZmMyOGYwNDhkMzkyNjRiYTdkNTAzMjc4ZGQyZjhiYjFjNGMxNGI0OTlkOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3M2RlZjU3Nzk3OThiYmNmMGI4ZTkzZGFhMjFjODNjMmE2OGM5OTU0NTM2N2UxODgyYmY0ZWVlZTYyMmRlYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MTU4NGVlZmVhMmFmOTIzNTFmZmQwNWUyNTI2OTdmMTYyODMwNjJlMWNjMjllOGRlOTEzNjM1ZjllODEyMTkifQ"
+        },
+        {
+          "resource": "repo://deploy/proxy/Caddyfile#L1-L18",
+          "version": "repo-lines-v1:sha256:5bb474b07e5adbaa302b3db4417f7d89d229db1528250513bd61a99f2cb71516:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNjUxNDgzZTc2Y2U0YmYxY2MzOTZjMzE2ZDA4Y2NmMTc3ZDU2ODQxNThhOTIxYzQwZWU3Y2I1MmM0YTA0ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5116b1b2e2134db792a9cbd45ed866cd",
+      "statement": "Running the stack requires generated secrets first: `make secrets` runs deploy/gen-secrets.sh, which writes deploy/secrets/* without overwriting existing files (per-service svc_token_* files, the shared svc_tokens_verify.json hash file, llm_key_* pairs, Memgraph and session secrets) and creates data/llm-records plus data/logs; real provider keys belong only in deploy/secrets/gateway.env.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L8-L9",
+          "version": "repo-lines-v1:sha256:8ed46eb89461c8c5f2bb5f3b736db78a1b09b9a38ed338be8d80fc1217c9c65d:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2U3MjJkNTJjYzQzMDBkNTI2YTNjZTBlZjBmNGYzODdlY2RmMTkzMjQzZDNlYTVmZWE2MTM0MjYyYzY3NTQzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzFlOTRhMmU1ZTZmZjMxZGU0YWQ4OTA4NjU1MTlhNjE1MTgxZjBiNWRjZWFmY2NlODIyZWMyMGQzMjQ5NjY4OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWUwYzQ1MGJjODJkYzdmNzllNGM1Zjc4M2MyYzZlZWNlMzA0OGI1OWIyNmU0OTRjNTliNWRhMmMxNWZlMzU0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA4M2JjM2YxMWMzNWE1ZjFjMmEzYzRjYzQwZWQ5OTM4MTZjNjMwNGUyZmI3N2ZlOWVlZmFjNmRmYTUxZmJmZCJ9"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L1-L17",
+          "version": "repo-lines-v1:sha256:7c6905ec40448d963e2753b4c50069b16452c19ee6110396ada676fcb5b0aecb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiODZkMTEyZGU4YmVkMTAyNzg2YTRhMWZhOTAxODFiM2YwODQxYTIwYTFhYmNhMjU1ZjgwNDYyMzZiOGIwMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkOGFhMmFkY2M3ZmQwMmFmNDhlYzBhZTJmZjIzNzFmODEyYWU4MDkzYTNjM2ZlMWEyMjMyNzdkY2U0NTU1MzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNDdiNjYxZTM2MzllZmU2ZGM3NzdjOWFkMzhmYTAwY2Y4MWVmYzRkZDkzNDU2ZWRhZjM0NjI3ZDk3MDBmOTcifQ"
+        },
+        {
+          "resource": "repo://deploy/gen-secrets.sh#L50-L67",
+          "version": "repo-lines-v1:sha256:22050517bc0a78b60d6ffe43f6824a48d4300ee4aa7f98ebd4184b4bdda4fd90:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NTJmZDkzYzZhNTRkMjhkMDQzZjU5MGM5Y2EwOTMyMTJjODMwZTA5YzljYWRhZjk5M2FiMDU2MWQ2ZWE5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhNmVmNmE0ZjdhNmNlMDYyNzc5MmQ0NDk1Zjk4ZDYzZGQ1ZTgyNzY2NTU4YWRjYzlmYTdkOWEzNThkYzdjZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiMDU4Y2UwNWRhZGNkNDc4MGQ4ZmNkOGU1MTZlMjBmNTIwNWUxMTliY2U2YWFlOTUzMDBjNDA0NzJlYzFlNjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_844c820d901944b7a1c9aea36c90db20",
+      "statement": "The uv workspace spans one shared Python library plus the Python services, the CLI and the plugin stubs (members: libs/python/*, services/orchestrator, services/extraction-agent, services/query-service, services/llm-replay, tools/cli, tests/plugin-stubs), while the Maven aggregator covers libs/java/agent-lib, libs/java/agent-lib-a2a, services/tlr-agent and services/inconsistency-agent — the language split is deliberate: Python for parsing/LLM-heavy services, Java/Quarkus where ArDoCo and LiSSA run in-process.",
+      "evidence": [
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L236-L245",
+          "version": "repo-lines-v1:sha256:cc063aef0799f4e89c32252a22279da4e57a119b31f08449f9a3143103c35248:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNWIzODNjNTU4OWY1ZDg0NzEyMDJhNzI0NzdjNmMzODRlOWU1NTg1NGYxYmJkNTUwZjk3NmEwMjcwZmJhMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MDA2NGM1NGRlYTUxMTY3ZjBiMTdmNGFlZTk4YWNiNjFkYTZkY2VlMGQzMTU1NWFjYTBiMDA4M2MyNWM4OTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmMjE1OTdhZTczNThmODQyYmE0NmI4ZjA2NWE0NzVhMGYxMDI3ZGQ4OTNiYTgyODgyZTI0Njc2Zjg3MTU1NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmNjc2OTJlNDM0NDA3ODI1ZWYyYTcxM2EzNWFlOTAwZWZlMDVjZTk2ODhiNGY1NGNkNjg4YjQ3YzY4MzVlOWEifQ"
+        },
+        {
+          "resource": "repo://pom.xml#L13-L18",
+          "version": "repo-lines-v1:sha256:b437413d0e3d8529b354976bf02dbab16b6f912c0d52a11ca5889460de3eac74:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2QyMmJiYzEyZTY2NzBjMzk1YzNiMDk0NzYwYTU1YWU3YjRhYzE1NjkyMzg1N2Y1OTZkMWRlOTc4ODUxZWZlZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGUxZmZmZTRkMjVhYWNjMTA0ODg0NjMwMDA5NjA0MTU3MDljNzI1MjZjNDI0MDQ3YTA5YzA5OWIwYTQxMzQxZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGEyMTM0NWFjZjAwOGI0NzIxOTkzNWUyNDE4YWIyNWUwNmYyYjA1MWRiMGU2MzI4Y2UxOGRiNGI1ZGY4ODE4OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmVlOTA4NDE2NWI4MzViZDgzNGViM2NhNjE4M2YyZjBhMThhMWI2YTQ0YmIyNTE0OTljNjgxMTUyOWQ2NWU2OCJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L16-L37",
+          "version": "repo-lines-v1:sha256:18aa89ebb25081779b9fb9682307f76872d1032477d5eef7e192ddeca861fdd3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYTAwOWYwY2E1NjM0Yjc3MDIwMjA5NDJmZDE4OWNkY2Q4NGIxNjdhYjgwMTUwMTI4ZTZmNWI1ZGJmMjQwMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhODhhN2E0MmYxODU0YjNiYzBlNDgyNTAzNGNkNTczYzY3YjQ0MzIwMzc5OWQ2MWQ2ZjRhZDY4OTFkYWM4YWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4NGI4NmI2MjEyOGI2YmJkNGE1MmQ0ZDM4NjYzYTZmNzk3NWMwMDNmN2FmZTU3NzEwMDQ3NTlmNTllYWJmZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b087bf1d9b5b4735a82aafabd4ddb1ef",
+      "statement": "CI (.github/workflows/ci.yml) mirrors the make targets as path-filtered jobs — contracts (validate_contracts.py), python (make lint + uv run pytest), java (mvn -B verify), compose (docker compose config with generated secrets in a temp dir, then --profile stubs up -d --build --wait) and e2e (make e2e, also nightly) — so every local target above has a CI counterpart.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L14-L146",
+          "version": "repo-lines-v1:sha256:043217f8e408322745688f20e5891325556f05893b5100d45d2d52df5f23f03e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkOGY5MjAxOTQwMTZlMDZjNjM4YTNjZDFiODQxZTY2ODg0OWVlNjk4NGIzNGFjNmY1ODUwZGI3MzA0YTMxNzdlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiNGI4MjdmYWQ5YWI2MDNhNGJiOTU1MzM1MTZiNzVkNmFhOGQ5ZjIyNjIxZjU5MTJlZDFiODM0Y2VkNTc5ZTFjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyY2RkYWU0ZTdhNjM2YzIwZjU1MGFjYjZhNTRmMjcwOWFlMmNiNGNkYTQxNWQzYTdlNTI0MWUzNzE4NTY4OTIwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_ff96a509af76430e9c78f5ced3d28541",
+      "statement": "contracts/ is the machine-readable source of truth for every interface (JSON Schemas, A2A Agent Cards, per-service OpenAPI documents, contracts/kg/schema.yaml and init.cypher, conformance/vectors.json), validated by `make contracts` via scripts/validate_contracts.py; because implementations must not drift from it, interface work starts there rather than in service code.",
+      "evidence": [
+        {
+          "resource": "repo://Makefile#L42-L43",
+          "version": "repo-lines-v1:sha256:79d433bbdbeae5f264bc72de363e0af7f7fcfec9539576556e06796a1208cee2:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVmNjJmZTMxMjJjOWEyOWZlMWZmNjY4MDU2OGZhYjA4YTVlOWU0MGUxZTFjYzA5ODhmNjI1ZWMyM2U4MDdlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTRlNWM2NzYwMTUyNzhkMzVkZWU3YmUzMjg0MjA1ODA5ZjA1MjMwNmEwYmFmMDkzMDQwOTk0ZTY1NzU3YWU0NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWQzMDgzYmVmN2E3MTk0ODMzMjMwOTBiNWEzYTBmODU3Yjk1OTgzNWFjMTI0ZDZkYWU1MTA4MDgyNzEwYjA0OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDFlMTJlZTM1MjM3Mjc4ZmJlZmNmOGE0ZDk4Nzc2ZWEwODRiNjIyOWJhZjU5MjgwNjU0ZDQ2ZmY0YmNlN2ExMSJ9"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L7-L33",
+          "version": "repo-lines-v1:sha256:586220f85ece907b664997405fcd7c3644b00dd7e3294ecc17129e054d4a3435:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZjE5NzZkYjY4ZDc1OTBhOGIyMjE4NmQ4OGY2YjA0OGExMDAwOGE0NzAwMTEwMTI3YzFmNmI3OTk0ZjI3NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwYTBjZTA0NzMxMWJjZTU4MWQ5ZDIyMGE0NjQzYWM5M2M0MTNhNjY0ZWZmODQyZjNhN2JlODZlMGFhMWQ4NzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZjRjNDNjM2Q3Y2QwNzFhOTE2ZDE0NGM4MDA4MWI4OTEwZDI1OWNkYmJhYTU3NmJhNWY0NWUwMDNhYTkyODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE4NDUxNzI3ZTY3M2IxYzViMjJiZmZkYjYyYWYzOThhNTFhM2U1N2U0YjBkN2FjM2U2MmVhYTVkZTVlMmY3ODcifQ"
+        },
+        {
+          "resource": "repo://scripts/validate_contracts.py#L56-L115",
+          "version": "repo-lines-v1:sha256:8f0d1b095fb13a20bfb35d405ddcf489c3d762e8f91b70f67c52775141239e2c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyMDE4YTVmMjA0ZTA1NDRmYjkxYmEzY2I3MTA0ZTcyNmM4MzViMTRjYmE4N2RjMjAzMGNhZDY5NmExMzQ2NmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YWY3YzJhYzIyNzk2MGZjZDVjM2NjODgwZDViMDhjZmIzOTcxMTJkYTgxMGJmNzVjM2Y0ZWJhYTNhMzdlNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiYTMzYTU3MjZjZGQ0ODJlNWE4Zjc0MTM2YjBlNDU3NjBmOTE1YjU1MWQ0OWEwMzdlMzg1ZmY2NThiMjAxOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_96d31af3e7e64c86bdc48c7df7ec0b17",
+      "statement": "Runtime YAML configuration lives in config/ and is mounted read-only at /config by the services that consume it: config/orchestrator/rules.yaml (debounce, timeouts, retries, TLR kind pairs), config/tlr/approaches.yaml, config/extraction/plugins.yaml and config/inconsistency/plugins.yaml (plugin registration), config/query/intents.yaml and config/query/plugins.yaml — behavior changes that look like code changes are often just these files.",
+      "evidence": [
+        {
+          "resource": "repo://config/extraction/plugins.yaml",
+          "version": "repo-file-v1:sha256:c3261e8ab7ff15287c8343ca32a2fb3a230259ff412b3ee3153e281ecd856f6a"
+        },
+        {
+          "resource": "repo://docs/stage-2-contracts-repository.md#L110-L170",
+          "version": "repo-lines-v1:sha256:c7b6f394626aacb6e97507300f04b96810ddcee38f6380e5191af2c2616b3083:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyMTYzMWMzOTUzYTI0OTkzNjBlM2U2OTMzMWQ1Zjg0Yzk3ZjUwZDQ4OGE0MzU2OWJmMjNkYzMxYjJmZGM2YjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkNWEzM2M0ODY2YmQyYjVjMDA2NjBlMzg1MzUzMmVhM2EyNjllYzU4OTJiY2ZlNDU2NWI5NTc0NjQ5NDJjMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiNjgzNTc5N2VlNmRlYmQ4M2VmYzczNmM5YjY1NzM4YzE5OGExODIxYzU2NTNhMzllNDFlZjdjY2E5YjcwZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b8140653ab64cf89f9a83d49d431bca",
+      "statement": "The `sandman` CLI (tools/cli, distribution sandman-cli, entrypoint sandman_cli.__main__:main, default base URL http://127.0.0.1:8080 = the edge proxy) is the machine-facing ingestion and workflow front door: it talks only to the query-service API, which forwards owner operations, so the CLI never needs service addresses.",
+      "evidence": [
+        {
+          "resource": "repo://tools/cli/pyproject.toml#L1-L20",
+          "version": "repo-lines-v1:sha256:8c66e388f8456e6bc3178b97c0476efc65187818854d8da036e03be0412a7c96:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMmE4MWMzODM2ZWRlZjJkMGJhMTFkMjM1M2ZiNmRhYmM3NzcxNTBhN2NhODNlYTBkOWU5YTcwMzEzZmVhYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNDUzOGRkNzk2ZjlmZjViMGU5NjZiNGNlZWE4YzM4OTgwZjM2YWY2ZGI0YmNlYTRmZTQ5ZThmNGU1OTE5NTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNDEzMmRiMmYzMDVkODNjODA1YWE3OGU2ZjEwOWNiMWNkMmEzMjRiNzIyNjdiY2U1MzM1MWI0M2U4OWMxZGEifQ"
+        },
+        {
+          "resource": "repo://tools/cli/src/sandman_cli/__main__.py#L18-L24",
+          "version": "repo-lines-v1:sha256:92a48ce798065523e28381d681e4088afc18924e2c84d558e38838a3991cfde7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDIyZDcyMDRlZmVmYzA3NzgxNzAxNzY2ZWI1NTZiZGE5MThjODVmN2UwMzNjM2ZiMGY3MWU2NGUyNjZmZDhjYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmNkYjdlMDc1YzJkMjgwMjkwMDRjZDZjZGNiZjVjNGM5M2MzZjhjYzQ4ODNmNDAyYWUwNmRmMmEyNWE3ZTI4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDZmYzQzMjAwYmI5MTY4MDM1ZDg0NTE5ZTdkY2E4MWVkNGE0MmVhYjZjZjQ3MDdmZGRmZmU5MTBhNDc2OTdiMyJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:42cf8ac1c1fda7ffdfe75d9f9179de77c2bb7bb390a19d2acbf1c25792a2c2bc",
+  "claims": [
+    {
+      "id": "claim_deffd1fadd484461acbf18301b1b3a6c",
+      "statement": "The query-service executes every query (user Cypher, NL stub, fixed export templates) through one pipeline: reserved-parameter rejection, guard.check parse, LIMIT limit+1 and QUERY MEMORY LIMIT appended, Reader read transaction fetching at most limit+1 rows, then a check_scope post-check on every returned map with a projectId, at any depth.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L98-L142",
+          "version": "repo-lines-v1:sha256:f2ca653b936047f4da394afa30b352dee4078a882415760c64118c3292ecc6d9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YmE4OWNjZGE4Yzg4MWFhZDgyNzMyZWFhZWY1MmYzMWI2Nzk4NjRlODFiMDQwZjc2OWUyZjVkNzZiZjczZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNGEzZTczZjkzMDc1M2VjODUyZWI0ZDU2YmZjYzFlODJiMWVlNTk2NDg2MGRiNDFjY2M5N2Y4M2JlMjI0MzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiYTNmZDIwMDRiYWExMGI5NjJmOTEwYjBlYWVhYzk2MGMwYmZmMDg4MTQxOWI2YTI2ODdlNGU2MjYzZGFiYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkZGFiMDZhMWUyMWM1Zjc0MWVjODllNzk4MzVkOTY5ZDRkMDJmY2ZjMDVmYWIxOWFkM2U0ZWZlOTU3NTYxZmUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/reader.py#L42-L52",
+          "version": "repo-lines-v1:sha256:4c741e69740104c4a16c57ca1eb5e5a03945ec1c42b53efb1f2303897985b4ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzOTgwZWYzOTNmMDg2NjgwZjkyOGRiM2U0Y2UzZjE0OGJkZTJiMDUzMjdhMTBhZDhlZjM0YmFkYmVkNWMyMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZDEwNjQ5MDRhZTRiNGY3MTdlOGQzNjdiYWVjMmUzZmZjZjZmZmM3NGRkMzE2YTc1ODFkNDM0NmU1OWRjNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMjMzNGZjNDcyMTZkNmZjNzgwMjM2ZTY3MzBlOGIzNjZjN2JjMDBiNGYyYTVmYjNlYTdhNmUxODE4OTU2YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxOTIzZTE4YzY0YjNmZTE0MDViMmI1MzZmYmQ5YmM1ODdkNTFiNTJlYzFhYWMwYmY4Y2UxYTUyZGE4OWMwZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_38e218346de142e58ebe4f92558de046",
+      "statement": "The guard is a recursive-descent parser for an allowlisted read subset that rejects anything it does not understand, chosen over ANTLR grammars because a grammar accepts the full language whereas the guard needs deny-by-default (decision D-2, ADR-0009 amendment).",
+      "evidence": [
+        {
+          "resource": "repo://docs/notes/cypher-guard.md#L5-L21",
+          "version": "repo-lines-v1:sha256:6d4c6317e0484942ff108a74808a20e9de51a4ce231c7f6db50f11a3bbb471fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkM2RiYzRlN2U3Y2JlNWRkYzg5MWIwODA3MTJmNjM1MWM5NGI3MjhlYzhiZDg1NTZmNDYxMmIwNzBkMjdiNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwNWY1YWExMzYwZTEwODhiMGE1OWYwM2U0ZjgxZWE5NmIxODI2ZTMxOTEzZTAwNDNkNzA2MmJjN2JmYmZmNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjYmU2MzJkOWJkZTk2NmIyYmRjZmI3MDA1OGM1YTVjZDkwZmU0MzExZmYxMmU3N2Q4ZmFhMWY4NzMyM2QzOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5MjVkYjYzYjNlMjM0NWJiOTUxYzU0ZDFkNzM5MTQyZjI5N2NjZjgxNzVhZjYzZTg1YTYzNmNmMmZmMjFlYTUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L1-L31",
+          "version": "repo-lines-v1:sha256:2e24b55387d1c376ea3ffa3d611a036cbdd04bc39bc42f4c36be137f0f163c7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NzUzNzRhMWVjZmE3MzlhNmUyYjM1NzkxM2YzOWE5MjQwMjE4M2ZkYWYyN2ZlNjJhNDQyYTdlOTA1ODhmZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlZGUyNjc0YzNhN2E5MWJmOWU1MGFkYzZlZGJkODIxZWQzMjk1NzI3N2M0NzdmMGE0NmE0NmZlNjY1ODhhZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhNTdhM2JiNGMxZmJkYjY5NjI1NGI4NzI3NWViNzM0OTMyZWQ2MmIyYmE1ZjA4Mjk4NjUwZjM1NzNhMTMzMzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_77ff7761b9c94036b3591e8f66452028",
+      "statement": "The DENIED keyword set rejects every write/admin/procedure clause (CALL, CREATE, MERGE, SET, DELETE, DETACH, REMOVE, FOREACH, LOAD, SHOW, DUMP, TERMINATE, EXPLAIN, PROFILE, DROP, GRANT/REVOKE, etc.) by name, even for global admins in unscoped mode; semicolon-chained second statements and caller-written QUERY MEMORY LIMIT are also rejected.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L18-L27",
+          "version": "repo-lines-v1:sha256:5e5b0396883435d5482f5b013ab52fb708274a6d6b0faea9984713c5fbcd539a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyN2VkODg4M2Y0MjE5YTBkMzhlYjk3MDljNzRhNWZhOTM5MjJlZDQ2OGE4YTYyNzkwZTQ4ZThhNDljY2ZmNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NmE5YjE1ZTZkNWZjMDM4Yjk4NTY2ODdkZTIzMWNlYjcyYmVmZjQ5NTJkNWYxYTMxYWNkNzUzM2YyZTViMDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5Y2Q0YjEzOGI2YzRmZTZmM2Q5ZmFjOWYxNmI2MjAwNTY1MGI4ZjcwNGI2MjI1ZDFmNzk4M2ExMzZhYjczZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5NjcyZTViOTI0NWUwZjE4MzI2YzBlNDI5M2E0MjU5MDBkNjNhZWRmNDc5YTJjODJjNzQxYzRiN2IwZmNhNjMifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L273-L276",
+          "version": "repo-lines-v1:sha256:8c6cd149edad4af8a240f406c944dc5f391eca7bf622ccfdc5cf3bb896d7cc98:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODJiMWM2ZjBlNGExZjgyZjEzZmJkNGE3MzkwYmY5YzkxZmRmNGU2Y2NkNjdiN2EyYmVlODU1ZDQ5OTU1NTM0OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjkzZmM3MzUyZGY2MmUzZDQzNmQ1NzdkZjFhYjBhZDNlYThiZjdiY2YxMTFjNGE1ZjM0M2U0OWQ5YjhiMTEzNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjVmMzhkNjkxYTdkNWQ2ZWRiYTY1Y2QxNmQ5MWY2NTk5ZDM1NzZhYjI1MjJkZjhjMGEyOTVhZWM3NzQ1YjhkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDgxZmJiZGM1Yjc2MDM0Njk2MzJjNGQxOTgzM2VkZjllZTVlYTY3MDE3OTFkOGNkNGMxNDczYzgyZDg2Zjk2NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ece0520865e140f689a707927db9f837",
+      "statement": "Guard hard limits: MAX_LENGTH 20000 characters and MAX_DEPTH 12 expression nesting (RecursionError converted to 'query nested too deeply').",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L13-L14",
+          "version": "repo-lines-v1:sha256:8f2d165cf301f600f9e09104a86d33dc34dccc828c6a4a1aef0449de0f47d753:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTAxMmVkMjMzNjUwNjJlNWVjMDEwNDk4ZDBlZjQxOWM3MDMzMjYxZjRjMDA0ZWM2ZjMyNjI4MzI2ZTIwYjgyNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTNlMzNhYzAxYWFkZmRkNmI5NzAyNDk0Nzc0ZGI0ZGU5NjJlMGQxMDcxOGQyOWYxYjYwZmFmY2RjY2YyODVmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTYyYmM5ODJiNmQ1ZDFmNzc1ZDNiMjEyNDMwN2EzZTY0YmJjNTc3YmZlNzIwOGQzYTUzYjMwN2EwZDQ0ODgyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzljZDRiMTM4YjZjNGZlNmYzZDlmYWM5ZjE2YjYyMDA1NjUwYjhmNzA0YjYyMjVkMWY3OTgzYTEzNmFiNzNkNSJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L226-L228",
+          "version": "repo-lines-v1:sha256:9d7d6c652be343782218a7aa00f23afe04b80cd0ad446748fbd3c1c81feb3af2:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWExZDRkZDA4ZDllMTg1MmM5NzZjYzI3NDA2NDZhMzYyYmVmMDJmNTE0OTkxZGQ3ZjE5MmVjZjgzMWU4ZDMwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNkYTBjNDcyYzM4N2Q0ZTI2NmZhZGIzZjYxODI3MjlkZjBkMzgzNTRjNzc2NGRhNDRhMGY0MTgzNGZiNmMwYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGVjODEyYTJjZTE1NGIyOTRlNDIzODU3MjhhNjk0YTU0Y2YxOTlhMzlkN2RlNDkxNTUzZjg3NjU2NTVhYjZjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWMyNWFjYTRlYmZiZmUzYWRjODE3YWMyY2ZkN2UzMTE1YzllYjE4ZDg3N2EyY2MzMTRlOWNlNDFkOTc2MzFmNSJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L441-L448",
+          "version": "repo-lines-v1:sha256:e263763518db0c400bcb83ceab3d9b3f364309ee7e29c64a98d9c4666828ef4c:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMxNGY5ZjZhNmQ0YjQ5ODQzYmU2NzYwYTVjZDI2M2E4N2ZmOTYyOTk5NmYzMDczYWZkNGYwODJiNzIwNzgxMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTViZTY1M2I4YmM3OTg4ZWQ2OTcyMGIzODVjODU3YzI4MTRhOWNmYzA0MmViODUzOWM0ZTBiM2UyODkzNTNmMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDI1ZDYyYWNmYjVmZjNhZjk0Njk0OGE2MDNhOGNlYmFmMTc0N2U1MTg3YzA0ZjdkOGMzYThjYzQ5OTI0ZTk3ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDJhMGViMDQ1ZmFmYjVhZTFmOGZiMjFkNTk3ZGUzZjJmMGJkZDdkZDIwMjc5ODM0YjE3Mzk4NDcxMTllMmVjOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8dd763ef5764cb08d8aa2ec40e60a05",
+      "statement": "Project anchoring invariant: in scoped mode every connected component of every pattern (MATCH/OPTIONAL MATCH, pattern predicate, pattern comprehension, EXISTS subquery) must contain a node with {projectId: $projectId} (exactly that bare parameter), a (:Project {id: $projectId}) node, or a variable bound by an earlier anchored pattern; WITH only keeps bare-projected variables and UNWIND/comprehension variables shadow outer ones. This relies on the writer invariant that no relationship crosses projects.",
+      "evidence": [
+        {
+          "resource": "repo://docs/notes/cypher-guard.md#L31-L36",
+          "version": "repo-lines-v1:sha256:3f7c1fb6633e734f9e5006a775559ca79530f530cb0d16df2c74af95373ff8d7:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjFkY2QwNGY4MDA3YTZlODZhNzBkZTdjNmZiNmJlZDczNDYzMWMxMGQ3ZTgzOTBhOWM0YWJlYzMyMDA5YzM2ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzM2ExNWVmMmI1NzkyMDlkMTJhZmI2NjMwODZmNWE3ODRjNDFkYjk2ZWE5OWQ2ZjM4MmVlYjJjMjIzZWEzMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWVmMTY5Mzk3NTk0NDJhNDhhOGFkMWE4ZGI3YjllMjAxMGIxN2JkMzU0MjMzYmVlYzdlM2ZjMjk0ODExMjBmOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzkwYjg1MGE3ODVmZTY1NTc1Y2M3ZjllNzZiZDNlNjBkYjNjMmQ3ZjA0NDBlODYwN2Q1YmZiNGI3ODQ5MDc4YyJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L336-L381",
+          "version": "repo-lines-v1:sha256:5c1c8d21f5f55f2a173197bb16fa2a31b8cbd42ccaf36f3c44caa5d937179d2e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NWVlYzAxYTAyODI3YzQ0NzM5YjhkYmNiOTE5NTUyZDRlNDc2ZmRjN2I0YzZiMjUzMDEyMzI1MjhjN2M3ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3N2U2ZGIwODJmOWQ5MGRhOTRhNDc2NWE4YmRmNjM0YmRiZTQzNzA2MDBjMDUxNzIyMmI4NzY1MjgyODFhY2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhNzM5NWRmZTFhMWYyOGMwNWQ0YjA1NWViMTZmNWVjMGY1OTljZWE2MmYzOWUyYTYwYjkxYzIyZmE0ZmJhMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5MWY4ZDYyODNlZGI5YmYzYmRlMGZhNmQ4ZDdmNzgzNDYxZWY2NmE3NjMyZTZhYzMxNTRhYTU2MDk5NjNiNTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ab3bf72f1bde4d8a9b2220b56b4d9c76",
+      "statement": "The statement sent to Memgraph is rebuilt from the parsed tokens (comments stripped, token adjacency kept), so the service and the database see the same text; keywords inside comments or strings can neither hide nor create clauses.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L240-L252",
+          "version": "repo-lines-v1:sha256:f0d0170fdc2b8c2f293d9b137a8ef8f8c0d5fd55683c8b5911f77b581b1e7bcd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzMmMwMjQzYTM1ZWM3ZWZmYzFiMmJlNGI0YTk1MWRhNGUxOTUzZTM3ZjFiZGMzNWZlYWM1ZmIyNTIwOTBkNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmYjE1MDU4YzFhYmMwMzM4MjQ5ZTQyOTJlMGVjNmZhMzM5MzE5ZTNhMGJhMTlhNTE5ZmY4NmI0MDAwMTJhMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3OGQwNDYwOWRiZTRhNWFhY2ViN2RhZDAwZDJjNDg4MTNmNDA0OWZiZGNhODI3MzdkYmFkYmM0ZmY3ODRkYTcifQ"
+        },
+        {
+          "resource": "repo://services/query-service/tests/test_guard.py#L108-L146",
+          "version": "repo-lines-v1:sha256:89949d55568f8737ceed2581236379823059e6b0ac49bc41fdafea5bb23b1c41:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5OTZhYjVlZGZhM2RiNWQzMGM0NDIxODJkMTg3MjA4YWM1Njc0Y2ZhYmJkMDdiNDg1YWFjNGI1MjlhZmZjNzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5MzZkODRmY2M0YjMyMjY5YWUwMDNkNTI5NzRlZDc0ZDA4N2NjODFjZDFhNDgxMDc5NDhiZTYzYmM0ODk3NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkYTgxNmZlZjdmNmUzYzk4NjZkM2UxZGQ5YzY0ZThkOTY5M2IxYTc3NTM4YTVlNDcyOGMyOGY1Y2FhZmFmZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5YzdiZWZlODQ2NDlhOWIwYTViYWU3YzI1NWU2ZmMxMjY2MWNlOGM4NTkxZTZhMGM5YzkzOWIwYTVjMGY3ZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04ccc1850870470bb98581cf2ea75437",
+      "statement": "Reserved parameter names projectId, cypher and timeout are bound by the service and rejected if supplied by the caller (HTTP 422); projectId is injected from the request path, never from caller params.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L108-L120",
+          "version": "repo-lines-v1:sha256:0cc04aac0e1732bd7069e81ee22bacedc5997197db34c83646d651bdb14882cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4NDg0Y2U5MjBjNGZhMzFhYTljNWUzM2Q2ZGJmZjE4N2ZiZWFhZjIyNDNjOTA5ZTI1NDJlNjQ4Nzk5NmRkYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZGUyM2I3MzI3NzY1YzE1MjYzMDg5Yjc3OGQ1MzRlNjIyOTc2MmJkN2RmYTg0ZjFhNzFlNzdmNzkzOTgxMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3ZjBkM2RjZDRjZGUxOGE0Y2ViN2ZkMWQzODM3YmMzZjcwYjNiMDNkYzE5YjVkNGExMDAzY2FlZTZlNzcyNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmNTk0NGVjOTNlNTNhN2I3ODZlNmNkYjg0YjlkZWFkYTAxZjljMzBhODIxZjNjMDdmMzFkYjYzMWYzMzRjYWEifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L24-L24",
+          "version": "repo-lines-v1:sha256:617ba9eaaec7a5c0ae5ccd9b6006281c5e0cca635b89e2ad7ff9d72bff37a36f:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE3YmE5ZWFhZWM3YTVjMGFlNWNjZDliNjAwNjI4MWM1ZTBjY2E2MzViODllMmFkN2ZmOWQ3MmJmZjM3YTM2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE3YmE5ZWFhZWM3YTVjMGFlNWNjZDliNjAwNjI4MWM1ZTBjY2E2MzViODllMmFkN2ZmOWQ3MmJmZjM3YTM2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzgzYjI3ZmY0NTFjMjU2MGI5OWY5YmE2ZTUwOGIxYjQwNTIyMDgyNmIyYzUzMTA0M2RmYmJlMjhhMzYyMjRjMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDkwYWZlM2ZiMDVkNTUxM2UzZjZmMzgyNmQ1YTNhZjFlZGE3OWIxOGY3ZjgyYTZiYmM1OWIwYjFjMTJjOGE4OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2fff5590da97483191b188066af2bcc7",
+      "statement": "Timeouts are capped per caller kind: 10 s for user principals, 30 s for service/plugin principals; the effective timeout is min(requested timeoutMs, cap). The read transaction uses a double timeout (asyncio.timeout plus unit_of_work).",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L119-L123",
+          "version": "repo-lines-v1:sha256:0b49fa81a442bf23c01171945b8f308b542909e2b432a446ac4613bcd94643ce:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2EwMjlhNmZlMzVjOWE0ZGE1NTliYmY0ZWUzZjQ0Mzc4OTUyZTFmNzBhZmFhOTM3OWUzOGE4MjU5ODQ0NzhhMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWI2MzhkZjBmNTA2NzlhYzYwMmM4YTczOTBjMDI0MmU4ODMwMjBhZThlNjViYWM5YTQzNDllY2M3MTFmNjgxYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmJmNzlkYzg1ZDFkODRiMjY4MzIwNGVjM2ZhYmQyZjllZWRiNTRhNGJkMDg2ODg0NDc0MjIxMmUxNjY1ZjU5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjYyNzcwZGI2MTk1YjhjN2E5YTZmOTYyYmViYzZiOTY2NWZlMGExOGVkNGIyZTEzNGY4Y2M1MmI1NTVmYTU5OCJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L23-L23",
+          "version": "repo-lines-v1:sha256:dc5a0a8cf0f18a6cd0d8202f69b0b5ba9c3cae6ebb329bd8a78882c1a3fabae8:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGM1YTBhOGNmMGYxOGE2Y2QwZDgyMDJmNjliMGI1YmE5YzNjYWU2ZWJiMzI5YmQ4YTc4ODgyYzFhM2ZhYmFlOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGM1YTBhOGNmMGYxOGE2Y2QwZDgyMDJmNjliMGI1YmE5YzNjYWU2ZWJiMzI5YmQ4YTc4ODgyYzFhM2ZhYmFlOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA0NGMyN2ZhMWU5ZTNkYWRmOWJhMDU1YTE3YTQxYWE3MzBkYWUzZmY5ZGZmNDFmYTczOGE0ODgzODNhOWNhOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzk2NWU3MmVkMTcyMTM2Y2YxOTVlZWM5YzMzMzE2OGM2ODllYmM5OWVkZTE1NTgwMDdhNWE0MjAwNTQ2YTlkMyJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/reader.py#L84-L85",
+          "version": "repo-lines-v1:sha256:15ca32c8a2a395609b690d7af8143748befbebed0b575a8845b756b7367abe4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTA5MDM2YzhlY2ZkMDQ5OTNlNjhlMjFhNWMwODBjNThhNjY4MzkwZTYyYzZkODk0MGY1M2UwZTAyZjQ4OTAyMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTE1MGU3MmQ2ODkyY2M1NzA1ZTY0ZGFhNTU1M2IzMDEwN2QxZjZhNjZjMjZhYWE5NDRkYWJiYmJmNzhlZDRjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTI3ZDI5YTdjZWI4NTQwZWE1ZWI0MDFiZjI4N2IyMmJmMzI4ZmQ3NjZiNDQzNTE3MmM3NjE4YTk5N2VjNDJkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZiMDZiZTkwZmRlYTI3MWE2MjI2NTgzOWUwYzlmNzA4ODg1ODc5ZGUwODAzNDgxZjgxMzZkMjE5MzZmNWNjNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4f1259f80ec64c9f9dd193b02fd7c685",
+      "statement": "MemoryLimitError is surfaced distinctly: the Reader raises it when Memgraph reports 'memory limit exceeded' (the plain exception also stops the driver's retry of transient errors), and Runner.run maps it to HTTP 422 'query exceeded the memory limit of …', separate from the timeout and unavailable-database responses.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L122-L133",
+          "version": "repo-lines-v1:sha256:37cb6abba44cc44450a76651655fd120908438d010ff57a9a6e3a4c6b80459d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YmNjZDAyMmQ1NmNhOGFmZjExMzRjMDkyODFiZDdhNjEzMWFmNzhlMDIxNTBjZWJjYzZkM2I4NDJiYjMyNDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkMGQxZjdlNWUxN2Y5MWE2MTllODk0ODM3OTFjNGUyZDUzMThkNGFiM2Y2YTU2N2VlODkzZTUyOTU4NjRmMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmNTViZTdmZGZmMjgwMmI5YWUyZTU3OTM5ZWFjNTBmZjA2NjU4MmUyMmMxOTgzMDRlOTdiZDhhOTlkZTY1ODQifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/reader.py#L78-L82",
+          "version": "repo-lines-v1:sha256:7dec9ef87451afd040770f7bd8ad2314b9f1db5398f1ddceca173841f3d32420:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWNhMDFlYzRhMWQ5OThjNWU4MmJkZmI4NjNhNWNkZGE3YWE3NjJlMjhkNTdmMTI1NjNiYjljNjQzNjBjZjlkOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDE2MWNlOWIxMmM4YzFkZDA5ZTcxNzAxZTM3NTcyOTc4ZTUxZTdhNDdkMDhkMDBjMTAzYmQ4MTY2ZTc1MWM3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzI0MmFmMjZlMmZlMDZjZTM0MmNmZDJiN2MwZGE2YjVhNTMxMGZmODFjN2EzOWE2MGIyNGQwYTI1MDZmZTQxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTc5ZDlmMjAwZTAzY2RmMDNjZWI3ZTZiYTBmNTBlMzYxZGE1Mjg2NTMzMTI1MTNkMWQ3OGE0ZjE0YmZlZjEwYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_04c7c03c1d004134926aae4e12eff0ad",
+      "statement": "Memgraph's read transaction is the primary write guard because Memgraph Community has no read-only roles: it blocks CREATE/SET/DELETE/REMOVE/MERGE, but DUMP DATABASE and read-only CALL procedures still run in a read transaction, which is why the clause allowlist (DENIED set) covers them; integration tests verify writes fail even with the in-service guard bypassed.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0009-nl-to-cypher.md#L10-L10",
+          "version": "repo-lines-v1:sha256:c04211adef9aa180d1822448b6f12705f7fd6079a79518260bf7fa443b4b5d75:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzA0MjExYWRlZjlhYTE4MGQxODIyNDQ4YjZmMTI3MDVmN2ZkNjA3OWE3OTUxODI2MGJmN2ZhNDQzYjRiNWQ3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzA0MjExYWRlZjlhYTE4MGQxODIyNDQ4YjZmMTI3MDVmN2ZkNjA3OWE3OTUxODI2MGJmN2ZhNDQzYjRiNWQ3NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGIyZTQxNWU3Yjg0ZjMwOGFlMTBlYTZhNmI3MGI1MDU4ODQ4NmEyMjM2MGQyYWQ0NWEwMjllOTdhMjU0MDM3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmEzNmFmODY0NTI4NjkwZDdhMTFjZmQ1ZTc1ZTRjYzE0OTRkZDQxMDE1OGE3OWYxNDBjM2Q0ZDAzODUzY2U4MSJ9"
+        },
+        {
+          "resource": "repo://docs/notes/cypher-guard.md#L42-L47",
+          "version": "repo-lines-v1:sha256:8186eb3df41f494524f81c93035d492a72afd6c2fa6265cb023a12f15f390e0d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWZhNjQ2MzJjM2FkOTNhNTc2N2EyYjIxNWM2ZWVmMDMxZWYwNDU1ZDQwNmVjOGRiZjQ4ZTE5MjI1YTUxZGVjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTdhM2M3NDcyMTM1MmQyNmY4ZTQ4YjlkNWUzYmE0MzBhZGFmYWZiNzk3MzdjNzI5Y2NmZDU5MzQ4NjMwMTFhMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ4MThlMTE1NzZhNjRiNmJkOWNmZTE3OTgyNzJmMDgwMWE0MjI5Zjc2OTdlNDBhNWQzMzVhNTQ0OTZlODIwOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTI3MzZhOTI2YjgxNjRkZjE2Y2FjZjk0YjY1ZDhlMmMwNmJlNGY0NTJiOWQxMzcxZjNiYWMzZmRmYzMyODM5MyJ9"
+        },
+        {
+          "resource": "repo://services/query-service/tests/test_memgraph.py#L190-L208",
+          "version": "repo-lines-v1:sha256:486530747ea8ee6f7a0015ff49721207c84efd503b8a9fe5a516bf0370e241ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjZTBjMTJlYzNiNTUzMDY3OTBiOWY4MTJiM2ZiMWVjY2QxZWZlMTQ3ZTI2OGRkYWQwYjhjODU0OGIyNDZmYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZTg4NTcyMDU3NzhhYzFmYmY5NDdmNzRkMWNmMjU0YzBkYmMwN2M2NjkxZTA1M2EzMDMwZjgyNGQyODgzZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1MWUzOTY5ZWRhMGExNjEwMDUzOTJmMzkxMmEwNmEyZjI4NTU4MjFkOGQ5OTNkOGU0ZmQzNjlhZTgzYWRjMTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhYzQzYTY2OTAxOTU2N2I4YzY0ZGFmZjI2MzE5ODc5MDRkNGQyOTY5YzQ5NjlkY2FjMDRhZWE2YThkNjFjMDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4e328fb8f688417489583eeae5fa102b",
+      "statement": "The NL stub (M0, no LLM) uses regex intents from config/query/intents.yaml: patterns must fullmatch the whole normalized question case-insensitively (trailing ?!. and whitespace stripped), named groups become Cypher parameters, every template must pass the guard at Intents load time (startup fails otherwise), and unmatched questions get HTTP 422 listing supported intents. It is the stand-in for the planned LLM single-shot generation with validation and repair (ADR-0009 option B).",
+      "evidence": [
+        {
+          "resource": "repo://adr/0009-nl-to-cypher.md#L26-L30",
+          "version": "repo-lines-v1:sha256:ca473638beefe17295ce53860e8cdc39d7ff2791776dcc8cd5144cc1ba01dda0:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRiOGEwODkzMjkzN2Y0YmQ1NGMyMmU0OTdkMTFjMDZjMDVjMjQ2NmIwMmE5MGFiYzc0N2RlODdmMWViZjc5OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTY0OThhOWVmOGRjZWFiYjc5NWUxOWIzNTZlYWE0NzNmNmIzODQwN2NhNTU3MDI2YTk3MjVjN2YyYzUzN2RiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2Y5MDBhMjhmNzIxNWQ5ODRjM2M0ZjQxZjZhMTA4YzI5ODQwMWQ4MGRjNTdjMzAwOGY2Y2Y5MTA4OTAzMjI1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA3YmFmODVhMDBlZjg3NzRlNDc0NzkxMDA4OWRiZDIxZTI5YjQ4MmQyNGQ5ZTA4YmM3OWRiNjY1MmMwYWY2YiJ9"
+        },
+        {
+          "resource": "repo://config/query/intents.yaml#L1-L46",
+          "version": "repo-lines-v1:sha256:d42448a18ecd4e72bc7854c0f6c3fcdc56b257f58921de3cfb932f6b07a12838:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMTFlODZhYjliYmZlYWJiMDk3YWJkYTc1MDYzMTViZjkwN2JhYTkzMWNhMzEyNTUwNTNiMmQ2MWIyMjJlNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4Yjg4ZTZiZTg2NDE2MjI0N2QwYjQxMWZlMDRhNzVhZmIxMmQ2YWUwYjZjMzlmMGUzYzBiZGVhOWRlNTk0YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L72-L90",
+          "version": "repo-lines-v1:sha256:6bd1aae339ccd2c518a7ed6a8ba2939bdbfac8fb402475a6caa93691d4070531:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZjk1ZGJlNTZkY2NjOWQzZWVkY2Y1ZWM1NDQ5YTFhZGQyYjQ1ZDNmYmNkOTVlMTNhZmVjNjBmMTFjMDk1MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNzhmYzIxYmMxZjBlY2E0MzhjZWVkYWE2MTFmMTY2OGVkYmEwNjA4NzYyMzcwYjA2NTZiOTM5ODQzMjVlZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3NTZkNDE1MzdlNTRkYjBkZDQ1MjhkNjI5NmQxOWYyZGE4MzZhZTdlYzZmYzQwNGJlZjcyZmYxMzdiOTI2OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1cb6c579044147489e6e97ab3126c324",
+      "statement": "The NL endpoint supports answer mode (executes the mapped Cypher through the same Runner.run pipeline) and cypher-only / execute=false modes that return the generated cypher, params, attempts and warnings without touching the database, mirroring the planned LLM response shape.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L144-L158",
+          "version": "repo-lines-v1:sha256:f2abd43040d542d63b441648d4d6b83459a84ea8e45f89f934f497fdcc419497:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0NTY0ZGRkMzAzOWQ5OWE3ZDU3YzRhYTNhOGIzZDkzYWMyMGJkYTY0N2E3YjFlZmRhMGRjMWFkZWVhMjY0YjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmMGFjZGY5YzU3YzhlNzgyYWIyZmUxNzI5MDZmMzQwNmNkMTkwNDQ0OTA5MTQyY2Y5MDhmNDQ2MzA4MTk4ZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlMDEzYzY0NDBlNDhmMWM1NGQ3MmU5ZDhiMjlhODY4ZTc1MzUyYTcxOTlmYWRhY2VhNTM4Yzk3ZTE0YmMwNzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2OGM2NWIxNThiMTVhMDc3MDdmOGExYzIwZTNmMTVjYjRiNzlmYWEwNWI2MjRjZmUzNmI0NDYyNGMyMGMzYWEifQ"
+        },
+        {
+          "resource": "repo://services/query-service/tests/test_query.py#L138-L160",
+          "version": "repo-lines-v1:sha256:94bf52929cb27736c393f01d2f85ccf242626e16aaab9498abf91b0425738a76:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMjhjZjg0ZTJiMzRmMTdkYTA3ZWZhMDQ0MzRkZDY4YzU2OWJhMGYyMGJjOGRkYjQ3YmNhM2M3ZDE3OTYzNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5Mzc2NTA1MWNlNDQ0ZTRiYTQwZjMwYzIzMTdjMDk3ZjNjNDhkZTlmZmIyOTYyZjdhYmJmNWNjZjBlZmMxYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0NDM3NjM1MjhhNGE4ZGQ1YTIzOGYzODgwZTUwOTVmNDQzYWFhY2JjMmY5MzU3ZTcyZGVmMWNlYTkxNGM3MmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4ODU5NTQ2OGNmYWI4ZDk0M2I2NGYzOGVmZjc4NTQ0ZjFmNDc1N2IxZmU0ZTk4YjVlMDU2YWM4ODU4NTMzNWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3b3365ad82224e5395e1b66ffb0cd897",
+      "statement": "Runner.run result/error mapping: MemoryLimitError and TimeoutError (or Neo4jError messages containing 'timeout'/'aborted') → 422, other ClientError → 422 'query rejected by the database', other Neo4jError → 503 'knowledge graph unavailable'; guard rejections are HTTP 422 problem+json; rows are truncated to limit with a truncated flag when limit+1 rows came back.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L110-L142",
+          "version": "repo-lines-v1:sha256:2454c87e9fe340600ad2459537babca78657b1d5c33f34d6eebc4d5ace302dd9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNGEzZTczZjkzMDc1M2VjODUyZWI0ZDU2YmZjYzFlODJiMWVlNTk2NDg2MGRiNDFjY2M5N2Y4M2JlMjI0MzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmODM2YjIzYjgwODhhN2EwZDIyZTg3M2U1NWZjYjVmMzRmYzg5NzFkNDBhM2E3NjFkY2RmNDM0YTYxZjI4NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkZGFiMDZhMWUyMWM1Zjc0MWVjODllNzk4MzVkOTY5ZDRkMDJmY2ZjMDVmYWIxOWFkM2U0ZWZlOTU3NTYxZmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5cd629aee7bc4c758b853cef6b071623",
+      "statement": "Unscoped queries (no projectId) are allowed only for unrestricted global admins and skip only the anchoring rule, while the clause allowlist still applies; when a project is named, even a global admin query is anchored. The endpoints /v1/query/cypher and /v1/query/nl gate via queryCypher/queryNl min-roles and plugin grants.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/app.py#L360-L372",
+          "version": "repo-lines-v1:sha256:63178c0c68945348f03cda08b11f1506b9ebf3cf21583293eb276c6a22e45789:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxZDI4MzFkZjM2ZTg1YWNiZmY5ZmMxMGJjYWVlYzMxNDA2ZDNiOGJkMDJkYzYwMmRiZjU3MzA0NTcxOWJhYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4NzA3YzY1N2Q0NWZiNDcwNDU3ZWFjYWI3NTkzNjE1OWUyYmQwNmQxODc4MjkzZjk4OTI1MmFhYjliZTUzNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmZDNhMGRhNzJlMWQwNTA5ZmQ4YzkxNjZiNDQzZWQxNGRlZWJhNWE3NzIzZWRmYzBiY2M3OTVkNDEwZWY0YWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0YzRiNjEzNDNjZWU1OGFhZmI5MWI2NjkzZGUxMDdlNjA0MTczODMxYWJjNmQ2MTBlMDk4MGQ0MjM1ZjZiYTgifQ"
+        },
+        {
+          "resource": "repo://services/query-service/tests/test_query.py#L77-L98",
+          "version": "repo-lines-v1:sha256:449d902aaabf0f98709331b4ec526011742db96d58a5fffafc4c045a390c3216:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkODBkYjNjYTFiMjNlYmRmZDZlZjVjY2E4YTNjZDg1MmNmMzA4YTZlZjZhYjU5ZDMzMTdmOTQzMDg3MTNjMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyYmY1M2MwNTM0MTA5YjliYzJjZWRiOWRmYWE4Y2JmMjI3MTdhY2UxZWFkMzJlZTlmMjdmNGExNWRkZGYxYmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiYjJhMDIwY2JhY2I4MDE1MmMzZDkxNzY0ZTY4YWVmYjE4ZjU0MDc2ZWQ4ZTc4ZTNlZGVlOGRlN2E0ODU3NjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmMzAzYzg5MTAyODAwZDBkZmViMzBlOGNhYTI0NzM0OWViODM3MTdiOGEwZTM2YWI5ZjQ5ZWM5N2FlOGFjN2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_921ff61b8469462bbdafab7b2f9e9c5e",
+      "statement": "The check_scope post-check walks returned rows recursively and requires every dict carrying a projectId key to match the requested project at any nesting depth, raising ScopeViolation (HTTP 422 'result contains data of another project') and logging a scope_violation event; jsonable converts graph values to property maps with _labels/_type and no internal ids before the check, so it sees exactly the JSON the caller receives. Anchoring relies on the writer invariant that no relationship connects nodes of different projects.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/reader.py#L21-L52",
+          "version": "repo-lines-v1:sha256:3de32689d052eb7c5cdc7691231f53b9e3e73a8103011f65b377674b4d2cfc62:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3NmQ1NDJiM2Y0NjkwMmZiYzY4NDRkNjZjNzJjM2I1MDljMTZhMmNjZjNmNTg5MWRkNDAzNjBkYjYyMTJlNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZDEwNjQ5MDRhZTRiNGY3MTdlOGQzNjdiYWVjMmUzZmZjZjZmZmM3NGRkMzE2YTc1ODFkNDM0NmU1OWRjNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2YTBhMjNjMzIwYzEwYjEzYWU5ZWFmZmY0NmExODIzMTYyNGMxNmMxOWNiZmZkOWMyYmE5ZTMzMWU1NTg1NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxOTIzZTE4YzY0YjNmZTE0MDViMmI1MzZmYmQ5YmM1ODdkNTFiNTJlYzFhYWMwYmY4Y2UxYTUyZGE4OWMwZGUifQ"
+        },
+        {
+          "resource": "repo://services/query-service/tests/test_memgraph.py#L159-L170",
+          "version": "repo-lines-v1:sha256:1b5451ff830f32457a8fa613e93c2d9df53a959a2dcb7ce3704dfe10bbe6fb50:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjOTFlNzZhYzJjMDQzY2E1NTNjNjQ3ZGU0MTg4NzAxNTI2MDNiMTk1NWJmMWYwNmQzYjk3YTIwNTYyYTIwMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2NzY0MTUyNGRjNGUwOGE3YzcxMDRiNTZhYjkzMTg0YjUzYTNjMjE2MWE2NGVhMDkxYzM1N2U3YTk0NGE3OTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjN2QxZTVjM2Q5NDlkOTVlYzA5OTJlYjVlZTVmNjQ4ZDM2OTNmNjEzZTQzYjNjNjVjNWQ2OGQ4YTgzOTdjZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljODY1NWRkNzdjMTgyMTc1MzExMzc3ODMyMmFjZmI2N2RkNzE0ODZhYWIzMDUwZWNiOTViYjIzZGM5ODgzMGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9f572d09a134e1a8b9af32a582c5ffd",
+      "statement": "The current M0 implementation has no EXPLAIN validation step despite ADR-0009 describing it for the planned LLM pipeline; the guard instead rejects EXPLAIN/PROFILE as denied keywords, and defense rests on the parse guard plus the read transaction.",
+      "evidence": [
+        {
+          "resource": "repo://services/query-service/src/sandman_query/guard.py#L20-L20",
+          "version": "repo-lines-v1:sha256:666df6352d8a23662f1223c810772d78d23be6a9faeef72b5007dc305cb13997:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjY2ZGY2MzUyZDhhMjM2NjJmMTIyM2M4MTA3NzJkNzhkMjNiZTZhOWZhZWVmNzJiNTAwN2RjMzA1Y2IxMzk5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjY2ZGY2MzUyZDhhMjM2NjJmMTIyM2M4MTA3NzJkNzhkMjNiZTZhOWZhZWVmNzJiNTAwN2RjMzA1Y2IxMzk5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzE3MDA4OTA3M2NjYjU5MzE2Nzc4N2RjODU3YTJhZmNlMzBlYWRhNjQ0NWUwYzYzMmNlMzIxNWUzM2NhNmJjNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWI4ZWIxZmNhMTU2MzBhZWI0ZmQ2NTNjMjc5NjdhZmI1Mjc2ODY5YzJkODdhZDNkNTUwMDc2YjlhNDJiNWFhZCJ9"
+        },
+        {
+          "resource": "repo://services/query-service/src/sandman_query/query.py#L98-L133",
+          "version": "repo-lines-v1:sha256:91ce2da4f6fdb73bb8de53300ffa64c7480e684d80c903eb1fe6b9e2b77f319c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YmE4OWNjZGE4Yzg4MWFhZDgyNzMyZWFhZWY1MmYzMWI2Nzk4NjRlODFiMDQwZjc2OWUyZjVkNzZiZjczZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YmNjZDAyMmQ1NmNhOGFmZjExMzRjMDkyODFiZDdhNjEzMWFmNzhlMDIxNTBjZWJjYzZkM2I4NDJiYjMyNDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiYTNmZDIwMDRiYWExMGI5NjJmOTEwYjBlYWVhYzk2MGMwYmZmMDg4MTQxOWI2YTI2ODdlNGU2MjYzZGFiYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmNTViZTdmZGZmMjgwMmI5YWUyZTU3OTM5ZWFjNTBmZjA2NjU4MmUyMmMxOTgzMDRlOTdiZDhhOTlkZTY1ODQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

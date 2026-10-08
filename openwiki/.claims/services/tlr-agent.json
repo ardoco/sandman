@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2e849c3329a66ce6f884b31e2219d7a37cf4a38b2d2e0696fff3fb862960d1a4",
+  "claims": [
+    {
+      "id": "claim_60395344dfba4499afd112c46eb2d398",
+      "statement": "In-process trace-link approaches implement the TraceLinkApproach SPI (id, version, supported KindPairs, recover(TlrInput, TlrContext), optional usesLlm) and are discovered via java.util.ServiceLoader; approaches are pure computations that receive the loaded elements plus a context (effective params, cancellation flag, logger, optional LlmAccess/ArtifactStore) and return CandidateLinks — the agent, not the approach, assigns link ids, writes the KG and records provenance.",
+      "evidence": [
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/TlrContext.java",
+          "version": "repo-file-v1:sha256:ae50c8ccd65a8738eca4292b698b4a75016fffaf00973f37408f89e8568a016d"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/TraceLinkApproach.java",
+          "version": "repo-file-v1:sha256:335100c0eb87279098ed3b8510fc2ec9a45cee38cffe717f15fc01698db64e67"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/resources/META-INF/services/edu.kit.kastel.mcse.ardoco.sandman.tlr.TraceLinkApproach",
+          "version": "repo-file-v1:sha256:8a081e75476c66590dd06eeec59c1b324b001b42a35dfecffdc3a68c036eb7eb"
+        }
+      ]
+    },
+    {
+      "id": "claim_ecfb365054d340de8e0e52edcfa54fc1",
+      "statement": "The Approaches registry intersects ServiceLoader-discovered implementations with config/tlr/approaches.yaml: an approach is enabled only when its entry says enabled: true (its params become configured defaults, shallow-merged with per-request overrides), disabledIds() collects exactly the enabled: false entries, and approaches absent from the file are untouched; the file is resolved from the sandman.tlr.approaches-file property, else <configDir>/tlr/approaches.yaml, else the config sibling of the contracts directory.",
+      "evidence": [
+        {
+          "resource": "repo://config/tlr/approaches.yaml",
+          "version": "repo-file-v1:sha256:05a745b7331f1a09f917ad4ab96320da6369414133bf389f606d1586fc5212ef"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Approaches.java",
+          "version": "repo-file-v1:sha256:189313468229bc7569fba10286534fb6c91683c1ca3a8ff85ca95e3ccd029baa"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Beans.java#L49-L57",
+          "version": "repo-lines-v1:sha256:7fb4e96ebf8630ea009d09d9118051c1c5c86425382f183a6761ba498751eafc:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVhYmMxZGUxYmViZWQxMjc2OGFiYzRmMDczOGE4YmUwZDllMmE4ZGM2OWQwYzIwODAxYzc0Mjg0YTY1MDQ0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjE3NDYxZWQ1MjlmOWUxMDI5NmI2NzFkNjFlYzQzZTU4NjEwYzFkYjliMjQ0ZTA3MzVkYzE4YTJiZDk3MDdhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmQ2Y2VlZWE1Yjg2MmQyZDVlZThiNjMxYjBlNjM2MjEyYzFiZjZlNTdmMzY4MTQ0MGVlZmVkY2NiZWUwMjk1YSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5e03e2bcb9484298819d4dc71700a4af",
+      "statement": "The tlr-agent is the KG contract's single writer of TraceLink nodes (the extraction-agent co-owns only explicit-reference links); every link it writes carries projectId and runId, SOURCE/TARGET edges to Element nodes and a PRODUCED edge from its Run.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L96-L112",
+          "version": "repo-lines-v1:sha256:15c6a64b29e16402124fc7d1c0ec863d79735368e34e3e084af7b4b25a7f0d37:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMWJlN2QxMzc2NDY4M2I4ZTI0NzE2NmMzN2E5MDQzMTBmNzg0MWQ3YTU2ZTlkMDM4YzViMmQ1MzcyN2FhYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNjU3OTE2MjRmMTA1Yjc2NzlhMDk1MmI0YWI4ZmNjMDZjZjRlNzU2MzI5MWZkZDgwMjE1MGNmMTYzODk3NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYmFlMTZkZjIzZDBlNjViMWMxYjIxODQyMzIzN2M0Mjk4YjQwOWQyODk4NzUxNzM2MjE4NDhmNjIwYThkYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMWU2ODA0MTkwY2Y0NWQ3Zjg5N2QwZTJjMDkyZmQyNGNmNmU5MTAxYjc2MTc2ZjU4OTNjZDc1Mzk1MWMyN2EifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/LinkStore.java#L69-L79",
+          "version": "repo-lines-v1:sha256:b924752fa72add5f6797d7b5df0e4565d62f4132cc262d2ac4574d653d0d941d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0M2ViNDY1Zjg2YmEyNDk0MzFiODE4ZGQ4YmNmOTllMDYzMTRkNTdiOGEyMDM2NmUwNjEzNDUzYzU2MDhjMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzBlYTEzNWJhNThlNTgyMWFkNmI2ZDY2YTVlODE2ZThiZTNhYThhNWIyY2VlMDliYzY1MjlmYWQ4ZjQ5N2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyZmFiNDA1MTkzZWU1YjRhYzNiMzUzYWE2OGE1ZDViZWI0YTkyNmFjODg0NWNkZWI1YTIwYmIyZDMyZjAyZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_665e80433be541ea8d895fba29beacc8",
+      "statement": "The recover-trace-links skill takes projectId plus source and target version id lists (optional approaches list and per-approach params overrides); every version id must resolve to an artifact kind within the project or the task fails with non-retryable INVALID_INPUT before any write or event; with no explicit approaches list, every enabled approach whose supported kind pairs intersect the versions' source×target kind pairs is selected, and an explicit list must name enabled approaches only.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/skills.schema.json#L107-L145",
+          "version": "repo-lines-v1:sha256:f7aba23ddb6de8538b1fcd1c5f1ce1428ae21e6cae6b3f3b092467b63fee36dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0ZGQwZTYwNmMxZGMzODU0OTEzMmVmOGVmMmIzYWVkOWExNzEwYmZlMWNkNGU3MTEzNTcyZjBlMjNkZTFkZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3N2RkODNmMmRiYjZjZmE1YzZiZjg3MTdkNTA4YjIzYWRlZWI1MTBjZWZiMWMzMWIxMzExNWUwODc1ZWU1ODMifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L160-L189",
+          "version": "repo-lines-v1:sha256:f14f5624b6beac4ad246cb0bdbfe4e0aba62e350f41c5a612d6ad113d694e604:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZTNkMzJmMjk4Y2RjMmJkZjAxYjg1MjZmZmMyNjg5ODNlYzQ1Yzg3YWIyNzdjMTE3NTk0Mjg2NmE1MjZmN2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmYmRiYjAyMzQ1YjZlMmY2MjY5NmFhYzMyYjIxNGRiODdiMWZmMmYyMDMyNzZkYzA5MWE2ZWU5OGMyOWU2ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNTI0Zjg2NWNlYzJhMTRhNGM2NzZmNTAzMWY0MGM5M2EwNDVlMjE0YmFmYmIwY2ExYWVhYjdlY2M4MTVjYWUifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L54-L75",
+          "version": "repo-lines-v1:sha256:151111c20223d64d76ea67f859add6f7855233f87aeba96aeb4ed7e032688dc8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxNjE1MGVlMmZkYzk4YzRhY2YzZGNiYmJiNTM4ZGVhZjViMjkyYjUzNzEyM2Q4MGZmMWE0NWRjYjgxZWExYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2OTQ2ZTEwMWU1ZTc4ZDkwYTUxMGM2OWYyNjZlZjc2NTQwZDMwOWIxYjgyMjY5NWI1MzE3MmVkMmNhYTAyNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyMmY3ZDBhNDkzYzlhYmQ5Yjc5ZTk5Mjk0OGFiZGVhNmEyMjVkN2U3MzYxYTk0NTI2NDVkMzdlOGYxMDE2ZTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_341bf23666904a768cb3a7e56283b269",
+      "statement": "Each selected approach runs with one Run node recording skill recover-trace-links, tool/toolVersion from the approach, the effective params JSON, configHash (sha256 of the RFC 8785 JCS of the effective params), inputKey (sha256 of the JCS of input plus tool plus configHash), the used version ids, workflowId, a2aTaskId, triggeredBy and replayMode live.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/RunRecorder.java#L56-L82",
+          "version": "repo-lines-v1:sha256:e56488e82d979dab4673a1a7185b942113e92e017171da4c54ef129d4d620473:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNGM2MmE3MDc1ZGM5ZTFjMTY1ZTk3ZDZjYTgxNjFkMjRjYjI0NzhhNDQwNmMxYjEzZDU5NjY5YjM1MjdiMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5YzZjMmUyYTczZTU3YTk2ZThjZGMzNTgyODY3YjE0NzRiMzVmYWFhYTAyYTljZjAxOWFiZmM2ZTY0ODkyMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiNDI3OGY5MjgyNGFkMWEzMjBjYTI3Mzg0OTk1Y2QwZWNhMTVlNGUyY2MzOGE1OTZhZjkxMTM1Yzk1NTlmYTEifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L88-L126",
+          "version": "repo-lines-v1:sha256:a42a864276207f6b33e9251ab0ca8fa3cf77776c626a1822a973ea8048c42384:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiOGJkZmQ2ZWQwMjg3ZWM2YTdmYTUzMDEwMmI1MzhhOGI4ZWE5MTMxYTRjZTBiNDVkMzdjOTYzOGZiNTlhZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4NzhhMDdmNWU3MGFhMjU1NTZlYTAwYWVkZmVhNGRmOWVmOTllZTg2ZDI3NDI3NWUwM2I3ZTk3YjRmY2FkNDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxOTYwMWRkYzZiZjlmMDY2YWM2ZDhiNmFhMDk4ZjJkMTEzYTM4MGM3MWU5MWRjNjkwMjkxMDhhOWY5ZGM1NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjN2E4NmExMmI0NWNmM2U3Yjc2MTQyYTY5ZTViMmZmN2NmYTYyNzY3M2M5YWI0NDhiNDU0YzdkMTFjNDMyYTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c7becc27805451bb31a0ebcab711543",
+      "statement": "Links are written in batches of 5000 with active = false and status = candidate (MERGE on the deterministic id, properties only ON CREATE so existing links stay as they are), then activated in the run's single final transaction, which first deactivates earlier active links of the same approach between the run's source and target versions that this run did not produce, then activates every link the run produced, then completes the Run — so readers only ever see active links and never a half-applied run.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L10-L10",
+          "version": "repo-lines-v1:sha256:79acea318e766e22c9aeb8e6755375fdd52ac4e56548f23e3e9f0158d59f1f7b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzlhY2VhMzE4ZTc2NmUyMmM5YWViOGU2NzU1Mzc1ZmRkNTJhYzRlNTY1NDhmMjNlM2U5ZjAxNThkNTlmMWY3YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzlhY2VhMzE4ZTc2NmUyMmM5YWViOGU2NzU1Mzc1ZmRkNTJhYzRlNTY1NDhmMjNlM2U5ZjAxNThkNTlmMWY3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmUxOGQ5NjU5NDczZTY1NmQxYzE4ZjgyMzdiZjg5NjYyMjliNTk0MjViYTJhYTM2MGI1ZmRmZjIzMjU2OTU5MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWE1ODJkNTRmMTg3MTFmYzhjZjEwM2U4YzEwZTNmNTMxYWM3ZWY4ZjZlODg5NmJlODY1OTFmYjQxZDE0MTM5NiJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/LinkStore.java#L52-L110",
+          "version": "repo-lines-v1:sha256:382a23a00532ce2a21d383fc5aaec3c9612891a945785fcada9d0255744f0e43:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4MmQ0OGUyOTNkYTAyMGZlOTJmYWI2Mzg5YWRhNGYwNzQ3NTI3ZDM1NTM2MjJlZDEzNTE3OTdlZGUwNTRhMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiZWUzYjViMjQ2MWZmYjBkYzRmNzZkYjAxYWM4OTg3NjdlZGRlMjZhOGYwZWI1MGY5ODY0N2RiZWEzYWQyODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxNTVjMDM3YTM3NGU3NmUyYTM3YTQ4Zjc3NmYwNDM1MWJjY2VhNzJiZWViY2M0ZWJhNWNmYWNlZWRiOGQxYWMifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinksTest.java#L248-L287",
+          "version": "repo-lines-v1:sha256:ca618155ac7d5606e5ed6b5a03b2352772ec472d3ee347b55825e4a5472450b6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZmFiMDhmYjEzNzdiY2U3MjM5NzVjZjA5YzcwN2E1NzA5MTMyZThkNjQyOTU0MTFmMDM1Y2UyMDY1N2ZiNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4ZWFmM2UxZGIyODRmNmE2ZmQ0ZTA2NmFlMmZiNjU0YWU2OGZkZmNmM2U3ZTRkY2E0YzJkZDIxNGE0OWI5ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NGNhYTQ2YWRiZjkyNzE2ZWE5NTliY2I2N2U5ZmQ0NDcwZjU0NGMwN2U3OWQ2ZDVjYjI4NzQzMTQ2NDE0ZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b042924465d422a99cf2249b486ecc4",
+      "statement": "TraceLink ids are deterministic — tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId) — so re-running the same approach/version/config on the same element pair reuses and keeps active the same link node, while changed parameters change the configHash and therefore the ids, and the final transaction supersedes the old-config links between those versions.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/kg/schema.yaml#L101-L101",
+          "version": "repo-lines-v1:sha256:c79036bd7c29960ec6b7ef46891bbe91513f493b87e62ff51930e595b7dbff27:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzc5MDM2YmQ3YzI5OTYwZWM2YjdlZjQ2ODkxYmJlOTE1MTNmNDkzYjg3ZTYyZmY1MTkzMGU1OTViN2RiZmYyNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzc5MDM2YmQ3YzI5OTYwZWM2YjdlZjQ2ODkxYmJlOTE1MTNmNDkzYjg3ZTYyZmY1MTkzMGU1OTViN2RiZmYyNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTE1NDYyMjNkZDlkMjgzOTRjYjVjODgzMDRlNjM5YTdhN2ZlYjNkZDVkNGU4Y2UyM2I4Mjg4MTI2ZTFhNzcxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmVhYzY5Mzg1ZTM2YWEzZjY4MmQ3MWMzYWI2YjVkMzRiNjRiYmYzMjIzMjdhNzk5NjYzNTRlYmRkNWVmZDc5YSJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L133-L146",
+          "version": "repo-lines-v1:sha256:09b7731b1b34713fa011ae91fddcb5035c663730118fc438d8733840421fa43a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YTM1N2JmZmE5NGZhMWVkNjFlZTNlNTNjMTBlZjRhYzQ0ZjE3N2Y0N2IzZDg5NWFkOGRlNzYxM2YxMzRhZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZTE5ZmU1ZTUyYWNlYzMyOGYyNzRkZWJhMzZhNjQyZDJmZWQ3ZTUxZGUzM2Q4OWUxMjI0MmNlYTRjNTZjZmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4MmQ5M2FiNDZhY2RkM2UzYTg0OTMzZmEyMTM0MzdlMjljNDlkZjMxZTE2OWI3NDMyYjkzOWJiNTNjZjY4ODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MTI1MGY5NGZkZGJlZjg2NmVlNTk0OTE5NjIxMmM4MmZhNDBmNGRmMGQxMzM1MTc2ODU1ODVhNjI1NjBmMGEifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinksTest.java#L213-L245",
+          "version": "repo-lines-v1:sha256:3aad3f56fd33e1b0cd0db1d48e258083497af47232078a52f997572d5aa7da44:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyNjA4NjU5N2YwYmU0NDEyMTY5Y2YwNzk2MWM4Y2YwZGVlMTQ5MjUzMjg0Y2JkOWZmZGVjYzFiMjhmYzBiOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2MmNjMDU1Y2QyYzc1Y2FjNWNkZmU0NzE5N2E3ZGMwZmQyMzU5MThlYzgzZDFkNzVkY2U3MzY2ZjJkZTJmYTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d763121bba3d46139c2183de58711323",
+      "statement": "A RuntimeException from one approach fails only that approach: its Run is marked failed with the error, its run entry reports status failed with linkCount 0 and the error, its links stay inactive, and the remaining approaches run normally; before each approach RunRecorder.cleanupStale(inputKey) deletes facts of earlier running/failed runs with the same input key and marks those runs failed, so aborted attempts leave no visible garbage.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/RunRecorder.java#L108-L118",
+          "version": "repo-lines-v1:sha256:d32c438f96cd9d98f0717dd9944ca37c6adb302075dad7e6b95470dcdcdf1d08:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4YTgxOWIxMWMxZjY5ZmQyMjEyMjFkM2Q5ODAzYTVjNDQ1Zjg5ZDkxNTE2ZmEzNjZmZDI4MmU2OWExMDg5ZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMTYzZTZkOTc2Y2IyNzA2ZjkyZmY2MjAxMGZjNDY3NjY4ZTU1NjA5YTlkN2ZjYjIwMzg5NmZjOTVlNmY0ZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L149-L156",
+          "version": "repo-lines-v1:sha256:6767646f68b97d9edad626bea227ee62988fb01e1bfede59a5dd288cededae17:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM4MTBiNDM0MTkwZTZlMjA5MDI4MTE2NTQ4NjgxNTllYzNiMzFmZWNmYmI0YjgxNjk5MjNjZGJmYTI0NmU2NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmE0MWI0OTg4MWUyZGVhNDY4MmQ1MjdiZTFiNTY1NjdlM2ZhODczMjAwMjAzNTgzYzliNmMxYTM0NWVkZmY5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWZiZGJiMDIzNDViNmUyZjYyNjk2YWFjMzJiMjE0ZGI4N2IxZmYyZjIwMzI3NmRjMDkxYTZlZTk4YzI5ZTY4NyJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinksTest.java#L191-L211",
+          "version": "repo-lines-v1:sha256:436fe36e73f24e896a2813977c38b61c9d89a76bb991887cb4bda5c43cfc6be1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5OTdlZmQ5MmY2NWRiOTZkZGI0NWEzNmU5NTUwMGE3YWI2YTQ3YmE5MjIwYzg3MzY0NDE3NzE5NjEyM2U4ZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkZjU2YzE3NDk5MzU2ZDk0YWMxNjYxNjlmMzA3M2RkOTJjN2IxYjM5ZDIyM2NlYjE3MGIzOWVlNjM1NThiNjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b3d0cd2a8c5489e95ecd2f31fd580ec",
+      "statement": "The task publishes exactly one sandman.tracelinks.updated completion event for all approach runs (failed ones included) carrying projectId, the echoed source/target version ids and the same runs array; the shared SkillExecutor publishes it after output-schema validation with causationid equal to the request's messageId, and a publish failure fails the task as retryable DEPENDENCY_UNAVAILABLE because the KG is already committed.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/events.schema.json#L78-L89",
+          "version": "repo-lines-v1:sha256:31f09359bd4442eb873d3ed360f4aa86d60b31e44fd3f2eb949b5471154c5d76:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwNGRlZTRhNDVmMWU5YzBjZTE0YjM1MjY4YzcwYTdiYzg0MmI0OTAwMjc1M2RjMjg3MDJkYjE0ZWQ4ZDg2MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhYWZiNjJjMDk0MTBiY2UxNjY2OTdhODliODIzODFjMzRkODQzZmU3NjY1ODk4OTVlNDQ3M2QyYmFiYWZmNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkMTJlYzBjODNkM2NlZmQ1ZDUyNjBhMTllYWQ3ODE1OWZiYjU2NjVkMTA4YjNjZDkyYTE4MDlhYjcyZmE1NjIifQ"
+        },
+        {
+          "resource": "repo://libs/java/agent-lib-a2a/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/a2a/SkillExecutor.java#L141-L169",
+          "version": "repo-lines-v1:sha256:ea31e4a8772ed29746dc9c5244e2d157134a7ebbeea02f15809107c33de4d280:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4NzhhMDdmNWU3MGFhMjU1NTZlYTAwYWVkZmVhNGRmOWVmOTllZTg2ZDI3NDI3NWUwM2I3ZTk3YjRmY2FkNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZDAyOWQxNzU2NWM2ZDM3Mjc1NTlmNmI4NzdmMDMxMWI0ZjM1OWE0MzQyZTgxODNjZWJjNmUyZjQ1MzRlZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiOGRjYjVjMDQxMWIwOTcyMDZlNGM2NzJjMzNkMzI1M2Q1NzI2NDUzODk2NWM1ZTgwYmFkZTE1YTNiNDhmNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmOGU4M2M4MTI1MThhNDYxMDI4NWVjMTc3ODBhNWI1ZjYxNDY2MmRjNjZmNDdkMjFiNmJhMjA1NTBjZTQ3NmEifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L78-L85",
+          "version": "repo-lines-v1:sha256:d0c61bc3db3d4d1cc02a7e0b979ce796bf80fa43c2bf77be07cf86ab1bf7870e:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVlZTlhOWYyMmE3NGNkMmMwOTA5ZGZkOTE2YWJhYjUwNjRkOGQ0ZTM5MWU2MzA1NTA1YjgzMTk4YTBlZGE3NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGViNjNjZThkM2MyMjI0NjZlNzIxODg0ZjUyZjYxNDFhYzVhYTY5OTY4OTE4OGM5YmUxNmUyNjgwNTQ0OWRmMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTk0MjVlZGQxNWMzMGNiODI4OTYyMmQ1MzcxOGVlYjllMTQ2MDlmYzI4MDQxOTk0MjEwZmUxMDAwZmMwYjJmMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODU0MjMwNmI0NzY0MWM2MmJhMDRiZmY2ZmUxNTE0YjI0Njc0YzUwNThiMzBjMzJlOGE2MmQ4YzI1M2ZkZmE1OSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5ccdcdf5571c4a29b365582c8b27b2c9",
+      "statement": "At startup the agent initializes the KG schema from contracts/kg/init.cypher and deactivates every active link whose approach id is among the disabledIds() (the enabled: false entries of approaches.yaml); approaches absent from the file — notably the extraction-agent's explicit-reference — are untouched.",
+      "evidence": [
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/Beans.java#L85-L89",
+          "version": "repo-lines-v1:sha256:90529c9875ea7e0ae731ec0eececd3aa9e79119f81ac77fe3efff727c950fbe1:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI1MmQ2YTUyYmZmYTI2MDE4NDk0Zjc1ZTExMTUwM2Y4NDk2Mjg5NDI5MmVkYTUxMDYyMDdjNzYwYmZmMjk4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDE4OTU0MjEzYTc1YTlkZmVmZDg0ZDU2MDUwM2I5OTI3YjdkZTIzMzUxYjExYjM3MDgwMjc0Y2I2YTE5MWQ1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/LinkStore.java#L112-L117",
+          "version": "repo-lines-v1:sha256:3e1ede8e2a1cda9ef739945aded05ccecbbb47d9d199cf873c3eabd99b6b2a9a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2MyOTk3ZWY2MTNhZDI4MTMyN2I0YmM1MmIzM2YzOWU4ODlkM2ExNmRiNzE5YzNkZDVhNmE4MGY1ZDQ5MTVjMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2E3MGFmNTIzMThiMmIyZDJhOTVlMGI4ZGM1N2ExYjFjZTUwNjRhODg3YzA5NzRjYzk4ZmVhYjQyZjI1YTkwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinksTest.java#L302-L312",
+          "version": "repo-lines-v1:sha256:857b00967338a41df087a9afa4fb911bcc0e1962a08d3879d0f730e33659f025:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZjA5ZWIwYzU3NDRmYjk3MzMxYjk4ZmYzZmJmMDVhNjAyYmEzZjdmNjdlNWRhNWJlOTA5NTAzM2Y2MjU4MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0MzczNWJiNGQwYjhmZjgxZDMxNWYxZjhkMzZmYWM3NDYyOGQ2NjZmMDI5MTU1OWU5NWE1MjNlZTY1NDk1YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlNDhlOGQzMWIzMjY4NjI2MTA0ZGQ3MWY2MGVjNjQ5MWQ4OGFhNzM2NDdhNjE2MmI0OTJhYzg4M2ZhZWY2ZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e7d8330924d4639a73a654e6ccc0b15",
+      "statement": "stub-name-match (version 1) is the only approach registered in production: it links source and target elements whose names share a token — names split on camelCase boundaries and non-alphanumeric runs, lowercased, tokens shorter than minTokenLength (default 4) dropped — with linkType relates, the configured confidence (default 0.5) and a shared-tokens rationale; it supports all 36 artifact kind pairs and uses no LLM.",
+      "evidence": [
+        {
+          "resource": "repo://config/tlr/approaches.yaml",
+          "version": "repo-file-v1:sha256:05a745b7331f1a09f917ad4ab96320da6369414133bf389f606d1586fc5212ef"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/StubNameMatch.java",
+          "version": "repo-file-v1:sha256:cee040c6df6e34ea42acbac86d0ec2f983733a3e05439ecb34b9653a31772d6b"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/resources/META-INF/services/edu.kit.kastel.mcse.ardoco.sandman.tlr.TraceLinkApproach",
+          "version": "repo-file-v1:sha256:8a081e75476c66590dd06eeec59c1b324b001b42a35dfecffdc3a68c036eb7eb"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b418cca4c6d49b490a5b7a295f481bd",
+      "statement": "GET /v1/approaches is a plain REST route (deliberately not an A2A skill) that returns only the enabled approaches as ListApproachesOutput — id, version, kindPairs sorted by source then target, usesLlm — and answers 401 with an error body when the service bearer token is missing or invalid.",
+      "evidence": [
+        {
+          "resource": "repo://contracts/openapi/tlr-agent.yaml",
+          "version": "repo-file-v1:sha256:efa608cf812d15b09fac52ee894971836fbdc4dad10c1d6e658e02b08d9d24c7"
+        },
+        {
+          "resource": "repo://contracts/skills.schema.json#L194-L249",
+          "version": "repo-lines-v1:sha256:42c78fb6140a9c00dc00f3f76456415d226ff85b9308ac402cd1620708d745ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYjQ4OWViMTA5MjI3NDFhNjI0NTBhMjE2MDVlZmY3YzQ5YTBmZjVhNjYyZWRlNWY4MzBhNzViMjQxMzk4NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1ZTFjMmI0MzJiNDY0ZWM2NzhkMTEyZmVjMzI0ZTgwMWMxZTY1MjhiOTJiYmIzMmQ2NjE3MzkxYzU1ZWNmNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjZDgyMWVhYjVlZGEzZGYwNDE3Y2ZhZTQ4NWJhZmViNmE1NmJkNzMxM2E5NzEzYmQ5ZmFiM2FjYWM5NDI4ZTUifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/ApproachesRoute.java",
+          "version": "repo-file-v1:sha256:fe6a3c9b769323ed6cdd6a4eb8f53b63df709bb731d29685ca0570a3589760b0"
+        }
+      ]
+    },
+    {
+      "id": "claim_cdf095c988bb4d948093fc33f823df48",
+      "statement": "The lissa and ardoco entries in config/tlr/approaches.yaml are disabled placeholders: neither approach is implemented in the repository; the ArDoCo/LiSSA in-process integration is planned in ADR-0015 (status proposed) with a pinned-commit build verified in spike T0.12 (ArDoCo commit 0d1f22b from feature/make-inconsistency-great-again, NAER patched to the released 2.1.0) and is not built yet.",
+      "evidence": [
+        {
+          "resource": "repo://adr/0015-ardoco-integration.md",
+          "version": "repo-file-v1:sha256:098267bc90baaf275dc9c334da1940fffade27d483e39e567aafba6ba274c63d"
+        },
+        {
+          "resource": "repo://config/tlr/approaches.yaml",
+          "version": "repo-file-v1:sha256:05a745b7331f1a09f917ad4ab96320da6369414133bf389f606d1586fc5212ef"
+        },
+        {
+          "resource": "repo://spikes/T0.12/bootstrap.sh",
+          "version": "repo-file-v1:sha256:20a2e656591123996fa76dd1744708df91830572256bbe4bf8d940c77fb4b218"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c0f24687470493f9b7788e9d66634b8",
+      "statement": "LlmAccess is resolved from Settings per the project's llmPolicy (read from the KG) only when a selected approach reports usesLlm(); the enabled stub does not, so the agent runs without resolving its mounted LLM keys; an ArtifactStore is handed to approaches only when one is configured, and the cancellation flag is checked before each approach so a cancelled task stops launching further approaches.",
+      "evidence": [
+        {
+          "resource": "repo://libs/java/agent-lib/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/agent/LlmAccess.java#L21-L38",
+          "version": "repo-lines-v1:sha256:56313dd231c97f94d0387a94b62521aaed9318025d8def46da4e91f7fe54bd05:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYjI2ZmI3MmU5OTliZTIyOGVlNTNmN2QyZTUxOTFmNTk2MTI5MTk0ZGEwMDk2M2IxZWJhNTRlYzU1ODZlYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhNGFjNDk4OWQzNWJjMjBhZmI2ZjU5MjhiOGQ2ZWQ0NGE0MzY5NDhiYzM5ODQwNmYyYTM5N2QzMjBhMmEyNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMWY4ZTBkMTQyZWMwYWIxNTBiYjI1NTI3NWIwYjUwYWFlODNkZjAwNTI1ZDYzMjdhNGVlMzMyNzJmZTM3OWMifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L127-L131",
+          "version": "repo-lines-v1:sha256:496435d85916f8d04cbd23835dbe0de4a1ddfa4afd6d54aa5043a4f8625ead8b:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjU2MmZmMWRiNjFkOTZmOTMxYzVkZDViYjlhYjQ3YWQxZjI5NWYxOTQzODEyNmYwMmJhMGJhMmU5YTVlYTg2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDM0Yzg5OTNlNTAwODlkNTI0YmQ0YWMyNmNhMGNmYjk3MTRiMGFjYzc3M2NjNTZhN2IxMTVjMGQ0MTQxZTMyNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGE3MjA5NzZlZTc3ZGFiYWRiZjllMWY5ZDBhYWJiMmI2ZGM4NmYxZWU5NTQ1NjYyMmUzODNkMWQ2ZTEzYTRiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTYzYjk3Yjk3NmM4YTE5MThhYjc1NGQ5ZTRhMGNiZGFkOGNjYWJmYWY3MmQzMmI0ODMzMWY0MzJlOWJmOTAyNyJ9"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L70-L77",
+          "version": "repo-lines-v1:sha256:9f13b1d0f1c43b9b94971b80e9d8a989024603c7af8d5095ba616ba07b00568f:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDQzYmI2MDcyMWQ1NzliNDdkNmU3NDYwNTRkNDBmY2UyNDY4NTc4YjNlNTgwNTc1Mjk0Njc1MGEyNWVmOTllOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzhmZjJiY2ZiMDI5ODRhODRmMzYzNmU5OGMwYTMyZmY1NjM3ODQ5YzI2ODg5MGRmZWExZWRjZjU1Nzk4ZGMzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODkzYzE2Nzk1NWNkMTcxZDdmOGNhMzU4NDZmYzE0YWE1ODcxMDAxNTQzNjgzNzdiY2E4MTdiOWM4OGY5ZDgzNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8db7386f8389470c80b8de9fb03f83d8",
+      "statement": "The module uses ArDoCo's fixed Java coordinates: Maven io.github.ardoco:sandman-tlr-agent under parent io.github.ardoco:sandman-parent, with service code in package edu.kit.kastel.mcse.ardoco.sandman.tlr on the shared libraries in edu.kit.kastel.mcse.ardoco.sandman.agent[.a2a] — chosen so the planned in-process ArDoCo adapters share the namespace.",
+      "evidence": [
+        {
+          "resource": "repo://pom.xml#L7-L17",
+          "version": "repo-lines-v1:sha256:487b03b81399e8f48172af05a0e5bdcc6fe5cb4dd2aaf811037af04cd9455de2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZGZhNDdhNDA4ZmUzYzVkYjk5NjZmZTA0ZTFmZmU1ZjRjN2NkOGQ1MDRjNzVmNjkyM2Q3YTIxMDMxMGQ1YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjVlMTlmOTFlMjY4OTU5ZWEzMWFhYmQ2MWUyZTA5MTJmN2YyODRjNjVlZWRlZWQ0YjgzNDM1ZTRiNTE0N2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMGJkMzZlNTZlMDMwYjJlYzQ2MWFlZDkyM2U3YmYyOWM4NWE3NzNmMjYwNDdjOWQwMjhhNzNkNjNkMzI1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1YTM0MjZhNzk1MjhmZTEwYTYyODMyZDAwNDY0NmYwOTQyOTQyOWExYjk5ZTcwZjYyYWRjZDcxMTEwZWI3OTIifQ"
+        },
+        {
+          "resource": "repo://services/tlr-agent/pom.xml",
+          "version": "repo-file-v1:sha256:bece8ebee29b5fad29e0fd7c0765c7f2dfaf3092908a138f373f9525dc47e718"
+        },
+        {
+          "resource": "repo://services/tlr-agent/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/tlr/RecoverTraceLinks.java#L1-L1",
+          "version": "repo-lines-v1:sha256:b139744da1c66660bc6b18087307537c317ae6f39c10833bb95ef5aa92b6569f:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjEzOTc0NGRhMWM2NjY2MGJjNmIxODA4NzMwNzUzN2MzMTdhZTZmMzljMTA4MzNiYjk1ZWY1YWE5MmI2NTY5ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjEzOTc0NGRhMWM2NjY2MGJjNmIxODA4NzMwNzUzN2MzMTdhZTZmMzljMTA4MzNiYjk1ZWY1YWE5MmI2NTY5ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2EyMzljMjE4MDgxMTEzODAzNjYwYjExMzRjMDZhNmE5ZmJlMTg0YWZiZmNhMGYzNDc3ZTQ4ZTRkMjljNTIxNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4285fcca081f4533be5dcbf547f7ac3b",
+      "statement": "The orchestrator creates recover-trace-links steps per kind pair configured in config/orchestrator/rules.yaml — changed versions of one kind against current versions of the counterpart kind, passing the pair's approaches list — and the resulting sandman.tracelinks.updated event in turn triggers detect-inconsistencies scoped to the artifacts of the source and target versions, whose detectors consume the active links of all approaches.",
+      "evidence": [
+        {
+          "resource": "repo://config/orchestrator/rules.yaml",
+          "version": "repo-file-v1:sha256:5d4201976062ff73b58695dab842859a208ae39b53be166990e80c7770c6d45a"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L117-L132",
+          "version": "repo-lines-v1:sha256:aef084af0528a3dfb0bb5404311329060c94067dabbb94f8abd2b06308e5b067:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmOWQ1N2JjNjU2YjFmODNjMzQyMDE1OWY2MDczMjM3YzZiYTFkMjk0MmZiZTQ2MmJmNjg4MTI5NWZhZWM1OWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMDliMDUwNDNhMzUyYTQ3MjU2Nzg3OTU3NTk1NGMwZTNlZmJkOTg0MzBlODhiYTI0NzJjZjUwZTdiOWQ4MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMmE2OGVmNjk2ZjlmNDgzNWFkNzEwMDkzM2Y1ZDA0Y2MwNjI2YzJhMmYxY2Q0YjVmZTQ4OWMyZmFjODk0MjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyOWMxYThkOWZhM2QxODQ2NjE0ZDk1ZDlmMjY1MWU1MmU5YjEzZGM5OGQyOTE1ZGM4ZjRjYWQwOWY3YThmMzQifQ"
+        },
+        {
+          "resource": "repo://services/orchestrator/src/sandman_orchestrator/rules.py#L152-L155",
+          "version": "repo-lines-v1:sha256:7051555d8cbf381e99494efe7773f958a2ee8081d8937ca21897225ee897e323:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTYyMTBjZDNkZDVkNjNjMWU3MGU4ZmNhYWU3YWIwZDBhNzJlNzJiYTM1YjFkN2M3ZWIxMTI5YWM1YzBlZGIyZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzg3N2ZhNjBmN2YwOTcxOTFhYmE2ZDI1NTFlNjFiMWExMjE0NmUyYjY3ZWI4NTAwOTQwNjc1YjJiNjA5N2ZhMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDJjOWYwODFhMTk0NWYyN2I3YTY4MmIwMTQxZDY1NjQ2OGZkZTk5MmNkMjUyNzM5OTRhZDJlZDg5YzMyMWFlOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWVjNDdmODM0ZmQyY2QyNmJkNWU2ODY1MDkxZTg0YTUzNmYxNjUyMjk5YTY5YWRjNTU1ZDVkODU1ZTllY2UwZCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-10-07T15:57:21.237Z"
+  }
+}

@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(not os.environ.get("SANDMAN_E2E"), reason="set S
 ROOT = Path(__file__).resolve().parents[2]
 URL = os.environ.get("SANDMAN_E2E_DASHBOARD_URL", "http://127.0.0.1:8090")
 CSRF = re.compile(r'name="csrf" value="([^"]+)"')
-TARGETS = {"extraction-agent", "tlr-agent", "inconsistency-agent", "orchestrator", "query-service", "llm-replay"}
+TARGETS = {"extraction-agent", "tlr-agent", "inconsistency-agent", "orchestrator", "query-service", "llm-replay", "document-converter"}
 INFRASTRUCTURE = {"memgraph", "nats", "llm-gateway"}
 COMPOSE = [
     "docker",

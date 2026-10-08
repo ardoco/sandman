@@ -123,6 +123,7 @@ services:
       SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_extraction-agent
       SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_extraction
       SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_extraction_local
+      SANDMAN_CONVERTER_URL: http://document-converter:8000
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
@@ -130,9 +131,23 @@ services:
     secrets: [memgraph_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_plugin-stubs,
               llm_key_extraction, llm_key_extraction_local]
     networks: [internal]
+    mem_limit: 1g
+    depends_on: *depends-core                    # not on the converter: documents fall back to file-level elements
+    healthcheck: *py-health
+    restart: unless-stopped
+
+  document-converter:                          # PDF/DOCX to Markdown (Docling, T1.4); only the extraction-agent may call it
+    build: { context: .., dockerfile: services/document-converter/Dockerfile }
+    environment:
+      SANDMAN_SERVICE_NAME: document-converter
+      SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify
+      SANDMAN_ARTIFACT_STORE: /artifacts
+    volumes:
+      - artifact-store:/artifacts:ro
+    secrets: [svc_tokens_verify]
+    networks: [internal]                         # no egress, no published port
     mem_limit: 3g                                # Docling (M1)
-    pids_limit: 512                              # converter subprocess and its threads
-    depends_on: *depends-core
+    pids_limit: 512                              # worker subprocess and its threads
     healthcheck: *py-health
     restart: unless-stopped
 
@@ -253,7 +268,7 @@ services:
       SANDMAN_GATEWAY_URL: http://llm-gateway:8080
       SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE: /run/secrets/gateway_admin_password
       SANDMAN_CADVISOR_URL: http://cadvisor:8080           # optional (profile resources)
-      SANDMAN_TARGETS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080,orchestrator=http://orchestrator:8000,query-service=http://query-service:8000,llm-replay=http://llm-replay:8000
+      SANDMAN_TARGETS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080,orchestrator=http://orchestrator:8000,query-service=http://query-service:8000,llm-replay=http://llm-replay:8000,document-converter=http://document-converter:8000
       SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
     volumes:
       - dashboard-data:/data

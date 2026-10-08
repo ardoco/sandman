@@ -262,6 +262,8 @@ services:
     build: { context: .., dockerfile: services/dashboard/Dockerfile }
     environment:
       SANDMAN_SERVICE_NAME: dashboard
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
       SANDMAN_SERVICE_TOKEN_FILE: /run/secrets/svc_token_dashboard
       SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE: /run/secrets/dashboard_admin_password
       SANDMAN_SESSION_SECRET_FILE: /run/secrets/dashboard_session_secret

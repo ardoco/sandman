@@ -27,7 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from neo4j import AsyncGraphDatabase
 from sandman_agent import Settings
 from sandman_agent.kg import KgClient
-from sandman_agent.telemetry import setup_logging
+from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from sandman_query.auth import RateLimiter
 from starlette.exceptions import HTTPException
 
@@ -237,6 +237,7 @@ def create_app(
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
+        telemetry=FASTAPI_TELEMETRY,
     )
     app.state.poller, app.state.store, app.state.secrets = poller, store, secret_values
     app.state.sampler = sampler

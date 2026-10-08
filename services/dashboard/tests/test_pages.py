@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import re
 from pathlib import Path
@@ -17,12 +18,17 @@ PAGES = [
     "/experiments",
     "/fragments/experiments",
     "/fragments/alerts",
+    "/projects",
+    "/projects/demo",
+    "/history",
+    "/resources",
     "/workflows/wf_" + "a" * 32,
     "/fragments/workflows/wf_" + "a" * 32,
 ]
 APIS = [
     "/api/services",
     "/api/gateway",
+    "/api/history",
     "/api/graph/projects",
     "/api/graph/start",
     "/api/graph/search?q=x",
@@ -104,6 +110,13 @@ def test_vendored_libraries_have_licenses() -> None:
     assert (static / "cytoscape-LICENSE.txt").read_text().startswith("Copyright (c) 2016-")
     assert b'version="3.34.' in (static / "cytoscape.min.js").read_bytes()
     assert (static / "htmx-LICENSE.txt").exists()
+    assert (static / "uplot-LICENSE.txt").read_text().startswith("The MIT License")
+    npm = {
+        "cytoscape.min.js": "5141892eb19898946e5af8300e14cec15a63a22186a4ca56d76819a91e2a3fe6",
+        "uplot.min.js": "19c8d4c6ad88929a79f4ae49d6f7161566dfd0ba3d15cc495e974f787eb78f1f",
+    }
+    for name, digest in npm.items():
+        assert hashlib.sha256((static / name).read_bytes()).hexdigest() == digest, name
 
 
 @pytest.mark.parametrize("failure", ["down", "gateway-401", "gateway-500", "status-500"])

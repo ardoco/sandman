@@ -77,8 +77,8 @@ class ProjectStats:
             ),
             q(
                 "MATCH (t:TraceLink {projectId: $p, active: true})-[:SOURCE]->(:Element)"
-                f"{CURRENT_ENDPOINT}, (t)-[:TARGET]->(:Element){CURRENT_ENDPOINT} "
-                "RETURN t.approach, count(DISTINCT t) ORDER BY t.approach",
+                f"{CURRENT_ENDPOINT} MATCH (t)-[:TARGET]->(:Element){CURRENT_ENDPOINT} "
+                "RETURN t.approach AS approach, count(DISTINCT t) AS n ORDER BY approach",
                 project,
             ),
             q("MATCH (i:Inconsistency {projectId: $p}) RETURN i.status, i.type, count(i)", project),

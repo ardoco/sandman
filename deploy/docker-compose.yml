@@ -297,19 +297,17 @@ services:
 
   # ---------------------------------------------------------------- optional profiles
   # resources profile: WARNING, grants root-equivalent read access to the host through the Docker socket (proxy) and
-  # host mounts; opt-in, never enable in production. Own internal network shared only with the dashboard.
+  # host mounts; opt-in, never enable in production. Two dedicated internal networks: socket (proxy, cadvisor) and resources (cadvisor, dashboard).
   docker-socket-proxy:
     profiles: [resources]
     image: tecnativa/docker-socket-proxy:0.3.0@sha256:9e4b9e7517a6b660f2cc903a19b257b1852d5b3344794e3ea334ff00ae677ac2
     environment:
       CONTAINERS: "1"
       INFO: "1"
-      VERSION: "1"
-      PING: "1"
       POST: "0"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks: [resources]
+    networks: [socket]                           # reachable only by cadvisor
     security_opt: ["no-new-privileges:true"]
     mem_limit: 64m
     restart: unless-stopped
@@ -322,7 +320,7 @@ services:
       - /:/rootfs:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    networks: [resources]
+    networks: [socket, resources]                # socket: proxy only; resources: dashboard only
     cap_drop: [ALL]
     cap_add: [DAC_READ_SEARCH]                  # fs stats of container layers; re-add nothing else
     security_opt: ["no-new-privileges:true"]
@@ -365,8 +363,10 @@ networks:
   internal:
     internal: true          # no egress: agents reach LLMs only through llm-replay -> llm-gateway
   egress: {}
+  socket:
+    internal: true          # profile resources: docker-socket-proxy <-> cadvisor only
   resources:
-    internal: true          # profile resources: cAdvisor and its docker-socket-proxy, shared only with the dashboard
+    internal: true          # profile resources: cadvisor <-> dashboard only
   edge: {}                  # only edge-proxy; services behind it have no egress (internal network)
 
 volumes:

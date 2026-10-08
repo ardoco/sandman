@@ -8,7 +8,7 @@ Result of T1.11, verified 2026-10-09.
 
 ## Security
 
-The `resources` profile is opt-in, off by default and not for production. cAdvisor needs read access to host paths (`/`, `/sys`, `/var/lib/docker`) and to container metadata, which is root-equivalent visibility of the host. Mitigations in `deploy/docker-compose.yml`: cAdvisor does not mount the Docker socket; a pinned (digest) `tecnativa/docker-socket-proxy` mounts it read-only and only allows `GET` on `CONTAINERS`, `INFO`, `VERSION`, `PING` (`POST=0`); both run on a dedicated `internal: true` network `resources` shared only with the dashboard (cAdvisor is not on `internal`); `cap_drop: [ALL]` with only `DAC_READ_SEARCH` re-added (without it layer filesystem stats fail), `no-new-privileges`, image pinned by digest, no published ports.
+The `resources` profile is opt-in, off by default and not for production. cAdvisor needs read access to host paths (`/`, `/sys`, `/var/lib/docker`) and to container metadata, which is root-equivalent visibility of the host. Mitigations in `deploy/docker-compose.yml`: cAdvisor does not mount the Docker socket; a pinned (digest) `tecnativa/docker-socket-proxy` mounts it read-only and only allows `GET` on `CONTAINERS` and `INFO` (everything else, including `POST`, is off; verified that cAdvisor needs nothing more); the proxy is only on the internal network `socket` shared with cAdvisor, cAdvisor is additionally on the internal network `resources` shared only with the dashboard; neither is on `internal`, `egress` or `edge`, and nothing publishes a port; `cap_drop: [ALL]` with only `DAC_READ_SEARCH` re-added (without it layer filesystem stats fail), `no-new-privileges`, image pinned by digest, no published ports.
 
 ## Image, mounts and flags
 

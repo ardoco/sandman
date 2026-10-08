@@ -46,14 +46,14 @@
     "ollama": {
       "keys": [
         {
-          "name": "ollama-local",
-          "value": "",
+          "name": "ollama-selfhosted",
+          "value": "env.SELFHOSTED_LLM_KEY",
           "models": [
             "*"
           ],
           "weight": 1.0,
           "ollama_key_config": {
-            "url": "http://ollama:11434"
+            "url": "env.SELFHOSTED_LLM_URL"
           }
         }
       ]

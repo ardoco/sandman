@@ -289,16 +289,12 @@ flowchart TB
     subgraph obs["profile: obs"]
       lgtm["otel-lgtm :4317/:4318<br/>Grafana :3000 via edge-proxy"]
     end
-    subgraph llm["profile: local-llm"]
-      ollama["ollama :11434"]
-    end
     v1[/memgraph-data, memgraph-log/]
     v2[/nats-data/]
     v3[/gateway-data/]
     v4[/orchestrator-data/]
     v5[/artifact-store/]
     v6[/"./data/llm-records (bind)"/]
-    v7[/ollama-models/]
     v8[/query-data/]
     v9[/"./data/logs (bind)"/]
     v10[/dashboard-data/]
@@ -311,22 +307,20 @@ flowchart TB
   ext ---|rw| v5
   tlr & inc & qs ---|ro| v5
   rp ---|rw| v6
-  ollama --- v7
   qs --- v8
   ext & tlr & inc & qs & orch ---|"optional file log"| v9
   dash --- v10
   gw -->|egress network| internet
   rp --> gw
-  gw -->|llm-local network| ollama
+  gw -->|egress network, HTTPS| remote["Remote Ollama (operator-controlled server)"]
   proxy -->|internal| qs & dash & lgtm
 ```
 
 | Network | Type | Members | Purpose |
 |---|---|---|---|
 | `internal` | bridge, `internal: true` (no egress) | all services | service-to-service traffic; agents cannot reach the internet, which **enforces gateway-only LLM access**, including for libraries inside approaches |
-| `egress` | bridge | `llm-gateway` (also publishes its admin port), `ollama` (model pulls) | outbound provider calls |
+| `egress` | bridge | `llm-gateway` (also publishes its admin port) | outbound provider calls, incl. the remote self-hosted Ollama |
 | `edge` | bridge | `edge-proxy` only (Caddy reverse proxy) | publishes query-service (`127.0.0.1:8080`), dashboard (`127.0.0.1:8090`) and Grafana (`127.0.0.1:3001`), which stay on `internal` without egress (spike T0.4 check 13: disabling IP masquerading does not block egress on Docker Desktop); remote access via SSH tunnel, TLS can be added in the proxy |
-| `llm-local` | bridge, `internal: true` | `llm-gateway`, `ollama` | local models reachable only through the gateway (keys, budgets, logs) |
 
 | Volume | Mounted by | Content |
 |---|---|---|
@@ -339,14 +333,13 @@ flowchart TB
 | `orchestrator-data` → `/data` | orchestrator | SQLite workflow state |
 | `artifact-store` → `/artifacts` | extraction-agent (rw), tlr-agent/inconsistency-agent/query-service (ro) | content-addressed blobs `/{projectId}/{sha256}` |
 | `./data/llm-records` → `/llm-records` | llm-replay | record/replay cassettes per experiment |
-| `ollama-models` | ollama | local model weights |
 
 | Secret (Compose `secrets:`, file-based, `/run/secrets/<name>`) | Used by |
 |---|---|
 | `gateway.env` (env file: provider keys, virtual key values, encryption key, admin password — Bifrost reads secrets from env vars only) | llm-gateway only |
 | `memgraph.env` (env file: `MEMGRAPH_USER`/`MEMGRAPH_PASSWORD`, read by the Memgraph binary) | memgraph only |
 | `gateway_admin_password` (copy of the admin password in `gateway.env`) | operator only, never mounted |
-| `llm_key_<component>` and `llm_key_<component>_local` (gateway virtual keys; `_local` = Ollama only) for extraction, tlr, inconsistency, query; `llm_key_orchestrator` | respective service |
+| `llm_key_<component>` and `llm_key_<component>_local` (gateway virtual keys; `_local` = self-hosted Ollama only) for extraction, tlr, inconsistency, query; `llm_key_orchestrator` | respective service |
 | `svc_token_<name>` (own bearer token of one service or plugin) | that service only |
 | `svc_tokens_verify` (JSON map caller → sha256 of its token) | all receivers (A2A, owner REST APIs, query API) |
 | `plugin_in_<plugin>` (token owners present when calling the plugin) | the plugin and its calling owner |
@@ -1196,7 +1189,7 @@ A separate service `dashboard` for **global admins** (operators). It is independ
 - **Services → Memgraph:** one database user with password (Community has users, but roles/read-only users are Enterprise). Plugins get no Bolt credentials; they read through the query-service. Write discipline is enforced by the single-writer rule and code review; the read path is enforced by read transactions (Section 7).
 - **Services → LLM:** per-component virtual keys with provider/model allowlists and budgets; `-local` keys restricted to Ollama enforce `local-only` in the gateway.
 - **Dashboard:** admins log in with the dashboard's own password; it calls services with its own service token (accepted by the orchestrator for workflow cancel and dead-event replay, recorded as `service:dashboard`).
-- **Network:** internal network without egress for all SANDMAN services; web UIs are published only through `edge-proxy` on `127.0.0.1`; Ollama only on a network shared with the gateway.
+- **Network:** internal network without egress for all SANDMAN services; web UIs are published only through `edge-proxy` on `127.0.0.1`; Ollama runs on a remote operator-controlled server reached only by the gateway over HTTPS (ADR-0004 amendment 2026-10-08).
 
 ### 11.3 Observability
 - **Logs:** JSON lines on stdout with `ts, level, service, msg, traceId, spanId, workflowId, taskId, runId, projectId, actor`; optional file sink (`SANDMAN_LOG_FILE`, rotated by size) on `./data/logs`.

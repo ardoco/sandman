@@ -113,7 +113,7 @@ jobs:
           cp -R deploy "$tmp/deploy"
           cd "$tmp/deploy"
           ./gen-secrets.sh > /dev/null
-          for profiles in "" "--profile stubs --profile obs --profile local-llm"; do
+          for profiles in "" "--profile stubs --profile obs"; do
             docker compose $profiles config -q
           done
           docker compose -f docker-compose.yml -f docker-compose.dev.yml config -q

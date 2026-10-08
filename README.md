@@ -35,7 +35,9 @@ uv run sandman export --project demo tracelinks
 
 `make e2e` runs the walking skeleton against the stack with plugin stubs (`--profile stubs`; first build about 6 min). It changes the bootstrap admin password to the one in `deploy/secrets/e2e_admin_password`.
 
-Optional compose profiles: `stubs`, `dashboard` (system overview on :8090, image arrives with T1.9 in M1), `obs` (Grafana on :3001), `resources` (cAdvisor), `local-llm` (Ollama).
+Optional compose profiles: `stubs`, `dashboard` (system overview on :8090, image arrives with T1.9 in M1), `obs` (Grafana on :3001), `resources` (cAdvisor).
+
+Self-hosted models (`chat-local`, `embed-local`, `local-only` policy) are served by a remote Ollama behind an HTTPS reverse proxy; set `SELFHOSTED_LLM_URL` and `SELFHOSTED_LLM_KEY` in `deploy/secrets/gateway.env` (no Ollama runs locally, ADR-0004).
 
 ## Development
 

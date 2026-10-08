@@ -13,7 +13,7 @@ Environment (defaults in brackets):
     CHAT_MODEL        [openai/gpt-4.1-nano]   smallest OpenAI chat model you allow
     EMBED_MODEL       [openai/text-embedding-3-small]
     OPENROUTER_MODEL  [openrouter/openai/gpt-4.1-nano]
-    OLLAMA_MODEL      [ollama/qwen3:0.6b]     only if the local-llm profile runs
+    OLLAMA_MODEL      [ollama/qwen3:0.6b]     only if SELFHOSTED_LLM_URL is configured
 Budget exhaustion (check 5) and rate limits are manual: see README.md.
 """
 

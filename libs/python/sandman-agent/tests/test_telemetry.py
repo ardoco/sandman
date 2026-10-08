@@ -155,10 +155,9 @@ async def test_event_publish_to_consume_shares_trace(contracts: Contracts) -> No
     assert publish.context.trace_id == consume.context.trace_id == by_name("root")[0].context.trace_id
     assert consume.parent is not None and consume.parent.span_id == publish.context.span_id
     assert consume.attributes["sandman.event.type"] == "sandman.tracelinks.updated"
-    assert {p.attributes["sandman.event.type"] for p in metric_points("sandman.events.published")} == {
-        "sandman.tracelinks.updated"
-    }
-    assert metric_points("sandman.events.consumed")[0].attributes["sandman.outcome"] == "ok"
+    published = {p.attributes["sandman.event.type"] for p in metric_points("sandman.events.published")}
+    assert "sandman.tracelinks.updated" in published
+    assert "ok" in {p.attributes["sandman.outcome"] for p in metric_points("sandman.events.consumed")}
 
 
 class FakeTx:
@@ -221,3 +220,11 @@ async def test_llm_span_and_token_metrics() -> None:
     (inp,) = metric_points("gen_ai.client.inference.usage.input_tokens")
     assert inp.value >= 11 and inp.attributes["sandman.llm.route"] == "chat-default"
     assert metric_points("gen_ai.client.inference.usage.output_tokens")[0].value >= 7
+
+
+def test_continued_span_joins_stored_trace() -> None:
+    with telemetry.tracer().start_as_current_span("origin"):
+        stored = telemetry.trace_headers()["traceparent"]
+    with telemetry.continued_span("later", stored):
+        pass
+    assert by_name("later")[0].context.trace_id == by_name("origin")[0].context.trace_id

@@ -187,9 +187,10 @@ class Orchestrator:
                 wf_id = self._new_workflow(project, workflow)
             self.db.execute(
                 "INSERT INTO steps (id, workflow_id, project_id, agent, skill, input_json, action_key, mergeable, "
-                "status, next_attempt_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)",
+                "status, next_attempt_at, traceparent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?, ?)",
                 (f"step_{uuid.uuid4().hex}", wf_id, project, agent, spec.skill, json.dumps(spec.input), key,
-                 spec.mergeable, now + (self.rules.debounce if spec.mergeable else 0)),
+                 spec.mergeable, now + (self.rules.debounce if spec.mergeable else 0),
+                 telemetry.trace_headers().get("traceparent")),
             )  # fmt: skip
             self._touch(wf_id)
         return wf_id
@@ -351,14 +352,15 @@ class Orchestrator:
         token = telemetry.bind(workflowId=step["workflow_id"], projectId=step["project_id"])
         try:
             log.info("submitting step", extra={"fields": {"step": step_id, "skill": step["skill"], "attempt": attempt}})
-            snap = await self.a2a.submit(
-                self.agents[step["agent"]],
-                step["skill"],
-                json.loads(step["input_json"]),
-                workflow_id=step["workflow_id"],
-                actor=trigger.get("actor") if trigger["kind"] == "manual" else None,
-                message_id=message_id,
-            )
+            with telemetry.continued_span(f"workflow.step {step['skill']}", step["traceparent"]):
+                snap = await self.a2a.submit(
+                    self.agents[step["agent"]],
+                    step["skill"],
+                    json.loads(step["input_json"]),
+                    workflow_id=step["workflow_id"],
+                    actor=trigger.get("actor") if trigger["kind"] == "manual" else None,
+                    message_id=message_id,
+                )
         except Exception as e:  # noqa: BLE001 - connection errors and agent errors are retried
             log.warning("submit failed", extra={"fields": {"step": step_id, "error": str(e)}})
             self._failed(step_id, attempt, error("DEPENDENCY_UNAVAILABLE", f"{type(e).__name__}: {e}", True))

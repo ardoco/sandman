@@ -20,7 +20,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sandman_agent import Settings, StatusTracker
-from sandman_agent.telemetry import instrument_app, setup_logging
+from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_query import __version__, console
@@ -118,8 +118,8 @@ def create_app(
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
+        telemetry=FASTAPI_TELEMETRY,
     )  # the contract is contracts/openapi/query-service.yaml
-    instrument_app(app)
     app.state.service = svc
     app.include_router(console.build_router(svc))
     app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")

@@ -64,6 +64,8 @@ _llm_input = _meter.create_counter(METRIC_LLM_INPUT_TOKENS, unit="{token}", desc
 _llm_output = _meter.create_counter(METRIC_LLM_OUTPUT_TOKENS, unit="{token}", description="LLM output tokens")
 _llm_duration = _meter.create_histogram(METRIC_LLM_DURATION, unit="s", description="LLM call duration")
 
+FASTAPI_TELEMETRY: dict[str, Any] = {"auto_configure": False, "operation_spans": False}
+
 CONTEXT_FIELDS = ("workflowId", "taskId", "runId", "projectId", "actor")
 _context: contextvars.ContextVar[dict[str, str]] = contextvars.ContextVar("sandman_log_context", default={})  # noqa: B039
 
@@ -142,14 +144,6 @@ def _setup_otel(service: str) -> None:
     HTTPXClientInstrumentor().instrument()
 
 
-def instrument_app(app: Any) -> None:
-    """HTTP server spans for a FastAPI app (no-op while telemetry is disabled)."""
-    if enabled():
-        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-
-        FastAPIInstrumentor.instrument_app(app)
-
-
 def _trace_ids() -> dict[str, str]:
     ctx = trace.get_current_span().get_span_context()
     if not ctx.is_valid:
@@ -197,6 +191,11 @@ def a2a_task_span(agent: str, skill: str, task_id: str, headers: Mapping[str, st
             _a2a_duration.record(
                 time.monotonic() - start, {ATTR_AGENT: agent, ATTR_SKILL: skill, ATTR_OUTCOME: result["outcome"]}
             )
+
+
+def continued_span(name: str, traceparent: str | None) -> Any:
+    """Internal span continuing a stored traceparent (a new trace without one)."""
+    return tracer().start_as_current_span(name, context=context_from_traceparent(traceparent))
 
 
 def client_span(name: str, **attributes: str) -> Any:

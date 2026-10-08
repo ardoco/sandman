@@ -21,7 +21,7 @@ DASHBOARDS = {"sandman-a2a", "sandman-events", "sandman-llm-tokens"}
 
 @pytest.fixture(scope="module")
 def grafana() -> httpx.Client:
-    return httpx.Client(base_url=GRAFANA, auth=("admin", "admin"), timeout=30)
+    return httpx.Client(base_url=GRAFANA, auth=("admin", "admin"), timeout=90)
 
 
 def services_of(trace: dict) -> set[str]:

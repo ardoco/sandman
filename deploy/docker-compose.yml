@@ -131,6 +131,7 @@ services:
               llm_key_extraction, llm_key_extraction_local]
     networks: [internal]
     mem_limit: 3g                                # Docling (M1)
+    pids_limit: 512                              # converter subprocess and its threads
     depends_on: *depends-core
     healthcheck: *py-health
     restart: unless-stopped

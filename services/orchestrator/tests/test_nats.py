@@ -20,7 +20,7 @@ async def test_event_delivered_once_through_jetstream(env: Env) -> None:
         container.start()
     except Exception as e:  # noqa: BLE001
         pytest.skip(f"Docker unavailable: {e}")
-    with container:
+    try:
         nc = await nats.connect(f"nats://{container.get_container_host_ip()}:{container.get_exposed_port(4222)}")
         js = nc.jetstream()
         await ensure_stream(js)
@@ -36,3 +36,5 @@ async def test_event_delivered_once_through_jetstream(env: Env) -> None:
             await task
         assert len(env.steps()) == 1
         await nc.close()
+    finally:
+        container.stop()

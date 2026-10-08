@@ -1,100 +1,47 @@
-"""PDF/DOCX to Markdown with Docling in a resource-limited subprocess (T1.4, R-029).
+"""PDF/DOCX to Markdown through the document-converter service (T1.4, R-029).
 
-`to_markdown` runs `docling_worker` (the only module importing Docling) in its own session with a minimal environment,
-a wall-clock timeout, CPU/address-space limits set by the worker itself, bounded output, and kills the whole process
-group on any exit. Docling runs offline (HF offline mode, models from `SANDMAN_MODELS_DIR`) and without OCR.
-Limits: OS-level network isolation is NOT provided here; a compromised converter could still open sockets unless the
-container is run without network (the deployment's job). Offline mode only stops the Hugging Face client.
+The conversion runs in its own container (Docling, resource limits, no network); the artifact store is mounted
+read-only there at the same path. Any failure raises `ConversionError`, which callers turn into the file-level fallback.
 """
 
-import asyncio
-import contextlib
-import os
-import re
-import signal
-import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
-from sandman_extraction.docling_worker import DEFAULT_MAX_PAGES, MODELS_ENV, models_dir
+import httpx
 
-__all__ = ["ConversionError", "Limits", "models_dir", "to_markdown"]
-
-MAX_MARKDOWN_BYTES = 5 * 1024 * 1024
 ERROR_MAX = 300
-ENV_PASSTHROUGH = ("PATH", "HOME", "LANG", "LC_ALL", "TMPDIR", MODELS_ENV, "HF_HOME", "HF_HUB_CACHE",
-                   "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")  # fmt: skip
-_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 
 
 class ConversionError(Exception):
-    """Conversion failed, timed out or exceeded a limit."""
+    """Conversion failed, timed out, exceeded a limit or the converter is unavailable."""
 
 
-@dataclass(frozen=True)
-class Limits:
-    timeout_seconds: float = 120
-    memory_bytes: int = (
-        8 * 1024**3
-    )  # address space: torch and docling-parse reserve ~6 GiB; RAM is bounded by the container
-    max_pages: int = DEFAULT_MAX_PAGES
-    max_file_bytes: int = 50 * 1024**2
-
-    @classmethod
-    def from_config(cls, config: dict[str, Any]) -> "Limits":
-        names = {"timeoutSeconds": "timeout_seconds", "memoryBytes": "memory_bytes", "maxPages": "max_pages",
-                 "maxFileBytes": "max_file_bytes"}  # fmt: skip
-        return cls(**{names[k]: v for k, v in config.items() if k in names})
+def converter_client(
+    url: str | None, token: str | None, timeout: float, transport: httpx.AsyncBaseTransport | None = None
+) -> httpx.AsyncClient | None:
+    """Client of the document-converter; None if `url` is not configured."""
+    if not url:
+        return None
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    return httpx.AsyncClient(
+        base_url=url, headers=headers, transport=transport, timeout=httpx.Timeout(timeout, connect=10.0)
+    )
 
 
-def worker_env() -> dict[str, str]:
-    """Minimal environment of the converter: no service secrets or tokens."""
-    env = {k: os.environ[k] for k in ENV_PASSTHROUGH if k in os.environ}
-    return env | {"HF_HUB_OFFLINE": "1", "HF_HUB_DISABLE_TELEMETRY": "1"}
-
-
-async def _read(stream: asyncio.StreamReader | None, cap: int, tail: bool = False) -> bytes:
-    """Drain `stream`, keeping the first cap+1 bytes (or the last cap bytes with `tail`)."""
-    buf = bytearray()
-    while stream and (chunk := await stream.read(65536)):
-        buf += chunk
-        buf = buf[-cap:] if tail else buf[: cap + 1]
-    return bytes(buf)
-
-
-async def to_markdown(path: Path, limits: Limits | None = None, command: list[str] | None = None) -> str:
-    """Markdown rendering of a PDF/DOCX; raises ConversionError on crash, timeout, limit or oversized input.
-
-    `command` replaces the worker command (the path is appended); for tests.
-    """
-    limits = limits or Limits()
-    size = path.stat().st_size
-    if size > limits.max_file_bytes:
-        raise ConversionError(f"{path.name} has {size} bytes, limit is {limits.max_file_bytes}")
-    command = command or [
-        sys.executable, "-m", "sandman_extraction.docling_worker", "--max-pages", str(limits.max_pages),
-        "--cpu-seconds", str(int(limits.timeout_seconds * 2)),  # CPU time sums all threads; wall clock is the timeout
-        "--memory-bytes", str(limits.memory_bytes),
-    ]  # fmt: skip
-    proc = await asyncio.create_subprocess_exec(
-        *command, str(path), stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        stdin=asyncio.subprocess.DEVNULL, env=worker_env(), start_new_session=True,
-    )  # fmt: skip
+async def to_markdown(client: httpx.AsyncClient | None, path: Path, fmt: str) -> str:
+    """Markdown rendering of the stored PDF/DOCX at `path`; raises ConversionError on any failure."""
+    if client is None:
+        raise ConversionError("document converter is not configured (SANDMAN_CONVERTER_URL)")
     try:
-        out, err, _ = await asyncio.wait_for(
-            asyncio.gather(_read(proc.stdout, MAX_MARKDOWN_BYTES), _read(proc.stderr, 2000, tail=True), proc.wait()),
-            limits.timeout_seconds,
-        )
-    except TimeoutError:
-        raise ConversionError(f"conversion of {path.name} timed out after {limits.timeout_seconds:g}s") from None
-    finally:
-        with contextlib.suppress(ProcessLookupError):
-            os.killpg(proc.pid, signal.SIGKILL)  # also grandchildren; the group id outlives the leader
-        await proc.wait()
-    if proc.returncode != 0:
-        detail = _CONTROL.sub(" ", err.decode("utf-8", errors="replace").strip().rpartition("\n")[2])[:ERROR_MAX]
-        raise ConversionError(f"converter exited with {proc.returncode}: {detail}")
-    if len(out) > MAX_MARKDOWN_BYTES:
-        raise ConversionError(f"rendering of {path.name} exceeds {MAX_MARKDOWN_BYTES} bytes")
-    return out.decode("utf-8", errors="replace")
+        resp = await client.post("/v1/convert", json={"path": str(path), "format": fmt})
+    except httpx.HTTPError as e:
+        raise ConversionError(f"document converter unreachable: {type(e).__name__}") from None
+    if resp.status_code != 200:
+        try:
+            detail = str(resp.json()["detail"])
+        except (ValueError, KeyError, TypeError):
+            detail = ""
+        raise ConversionError(f"document converter returned {resp.status_code}: {detail}"[:ERROR_MAX])
+    try:
+        return str(resp.json()["markdown"])
+    except (ValueError, KeyError, TypeError):
+        raise ConversionError("document converter returned an invalid response") from None

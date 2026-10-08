@@ -40,7 +40,7 @@ from sandman_agent.kg import now
 from sandman_agent.telemetry import setup_logging
 from starlette.exceptions import HTTPException
 
-from sandman_extraction import ingest
+from sandman_extraction import documents, ingest
 from sandman_extraction.extract import ExtractSkill
 
 log = logging.getLogger(__name__)
@@ -60,7 +60,12 @@ class ProjectSpec(BaseModel):
 class Service:
     """Shared state of REST handlers and the skill; also the EventSink handed to serve()."""
 
-    def __init__(self, settings: Settings, max_archive_bytes: int | None = None) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        max_archive_bytes: int | None = None,
+        converter_transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         settings.require("kg_uri", "nats_url", "artifact_store")
         self.settings = settings
         self.contracts = Contracts(settings.contracts_dir)
@@ -70,6 +75,12 @@ class Service:
         self.config_hash = sha256_hex(raw)
         self.status = StatusTracker(settings.service_name)
         self.max_archive_bytes = max_archive_bytes or int(os.environ.get("SANDMAN_MAX_ARCHIVE_BYTES", 1 << 30))
+        self.converter = documents.converter_client(
+            os.environ.get("SANDMAN_CONVERTER_URL"),
+            settings.service_token,
+            self.config.get("builtin", {}).get("converter", {}).get("timeoutSeconds", 600),
+            converter_transport,
+        )
         self.kg = KgClient(settings.kg_uri, settings.kg_user, settings.kg_password)  # type: ignore[arg-type]
         self.events: Any = None
         self._nc: Any = None
@@ -90,6 +101,8 @@ class Service:
         if self._nc is not None:
             await self._nc.close()
         await self.kg.close()
+        if self.converter is not None:
+            await self.converter.aclose()
 
     async def publish(self, type: str, subject: str, data: Mapping[str, Any], **kwargs: Any) -> Event:
         """EventSink: delegate to the publisher created at startup."""
@@ -105,10 +118,14 @@ def _problem(status: int, detail: str, errors: list[str] | None = None) -> JSONR
     return JSONResponse(body, status_code=status, media_type="application/problem+json")
 
 
-def create_app(settings: Settings | None = None, plugin_transport: httpx.AsyncBaseTransport | None = None) -> FastAPI:
-    """ASGI app; plugin_transport lets tests route plugin calls in-process."""
+def create_app(
+    settings: Settings | None = None,
+    plugin_transport: httpx.AsyncBaseTransport | None = None,
+    converter_transport: httpx.AsyncBaseTransport | None = None,
+) -> FastAPI:
+    """ASGI app; the transports let tests route plugin and converter calls in-process."""
     settings = settings or Settings.from_env()
-    svc = Service(settings)
+    svc = Service(settings, converter_transport=converter_transport)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

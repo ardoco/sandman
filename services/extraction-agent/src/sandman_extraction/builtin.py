@@ -42,9 +42,10 @@ def extract(
     return stub_elements(path, kind, content), []
 
 
-def is_document(path: str, fmt: str | None) -> bool:
-    """PDF/DOCX artifacts, converted to Markdown by `documents` before extraction."""
-    return (fmt or DOCUMENT_FORMATS.get(PurePosixPath(path).suffix.lower())) in DOCUMENT_FORMATS.values()
+def document_format(path: str, fmt: str | None) -> str | None:
+    """ "pdf" or "docx" for artifacts converted to Markdown by `documents` before extraction, else None."""
+    found = fmt or DOCUMENT_FORMATS.get(PurePosixPath(path).suffix.lower())
+    return found if found in DOCUMENT_FORMATS.values() else None
 
 
 def extract_document(path: str, kind: str, markdown: bytes) -> list[dict[str, Any]]:

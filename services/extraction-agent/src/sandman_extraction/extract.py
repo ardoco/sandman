@@ -158,12 +158,12 @@ class ExtractSkill:
 
         async def stub(v: dict[str, Any]) -> None:
             nonlocal status
-            document = use_builtin and builtin.is_document(v["path"], v["format"])
+            document = use_builtin and builtin.document_format(v["path"], v["format"])
             content = b"" if document else svc.store.open(v["uri"]).read()
             try:
                 if document:
-                    limits = documents.Limits.from_config(builtin_config.get("docling", {}))
-                    content = (await documents.to_markdown(svc.store.path_for(v["uri"]), limits)).encode()
+                    markdown = await documents.to_markdown(svc.converter, svc.store.path_for(v["uri"]), document)
+                    content = markdown.encode()
                     elements[v["id"]] = await asyncio.to_thread(builtin.extract_document, v["path"], v["kind"], content)
                 elif use_builtin:
                     elements[v["id"]], rels = await asyncio.to_thread(

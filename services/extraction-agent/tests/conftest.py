@@ -27,6 +27,7 @@ from sandman_extraction.app import create_app
 from testcontainers.core.container import DockerContainer
 
 FIXTURE = Path(__file__).parent / "fixtures" / "mini"
+RENDERED = Path(__file__).parent / "fixtures" / "rendered"
 URL = "http://extraction-agent:8000"
 TOKENS = {"orchestrator": "orch-token", "query-service": "query-token", "cli": "cli-token"}
 KIND_RULES = [
@@ -125,6 +126,25 @@ class FakePlugin:
         return SkillResult({"elements": elements, "relations": [], "explicitReferences": refs})
 
 
+class FakeConverter:
+    """document-converter stand-in: renders the stored blob as the Markdown Docling produced for the real fixture."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[dict[str, Any], str | None]] = []
+        self.status = 200
+        self.error: Exception | None = None
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        self.calls.append((body, request.headers.get("authorization")))
+        if self.error is not None:
+            raise self.error
+        if self.status != 200:
+            return httpx.Response(self.status, json={"detail": "converter says no"})
+        name = "teastore" if b"teastore" in Path(body["path"]).read_bytes() else "structure"
+        return httpx.Response(200, json={"markdown": (RENDERED / f"{name}.md").read_text(encoding="utf-8")})
+
+
 def _retrieve(uri: str) -> Resource[Any]:
     path = DEFAULT_CONTRACTS_DIR / uri.rsplit("/contracts/", 1)[1]
     text = path.read_text(encoding="utf-8")
@@ -165,6 +185,7 @@ class Env:
     plugin: FakePlugin
     nats_url: str
     config_hash: str
+    converter: FakeConverter
     project: str = field(default_factory=lambda: f"p-{uuid.uuid4().hex[:10]}")
     # module helpers, reachable from tests (conftest is not importable under --import-mode=importlib)
     mini = staticmethod(mini)
@@ -228,7 +249,9 @@ class Env:
 
 
 @pytest.fixture
-async def env(memgraph: str, nats_url: str, tmp_path: Path) -> AsyncIterator[Env]:
+async def env(memgraph: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Env]:
+    monkeypatch.setenv("SANDMAN_CONVERTER_URL", "http://document-converter:8000")
+    converter = FakeConverter()
     (tmp_path / "token").write_text("inbound")
     config = {
         "plugins": [{"id": "code-extractor", "transport": "a2a", "url": "http://plugin:8000",
@@ -250,12 +273,13 @@ async def env(memgraph: str, nats_url: str, tmp_path: Path) -> AsyncIterator[Env
         kg_uri=memgraph,
         nats_url=nats_url,
         artifact_store=tmp_path / "store",
+        service_token="ea-token",
         config_dir=tmp_path / "config",
         service_verify={name: hashlib.sha256(t.encode()).hexdigest() for name, t in TOKENS.items()},
     )
-    app = create_app(settings, plugin_transport=httpx.ASGITransport(app=plugin_app))
+    app = create_app(settings, httpx.ASGITransport(app=plugin_app), converter_transport=httpx.MockTransport(converter))
     async with app.router.lifespan_context(app):
         transport = httpx.ASGITransport(app=app)
         headers = {"Authorization": f"Bearer {TOKENS['cli']}"}
         async with httpx.AsyncClient(transport=transport, base_url=URL, headers=headers) as http:
-            yield Env(http, app, plugin, nats_url, hashlib.sha256(raw).hexdigest())
+            yield Env(http, app, plugin, nats_url, hashlib.sha256(raw).hexdigest(), converter)

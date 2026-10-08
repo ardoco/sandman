@@ -19,7 +19,7 @@ from typing import Annotated, Literal
 from fastapi import Depends, FastAPI, Request
 from pydantic import BaseModel, ConfigDict, Field
 from sandman_agent import ConfigError, Settings, StatusTracker, TokenVerifier, require_service, status_route
-from sandman_agent.telemetry import setup_logging
+from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_document_converter.convert import ConversionError, Limits, to_markdown
@@ -98,7 +98,7 @@ def create_app(
         setup_logging(settings.service_name, settings.log_file)
         yield
 
-    app = FastAPI(title="sandman-document-converter", lifespan=lifespan)
+    app = FastAPI(title="sandman-document-converter", lifespan=lifespan, telemetry=FASTAPI_TELEMETRY)
     details = lambda: {"maxPages": limits.max_pages, "waiting": waiting}  # noqa: E731
     app.router.routes.append(status_route(tracker, verifier.caller_from_header, details))
     Caller = Annotated[str, Depends(require_service(verifier))]

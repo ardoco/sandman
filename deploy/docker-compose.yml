@@ -140,6 +140,8 @@ services:
     build: { context: .., dockerfile: services/document-converter/Dockerfile }
     environment:
       SANDMAN_SERVICE_NAME: document-converter
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
       SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify
       SANDMAN_ARTIFACT_STORE: /artifacts
     volumes:

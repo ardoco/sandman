@@ -11,3 +11,4 @@ explicitReferences:
   patterns: ['REQ-\d+', 'FR-\d+']
 builtin:
   enabled: true                           # false restores the M0 file-level stub extraction
+                                          # (like an extractor fallback: file-level elements only, no Requirement nodes - intended)

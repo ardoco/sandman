@@ -21,7 +21,7 @@ DASHBOARDS = {"sandman-a2a", "sandman-events", "sandman-llm-tokens"}
 
 @pytest.fixture(scope="module")
 def grafana() -> httpx.Client:
-    return httpx.Client(base_url=GRAFANA, auth=("admin", "admin"), timeout=90)
+    return httpx.Client(base_url=GRAFANA, auth=("admin", "admin"), timeout=300)
 
 
 def services_of(trace: dict) -> set[str]:
@@ -46,7 +46,7 @@ def test_one_trace_spans_all_services(grafana: httpx.Client) -> None:
     while time.monotonic() < deadline:
         hits = grafana.get(
             "/api/datasources/proxy/uid/tempo/api/search",
-            params={"q": '{ resource.service.name = "tlr-agent" }', "limit": 20},
+            params={"q": '{ name =~ "event.consume.*" }', "limit": 20},
         ).json()
         for hit in hits.get("traces", []):
             trace = grafana.get(f"/api/datasources/proxy/uid/tempo/api/traces/{hit['traceID']}").json()

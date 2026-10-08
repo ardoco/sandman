@@ -4,11 +4,11 @@
   var csrf = root.dataset.csrf;
   var cy = cytoscape({
     container: document.getElementById("cy"),
-    wheelSensitivity: 0.3,
+    userZoomingEnabled: false,
     maxZoom: 1.5,
     style: [
-      { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "data(color)", color: "#1b1f24", "text-valign": "bottom", "text-margin-y": 3 } },
-      { selector: "edge", style: { label: "data(label)", "font-size": 8, width: 1, "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": "#8c959f", "target-arrow-color": "#8c959f", color: "#57606a" } },
+      { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "data(color)", color: "#1b1f24", "text-valign": "bottom", "text-margin-y": 3, "text-wrap": "ellipsis", "text-max-width": 90 } },
+      { selector: "edge", style: { label: "data(label)", "font-size": 8, "text-wrap": "ellipsis", "text-max-width": 80, width: 1, "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": "#8c959f", "target-arrow-color": "#8c959f", color: "#57606a" } },
       { selector: ".path", style: { "line-color": "#d1242f", "target-arrow-color": "#d1242f", "border-width": 3, "border-color": "#d1242f" } },
       { selector: ":selected", style: { "border-width": 3, "border-color": "#0969da", "line-color": "#0969da", "target-arrow-color": "#0969da" } }
     ]
@@ -55,7 +55,7 @@
     fresh.forEach(function (e) { if (e.group === "nodes") { e.data.color = color(e.data.labels); } });
     cy.add(fresh);
     applyFilters();
-    if (fresh.length) { cy.layout({ name: "cose", animate: false, fit: true, padding: 30 }).run(); }
+    if (fresh.length) { cy.layout({ name: "cose", animate: false, fit: true, padding: 40, nodeRepulsion: function () { return 40000; }, idealEdgeLength: function () { return 120; }, nodeOverlap: 30 }).run(); }
     status(cy.nodes().length + " nodes, " + cy.edges().length + " edges" + (resp.truncated ? " (truncated at 500 nodes)" : ""));
   }
   function fail(e) { status(e.message, true); }
@@ -135,6 +135,12 @@
       if (!resp.found) { status("No path within the hop limit.", true); }
     }).catch(fail);
   });
+  function zoom(factor) {
+    cy.zoom({ level: Math.min(cy.maxZoom(), Math.max(cy.minZoom(), cy.zoom() * factor)), renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
+  }
+  $("zoom-in").addEventListener("click", function () { zoom(1.25); });
+  $("zoom-out").addEventListener("click", function () { zoom(0.8); });
+  $("zoom-fit").addEventListener("click", function () { cy.fit(undefined, 40); });
   $("clear").addEventListener("click", function () { cy.elements().remove(); status(""); });
 
   function download(href, name) {

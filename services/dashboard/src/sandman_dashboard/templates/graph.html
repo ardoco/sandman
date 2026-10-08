@@ -45,6 +45,12 @@
       <button id="export-json" type="button">JSON</button>
       <button id="clear" type="button">Clear</button>
     </fieldset>
+    <fieldset>
+      <legend>View</legend>
+      <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
+      <button id="zoom-fit" type="button">Fit</button>
+    </fieldset>
   </aside>
   <section id="view">
     <div id="status" role="status"></div>
@@ -58,7 +64,7 @@
 <section id="cypher-box">
   <h2>Read-only Cypher</h2>
   <form id="cypher-form">
-    <textarea id="cypher" rows="4" maxlength="20000" spellcheck="false" aria-label="Cypher statement">MATCH (n:Project) RETURN n</textarea>
+    <textarea id="cypher" rows="4" maxlength="20000" spellcheck="false" aria-label="Cypher statement" placeholder="MATCH (n:Project) RETURN n"></textarea>
     <button type="submit">Run</button>
     <button id="cypher-add" type="button" hidden>Add returned nodes to the graph</button>
   </form>

@@ -122,3 +122,11 @@ async def test_no_secret_in_responses_or_logs(env: Env, caplog: pytest.LogCaptur
 async def test_unknown_route_and_error_page(env: Env) -> None:
     resp = await env.http.get("/nope")
     assert resp.status_code == 404 and "Error 404" in resp.text
+
+
+async def test_graph_page_cypher_box_is_empty_with_placeholder_and_zoom_buttons(env: Env) -> None:
+    await env.login()
+    text = (await env.http.get("/graph")).text
+    assert re.search(r'<textarea id="cypher"[^>]*placeholder="MATCH[^>]*></textarea>', text)
+    assert 'id="zoom-in"' in text and "wheelSensitivity" not in (SRC / "static" / "graph.js").read_text()
+    assert ".__________cytoscape_container" in (SRC / "static" / "graph.css").read_text()

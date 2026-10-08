@@ -5,6 +5,7 @@
 #view { display: grid; grid-template-columns: 1fr 18rem; gap: 1rem; grid-template-rows: auto 32rem; }
 #status { grid-column: 1 / 3; min-height: 1.4rem; }
 #status.error, #cypher-status.error { color: #b42318; }
+.__________cytoscape_container { position: relative; }
 #cy { position: relative; border: 1px solid #d0d7de; background: #fff; }
 #properties { border: 1px solid #d0d7de; background: #fff; padding: .5rem; overflow: auto; }
 #properties dt { font-weight: 600; }

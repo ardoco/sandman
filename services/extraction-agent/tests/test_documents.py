@@ -42,10 +42,10 @@ async def test_garbage_output_is_decoded_lossily(blob: Path) -> None:
 
 
 async def test_non_zero_exit_reports_last_stderr_line(blob: Path) -> None:
-    code = "import sys; sys.stderr.write('noise\\n' + 'x' * 1000 + '\\x00'); sys.exit(3)"
+    code = "import sys; sys.stderr.write('noise' * 1000 + '\\nfinal\\x00'); sys.exit(3)"
     with pytest.raises(ConversionError, match="exited with 3") as e:
         await documents.to_markdown(blob, command=fake(code))
-    assert len(str(e.value)) < 400 and "\x00" not in str(e.value)
+    assert len(str(e.value)) < 400 and "\x00" not in str(e.value) and str(e.value).endswith("final ")
 
 
 async def test_crash_by_signal(blob: Path) -> None:
@@ -88,6 +88,9 @@ async def test_golden_documents(case: str) -> None:
     markdown = await documents.to_markdown(DOCS / case)
     elements = builtin.extract_document(case, "architecture-doc", markdown.encode())
     builtin.drop_lines(elements)
+    for e in elements:
+        if e["kind"] != "sentence":
+            e.pop("text")  # the rendering of PDF layout differs between platforms
     actual = json.dumps({"elements": elements}, indent=1, sort_keys=True, ensure_ascii=False)
     golden = GOLDEN / f"{case}.json"
     if os.environ.get("SANDMAN_UPDATE_GOLDEN"):

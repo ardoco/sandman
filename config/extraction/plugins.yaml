@@ -14,6 +14,6 @@ builtin:
                                           # (like an extractor fallback: file-level elements only, no Requirement nodes - intended)
   docling:                                # PDF/DOCX via Docling in a subprocess (no OCR); failure -> file-level element
     timeoutSeconds: 120
-    memoryBytes: 2147483648               # RLIMIT_AS of the converter (Linux)
+    memoryBytes: 8589934592               # RLIMIT_AS of the converter (Linux)
     maxPages: 300
     maxFileBytes: 52428800

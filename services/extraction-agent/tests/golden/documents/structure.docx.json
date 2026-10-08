@@ -5,8 +5,7 @@
    "label": "TextUnit",
    "localKey": "file",
    "name": "structure.docx",
-   "qualifiedName": "structure.docx",
-   "text": "## Architecture\n\nThe system has two components. The first stores media.\n\n### Components\n\n- The Cache keeps hot items.\n- The Store persists all items.\n\n### Interfaces\n\n| Name        | Provider   |\n|-------------|------------|\n| IMediaStore | Store      |\n\nClients use the interface. It is stable."
+   "qualifiedName": "structure.docx"
   },
   {
    "kind": "section",
@@ -14,8 +13,7 @@
    "localKey": "sec:architecture",
    "name": "Architecture",
    "parent": "file",
-   "qualifiedName": "structure.docx#sec:architecture",
-   "text": "## Architecture\n\nThe system has two components. The first stores media."
+   "qualifiedName": "structure.docx#sec:architecture"
   },
   {
    "kind": "sentence",
@@ -43,8 +41,7 @@
    "localKey": "sec:architecture/components",
    "name": "Components",
    "parent": "sec:architecture",
-   "qualifiedName": "structure.docx#sec:architecture/components",
-   "text": "### Components\n\n- The Cache keeps hot items.\n- The Store persists all items."
+   "qualifiedName": "structure.docx#sec:architecture/components"
   },
   {
    "kind": "sentence",
@@ -72,8 +69,7 @@
    "localKey": "sec:architecture/interfaces",
    "name": "Interfaces",
    "parent": "sec:architecture",
-   "qualifiedName": "structure.docx#sec:architecture/interfaces",
-   "text": "### Interfaces\n\n| Name        | Provider   |\n|-------------|------------|\n| IMediaStore | Store      |\n\nClients use the interface. It is stable."
+   "qualifiedName": "structure.docx#sec:architecture/interfaces"
   },
   {
    "kind": "sentence",

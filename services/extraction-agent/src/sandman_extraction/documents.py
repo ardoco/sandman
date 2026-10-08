@@ -28,7 +28,9 @@ class ConversionError(Exception):
 @dataclass(frozen=True)
 class Limits:
     timeout_seconds: float = 120
-    memory_bytes: int = 2 * 1024**3
+    memory_bytes: int = (
+        8 * 1024**3
+    )  # address space: torch and docling-parse reserve ~6 GiB; RAM is bounded by the container
     max_pages: int = 300
     max_file_bytes: int = 50 * 1024**2
 
@@ -55,11 +57,12 @@ def _limiter(limits: Limits) -> Callable[[], None]:
     return apply
 
 
-async def _read(stream: asyncio.StreamReader | None, cap: int) -> bytes:
-    """Drain `stream`, keeping at most cap+1 bytes."""
+async def _read(stream: asyncio.StreamReader | None, cap: int, tail: bool = False) -> bytes:
+    """Drain `stream`, keeping the first cap+1 bytes (or the last cap bytes with `tail`)."""
     buf = bytearray()
     while stream and (chunk := await stream.read(65536)):
-        buf += chunk[: max(cap + 1 - len(buf), 0)]
+        buf += chunk
+        buf = buf[-cap:] if tail else buf[: cap + 1]
     return bytes(buf)
 
 
@@ -80,7 +83,7 @@ async def to_markdown(path: Path, limits: Limits | None = None, command: list[st
     )  # fmt: skip
     try:
         out, err, _ = await asyncio.wait_for(
-            asyncio.gather(_read(proc.stdout, MAX_MARKDOWN_BYTES), _read(proc.stderr, 2000), proc.wait()),
+            asyncio.gather(_read(proc.stdout, MAX_MARKDOWN_BYTES), _read(proc.stderr, 2000, tail=True), proc.wait()),
             limits.timeout_seconds,
         )
     except TimeoutError:

@@ -42,6 +42,7 @@ async def test_auth(client: httpx.AsyncClient) -> None:
     assert (await client.get("/healthz")).status_code == 200
     body = {"type": "detect", "projectId": "mini"}
     assert (await client.post("/v1/workflows", json=body, headers=auth("tlr-agent"))).status_code == 403
+    assert (await client.post("/v1/workflows", json=body, headers=auth("dashboard"))).status_code == 403
 
 
 async def test_workflow_lifecycle(client: httpx.AsyncClient, env: Env) -> None:

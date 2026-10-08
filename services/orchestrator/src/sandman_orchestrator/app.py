@@ -36,7 +36,8 @@ from sandman_orchestrator.rules import KgGraph, Rules
 
 PROJECT_ID = r"^[a-z0-9][a-z0-9-]{1,62}$"
 ACTOR = re.compile(r"^user:[A-Za-z0-9._@-]+$")
-ADMIN_CALLERS = {"query-service", "dashboard"}  # trigger, cancel, replay
+TRIGGER_CALLERS = {"query-service"}
+ADMIN_CALLERS = TRIGGER_CALLERS | {"dashboard"}  # cancel, replay
 
 
 class WorkflowRequest(BaseModel):
@@ -76,8 +77,8 @@ def create_app(
             400, "invalid request", errors=[f"{'/'.join(map(str, x['loc']))}: {x['msg']}" for x in e.errors()]
         )
 
-    def admin(name: str) -> None:
-        if name not in ADMIN_CALLERS:
+    def admin(name: str, allowed: set[str] = ADMIN_CALLERS) -> None:
+        if name not in allowed:
             raise HTTPException(403, f"caller {name} may not change workflows")
 
     def actor(name: str, request: Request) -> str:
@@ -117,7 +118,7 @@ def create_app(
 
     @app.post("/v1/workflows", status_code=202)
     async def create_workflow(body: WorkflowRequest, request: Request, name: str = caller) -> Any:
-        admin(name)
+        admin(name, TRIGGER_CALLERS)
         try:
             wf_id = await orch.trigger(body.type, body.projectId, body.params, actor(name, request), body.force)
         except ContractError as e:

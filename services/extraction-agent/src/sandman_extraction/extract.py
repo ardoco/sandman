@@ -13,7 +13,7 @@ from sandman_agent import A2aPluginClient, PluginError, RunRecorder, SkillContex
 from sandman_agent.ids import canonical_json, sha256_hex
 from sandman_agent.kg import now
 
-from sandman_extraction import builtin
+from sandman_extraction import builtin, models
 from sandman_extraction.ingest import rows
 from sandman_extraction.stub import stub_elements
 
@@ -160,7 +160,13 @@ class ExtractSkill:
             try:
                 if use_builtin:
                     elements[v["id"]], rels = await asyncio.to_thread(
-                        builtin.extract, v["path"], v["kind"], v["format"], content, warnings
+                        builtin.extract,
+                        v["path"],
+                        v["kind"],
+                        v["format"],
+                        content,
+                        warnings,
+                        svc.config.get("builtin", {}).get("maxXmlBytes", models.MAX_XML_BYTES),
                     )
                     relations[v["id"]].extend(rels)
                 else:

@@ -10,7 +10,7 @@ from sandman_extraction.text import render_sentences
 
 TESTS = Path(__file__).parent
 FIXTURES, GOLDEN = TESTS / "fixtures", TESTS / "golden"
-TEXT_SUFFIXES = (".md", ".txt", ".csv")
+TEXT_SUFFIXES = (".md", ".txt", ".csv", ".repository", ".uml", ".xmi")
 CASES = sorted(
     p.relative_to(FIXTURES).as_posix()
     for root in ("mini", "benchmark", "text", "requirements")
@@ -20,6 +20,8 @@ CASES = sorted(
 
 
 def kind_of(path: str) -> str:
+    if path.endswith((".repository", ".uml", ".xmi")):
+        return "architecture-model"
     return "requirements" if "/requirements/" in f"/{path}" else "architecture-doc"
 
 

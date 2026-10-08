@@ -1,0 +1,599 @@
+{
+ "elements": [
+  {
+   "endLine": 915,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "ms.repository",
+   "qualifiedName": "benchmark/mediastore/pcm/ms.repository",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<repository:Repository xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:reliability=\"http://palladiosimulator.org/PalladioComponentModel/Reliability/5.2\" xmlns:repository=\"http://palladiosimulator.org/PalladioComponentModel/Repository/5.2\" xmlns:seff=\"http://palladiosimulator.org/PalladioComponentModel/SEFF/5.2\" xmlns:stoex=\"http://sdq.ipd.uka.de/StochasticExpressions/2.2\" id=\"_7zbcYHDhEeSqnN80"
+  },
+  {
+   "endLine": 30,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_tBjC0HDpEeSqnN80MQ2uGw",
+   "name": "UserDBAdapter",
+   "parent": "file",
+   "qualifiedName": "UserDBAdapter",
+   "startLine": 3,
+   "text": "BasicComponent UserDBAdapter; provides IUserDB; requires IDB"
+  },
+  {
+   "endLine": 83,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_S-lawHDqEeSqnN80MQ2uGw",
+   "name": "AudioWatermarking",
+   "parent": "file",
+   "qualifiedName": "AudioWatermarking",
+   "startLine": 31,
+   "text": "BasicComponent AudioWatermarking; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 136,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_o10-YHDrEeSqnN80MQ2uGw",
+   "name": "Reencoding",
+   "parent": "file",
+   "qualifiedName": "Reencoding",
+   "startLine": 84,
+   "text": "BasicComponent Reencoding; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 237,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+   "name": "MediaManagement",
+   "parent": "file",
+   "qualifiedName": "MediaManagement",
+   "startLine": 137,
+   "text": "BasicComponent MediaManagement; provides IMediaManagement; requires IDownload, IPackaging, IMediaAccess"
+  },
+  {
+   "endLine": 321,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+   "name": "Facade",
+   "parent": "file",
+   "qualifiedName": "Facade",
+   "startLine": 238,
+   "text": "BasicComponent Facade; provides IFacade; requires IMediaManagement, IUserManagement"
+  },
+  {
+   "endLine": 403,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+   "name": "MediaAccess",
+   "parent": "file",
+   "qualifiedName": "MediaAccess",
+   "startLine": 322,
+   "text": "BasicComponent MediaAccess; provides IMediaAccess, IDownload; requires IDB, IFileStorage"
+  },
+  {
+   "endLine": 423,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_B5geQHDsEeSqnN80MQ2uGw",
+   "name": "Packaging",
+   "parent": "file",
+   "qualifiedName": "Packaging",
+   "startLine": 404,
+   "text": "BasicComponent Packaging; provides IPackaging"
+  },
+  {
+   "endLine": 447,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_5LN7MLg2EeSNPorBlo7x9g",
+   "name": "DB",
+   "parent": "file",
+   "qualifiedName": "DB",
+   "startLine": 424,
+   "text": "BasicComponent DB; provides IDB"
+  },
+  {
+   "endLine": 480,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_qxAiILg7EeSNPorBlo7x9g",
+   "name": "FileStorage",
+   "parent": "file",
+   "qualifiedName": "FileStorage",
+   "startLine": 448,
+   "text": "BasicComponent FileStorage; provides IFileStorage"
+  },
+  {
+   "endLine": 533,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_h_QpkLhEEeSNPorBlo7x9g",
+   "name": "TagWatermarking",
+   "parent": "file",
+   "qualifiedName": "TagWatermarking",
+   "startLine": 481,
+   "text": "BasicComponent TagWatermarking; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 646,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_j5vZQLhEEeSNPorBlo7x9g",
+   "name": "Cache",
+   "parent": "file",
+   "qualifiedName": "Cache",
+   "startLine": 534,
+   "text": "BasicComponent Cache; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 674,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_ahv3gL0YEeSAHuL4ItXOLQ",
+   "name": "UserManagement",
+   "parent": "file",
+   "qualifiedName": "UserManagement",
+   "startLine": 647,
+   "text": "BasicComponent UserManagement; provides IUserManagement; requires IUserDB"
+  },
+  {
+   "endLine": 760,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Fslt8OXSEeSa__lJ2-JCxw",
+   "name": "DownloadLoadBalancer",
+   "parent": "file",
+   "qualifiedName": "DownloadLoadBalancer",
+   "startLine": 675,
+   "text": "BasicComponent DownloadLoadBalancer; provides IDownload; requires IDownload, IDownload"
+  },
+  {
+   "endLine": 848,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_S-lawHDqEeSqnN80MQ2uGw2",
+   "name": "ParallelWatermarking",
+   "parent": "file",
+   "qualifiedName": "ParallelWatermarking",
+   "startLine": 761,
+   "text": "BasicComponent ParallelWatermarking; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 852,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_4TPZgHDpEeSqnN80MQ2uGw",
+   "name": "IUserDB",
+   "parent": "file",
+   "qualifiedName": "IUserDB",
+   "startLine": 849,
+   "text": "OperationInterface IUserDB"
+  },
+  {
+   "endLine": 857,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+   "name": "IDownload",
+   "parent": "file",
+   "qualifiedName": "IDownload",
+   "startLine": 853,
+   "text": "OperationInterface IDownload"
+  },
+  {
+   "endLine": 863,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_psfEIHDsEeSqnN80MQ2uGw",
+   "name": "IMediaAccess",
+   "parent": "file",
+   "qualifiedName": "IMediaAccess",
+   "startLine": 858,
+   "text": "OperationInterface IMediaAccess"
+  },
+  {
+   "endLine": 868,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_s3KlgHDuEeSqnN80MQ2uGw",
+   "name": "IPackaging",
+   "parent": "file",
+   "qualifiedName": "IPackaging",
+   "startLine": 864,
+   "text": "OperationInterface IPackaging"
+  },
+  {
+   "endLine": 877,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_Nv-1oHDvEeSqnN80MQ2uGw",
+   "name": "IMediaManagement",
+   "parent": "file",
+   "qualifiedName": "IMediaManagement",
+   "startLine": 869,
+   "text": "OperationInterface IMediaManagement"
+  },
+  {
+   "endLine": 888,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_NeTaUHDwEeSqnN80MQ2uGw",
+   "name": "IFacade",
+   "parent": "file",
+   "qualifiedName": "IFacade",
+   "startLine": 878,
+   "text": "OperationInterface IFacade"
+  },
+  {
+   "endLine": 892,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_68uVELg2EeSNPorBlo7x9g",
+   "name": "IDB",
+   "parent": "file",
+   "qualifiedName": "IDB",
+   "startLine": 889,
+   "text": "OperationInterface IDB"
+  },
+  {
+   "endLine": 900,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_jf7hMLg7EeSNPorBlo7x9g",
+   "name": "IFileStorage",
+   "parent": "file",
+   "qualifiedName": "IFileStorage",
+   "startLine": 893,
+   "text": "OperationInterface IFileStorage"
+  },
+  {
+   "endLine": 904,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_jAJnML0YEeSAHuL4ItXOLQ",
+   "name": "IUserManagement",
+   "parent": "file",
+   "qualifiedName": "IUserManagement",
+   "startLine": 901,
+   "text": "OperationInterface IUserManagement"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_tBjC0HDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4TPZgHDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_tBjC0HDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_68uVELg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_o10-YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_o10-YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_Nv-1oHDvEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_s3KlgHDuEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_psfEIHDsEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_NeTaUHDwEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_Nv-1oHDvEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_jAJnML0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_psfEIHDsEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_68uVELg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_jf7hMLg7EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_B5geQHDsEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_s3KlgHDuEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_5LN7MLg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_68uVELg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_qxAiILg7EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_jf7hMLg7EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_h_QpkLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_h_QpkLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_j5vZQLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_j5vZQLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_ahv3gL0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_jAJnML0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_ahv3gL0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4TPZgHDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Fslt8OXSEeSa__lJ2-JCxw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Fslt8OXSEeSa__lJ2-JCxw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw2",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw2",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/pcm/ms.repository"
+   },
+   "type": "REQUIRES"
+  }
+ ]
+}

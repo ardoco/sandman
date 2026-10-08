@@ -12,3 +12,11 @@ Approach" (https://books.google.de/books?id=g6BSDQAAQBAJ); the benchmark states 
 LICENSE covers only models and gold standards). The alignment test reads it from SANDMAN_BENCHMARK_DIR (a checkout of
 ArDoCo/Benchmark) when set and is skipped otherwise; the 37/37 result is therefore only reproduced with it.
 TeaStore was taken from Benchmark HEAD e60ddb2, not from the pinned ArDoCo commit.
+
+Vendored ArDoCo benchmark models (T1.2); MIT license, see LICENSE-Benchmark (covers models and gold standards).
+Taken unmodified from the ArDoCo/Benchmark repository, HEAD e60ddb2676358048131178c925e86a5b33ec38f2:
+  mediastore/pcm/ms.repository     <- mediastore/model_2016/pcm/ms.repository
+  mediastore/uml/ms.uml            <- mediastore/model_2016/uml/ms.uml
+  teastore/pcm/teastore.repository <- teastore/model_2020/pcm/teastore.repository
+  teastore/uml/teastore.uml        <- teastore/model_2020/uml/teastore.uml
+Not compared against the pinned ArDoCo commit 0d1f22b (not available locally).

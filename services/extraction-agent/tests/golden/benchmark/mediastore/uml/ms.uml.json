@@ -1,0 +1,599 @@
+{
+ "elements": [
+  {
+   "endLine": 100,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "ms.uml",
+   "qualifiedName": "benchmark/mediastore/uml/ms.uml",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<uml:Model xmi:version=\"20131001\" xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\" xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\" xmi:id=\"_7zbcYHDhEeSqnN80MQ2uGw\" name=\"defaultRepository\">\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_s3KlgHDuEeSqnN80MQ2uGw\" name=\"IPackaging\">\n    <ownedOperation xmi:id=\"_ydHhYHDuEeSqnN80MQ2uGw\" name=\"zip\"/>\n  </packagedElement>\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_68uVELg2EeSNPorBlo7x9g\" name=\"IDB"
+  },
+  {
+   "endLine": 5,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_s3KlgHDuEeSqnN80MQ2uGw",
+   "name": "IPackaging",
+   "parent": "file",
+   "qualifiedName": "IPackaging",
+   "startLine": 3,
+   "text": "IPackaging"
+  },
+  {
+   "endLine": 9,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_68uVELg2EeSNPorBlo7x9g",
+   "name": "IDB",
+   "parent": "file",
+   "qualifiedName": "IDB",
+   "startLine": 6,
+   "text": "IDB"
+  },
+  {
+   "endLine": 14,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_Nv-1oHDvEeSqnN80MQ2uGw",
+   "name": "IMediaManagement",
+   "parent": "file",
+   "qualifiedName": "IMediaManagement",
+   "startLine": 10,
+   "text": "IMediaManagement"
+  },
+  {
+   "endLine": 18,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_jf7hMLg7EeSNPorBlo7x9g",
+   "name": "IFileStorage",
+   "parent": "file",
+   "qualifiedName": "IFileStorage",
+   "startLine": 15,
+   "text": "IFileStorage"
+  },
+  {
+   "endLine": 22,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_4TPZgHDpEeSqnN80MQ2uGw",
+   "name": "IUserDB",
+   "parent": "file",
+   "qualifiedName": "IUserDB",
+   "startLine": 19,
+   "text": "IUserDB"
+  },
+  {
+   "endLine": 25,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+   "name": "IDownload",
+   "parent": "file",
+   "qualifiedName": "IDownload",
+   "startLine": 23,
+   "text": "IDownload"
+  },
+  {
+   "endLine": 32,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_NeTaUHDwEeSqnN80MQ2uGw",
+   "name": "IFacade",
+   "parent": "file",
+   "qualifiedName": "IFacade",
+   "startLine": 26,
+   "text": "IFacade"
+  },
+  {
+   "endLine": 36,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_psfEIHDsEeSqnN80MQ2uGw",
+   "name": "IMediaAccess",
+   "parent": "file",
+   "qualifiedName": "IMediaAccess",
+   "startLine": 33,
+   "text": "IMediaAccess"
+  },
+  {
+   "endLine": 40,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_jAJnML0YEeSAHuL4ItXOLQ",
+   "name": "IUserManagement",
+   "parent": "file",
+   "qualifiedName": "IUserManagement",
+   "startLine": 37,
+   "text": "IUserManagement"
+  },
+  {
+   "endLine": 44,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_j5vZQLhEEeSNPorBlo7x9g",
+   "name": "Cache",
+   "parent": "file",
+   "qualifiedName": "Cache",
+   "startLine": 41,
+   "text": "Cache; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 48,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_h_QpkLhEEeSNPorBlo7x9g",
+   "name": "TagWatermarking",
+   "parent": "file",
+   "qualifiedName": "TagWatermarking",
+   "startLine": 45,
+   "text": "TagWatermarking; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 54,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+   "name": "MediaAccess",
+   "parent": "file",
+   "qualifiedName": "MediaAccess",
+   "startLine": 49,
+   "text": "MediaAccess; provides IMediaAccess, IDownload; requires IFileStorage, IDB"
+  },
+  {
+   "endLine": 57,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_5LN7MLg2EeSNPorBlo7x9g",
+   "name": "DB",
+   "parent": "file",
+   "qualifiedName": "DB",
+   "startLine": 55,
+   "text": "DB; provides IDB"
+  },
+  {
+   "endLine": 60,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_qxAiILg7EeSNPorBlo7x9g",
+   "name": "FileStorage",
+   "parent": "file",
+   "qualifiedName": "FileStorage",
+   "startLine": 58,
+   "text": "FileStorage; provides IFileStorage"
+  },
+  {
+   "endLine": 64,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_tBjC0HDpEeSqnN80MQ2uGw",
+   "name": "UserDBAdapter",
+   "parent": "file",
+   "qualifiedName": "UserDBAdapter",
+   "startLine": 61,
+   "text": "UserDBAdapter; provides IUserDB; requires IDB"
+  },
+  {
+   "endLine": 68,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_S-lawHDqEeSqnN80MQ2uGw2",
+   "name": "ParallelWatermarking",
+   "parent": "file",
+   "qualifiedName": "ParallelWatermarking",
+   "startLine": 65,
+   "text": "ParallelWatermarking; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 73,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Fslt8OXSEeSa__lJ2-JCxw",
+   "name": "DownloadLoadBalancer",
+   "parent": "file",
+   "qualifiedName": "DownloadLoadBalancer",
+   "startLine": 69,
+   "text": "DownloadLoadBalancer; provides IDownload; requires IDownload, IDownload"
+  },
+  {
+   "endLine": 79,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+   "name": "MediaManagement",
+   "parent": "file",
+   "qualifiedName": "MediaManagement",
+   "startLine": 74,
+   "text": "MediaManagement; provides IMediaManagement; requires IDownload, IPackaging, IMediaAccess"
+  },
+  {
+   "endLine": 83,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_ahv3gL0YEeSAHuL4ItXOLQ",
+   "name": "UserManagement",
+   "parent": "file",
+   "qualifiedName": "UserManagement",
+   "startLine": 80,
+   "text": "UserManagement; provides IUserManagement; requires IUserDB"
+  },
+  {
+   "endLine": 87,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_S-lawHDqEeSqnN80MQ2uGw",
+   "name": "AudioWatermarking",
+   "parent": "file",
+   "qualifiedName": "AudioWatermarking",
+   "startLine": 84,
+   "text": "AudioWatermarking; provides IDownload; requires IDownload"
+  },
+  {
+   "endLine": 92,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+   "name": "Facade",
+   "parent": "file",
+   "qualifiedName": "Facade",
+   "startLine": 88,
+   "text": "Facade; provides IFacade; requires IMediaManagement, IUserManagement"
+  },
+  {
+   "endLine": 95,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_B5geQHDsEeSqnN80MQ2uGw",
+   "name": "Packaging",
+   "parent": "file",
+   "qualifiedName": "Packaging",
+   "startLine": 93,
+   "text": "Packaging; provides IPackaging"
+  },
+  {
+   "endLine": 99,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_o10-YHDrEeSqnN80MQ2uGw",
+   "name": "Reencoding",
+   "parent": "file",
+   "qualifiedName": "Reencoding",
+   "startLine": 96,
+   "text": "Reencoding; provides IDownload; requires IDownload"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_j5vZQLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_j5vZQLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_h_QpkLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_h_QpkLhEEeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_psfEIHDsEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_jf7hMLg7EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9eK7YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_68uVELg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_5LN7MLg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_68uVELg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_qxAiILg7EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_jf7hMLg7EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_tBjC0HDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4TPZgHDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_tBjC0HDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_68uVELg2EeSNPorBlo7x9g",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw2",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw2",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Fslt8OXSEeSa__lJ2-JCxw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Fslt8OXSEeSa__lJ2-JCxw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_Nv-1oHDvEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_s3KlgHDuEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_p_EeYHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_psfEIHDsEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_ahv3gL0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_jAJnML0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_ahv3gL0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4TPZgHDpEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_S-lawHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_NeTaUHDwEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_Nv-1oHDvEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_st2Y0HDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_jAJnML0YEeSAHuL4ItXOLQ",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_B5geQHDsEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_s3KlgHDuEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_o10-YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_o10-YHDrEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "target": {
+    "localKey": "_4QwQwHDqEeSqnN80MQ2uGw",
+    "path": "benchmark/mediastore/uml/ms.uml"
+   },
+   "type": "REQUIRES"
+  }
+ ]
+}

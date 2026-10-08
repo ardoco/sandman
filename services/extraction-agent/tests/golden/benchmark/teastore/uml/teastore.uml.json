@@ -1,0 +1,434 @@
+{
+ "elements": [
+  {
+   "endLine": 82,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "teastore.uml",
+   "qualifiedName": "benchmark/teastore/uml/teastore.uml",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<uml:Model xmi:version=\"20131001\" xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\" xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\" xmi:id=\"_VdKBIDVWEeqPG_FgW3bi6Q\" name=\"aName\">\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_Sb4SYDVfEeqPG_FgW3bi6Q\" name=\"Recommender\">\n    <ownedOperation xmi:id=\"_yF_BwDVhEeqPG_FgW3bi6Q\" name=\"trainRecommender\"/>\n    <ownedOperation xmi:id=\"_CtRPADVgEeqPG_FgW3bi6Q\" name=\"recommendProducts\"/>\n  </packagedElement>\n  <p"
+  },
+  {
+   "endLine": 6,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_Sb4SYDVfEeqPG_FgW3bi6Q",
+   "name": "Recommender",
+   "parent": "file",
+   "qualifiedName": "Recommender",
+   "startLine": 3,
+   "text": "Recommender"
+  },
+  {
+   "endLine": 9,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_uy1agDVXEeqPG_FgW3bi6Q",
+   "name": "ProductActions",
+   "parent": "file",
+   "qualifiedName": "ProductActions",
+   "startLine": 7,
+   "text": "ProductActions"
+  },
+  {
+   "endLine": 17,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_gGczsDVZEeqPG_FgW3bi6Q",
+   "name": "LoadBalancer",
+   "parent": "file",
+   "qualifiedName": "LoadBalancer",
+   "startLine": 10,
+   "text": "LoadBalancer"
+  },
+  {
+   "endLine": 21,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_g6IlUDVXEeqPG_FgW3bi6Q",
+   "name": "CartActions",
+   "parent": "file",
+   "qualifiedName": "CartActions",
+   "startLine": 18,
+   "text": "CartActions"
+  },
+  {
+   "endLine": 25,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+   "name": "RecommenderStrategy",
+   "parent": "file",
+   "qualifiedName": "RecommenderStrategy",
+   "startLine": 22,
+   "text": "RecommenderStrategy"
+  },
+  {
+   "endLine": 28,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_oPBcMKTJEeqKjI323B3R3w",
+   "name": "ImageProvider",
+   "parent": "file",
+   "qualifiedName": "ImageProvider",
+   "startLine": 26,
+   "text": "ImageProvider"
+  },
+  {
+   "endLine": 32,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_Mh_1QDVcEeqPG_FgW3bi6Q",
+   "name": "Persistence",
+   "parent": "file",
+   "qualifiedName": "Persistence",
+   "startLine": 29,
+   "text": "Persistence"
+  },
+  {
+   "endLine": 36,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_py9KsDVYEeqPG_FgW3bi6Q",
+   "name": "AuthCart",
+   "parent": "file",
+   "qualifiedName": "AuthCart",
+   "startLine": 33,
+   "text": "AuthCart"
+  },
+  {
+   "endLine": 39,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_ouzFYDVgEeqPG_FgW3bi6Q",
+   "name": "DummyRecommender",
+   "parent": "file",
+   "qualifiedName": "DummyRecommender",
+   "startLine": 37,
+   "text": "DummyRecommender; provides RecommenderStrategy"
+  },
+  {
+   "endLine": 42,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_YkXeIDVgEeqPG_FgW3bi6Q",
+   "name": "SlopeOneRecommender",
+   "parent": "file",
+   "qualifiedName": "SlopeOneRecommender",
+   "startLine": 40,
+   "text": "SlopeOneRecommender; provides RecommenderStrategy"
+  },
+  {
+   "endLine": 45,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_lnx1oDVWEeqPG_FgW3bi6Q",
+   "name": "Persistence",
+   "parent": "file",
+   "qualifiedName": "Persistence",
+   "startLine": 43,
+   "text": "Persistence; provides Persistence"
+  },
+  {
+   "endLine": 50,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_bC13QDVWEeqPG_FgW3bi6Q",
+   "name": "WebUI",
+   "parent": "file",
+   "qualifiedName": "WebUI",
+   "startLine": 46,
+   "text": "WebUI; provides CartActions, ProductActions; requires LoadBalancer"
+  },
+  {
+   "endLine": 53,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_yA04AKTKEeqKjI323B3R3w",
+   "name": "ImageProvider",
+   "parent": "file",
+   "qualifiedName": "ImageProvider",
+   "startLine": 51,
+   "text": "ImageProvider; provides ImageProvider"
+  },
+  {
+   "endLine": 56,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_iaElgKpwEeqHXcsU55mirw",
+   "name": "PreprocessedSlopeOneRecommender",
+   "parent": "file",
+   "qualifiedName": "PreprocessedSlopeOneRecommender",
+   "startLine": 54,
+   "text": "PreprocessedSlopeOneRecommender; provides RecommenderStrategy"
+  },
+  {
+   "endLine": 59,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_raxjcDVgEeqPG_FgW3bi6Q",
+   "name": "PopularityBasedRecommender",
+   "parent": "file",
+   "qualifiedName": "PopularityBasedRecommender",
+   "startLine": 57,
+   "text": "PopularityBasedRecommender; provides RecommenderStrategy"
+  },
+  {
+   "endLine": 62,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_kgbngDVgEeqPG_FgW3bi6Q",
+   "name": "OrderBasedRecommender",
+   "parent": "file",
+   "qualifiedName": "OrderBasedRecommender",
+   "startLine": 60,
+   "text": "OrderBasedRecommender; provides RecommenderStrategy"
+  },
+  {
+   "endLine": 73,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_dhM6oDVXEeqPG_FgW3bi6Q",
+   "name": "Registry",
+   "parent": "file",
+   "qualifiedName": "Registry",
+   "startLine": 63,
+   "text": "Registry; provides LoadBalancer; requires Persistence, AuthCart, Persistence, AuthCart, ImageProvider, Recommender, Persistence, AuthCart"
+  },
+  {
+   "endLine": 77,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_AiuxcDVdEeqPG_FgW3bi6Q",
+   "name": "Auth",
+   "parent": "file",
+   "qualifiedName": "Auth",
+   "startLine": 74,
+   "text": "Auth; provides AuthCart; requires LoadBalancer"
+  },
+  {
+   "endLine": 81,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_m3fxEDVWEeqPG_FgW3bi6Q",
+   "name": "Recommender",
+   "parent": "file",
+   "qualifiedName": "Recommender",
+   "startLine": 78,
+   "text": "Recommender; provides Recommender; requires RecommenderStrategy"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_ouzFYDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_YkXeIDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_lnx1oDVWEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_Mh_1QDVcEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_bC13QDVWEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_g6IlUDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_bC13QDVWEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_uy1agDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_bC13QDVWEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_gGczsDVZEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_yA04AKTKEeqKjI323B3R3w",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_oPBcMKTJEeqKjI323B3R3w",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_iaElgKpwEeqHXcsU55mirw",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_raxjcDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_kgbngDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_dhM6oDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_gGczsDVZEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_dhM6oDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_Mh_1QDVcEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dhM6oDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_py9KsDVYEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dhM6oDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_oPBcMKTJEeqKjI323B3R3w",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dhM6oDVXEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_Sb4SYDVfEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_AiuxcDVdEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_py9KsDVYEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_AiuxcDVdEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_gGczsDVZEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m3fxEDVWEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_Sb4SYDVfEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_m3fxEDVWEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "target": {
+    "localKey": "_BYKdQDVgEeqPG_FgW3bi6Q",
+    "path": "benchmark/teastore/uml/teastore.uml"
+   },
+   "type": "REQUIRES"
+  }
+ ]
+}

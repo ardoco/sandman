@@ -1,0 +1,37 @@
+{
+ "elements": [
+  {
+   "endLine": 5,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "mini.repository",
+   "qualifiedName": "mini/model/mini.repository",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<repository:Repository xmlns:repository=\"http://palladiosimulator.org/PalladioComponentModel/Repository/5.2\" id=\"_repo\" entityName=\"mini\">\n  <components__Repository id=\"_mediacache\" entityName=\"MediaCache\"/>\n  <components__Repository id=\"_userdb\" entityName=\"UserDB\"/>\n</repository:Repository>\n"
+  },
+  {
+   "endLine": 3,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_mediacache",
+   "name": "MediaCache",
+   "parent": "file",
+   "qualifiedName": "MediaCache",
+   "startLine": 3,
+   "text": "MediaCache"
+  },
+  {
+   "endLine": 4,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_userdb",
+   "name": "UserDB",
+   "parent": "file",
+   "qualifiedName": "UserDB",
+   "startLine": 4,
+   "text": "UserDB"
+  }
+ ],
+ "relations": []
+}

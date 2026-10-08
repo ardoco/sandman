@@ -1,0 +1,45 @@
+{
+ "elements": [
+  {
+   "endLine": 10,
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "requirements.md",
+   "qualifiedName": "mini/requirements/requirements.md",
+   "startLine": 1,
+   "text": "# Requirements\n\n## REQ-1 Cache media files\nMedia files are cached after the first download.\n\n## REQ-2 Upload audio files\nUsers can upload audio files.\n\n## REQ-3 Encrypt user passwords\nPasswords are stored encrypted.\n"
+  },
+  {
+   "endLine": 5,
+   "kind": "requirement",
+   "label": "Requirement",
+   "localKey": "REQ-1",
+   "name": "Cache media files",
+   "parent": "file",
+   "startLine": 3,
+   "text": "## REQ-1 Cache media files\nMedia files are cached after the first download."
+  },
+  {
+   "endLine": 8,
+   "kind": "requirement",
+   "label": "Requirement",
+   "localKey": "REQ-2",
+   "name": "Upload audio files",
+   "parent": "file",
+   "startLine": 6,
+   "text": "## REQ-2 Upload audio files\nUsers can upload audio files."
+  },
+  {
+   "endLine": 10,
+   "kind": "requirement",
+   "label": "Requirement",
+   "localKey": "REQ-3",
+   "name": "Encrypt user passwords",
+   "parent": "file",
+   "startLine": 9,
+   "text": "## REQ-3 Encrypt user passwords\nPasswords are stored encrypted."
+  }
+ ],
+ "relations": []
+}

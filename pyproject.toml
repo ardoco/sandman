@@ -73,5 +73,6 @@ strict = true
 addopts = "--import-mode=importlib"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+markers = ["slow: long-running performance checks"]
 pythonpath = ["scripts"]
 testpaths = ["libs/python", "services", "tools", "tests/plugin-stubs", "tests/conformance", "scripts"]

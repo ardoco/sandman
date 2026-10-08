@@ -1,0 +1,38 @@
+{
+ "elements": [
+  {
+   "endLine": 3,
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "old-notes.md",
+   "qualifiedName": "mini/docs/old-notes.md",
+   "startLine": 1,
+   "text": "# Old notes\n\nOutdated.\n"
+  },
+  {
+   "endLine": 3,
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:old-notes",
+   "name": "Old notes",
+   "parent": "file",
+   "qualifiedName": "mini/docs/old-notes.md#sec:old-notes",
+   "startLine": 1,
+   "text": "# Old notes\n\nOutdated."
+  },
+  {
+   "endLine": 3,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:old-notes/83479f310656",
+   "name": "Outdated.",
+   "parent": "sec:old-notes",
+   "qualifiedName": null,
+   "sentenceIndex": 0,
+   "startLine": 3,
+   "text": "Outdated."
+  }
+ ],
+ "relations": []
+}

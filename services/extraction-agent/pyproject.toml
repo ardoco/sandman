@@ -5,6 +5,8 @@ description = "Information extraction agent."
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi>=0.142.2",
+    "markdown-it-py>=4.2.0",
+    "pysbd>=0.3.4",
     "python-multipart>=0.0.32",
     "sandman-agent",
     "uvicorn>=0.54.0",

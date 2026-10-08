@@ -1,5 +1,6 @@
 """Skill extract-artifact-versions: stub extraction, explicit references, plugin routing (Stage 2 §4.2)."""
 
+import asyncio
 import logging
 import re
 from collections import defaultdict
@@ -12,7 +13,9 @@ from sandman_agent import A2aPluginClient, PluginError, RunRecorder, SkillContex
 from sandman_agent.ids import canonical_json, sha256_hex
 from sandman_agent.kg import now
 
+from sandman_extraction import builtin
 from sandman_extraction.ingest import rows
+from sandman_extraction.stub import stub_elements
 
 if TYPE_CHECKING:
     from sandman_extraction.app import Service
@@ -22,11 +25,6 @@ log = logging.getLogger(__name__)
 SKILL = "extract-artifact-versions"
 TOOL, TOOL_VERSION = "stub-extractor", "0"
 APPROACH, APPROACH_VERSION = "explicit-reference", "0"
-FILE_KEY = "file"
-# requirements files get a TextUnit file element so only the headings yield Requirement nodes
-LABEL_BY_KIND = {"requirements": "TextUnit", "architecture-doc": "TextUnit", "architecture-model": "ModelElement",
-                 "code": "CodeUnit", "test": "TestCase", "other": "TextUnit"}  # fmt: skip
-REQ_HEADING = re.compile(r"^##\s+([A-Za-z][\w.-]*\d)\s+(.+?)\s*$")
 
 
 def _element_query(label: LiteralString) -> LiteralString:
@@ -35,7 +33,8 @@ def _element_query(label: LiteralString) -> LiteralString:
         "MERGE (n:Element {id: e.id}) ON CREATE SET n.runId = $rid "
         "SET n:" + label + " "
         "SET n.key = e.key, n.projectId = $pid, n.kind = e.kind, n.name = e.name, n.qualifiedName = e.qualifiedName, "
-        "n.text = e.text, n.startLine = e.startLine, n.endLine = e.endLine, n.contentHash = e.contentHash "
+        "n.text = e.text, n.sentenceIndex = e.sentenceIndex, n.startLine = e.startLine, "
+        "n.endLine = e.endLine, n.contentHash = e.contentHash "
         "MERGE (v)-[:HAS_ELEMENT]->(n) MERGE (r)-[:PRODUCED]->(n)"
     )
 
@@ -48,23 +47,6 @@ LABELS: tuple[LiteralString, ...] = ("Requirement", "TextUnit", "ModelElement", 
 RELATIONS: tuple[LiteralString, ...] = ("CONTAINS", "DEPENDS_ON", "PROVIDES", "REQUIRES")
 ELEMENT_QUERIES = {label: _element_query(label) for label in LABELS}
 RELATION_QUERIES = {rel: _relation_query(rel) for rel in RELATIONS}
-
-
-def stub_elements(path: str, kind: str, content: bytes) -> list[dict[str, Any]]:
-    """One file element; for requirements Markdown one Requirement per '## <ID> <title>' heading."""
-    text = content.decode("utf-8", errors="replace")
-    lines = text.splitlines()
-    elements = [{"localKey": FILE_KEY, "label": LABEL_BY_KIND[kind], "kind": "file", "name": PurePosixPath(path).name,
-                 "qualifiedName": path, "text": text[:500], "startLine": 1, "endLine": max(len(lines), 1)}]  # fmt: skip
-    if kind == "requirements" and path.lower().endswith(".md"):
-        headings = [i for i, line in enumerate(lines) if line.startswith("#")]
-        for i in headings:
-            if m := REQ_HEADING.match(lines[i]):
-                end = next((j for j in headings if j > i), len(lines))
-                elements.append({"localKey": m[1], "label": "Requirement", "kind": "requirement", "name": m[2],
-                                 "text": "\n".join(lines[i:end]).strip()[:4000], "startLine": i + 1, "endLine": end,
-                                 "parent": FILE_KEY})  # fmt: skip
-    return elements
 
 
 def match_references(content: bytes, elements: list[dict[str, Any]], patterns: list[str]) -> list[dict[str, Any]]:
@@ -122,18 +104,23 @@ class ExtractSkill:
             p = plugin_for(list(by_id.values()), v["path"], v["kind"], v["format"])
             plugins[p["id"] if p else None].append(v)
 
+        use_builtin = svc.config.get("builtin", {}).get("enabled", True)
+        tool, tool_version = (builtin.TOOL, builtin.TOOL_VERSION) if use_builtin else (TOOL, TOOL_VERSION)
+
         def input_key(tool: str) -> str:
             return sha256_hex(canonical_json({"input": input, "tool": tool, "configHash": svc.config_hash}))
 
         runs = RunRecorder(kg, svc.settings.service_name, svc.status.version)
-        for tool in [TOOL, *(k for k in plugins if k)]:
-            await runs.cleanup_stale(input_key(tool))
+        for key in [tool, *(k for k in plugins if k)]:
+            await runs.cleanup_stale(input_key(key))
         common = {"project_id": pid, "skill": SKILL, "config_hash": svc.config_hash, "workflow_id": ctx.workflow_id,
                   "task_id": ctx.task_id, "triggered_by": ctx.actor or f"service:{ctx.caller}"}  # fmt: skip
-        run_id = await runs.start(tool=TOOL, tool_version=TOOL_VERSION, input_key=input_key(TOOL),
+        run_id = await runs.start(tool=tool, tool_version=tool_version, input_key=input_key(tool),
                                   used_version_ids=vids, **common)  # fmt: skip
         try:
-            output = await self._extract(runs, run_id, common, input_key, pid, project[0]["llmPolicy"], plugins, by_id)
+            output = await self._extract(
+                runs, run_id, common, input_key, pid, project[0]["llmPolicy"], plugins, by_id, use_builtin
+            )
         except Exception as e:
             await runs.fail(run_id, f"{type(e).__name__}: {e}")
             raise
@@ -152,6 +139,7 @@ class ExtractSkill:
         llm_policy: str,
         plugins: dict[str | None, list[dict[str, Any]]],
         by_id: dict[str, dict[str, Any]],
+        use_builtin: bool,
     ) -> dict[str, Any]:
         svc = self.service
         patterns = svc.config.get("explicitReferences", {}).get("patterns", [])
@@ -166,16 +154,29 @@ class ExtractSkill:
             p=pid,
         )
 
-        def stub(v: dict[str, Any]) -> None:
+        async def stub(v: dict[str, Any]) -> None:
+            nonlocal status
             content = svc.store.open(v["uri"]).read()
-            elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
+            try:
+                if use_builtin:
+                    elements[v["id"]], rels = await asyncio.to_thread(
+                        builtin.extract, v["path"], v["kind"], v["format"], content
+                    )
+                    relations[v["id"]].extend(rels)
+                else:
+                    elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
+            except Exception as e:  # noqa: BLE001 - any parser failure falls back to the file-level element
+                log.warning("built-in extractor failed", extra={"fields": {"path": v["path"]}})
+                warnings.append(f"built-in extractor failed for {v['path']}: {type(e).__name__}: {e}")
+                status = "partial"
+                elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
             refs[v["id"]] = match_references(content, elements[v["id"]], patterns)
             producer[v["id"]] = run_id
 
         for plugin_id, versions in plugins.items():
             if plugin_id is None:
                 for v in versions:
-                    stub(v)
+                    await stub(v)
                 continue
             plugin = by_id[plugin_id]
             prun = await runs.start(tool=plugin_id, tool_version=str(plugin.get("version", "0")),
@@ -211,7 +212,7 @@ class ExtractSkill:
                 warnings.append(f"plugin {plugin_id} failed: {e}")
                 status = "partial"
                 for v in versions:
-                    stub(v)
+                    await stub(v)
                 continue
             await runs.complete(prun)
             summaries.append({"pluginId": plugin_id, "runId": prun, "status": "completed"})
@@ -287,7 +288,8 @@ class ExtractSkill:
             by_label[e["label"]].append({
                 "id": stable_id("el", vid, key), "key": f"{art}#{key}", "kind": e["kind"], "name": e["name"],
                 "qualifiedName": e.get("qualifiedName"), "text": e.get("text"), "startLine": e.get("startLine"),
-                "endLine": e.get("endLine"), "contentHash": sha256_hex(e.get("text") or e["name"]),
+                "endLine": e.get("endLine"), "sentenceIndex": e.get("sentenceIndex"),
+                "contentHash": sha256_hex(e.get("text") or e["name"]),
             })  # fmt: skip
         ids = [stable_id("el", vid, k) for k in unique]
         parents = [{"s": stable_id("el", vid, e["parent"]), "t": stable_id("el", vid, k)}

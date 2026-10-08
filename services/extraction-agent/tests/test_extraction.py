@@ -270,3 +270,79 @@ async def test_intake_rejections_and_actor(env: Any) -> None:
     resp = await env.ingest(env.mini(), **{"Authorization": "Bearer query-token", "X-Sandman-Actor": "user:alice"})
     assert resp.status_code == 201
     assert (await env.events("sandman.ingestion.completed"))[0]["data"]["actor"] == "user:alice"
+
+
+ARCH = "docs/architecture.md"
+SENTENCES = (
+    "MATCH (:ArtifactVersion {id: $v})-[:HAS_ELEMENT]->(e:TextUnit {kind: 'sentence'}) "
+    "RETURN e.text AS text, e.sentenceIndex AS i ORDER BY e.sentenceIndex"
+)
+
+
+async def test_builtin_sections_sentences_and_reextraction(env: Any) -> None:
+    files, result = await extract_mini(env)
+    assert result["status"] == "completed"
+    v = ver(env.project, ARCH, files[ARCH])
+    assert await cypher(env, SENTENCES, v=v) == [
+        {"text": "The MediaCache component caches media files.", "i": 0},
+        {"text": "The UserDB component stores users.", "i": 1},
+    ]
+    chain = await cypher(
+        env,
+        "MATCH (:ArtifactVersion {id: $v})-[:HAS_ELEMENT]->(f:Element {kind: 'file'})-[:CONTAINS]->(s:TextUnit "
+        "{kind: 'section'})-[:CONTAINS]->(t:TextUnit {kind: 'sentence'}) RETURN s.key AS sec, count(t) AS n",
+        v=v,
+    )
+    assert [(r["sec"].split("#", 1)[1], r["n"]) for r in chain] == [("sec:architecture", 2)]
+    run = await cypher(env, "MATCH (r:Run {id: $r}) RETURN r.tool AS tool", r=result["runId"])
+    assert run == [{"tool": "builtin-extractor"}]
+
+    changed = files[ARCH].replace(b" The UserDB component stores users.", b"") + b"\nA new sentence appears.\n"
+    resp = await created(env, files | {ARCH: changed})
+    again = await env.extract(resp["createdVersionIds"])
+    assert again.state == "TASK_STATE_COMPLETED"
+    cur = await cypher(
+        env,
+        "MATCH (:Artifact {id: $a})-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(e:TextUnit "
+        "{kind: 'sentence'}) RETURN e.text AS text ORDER BY e.sentenceIndex",
+        a=art(env.project, ARCH),
+    )
+    assert [r["text"] for r in cur] == ["The MediaCache component caches media files.", "A new sentence appears."]
+
+
+async def test_builtin_disabled_reproduces_stub(env: Any) -> None:
+    env.svc.config["builtin"] = {"enabled": False}
+    files, result = await extract_mini(env)
+    v = ver(env.project, ARCH, files[ARCH])
+    assert await cypher(env, SENTENCES, v=v) == []
+    rows_ = await cypher(env, "MATCH (:ArtifactVersion {id: $v})-[:HAS_ELEMENT]->(e) RETURN e.kind AS kind", v=v)
+    assert rows_ == [{"kind": "file"}]
+    run = await cypher(env, "MATCH (r:Run {id: $r}) RETURN r.tool AS tool", r=result["runId"])
+    assert run == [{"tool": "stub-extractor"}]
+
+
+async def test_builtin_failure_falls_back_with_warning(env: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(path: str, content: bytes) -> Any:
+        raise ValueError("bad markdown")
+
+    monkeypatch.setattr("sandman_extraction.text.extract", boom)
+    files, result = await extract_mini(env)
+    assert result["status"] == "partial" and any("bad markdown" in w for w in result["warnings"])
+    v = ver(env.project, ARCH, files[ARCH])
+    rows_ = await cypher(env, "MATCH (:ArtifactVersion {id: $v})-[:HAS_ELEMENT]->(e) RETURN e.kind AS kind", v=v)
+    assert rows_ == [{"kind": "file"}]
+
+
+@pytest.mark.slow
+async def test_incremental_ingestion_of_1000_files_under_60s(env: Any) -> None:
+    import time
+
+    await env.put_project()
+    files = {
+        f"docs/d{i}.md": f"# Doc {i}\n\nThis is document {i}. It has two sentences.\n".encode() for i in range(1000)
+    }
+    start = time.monotonic()
+    ing = await created(env, files)
+    task = await env.extract(ing["createdVersionIds"])
+    assert task.state == "TASK_STATE_COMPLETED"
+    assert time.monotonic() - start < 60

@@ -1,0 +1,50 @@
+{
+ "elements": [
+  {
+   "endLine": 3,
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "architecture.md",
+   "qualifiedName": "mini/docs/architecture.md",
+   "startLine": 1,
+   "text": "# Architecture\n\nThe MediaCache component caches media files. The UserDB component stores users.\n"
+  },
+  {
+   "endLine": 3,
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:architecture",
+   "name": "Architecture",
+   "parent": "file",
+   "qualifiedName": "mini/docs/architecture.md#sec:architecture",
+   "startLine": 1,
+   "text": "# Architecture\n\nThe MediaCache component caches media files. The UserDB component stores users."
+  },
+  {
+   "endLine": 3,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/74b424b10799",
+   "name": "The MediaCache component caches media files.",
+   "parent": "sec:architecture",
+   "qualifiedName": null,
+   "sentenceIndex": 0,
+   "startLine": 3,
+   "text": "The MediaCache component caches media files."
+  },
+  {
+   "endLine": 3,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/9a547f7c9cff",
+   "name": "The UserDB component stores users.",
+   "parent": "sec:architecture",
+   "qualifiedName": null,
+   "sentenceIndex": 1,
+   "startLine": 3,
+   "text": "The UserDB component stores users."
+  }
+ ],
+ "relations": []
+}

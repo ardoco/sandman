@@ -9,3 +9,5 @@ plugins:
     timeout: 10m
 explicitReferences:
   patterns: ['REQ-\d+', 'FR-\d+']
+builtin:
+  enabled: true                           # false restores the M0 file-level stub extraction

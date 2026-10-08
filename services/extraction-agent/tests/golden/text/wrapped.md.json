@@ -1,0 +1,169 @@
+{
+ "elements": [
+  {
+   "endLine": 14,
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "wrapped.md",
+   "qualifiedName": "text/wrapped.md",
+   "startLine": 1,
+   "text": "# Architecture\n\nThe MediaStore system  consists of several\ncomponents. The Facade component (e.g. the web front end) handles requests.\n\n## Media Cache (v2)\n\n* The cache stores audio files.\n* The cache stores audio files.\n- It is used by the MediaManagement component\n\nThe cache stores audio files. Größe und Café sind egal.\n\"Quoted sentence,\" he said. Version 1.2.3 is used, i.e. the latest one!\nSee https://example.org/docs. The end\n"
+  },
+  {
+   "endLine": 14,
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:architecture",
+   "name": "Architecture",
+   "parent": "file",
+   "qualifiedName": "text/wrapped.md#sec:architecture",
+   "startLine": 1,
+   "text": "# Architecture\n\nThe MediaStore system  consists of several\ncomponents. The Facade component (e.g. the web front end) handles requests."
+  },
+  {
+   "endLine": 4,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/f930cfe10085",
+   "name": "The MediaStore system consists of several components.",
+   "parent": "sec:architecture",
+   "qualifiedName": null,
+   "sentenceIndex": 0,
+   "startLine": 3,
+   "text": "The MediaStore system consists of several components."
+  },
+  {
+   "endLine": 4,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/c085e8cca6dc",
+   "name": "The Facade component (e.g. the web front end) handles requests.",
+   "parent": "sec:architecture",
+   "qualifiedName": null,
+   "sentenceIndex": 1,
+   "startLine": 4,
+   "text": "The Facade component (e.g. the web front end) handles requests."
+  },
+  {
+   "endLine": 14,
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2",
+   "name": "Media Cache (v2)",
+   "parent": "sec:architecture",
+   "qualifiedName": "text/wrapped.md#sec:architecture/media-cache-v2",
+   "startLine": 6,
+   "text": "## Media Cache (v2)\n\n* The cache stores audio files.\n* The cache stores audio files.\n- It is used by the MediaManagement component\n\nThe cache stores audio files. Größe und Café sind egal.\n\"Quoted sentence,\" he said. Version 1.2.3 is used, i.e. the latest one!\nSee https://example.org/docs. The end"
+  },
+  {
+   "endLine": 8,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/e3428112f622",
+   "name": "The cache stores audio files.",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 2,
+   "startLine": 8,
+   "text": "The cache stores audio files."
+  },
+  {
+   "endLine": 9,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/e3428112f622~2",
+   "name": "The cache stores audio files.",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 3,
+   "startLine": 9,
+   "text": "The cache stores audio files."
+  },
+  {
+   "endLine": 10,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/749c6e3115a9",
+   "name": "It is used by the MediaManagement component",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 4,
+   "startLine": 10,
+   "text": "It is used by the MediaManagement component"
+  },
+  {
+   "endLine": 12,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/e3428112f622~3",
+   "name": "The cache stores audio files.",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 5,
+   "startLine": 12,
+   "text": "The cache stores audio files."
+  },
+  {
+   "endLine": 12,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/79655c964651",
+   "name": "Größe und Café sind egal.",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 6,
+   "startLine": 12,
+   "text": "Größe und Café sind egal."
+  },
+  {
+   "endLine": 13,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/fc06ae1798dd",
+   "name": "\"Quoted sentence,\" he said.",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 7,
+   "startLine": 13,
+   "text": "\"Quoted sentence,\" he said."
+  },
+  {
+   "endLine": 13,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/7844fae3be60",
+   "name": "Version 1.2.3 is used, i.e. the latest one!",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 8,
+   "startLine": 13,
+   "text": "Version 1.2.3 is used, i.e. the latest one!"
+  },
+  {
+   "endLine": 14,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/b339a8f8d76d",
+   "name": "See https://example.org/docs.",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 9,
+   "startLine": 14,
+   "text": "See https://example.org/docs."
+  },
+  {
+   "endLine": 14,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/media-cache-v2/9ed608538508",
+   "name": "The end",
+   "parent": "sec:architecture/media-cache-v2",
+   "qualifiedName": null,
+   "sentenceIndex": 10,
+   "startLine": 14,
+   "text": "The end"
+  }
+ ],
+ "relations": []
+}

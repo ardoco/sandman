@@ -1,0 +1,14 @@
+Vendored ArDoCo benchmark texts (one sentence per line).
+
+teastore/teastore.txt
+  source:  https://github.com/ArDoCo/Benchmark, teastore/text_2020/teastore.txt (HEAD e60ddb2676358048131178c925e86a5b33ec38f2);
+           the pinned ArDoCo commit 0d1f22b11caf3a758e5d32e5d3b06020c15d7407 (core/tests-base/src/main/resources/benchmark) was not
+           available locally, so the file was not compared against it.
+  origin:  TeaStore wiki "Services" (https://web.archive.org/web/20201102180945/https://github.com/DescartesResearch/teastore/wiki/Services)
+  license: Apache-2.0 (TeaStore, https://github.com/DescartesResearch/TeaStore); see the benchmark README of text_2020.
+
+mediastore: NOT vendored (no redistribution license for the Palladio-book text). The text originates from the book "Modeling and Simulating Software Architectures: The Palladio
+Approach" (https://books.google.de/books?id=g6BSDQAAQBAJ); the benchmark states no redistribution license for it (its MIT
+LICENSE covers only models and gold standards). The alignment test reads it from SANDMAN_BENCHMARK_DIR (a checkout of
+ArDoCo/Benchmark) when set and is skipped otherwise; the 37/37 result is therefore only reproduced with it.
+TeaStore was taken from Benchmark HEAD e60ddb2, not from the pinned ArDoCo commit.

@@ -1,6 +1,8 @@
-"""Dashboard (T1.9) against a running stack: `make e2e` runs it after the walking-skeleton test (it needs its project).
+"""Dashboard (T1.9-T1.11) against a running stack: `make e2e` runs it after the walking-skeleton test.
 
-Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_RESOURCES=1 when the compose profile `resources` runs, SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
+It needs the project of the walking skeleton.
+Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_RESOURCES=1 when the compose profile `resources` runs,
+SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
 SANDMAN_E2E_DASHBOARD_PASSWORD (default: content of $SANDMAN_E2E_SECRETS/dashboard_admin_password, secrets dir default
 deploy/secrets). The test stops and restarts tlr-agent with `docker compose` (COMPOSE_PROJECT_NAME is honored).
 """

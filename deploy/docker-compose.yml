@@ -298,10 +298,12 @@ services:
   # ---------------------------------------------------------------- optional profiles
   cadvisor:
     profiles: [resources]
-    image: gcr.io/cadvisor/cadvisor:v0.60.6      # registry and mounts to verify (V-37)
+    image: ghcr.io/google/cadvisor:v0.60.6       # gcr.io/cadvisor stops at v0.49 (V-37, docs/notes/cadvisor.md)
+    command: ["--docker_only=true", "--housekeeping_interval=10s"]
     volumes:
       - /:/rootfs:ro
-      - /var/run:/var/run:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/containerd:/run/containerd:ro        # needed on Docker Desktop, harmless on Linux
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks: [internal]

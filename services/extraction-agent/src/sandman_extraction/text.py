@@ -83,12 +83,16 @@ def _section(path: str, key: str, name: str, parent: str, first: int, level: int
             "startLine": first + 1, "parent": parent, "_level": level, "_first": first}  # fmt: skip
 
 
-def extract(path: str, content: bytes) -> list[dict[str, Any]]:
-    """File element, one section element per heading (plus preamble 'sec:') and one per sentence, in document order."""
+def extract(path: str, content: bytes, markdown: bool | None = None) -> list[dict[str, Any]]:
+    """File element, one section element per heading (plus preamble 'sec:') and one per sentence, in document order.
+
+    `markdown` forces Markdown parsing, else it is derived from the path suffix.
+    """
     if len(content) > MAX_INPUT_BYTES:
         raise ValueError(f"{path} has {len(content)} bytes, limit is {MAX_INPUT_BYTES}")
     text = content.decode("utf-8", errors="replace").removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
-    markdown = PurePosixPath(path).suffix.lower() in (".md", ".markdown")
+    if markdown is None:
+        markdown = PurePosixPath(path).suffix.lower() in (".md", ".markdown")
     elements: list[dict[str, Any]] = [{
         "localKey": FILE_KEY, "label": "TextUnit", "kind": "file", "name": PurePosixPath(path).name,
         "qualifiedName": path, "text": text[:500], "startLine": 1, "endLine": max(len(text.splitlines()), 1),

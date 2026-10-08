@@ -41,5 +41,9 @@ def test_golden(case: str) -> None:
 
 def test_no_orphan_golden_files() -> None:
     cases = set(CASES)
-    orphans = [p for p in GOLDEN.rglob("*.json") if p.relative_to(GOLDEN).as_posix().removesuffix(".json") not in cases]
+    orphans = [
+        p
+        for p in GOLDEN.rglob("*.json")
+        if p.relative_to(GOLDEN).as_posix().removesuffix(".json") not in cases and "documents" not in p.parts
+    ]
     assert not orphans

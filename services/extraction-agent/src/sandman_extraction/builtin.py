@@ -10,6 +10,7 @@ TOOL, TOOL_VERSION = "builtin-extractor", "2"
 FORMAT_BY_SUFFIX = {".md": "markdown", ".markdown": "markdown", ".txt": "text", ".csv": "csv",
                     ".repository": "pcm-repository", ".uml": "uml", ".xmi": "uml"}  # fmt: skip
 TEXT_FORMATS = ("markdown", "text")
+DOCUMENT_FORMATS = {".pdf": "pdf", ".docx": "docx"}
 MODEL_FORMATS = {"pcm-repository": models.PCM, "uml": models.UML}
 
 
@@ -39,3 +40,22 @@ def extract(
         elements[0]["label"] = LABEL_BY_KIND[kind]
         return elements, relations
     return stub_elements(path, kind, content), []
+
+
+def is_document(path: str, fmt: str | None) -> bool:
+    """PDF/DOCX artifacts, converted to Markdown by `documents` before extraction."""
+    return (fmt or DOCUMENT_FORMATS.get(PurePosixPath(path).suffix.lower())) in DOCUMENT_FORMATS.values()
+
+
+def extract_document(path: str, kind: str, markdown: bytes) -> list[dict[str, Any]]:
+    """Elements of a converted document; line numbers refer to the rendering, so callers drop them after use."""
+    elements = text.extract(path, markdown, markdown=True)
+    elements[0]["label"] = LABEL_BY_KIND[kind]
+    return elements
+
+
+def drop_lines(elements: list[dict[str, Any]]) -> None:
+    """Remove startLine/endLine (they refer to the Markdown rendering, not to the PDF/DOCX source)."""
+    for e in elements:
+        e.pop("startLine", None)
+        e.pop("endLine", None)

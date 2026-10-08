@@ -1,0 +1,99 @@
+{
+ "elements": [
+  {
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "structure.docx",
+   "qualifiedName": "structure.docx",
+   "text": "## Architecture\n\nThe system has two components. The first stores media.\n\n### Components\n\n- The Cache keeps hot items.\n- The Store persists all items.\n\n### Interfaces\n\n| Name        | Provider   |\n|-------------|------------|\n| IMediaStore | Store      |\n\nClients use the interface. It is stable."
+  },
+  {
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:architecture",
+   "name": "Architecture",
+   "parent": "file",
+   "qualifiedName": "structure.docx#sec:architecture",
+   "text": "## Architecture\n\nThe system has two components. The first stores media."
+  },
+  {
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/e0bf55960792",
+   "name": "The system has two components.",
+   "parent": "sec:architecture",
+   "qualifiedName": null,
+   "sentenceIndex": 0,
+   "text": "The system has two components."
+  },
+  {
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/7a353c40c5ca",
+   "name": "The first stores media.",
+   "parent": "sec:architecture",
+   "qualifiedName": null,
+   "sentenceIndex": 1,
+   "text": "The first stores media."
+  },
+  {
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/components",
+   "name": "Components",
+   "parent": "sec:architecture",
+   "qualifiedName": "structure.docx#sec:architecture/components",
+   "text": "### Components\n\n- The Cache keeps hot items.\n- The Store persists all items."
+  },
+  {
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/components/3f418a96d643",
+   "name": "The Cache keeps hot items.",
+   "parent": "sec:architecture/components",
+   "qualifiedName": null,
+   "sentenceIndex": 2,
+   "text": "The Cache keeps hot items."
+  },
+  {
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/components/a30c17d90911",
+   "name": "The Store persists all items.",
+   "parent": "sec:architecture/components",
+   "qualifiedName": null,
+   "sentenceIndex": 3,
+   "text": "The Store persists all items."
+  },
+  {
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/interfaces",
+   "name": "Interfaces",
+   "parent": "sec:architecture",
+   "qualifiedName": "structure.docx#sec:architecture/interfaces",
+   "text": "### Interfaces\n\n| Name        | Provider   |\n|-------------|------------|\n| IMediaStore | Store      |\n\nClients use the interface. It is stable."
+  },
+  {
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/interfaces/249bb60bc322",
+   "name": "Clients use the interface.",
+   "parent": "sec:architecture/interfaces",
+   "qualifiedName": null,
+   "sentenceIndex": 4,
+   "text": "Clients use the interface."
+  },
+  {
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:architecture/interfaces/2801bc5b1deb",
+   "name": "It is stable.",
+   "parent": "sec:architecture/interfaces",
+   "qualifiedName": null,
+   "sentenceIndex": 5,
+   "text": "It is stable."
+  }
+ ]
+}

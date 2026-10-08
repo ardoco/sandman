@@ -13,7 +13,8 @@ from sandman_agent import A2aPluginClient, PluginError, RunRecorder, SkillContex
 from sandman_agent.ids import canonical_json, sha256_hex
 from sandman_agent.kg import now
 
-from sandman_extraction import builtin, models
+from sandman_extraction import builtin, documents, models
+from sandman_extraction.bounds import add_warnings
 from sandman_extraction.ingest import rows
 from sandman_extraction.stub import stub_elements
 
@@ -143,6 +144,7 @@ class ExtractSkill:
     ) -> dict[str, Any]:
         svc = self.service
         patterns = svc.config.get("explicitReferences", {}).get("patterns", [])
+        builtin_config = svc.config.get("builtin", {})
         elements: dict[str, list[dict[str, Any]]] = {}  # version id -> elements
         refs: dict[str, list[dict[str, Any]]] = defaultdict(list)
         relations: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -156,9 +158,14 @@ class ExtractSkill:
 
         async def stub(v: dict[str, Any]) -> None:
             nonlocal status
-            content = svc.store.open(v["uri"]).read()
+            document = use_builtin and builtin.is_document(v["path"], v["format"])
+            content = b"" if document else svc.store.open(v["uri"]).read()
             try:
-                if use_builtin:
+                if document:
+                    limits = documents.Limits.from_config(builtin_config.get("docling", {}))
+                    content = (await documents.to_markdown(svc.store.path_for(v["uri"]), limits)).encode()
+                    elements[v["id"]] = await asyncio.to_thread(builtin.extract_document, v["path"], v["kind"], content)
+                elif use_builtin:
                     elements[v["id"]], rels = await asyncio.to_thread(
                         builtin.extract,
                         v["path"],
@@ -166,17 +173,20 @@ class ExtractSkill:
                         v["format"],
                         content,
                         warnings,
-                        svc.config.get("builtin", {}).get("maxXmlBytes", models.MAX_XML_BYTES),
+                        builtin_config.get("maxXmlBytes", models.MAX_XML_BYTES),
                     )
                     relations[v["id"]].extend(rels)
                 else:
                     elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
             except Exception as e:  # noqa: BLE001 - any parser failure falls back to the file-level element
                 log.warning("built-in extractor failed", extra={"fields": {"path": v["path"]}})
-                warnings.append(f"built-in extractor failed for {v['path']}: {type(e).__name__}: {e}")
+                add_warnings(warnings, [f"built-in extractor failed for {v['path']}: {type(e).__name__}: {e}"])
                 status = "partial"
+                content = b"" if document else content
                 elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
             refs[v["id"]] = match_references(content, elements[v["id"]], patterns)
+            if document:  # line numbers refer to the Markdown rendering, not to the PDF/DOCX
+                builtin.drop_lines(elements[v["id"]])
             producer[v["id"]] = run_id
 
         for plugin_id, versions in plugins.items():

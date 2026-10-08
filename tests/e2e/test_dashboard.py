@@ -4,7 +4,9 @@ It needs the project of the walking skeleton.
 Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_RESOURCES=1 when the compose profile `resources` runs,
 SANDMAN_E2E_DASHBOARD_URL (default http://127.0.0.1:8090),
 SANDMAN_E2E_DASHBOARD_PASSWORD (default: content of $SANDMAN_E2E_SECRETS/dashboard_admin_password, secrets dir default
-deploy/secrets). The test stops and restarts tlr-agent with `docker compose` (COMPOSE_PROJECT_NAME is honored).
+deploy/secrets). The test stops and restarts tlr-agent with `docker compose -p <project>` (SANDMAN_E2E_PROJECT, else
+COMPOSE_PROJECT_NAME, else "deploy"). With a non-default SANDMAN_E2E_URL or SANDMAN_E2E_DASHBOARD_URL the project
+must be set explicitly, otherwise the test fails before touching docker.
 """
 
 import os
@@ -21,7 +23,8 @@ import pytest
 pytestmark = pytest.mark.skipif(not os.environ.get("SANDMAN_E2E"), reason="set SANDMAN_E2E=1 with the stack running")
 
 ROOT = Path(__file__).resolve().parents[2]
-URL = os.environ.get("SANDMAN_E2E_DASHBOARD_URL", "http://127.0.0.1:8090")
+DEFAULT_URL = "http://127.0.0.1:8090"
+URL = os.environ.get("SANDMAN_E2E_DASHBOARD_URL", DEFAULT_URL)
 CSRF = re.compile(r'name="csrf" value="([^"]+)"')
 TARGETS = {
     "extraction-agent",
@@ -33,16 +36,28 @@ TARGETS = {
     "document-converter",
 }
 INFRASTRUCTURE = {"memgraph", "nats", "llm-gateway"}
-COMPOSE = [
-    "docker",
-    "compose",
-    "-f",
-    str(ROOT / "deploy" / "docker-compose.yml"),
-    "--profile",
-    "stubs",
-    "--profile",
-    "dashboard",
-]
+
+
+def compose_command() -> list[str]:
+    project = os.environ.get("SANDMAN_E2E_PROJECT") or os.environ.get("COMPOSE_PROJECT_NAME")
+    if not project:
+        skeleton_url = os.environ.get("SANDMAN_E2E_URL", "http://127.0.0.1:8080")
+        scratch = URL != DEFAULT_URL or skeleton_url != "http://127.0.0.1:8080"
+        if scratch:
+            pytest.fail("set COMPOSE_PROJECT_NAME (or SANDMAN_E2E_PROJECT) to the project of the stack under test")
+        project = "deploy"
+    return [
+        "docker",
+        "compose",
+        "-p",
+        project,
+        "-f",
+        str(ROOT / "deploy" / "docker-compose.yml"),
+        "--profile",
+        "stubs",
+        "--profile",
+        "dashboard",
+    ]
 
 
 def password() -> str:
@@ -127,13 +142,14 @@ def test_gateway_page_renders(dashboard: httpx.Client) -> None:
 
 
 def test_stopped_agent_is_shown_down_and_recovers(dashboard: httpx.Client) -> None:
-    subprocess.run([*COMPOSE, "stop", "tlr-agent"], check=True, cwd=ROOT, capture_output=True)
+    compose = compose_command()
+    subprocess.run([*compose, "stop", "tlr-agent"], check=True, cwd=ROOT, capture_output=True)
     try:
         wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "down", 30, "tlr-agent down")
         assert services(dashboard)["orchestrator"]["health"] == "up"
     finally:
         subprocess.run(
-            [*COMPOSE, "up", "-d", "--no-build", "--wait", "--wait-timeout", "180", "tlr-agent"],
+            [*compose, "start", "--wait", "--wait-timeout", "180", "tlr-agent"],
             check=True,
             cwd=ROOT,
             capture_output=True,

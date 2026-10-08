@@ -15,7 +15,15 @@ from sandman_agent.auth import TokenVerifier, require_service, trusted_actor
 from sandman_agent.config import ConfigError, Settings
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.events import Event, EventConsumer, EventPublisher, EventSink, PublishError, ensure_stream
-from sandman_agent.ids import fingerprint, new_run_id, new_workflow_id, section_local_key, sentence_local_key, stable_id
+from sandman_agent.ids import (
+    fingerprint,
+    new_run_id,
+    new_workflow_id,
+    normalize_concept_name,
+    section_local_key,
+    sentence_local_key,
+    stable_id,
+)
 from sandman_agent.kg import KgClient, RunRecorder
 from sandman_agent.llm import ChatMessage, ChatRequest, ChatResponse, LlmClient, ModelSelector, OpenAiLlmClient, Usage
 from sandman_agent.plugins import A2aPluginClient, PluginError
@@ -59,6 +67,7 @@ __all__ = [
     "new_run_id",
     "new_workflow_id",
     "require_service",
+    "normalize_concept_name",
     "section_local_key",
     "sentence_local_key",
     "serve",

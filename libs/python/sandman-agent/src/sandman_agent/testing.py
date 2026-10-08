@@ -69,6 +69,8 @@ def run_conformance(vectors_path: Path, contracts: Contracts) -> list[str]:
     for c in v["sentenceKey"]["cases"]:
         got = ids.sentence_local_key(c["sectionLocalKey"], c["text"], c["occurrence"])
         check(f"sentenceKey {c['text']!r}", got, c["expected"])
+    for c in v["conceptName"]["cases"]:
+        check(f"conceptName {c['name']!r}", ids.normalize_concept_name(c["name"]), c["expected"])
     for c in v["fingerprint"]["cases"]:
         i = c["input"]
         fp = ids.fingerprint(i["type"], i["detector"], i["involved"])

@@ -45,6 +45,12 @@ def sentence_local_key(section_key: str, text: str, occurrence: int) -> str:
     return f"{section_key}/{sha256_hex(normalized)[:12]}" + (f"~{occurrence}" if occurrence >= 2 else "")
 
 
+def normalize_concept_name(name: str) -> str:
+    """NFC, casefold, NFC, runs of ASCII whitespace to one space, trimmed (conformance vector conceptName)."""
+    folded = unicodedata.normalize("NFC", unicodedata.normalize("NFC", name).casefold())
+    return re.sub(f"[{_WS}]+", " ", folded).strip(_WS)
+
+
 def fingerprint(type_: str, detector_id: str, involved_keys: Iterable[str]) -> str:
     """sha256 over type, detector id (no version) and involved keys sorted byte-wise by UTF-8."""
     return sha256_hex(SEP.join([type_, detector_id, *sorted(involved_keys, key=str.encode)]))

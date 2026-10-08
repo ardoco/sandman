@@ -44,6 +44,12 @@ def sentence_key(section: str, text: str, occurrence: int) -> str:
     return f"{section}/{sha(normalized)[:12]}" + (f"~{occurrence}" if occurrence >= 2 else "")
 
 
+def concept_name(name: str) -> str:
+    ws = " \t\n\r\f\v"
+    folded = unicodedata.normalize("NFC", unicodedata.normalize("NFC", name).casefold())
+    return re.sub(f"[{ws}]+", " ", folded).strip(ws)
+
+
 def fingerprint(type_: str, detector: str, involved: list[str]) -> str:
     return sha(SEP.join([type_, detector, *sorted(involved, key=str.encode)]))
 
@@ -74,6 +80,8 @@ def main(contracts: Path) -> list[str]:
     for c in v["sentenceKey"]["cases"]:
         got = sentence_key(c["sectionLocalKey"], c["text"], c["occurrence"])
         check(errors, f"sentenceKey {c['text']!r}", got == c["expected"])
+    for c in v["conceptName"]["cases"]:
+        check(errors, f"conceptName {c['name']!r}", concept_name(c["name"]) == c["expected"])
     for c in v["fingerprint"]["cases"]:
         i = c["input"]
         fp = fingerprint(i["type"], i["detector"], i["involved"])

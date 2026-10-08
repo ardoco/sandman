@@ -113,6 +113,35 @@
       }
     ]
   },
+  "conceptName": {
+    "rule": "NFC, then Unicode full case folding (e.g. U+00DF folds to ss), then NFC again, runs of ASCII whitespace [ \\t\\n\\r\\f\\v] replaced by one space, leading/trailing ASCII whitespace removed. Concept id = stableId('con', projectId, normalizedName).",
+    "cases": [
+      {
+        "name": "Media  Cache",
+        "expected": "media cache"
+      },
+      {
+        "name": "  MEDIACACHE\t",
+        "expected": "mediacache"
+      },
+      {
+        "name": "Straße",
+        "expected": "strasse"
+      },
+      {
+        "name": "Café",
+        "expected": "café"
+      },
+      {
+        "name": "A B",
+        "expected": "a b"
+      },
+      {
+        "name": "Cache",
+        "expected": "cache"
+      }
+    ]
+  },
   "fingerprint": {
     "rule": "sha256 hex of UTF-8(type, detector id WITHOUT version, involved keys sorted byte-wise by UTF-8; all joined by U+001F). Involved key = element key, or sourceKey + '->' + targetKey for a trace link. inc id = stableId('inc', [projectId, fingerprint]).",
     "cases": [

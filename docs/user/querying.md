@@ -14,7 +14,7 @@ All queries are read-only and confined to one project. Any project role (`viewer
 | `components without documentation` | model components with no active `documents` link. The only approach today (`stub-name-match`) creates `relates` links, so this lists all components |
 | `what changed since <revision>` | versions activated by ingestions after the latest one with that `--revision`: ingestion number, revision, path, version id |
 
-`<name>` is the element's name: for a requirement its title (`links of Cache media files`), for code `MediaCache`. A requirement id alone (`REQ-1`) does not match; use the title or the full key (`art_...#REQ-1`, see the `key` column). Anything else answers `question not understood (M0 stub, no LLM)` and lists the supported intents (`id`s from `config/query/intents.yaml`). LLM-based questions are planned (T1.5).
+`<name>` is the element's name: for a requirement its title (`links of Cache media files`), for code `MediaCache`. A requirement id alone (`REQ-1`) does not match; use the title or the full key (`art_...#REQ-1`, see the `key` column). Anything else answers `question not understood (M0 stub, no LLM)` and lists the supported intents (`id`s from `config/query/intents.yaml`). LLM-based questions are planned (T4.1, natural language to Cypher).
 
 The same through the API; `mode: "cypher-only"` returns the Cypher without running it:
 

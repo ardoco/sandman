@@ -106,6 +106,10 @@ class Service:
         """Logical chat route of the project's LLM policy."""
         return "chat-local" if policy == LOCAL_ONLY else "chat-default"
 
+    def route_model(self, route: str) -> str:
+        """Gateway model id a logical route maps to (part of the reuse key of enrichment results)."""
+        return self.selector.routes.get(route, route) if self.selector else route
+
     def llm_client(self, policy: str) -> LlmClient:
         """Client with the cloud or local-only virtual key; PolicyError if the policy cannot be served."""
         if self.llm_factory is not None:

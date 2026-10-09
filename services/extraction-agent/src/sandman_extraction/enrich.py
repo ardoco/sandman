@@ -8,6 +8,7 @@ import asyncio
 import copy
 import json
 import logging
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from importlib import resources
@@ -42,6 +43,7 @@ class EnrichConfig:
     max_summary_chars: int = 400
     max_concepts: int = 8
     max_tokens: int = 512
+    max_input_chars: int = 6000
     seed: int = 42
     reasoning_effort: tuple[tuple[str, str], ...] = ()
 
@@ -58,6 +60,7 @@ class EnrichConfig:
             max_summary_chars=int(raw.get("maxSummaryChars", defaults.max_summary_chars)),
             max_concepts=int(raw.get("maxConceptsPerElement", defaults.max_concepts)),
             max_tokens=int(raw.get("maxTokens", defaults.max_tokens)),
+            max_input_chars=max(200, int(raw.get("maxInputChars", defaults.max_input_chars))),
             seed=int(raw.get("seed", defaults.seed)),
             reasoning_effort=tuple((str(k), str(v)) for k, v in raw.get("reasoningEffort", {}).items()),
         )
@@ -80,11 +83,32 @@ def schemas(cfg: EnrichConfig) -> dict[str, dict[str, Any]]:
     return {"summary": summary, "concepts": concepts}
 
 
+_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+_ASCII_WS = re.compile(r"[ \t\n\r\f\v]+")
+TITLE_MAX = 200
+
+
+def _plain(value: str) -> str:
+    """Control characters replaced by spaces, ASCII whitespace runs collapsed, trimmed (same rule as concept ids)."""
+    return _ASCII_WS.sub(" ", _CONTROL.sub(" ", value)).strip(" \t\n\r\f\v")
+
+
+def _marker_safe(value: str) -> str:
+    return value.replace("ARTIFACT_TEXT", "ARTIFACT-TEXT")
+
+
 def render(name: str, cfg: EnrichConfig, element_name: str, text: str) -> str:
-    """Prompt with only the element's name and text (no ids, run ids or timestamps: stable cassette keys)."""
-    safe = text.replace("ARTIFACT_TEXT", "ARTIFACT-TEXT")
+    """Prompt with only the element's name and text (no ids, run ids or timestamps: stable cassette keys).
+
+    The title is a single sanitized line; the text keeps its newlines but loses control characters, the data markers
+    and everything beyond `maxInputChars`, so the rules and the closing marker of the template always stay intact.
+    """
+    safe_text = _marker_safe(_CONTROL.sub(" ", text))[: cfg.max_input_chars]
     return TEMPLATES[name].format(
-        max_chars=cfg.max_summary_chars, max_concepts=cfg.max_concepts, name=element_name, text=safe
+        max_chars=cfg.max_summary_chars,
+        max_concepts=cfg.max_concepts,
+        name=_marker_safe(_plain(element_name))[:TITLE_MAX],
+        text=safe_text,
     )
 
 
@@ -154,14 +178,15 @@ def _concepts(pid: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Concepts with normalized ids; names differing only in case or whitespace collapse to the highest confidence."""
     merged: dict[str, dict[str, Any]] = {}
     for item in items:
-        normalized = normalize_concept_name(item["name"])
+        display = _plain(item["name"])
+        normalized = normalize_concept_name(display)
         if not normalized:
             continue
         seen = merged.get(normalized)
         if seen is None:
             merged[normalized] = {
                 "cid": stable_id("con", pid, normalized),
-                "name": " ".join(item["name"].split()),
+                "name": display,
                 "confidence": float(item["confidence"]),
             }
         else:
@@ -188,6 +213,9 @@ async def _select(
     if len(wanted) > cfg.max_elements:
         warnings.append(f"LLM enrichment limited to the first {cfg.max_elements} of {len(wanted)} elements")
         wanted = wanted[: cfg.max_elements]
+    truncated = sum(len(r["text"]) > cfg.max_input_chars for r in wanted)
+    if truncated:
+        warnings.append(f"LLM enrichment used only the first {cfg.max_input_chars} characters of {truncated} elements")
     by_version: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for r in wanted:
         by_version[r["vid"]].append(r)
@@ -197,12 +225,13 @@ async def _select(
 async def _reusable(
     svc: "Service", pid: str, els: list[dict[str, Any]], route: str, params: str
 ) -> dict[str, dict[str, Any]]:
-    """Summary and mentions of unchanged elements (same key and contentHash) from an earlier matching enrichment run."""
+    """Summary and mentions of unchanged elements (same key and contentHash) from an earlier fully successful run
+    with the same route, model mapping, prompts and parameters."""
     found = await svc.kg.read(
         "UNWIND $els AS x MATCH (old:Element {projectId: $pid, key: x.key, contentHash: x.hash}) "
         "WHERE old.id <> x.id AND old.summary IS NOT NULL "
         "MATCH (old)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:USED]-(r:Run {tool: $tool}) "
-        "WHERE r.status IN ['completed', 'partial'] AND r.model = $route AND r.promptIds = $pids "
+        "WHERE r.status = 'completed' AND r.model = $route AND r.promptIds = $pids "
         "AND r.params = $params "
         "WITH x, old, r ORDER BY r.startedAt DESC, old.id "
         "WITH x, head(collect(old)) AS src "
@@ -252,7 +281,7 @@ async def _enrich_element(
     summary = await ask(client, route, render("summary", cfg, el["name"], el["text"]), schema["summary"], cfg, run_id)
     totals.add(summary)
     if summary.data is not None:
-        result.summary = summary.data["summary"].strip()
+        result.summary = _plain(summary.data["summary"]) or None
     else:
         totals.skipped.append(f"summary of {el['key']}")
     concepts = await ask(
@@ -285,7 +314,18 @@ async def enrich(
     if not svc.llm_configured:
         return [*warnings, "LLM enrichment skipped: no LLM access configured"]
     route = svc.chat_route(llm_policy)
-    params = canonical_json({"temperature": 0.0, "seed": cfg.seed}).decode()
+    params = canonical_json(
+        {
+            "temperature": 0.0,
+            "seed": cfg.seed,
+            "model": svc.route_model(route),
+            "reasoningEffort": dict(cfg.reasoning_effort).get(route),
+            "maxSummaryChars": cfg.max_summary_chars,
+            "maxConcepts": cfg.max_concepts,
+            "maxTokens": cfg.max_tokens,
+            "maxInputChars": cfg.max_input_chars,
+        }
+    ).decode()
     input_key = sha256_hex(
         canonical_json({"input": skill_input, "tool": TOOL, "configHash": svc.enrichment_hash, "promptIds": PROMPT_IDS})
     )
@@ -318,10 +358,15 @@ async def enrich(
                 return vid, await _enrich_element(client, route, cfg, run_id, pid, el, totals)
 
         done = await asyncio.gather(*(one(v, e) for v, e in pending), return_exceptions=True)
+        failures = [o for o in done if isinstance(o, BaseException)]
+        for failure in failures:
+            if isinstance(failure, BudgetExceededError):
+                raise failure
+        if failures:
+            raise failures[0]
         for outcome in done:
-            if isinstance(outcome, BaseException):
-                raise outcome
-            results[outcome[0]].append(outcome[1])
+            if not isinstance(outcome, BaseException):
+                results[outcome[0]].append(outcome[1])
         for items in results.values():
             await _write(svc, pid, run_id, items)
     except BudgetExceededError as e:

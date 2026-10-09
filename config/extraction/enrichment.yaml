@@ -10,6 +10,8 @@ concurrency: 4                # parallel LLM calls
 maxSummaryChars: 400
 maxConceptsPerElement: 8
 maxTokens: 512                # per LLM response
+maxInputChars: 6000           # element text beyond this is cut (fits the 4096-token context of the local Ollama); a warning reports it
 seed: 42
-reasoningEffort:              # per route; "none" switches thinking off (qwen3 on Ollama otherwise spends the token budget on it)
+reasoningEffort:              # per route; "none" switches thinking off (qwen3 on Ollama otherwise spends the token budget on it).
+                              # Only sent to ollama/* models; ignored for other providers.
   chat-local: none

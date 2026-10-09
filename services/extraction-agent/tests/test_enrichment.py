@@ -5,6 +5,7 @@ import json
 from collections.abc import Callable
 from typing import Any
 
+import pytest
 from sandman_agent import Contracts, stable_id
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.llm import BudgetExceededError, ChatMessage, ChatRequest, ChatResponse, PolicyError, Usage
@@ -111,7 +112,9 @@ async def test_enrichment_writes_summaries_concepts_and_provenance(env: Any) -> 
         "qwen3:1.7b",
         "extract-artifact-versions",
     )
-    assert json.loads(props["params"]) == {"seed": 42, "temperature": 0.0}
+    params = json.loads(props["params"])
+    assert (params["seed"], params["temperature"], params["model"]) == (42, 0.0, "ollama/qwen3:1.7b")
+    assert (params["maxSummaryChars"], params["maxConcepts"], params["maxInputChars"]) == (400, 8, 6000)
     assert props["promptIds"] == enrich.PROMPT_IDS
     assert (props["inputTokens"], props["outputTokens"]) == (7 * len(llm.requests), 3 * len(llm.requests))
     assert props["configHash"] == env.svc.enrichment_hash != env.config_hash
@@ -257,3 +260,64 @@ async def test_element_limit_is_a_warning(env: Any) -> None:
     _, task = await ingest_and_extract(env)
     assert any("limited to the first 2" in w for w in task.result["warnings"])
     assert len(llm.requests) == 4
+
+
+@pytest.mark.parametrize("budget_title", ["Cache media files", "Upload audio files", "Encrypt user passwords"])
+async def test_budget_exhaustion_wins_over_other_failures(env: Any, budget_title: str) -> None:
+    class Mixed(FakeLlm):
+        async def chat(self, req: ChatRequest) -> ChatResponse:
+            if title(req) == budget_title:
+                raise BudgetExceededError("budget_exceeded")
+            raise ConnectionError("gateway unreachable")
+
+    enable(env, Mixed())
+    _, task = await ingest_and_extract(env)
+    assert task.state == "TASK_STATE_FAILED"
+    assert task.error is not None and "BUDGET_EXCEEDED" in json.dumps(task.error)
+
+
+async def test_long_texts_are_cut_with_a_warning(env: Any) -> None:
+    llm = enable(env, max_input_chars=200)
+    files = env.mini() | {"docs/long.md": b"# Long\n\n" + b"word " * 400}
+    _, task = await ingest_and_extract(env, files)
+    assert any("first 200 characters of 1 elements" in w for w in task.result["warnings"])
+    assert max(len(r.messages[0].content) for r in llm.requests) < 1200
+    assert all(r.messages[0].content.rstrip().endswith("ARTIFACT_TEXT>>>") for r in llm.requests)
+
+
+@pytest.mark.parametrize("change", ["summary-limit", "model-mapping"])
+async def test_reuse_is_invalidated_by_limits_and_model_mapping(env: Any, change: str) -> None:
+    llm = enable(env)
+    files = env.mini()
+    await ingest_and_extract(env, files)
+    calls = len(llm.requests)
+    if change == "summary-limit":
+        env.svc.enrichment = dataclasses.replace(env.svc.enrichment, max_summary_chars=300)
+    else:
+        env.svc.selector.routes["chat-local"] = "ollama/qwen3:4b"
+    resp = await env.ingest(files | {REQ: files[REQ] + b"\n## REQ-4 New\nSomething new.\n"})
+    task = await env.extract(resp.json()["createdVersionIds"])
+    assert task.state == "TASK_STATE_COMPLETED"
+    assert len(llm.requests) - calls == 2 * 4
+
+
+async def test_partial_enrichment_is_not_reused(env: Any) -> None:
+    def flaky(req: ChatRequest) -> str:
+        if "concepts" in req.response_schema["properties"] and title(req) == "Encrypt user passwords":
+            return "not json"
+        return default_reply(req)
+
+    llm = enable(env, FakeLlm(flaky))
+    files = env.mini()
+    await ingest_and_extract(env, files)
+    llm.reply = default_reply
+    calls = len(llm.requests)
+    resp = await env.ingest(files | {REQ: files[REQ] + b"\n## REQ-4 New\nSomething new.\n"})
+    await env.extract(resp.json()["createdVersionIds"])
+    assert len(llm.requests) - calls == 2 * 4
+    rows = await cypher(
+        env,
+        "MATCH (r:Requirement {projectId: $p, name: 'Encrypt user passwords'})-[:MENTIONS]->(c) RETURN count(c) AS n",
+        p=env.project,
+    )
+    assert rows[0]["n"] >= 2

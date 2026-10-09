@@ -37,7 +37,7 @@ make models
 make up
 ```
 
-The container is CPU-only, limited to 4 GB, and reachable only by the gateway. If you raise the Docker memory to 12 GiB or more, `qwen3:4b` is the better chat model: change `chat-local` in `config/llm/models.yaml` and run `make models` again.
+The container is CPU-only, limited to 4 GB, and reachable only by the gateway. The `local-llm` profile pulls `qwen3:4b`, which needs about 12 GiB of Docker memory. All recorded cassettes use this model, so do not change `chat-local`.
 
 **B. Remote Open WebUI.** If Open WebUI runs in front of Ollama on another machine, create an API key there (Settings, Account, API Keys; an admin must have enabled API keys) and set in `gateway.env`:
 

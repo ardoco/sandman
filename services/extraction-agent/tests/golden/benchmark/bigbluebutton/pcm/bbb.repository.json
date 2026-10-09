@@ -1,0 +1,544 @@
+{
+ "elements": [
+  {
+   "endLine": 63,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "bbb.repository",
+   "qualifiedName": "benchmark/bigbluebutton/pcm/bbb.repository",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n<repository:Repository xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:repository=\"http://palladiosimulator.org/PalladioComponentModel/Repository/5.2\" id=\"_kMF5sFkFEeyewPSmlgszyA\" entityName=\"New Repository\">\n  <components__Repository xsi:type=\"repository:BasicComponent\" id=\"_kvWs4FkHEeyewPSmlgszyA\" entityName=\"Recording Service\">\n    <providedRoles_InterfaceProvidingEntity xsi:type=\"repositor"
+  },
+  {
+   "endLine": 6,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_kvWs4FkHEeyewPSmlgszyA",
+   "name": "Recording Service",
+   "parent": "file",
+   "qualifiedName": "Recording Service",
+   "startLine": 3,
+   "text": "BasicComponent Recording Service; provides Recording Service; requires Redis DB"
+  },
+  {
+   "endLine": 10,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_oN4CMFkHEeyewPSmlgszyA",
+   "name": "kurento",
+   "parent": "file",
+   "qualifiedName": "kurento",
+   "startLine": 7,
+   "text": "BasicComponent kurento; provides kurento; requires WebRTC-SFU"
+  },
+  {
+   "endLine": 14,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_s0aIcFkHEeyewPSmlgszyA",
+   "name": "WebRTC-SFU",
+   "parent": "file",
+   "qualifiedName": "WebRTC-SFU",
+   "startLine": 11,
+   "text": "BasicComponent WebRTC-SFU; provides WebRTC-SFU; requires Redis PubSub"
+  },
+  {
+   "endLine": 18,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_yGgUMFkHEeyewPSmlgszyA",
+   "name": "HTML5 Server",
+   "parent": "file",
+   "qualifiedName": "HTML5 Server",
+   "startLine": 15,
+   "text": "BasicComponent HTML5 Server; provides HTML5 Server; requires Redis PubSub"
+  },
+  {
+   "endLine": 22,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_0e5u8FkHEeyewPSmlgszyA",
+   "name": "HTML5 Client",
+   "parent": "file",
+   "qualifiedName": "HTML5 Client",
+   "startLine": 19,
+   "text": "BasicComponent HTML5 Client; provides HTML5 Client; requires HTML5 Server"
+  },
+  {
+   "endLine": 27,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_2BgxMFkHEeyewPSmlgszyA",
+   "name": "Presentation Conversion",
+   "parent": "file",
+   "qualifiedName": "Presentation Conversion",
+   "startLine": 23,
+   "text": "BasicComponent Presentation Conversion; provides Presentation Conversion; requires Redis PubSub, BBB web"
+  },
+  {
+   "endLine": 31,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_4yx-8FkHEeyewPSmlgszyA",
+   "name": "BBB web",
+   "parent": "file",
+   "qualifiedName": "BBB web",
+   "startLine": 28,
+   "text": "BasicComponent BBB web; provides BBB web; requires Redis PubSub"
+  },
+  {
+   "endLine": 34,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_6sergFkHEeyewPSmlgszyA",
+   "name": "Redis PubSub",
+   "parent": "file",
+   "qualifiedName": "Redis PubSub",
+   "startLine": 32,
+   "text": "BasicComponent Redis PubSub; provides Redis PubSub"
+  },
+  {
+   "endLine": 39,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_9wZIcFkHEeyewPSmlgszyA",
+   "name": "FSESL",
+   "parent": "file",
+   "qualifiedName": "FSESL",
+   "startLine": 35,
+   "text": "BasicComponent FSESL; provides FSESL; requires Redis PubSub, FreeSWITCH"
+  },
+  {
+   "endLine": 44,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_XuNf4FkJEeyewPSmlgszyA",
+   "name": "Apps",
+   "parent": "file",
+   "qualifiedName": "Apps",
+   "startLine": 40,
+   "text": "BasicComponent Apps; provides Apps; requires Redis PubSub, Redis DB"
+  },
+  {
+   "endLine": 47,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_RDHFIFwPEeyiuNx_RO7j-Q",
+   "name": "Redis DB",
+   "parent": "file",
+   "qualifiedName": "Redis DB",
+   "startLine": 45,
+   "text": "BasicComponent Redis DB; provides Redis DB"
+  },
+  {
+   "endLine": 50,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_nwrCMFwPEeyiuNx_RO7j-Q",
+   "name": "FreeSWITCH",
+   "parent": "file",
+   "qualifiedName": "FreeSWITCH",
+   "startLine": 48,
+   "text": "BasicComponent FreeSWITCH; provides FreeSWITCH"
+  },
+  {
+   "endLine": 51,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_d9jzgFkIEeyewPSmlgszyA",
+   "name": "Recording Service",
+   "parent": "file",
+   "qualifiedName": "Recording Service",
+   "startLine": 51,
+   "text": "OperationInterface Recording Service"
+  },
+  {
+   "endLine": 52,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_r42CoFkIEeyewPSmlgszyA",
+   "name": "kurento",
+   "parent": "file",
+   "qualifiedName": "kurento",
+   "startLine": 52,
+   "text": "OperationInterface kurento"
+  },
+  {
+   "endLine": 53,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ur280FkIEeyewPSmlgszyA",
+   "name": "WebRTC-SFU",
+   "parent": "file",
+   "qualifiedName": "WebRTC-SFU",
+   "startLine": 53,
+   "text": "OperationInterface WebRTC-SFU"
+  },
+  {
+   "endLine": 54,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_xqkJoFkIEeyewPSmlgszyA",
+   "name": "HTML5 Server",
+   "parent": "file",
+   "qualifiedName": "HTML5 Server",
+   "startLine": 54,
+   "text": "OperationInterface HTML5 Server"
+  },
+  {
+   "endLine": 55,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_2I1EsFkIEeyewPSmlgszyA",
+   "name": "HTML5 Client",
+   "parent": "file",
+   "qualifiedName": "HTML5 Client",
+   "startLine": 55,
+   "text": "OperationInterface HTML5 Client"
+  },
+  {
+   "endLine": 56,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_7b12cFkIEeyewPSmlgszyA",
+   "name": "Presentation Conversion",
+   "parent": "file",
+   "qualifiedName": "Presentation Conversion",
+   "startLine": 56,
+   "text": "OperationInterface Presentation Conversion"
+  },
+  {
+   "endLine": 57,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_FhvIYFkJEeyewPSmlgszyA",
+   "name": "BBB web",
+   "parent": "file",
+   "qualifiedName": "BBB web",
+   "startLine": 57,
+   "text": "OperationInterface BBB web"
+  },
+  {
+   "endLine": 58,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_IixQcFkJEeyewPSmlgszyA",
+   "name": "Redis PubSub",
+   "parent": "file",
+   "qualifiedName": "Redis PubSub",
+   "startLine": 58,
+   "text": "OperationInterface Redis PubSub"
+  },
+  {
+   "endLine": 59,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_MUFl8FkJEeyewPSmlgszyA",
+   "name": "FSESL",
+   "parent": "file",
+   "qualifiedName": "FSESL",
+   "startLine": 59,
+   "text": "OperationInterface FSESL"
+  },
+  {
+   "endLine": 60,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ZADiQFkJEeyewPSmlgszyA",
+   "name": "Apps",
+   "parent": "file",
+   "qualifiedName": "Apps",
+   "startLine": 60,
+   "text": "OperationInterface Apps"
+  },
+  {
+   "endLine": 61,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_UV7gwFwPEeyiuNx_RO7j-Q",
+   "name": "Redis DB",
+   "parent": "file",
+   "qualifiedName": "Redis DB",
+   "startLine": 61,
+   "text": "OperationInterface Redis DB"
+  },
+  {
+   "endLine": 62,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_qa5z0FwPEeyiuNx_RO7j-Q",
+   "name": "FreeSWITCH",
+   "parent": "file",
+   "qualifiedName": "FreeSWITCH",
+   "startLine": 62,
+   "text": "OperationInterface FreeSWITCH"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_kvWs4FkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_d9jzgFkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_kvWs4FkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_UV7gwFwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_oN4CMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_r42CoFkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_oN4CMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_ur280FkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_s0aIcFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_ur280FkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_s0aIcFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_yGgUMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_xqkJoFkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_yGgUMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_0e5u8FkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_2I1EsFkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_0e5u8FkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_xqkJoFkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_2BgxMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_7b12cFkIEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_2BgxMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_2BgxMFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_FhvIYFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_4yx-8FkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_FhvIYFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_4yx-8FkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_6sergFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9wZIcFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_MUFl8FkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9wZIcFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9wZIcFkHEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_qa5z0FwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_XuNf4FkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_ZADiQFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_XuNf4FkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_IixQcFkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_XuNf4FkJEeyewPSmlgszyA",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_UV7gwFwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_RDHFIFwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_UV7gwFwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_nwrCMFwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "target": {
+    "localKey": "_qa5z0FwPEeyiuNx_RO7j-Q",
+    "path": "benchmark/bigbluebutton/pcm/bbb.repository"
+   },
+   "type": "PROVIDES"
+  }
+ ]
+}

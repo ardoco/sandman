@@ -1,0 +1,390 @@
+{
+ "elements": [
+  {
+   "endLine": 45,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "teammates.repository",
+   "qualifiedName": "benchmark/teammates/pcm/teammates.repository",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n<repository:Repository xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:repository=\"http://palladiosimulator.org/PalladioComponentModel/Repository/5.2\" id=\"_tRJJ0KESEeu-mYqkDskRow\" entityName=\"New Repository\">\n  <components__Repository xsi:type=\"repository:BasicComponent\" id=\"_zUmhEKESEeu-mYqkDskRow\" entityName=\"Common\">\n    <providedRoles_InterfaceProvidingEntity xsi:type=\"repository:Operation"
+  },
+  {
+   "endLine": 6,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_zUmhEKESEeu-mYqkDskRow",
+   "name": "Common",
+   "parent": "file",
+   "qualifiedName": "Common",
+   "startLine": 3,
+   "text": "BasicComponent Common; provides Common; requires Storage"
+  },
+  {
+   "endLine": 11,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_1lMqsKESEeu-mYqkDskRow",
+   "name": "UI",
+   "parent": "file",
+   "qualifiedName": "UI",
+   "startLine": 7,
+   "text": "BasicComponent UI; provides UI; requires Common, Logic"
+  },
+  {
+   "endLine": 16,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_3LCnIKESEeu-mYqkDskRow",
+   "name": "Logic",
+   "parent": "file",
+   "qualifiedName": "Logic",
+   "startLine": 12,
+   "text": "BasicComponent Logic; provides Logic; requires Common, Storage"
+  },
+  {
+   "endLine": 21,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_9JlCIKESEeu-mYqkDskRow",
+   "name": "Storage",
+   "parent": "file",
+   "qualifiedName": "Storage",
+   "startLine": 17,
+   "text": "BasicComponent Storage; provides Storage; requires Common, GAE Datastore"
+  },
+  {
+   "endLine": 25,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Bae2oKETEeu-mYqkDskRow",
+   "name": "Test Driver",
+   "parent": "file",
+   "qualifiedName": "Test Driver",
+   "startLine": 22,
+   "text": "BasicComponent Test Driver; provides Test Driver; requires UI"
+  },
+  {
+   "endLine": 29,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_EIoe8KETEeu-mYqkDskRow",
+   "name": "E2E",
+   "parent": "file",
+   "qualifiedName": "E2E",
+   "startLine": 26,
+   "text": "BasicComponent E2E; provides E2E; requires UI"
+  },
+  {
+   "endLine": 33,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_GaP8QKETEeu-mYqkDskRow",
+   "name": "Client",
+   "parent": "file",
+   "qualifiedName": "Client",
+   "startLine": 30,
+   "text": "BasicComponent Client; provides Client; requires GAE Datastore"
+  },
+  {
+   "endLine": 36,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_KGVMcKETEeu-mYqkDskRow",
+   "name": "GAE Datastore",
+   "parent": "file",
+   "qualifiedName": "GAE Datastore",
+   "startLine": 34,
+   "text": "BasicComponent GAE Datastore; provides GAE Datastore"
+  },
+  {
+   "endLine": 37,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ylL2UKESEeu-mYqkDskRow",
+   "name": "Common",
+   "parent": "file",
+   "qualifiedName": "Common",
+   "startLine": 37,
+   "text": "OperationInterface Common"
+  },
+  {
+   "endLine": 38,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_0kie8KESEeu-mYqkDskRow",
+   "name": "UI",
+   "parent": "file",
+   "qualifiedName": "UI",
+   "startLine": 38,
+   "text": "OperationInterface UI"
+  },
+  {
+   "endLine": 39,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_2dI_UKESEeu-mYqkDskRow",
+   "name": "Logic",
+   "parent": "file",
+   "qualifiedName": "Logic",
+   "startLine": 39,
+   "text": "OperationInterface Logic"
+  },
+  {
+   "endLine": 40,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_777jQKESEeu-mYqkDskRow",
+   "name": "Storage",
+   "parent": "file",
+   "qualifiedName": "Storage",
+   "startLine": 40,
+   "text": "OperationInterface Storage"
+  },
+  {
+   "endLine": 41,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "__RE6IKESEeu-mYqkDskRow",
+   "name": "Test Driver",
+   "parent": "file",
+   "qualifiedName": "Test Driver",
+   "startLine": 41,
+   "text": "OperationInterface Test Driver"
+  },
+  {
+   "endLine": 42,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_C6tTQKETEeu-mYqkDskRow",
+   "name": "E2E",
+   "parent": "file",
+   "qualifiedName": "E2E",
+   "startLine": 42,
+   "text": "OperationInterface E2E"
+  },
+  {
+   "endLine": 43,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_FMKYgKETEeu-mYqkDskRow",
+   "name": "Client",
+   "parent": "file",
+   "qualifiedName": "Client",
+   "startLine": 43,
+   "text": "OperationInterface Client"
+  },
+  {
+   "endLine": 44,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_IArukKETEeu-mYqkDskRow",
+   "name": "GAE Datastore",
+   "parent": "file",
+   "qualifiedName": "GAE Datastore",
+   "startLine": 44,
+   "text": "OperationInterface GAE Datastore"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_zUmhEKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_zUmhEKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_777jQKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_1lMqsKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_0kie8KESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_1lMqsKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_1lMqsKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_2dI_UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_3LCnIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_2dI_UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_3LCnIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_3LCnIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_777jQKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9JlCIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_777jQKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9JlCIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9JlCIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_IArukKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Bae2oKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "__RE6IKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Bae2oKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_0kie8KESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_EIoe8KETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_C6tTQKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_EIoe8KETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_0kie8KESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_GaP8QKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_FMKYgKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_GaP8QKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_IArukKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_KGVMcKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "target": {
+    "localKey": "_IArukKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/pcm/teammates.repository"
+   },
+   "type": "PROVIDES"
+  }
+ ]
+}

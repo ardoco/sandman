@@ -1,0 +1,390 @@
+{
+ "elements": [
+  {
+   "endLine": 45,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "teammates.uml",
+   "qualifiedName": "benchmark/teammates/uml/teammates.uml",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<uml:Model xmi:version=\"20131001\" xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\" xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\" xmi:id=\"_tRJJ0KESEeu-mYqkDskRow\" name=\"New Repository\">\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_0kie8KESEeu-mYqkDskRow\" name=\"UI\"/>\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_FMKYgKETEeu-mYqkDskRow\" name=\"Client\"/>\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_IArukKETEeu-mYqkDskRow\" name=\"GAE Dat"
+  },
+  {
+   "endLine": 3,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_0kie8KESEeu-mYqkDskRow",
+   "name": "UI",
+   "parent": "file",
+   "qualifiedName": "UI",
+   "startLine": 3,
+   "text": "UI"
+  },
+  {
+   "endLine": 4,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_FMKYgKETEeu-mYqkDskRow",
+   "name": "Client",
+   "parent": "file",
+   "qualifiedName": "Client",
+   "startLine": 4,
+   "text": "Client"
+  },
+  {
+   "endLine": 5,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_IArukKETEeu-mYqkDskRow",
+   "name": "GAE Datastore",
+   "parent": "file",
+   "qualifiedName": "GAE Datastore",
+   "startLine": 5,
+   "text": "GAE Datastore"
+  },
+  {
+   "endLine": 6,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_C6tTQKETEeu-mYqkDskRow",
+   "name": "E2E",
+   "parent": "file",
+   "qualifiedName": "E2E",
+   "startLine": 6,
+   "text": "E2E"
+  },
+  {
+   "endLine": 7,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "__RE6IKESEeu-mYqkDskRow",
+   "name": "Test Driver",
+   "parent": "file",
+   "qualifiedName": "Test Driver",
+   "startLine": 7,
+   "text": "Test Driver"
+  },
+  {
+   "endLine": 8,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_2dI_UKESEeu-mYqkDskRow",
+   "name": "Logic",
+   "parent": "file",
+   "qualifiedName": "Logic",
+   "startLine": 8,
+   "text": "Logic"
+  },
+  {
+   "endLine": 9,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_777jQKESEeu-mYqkDskRow",
+   "name": "Storage",
+   "parent": "file",
+   "qualifiedName": "Storage",
+   "startLine": 9,
+   "text": "Storage"
+  },
+  {
+   "endLine": 10,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ylL2UKESEeu-mYqkDskRow",
+   "name": "Common",
+   "parent": "file",
+   "qualifiedName": "Common",
+   "startLine": 10,
+   "text": "Common"
+  },
+  {
+   "endLine": 14,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_EIoe8KETEeu-mYqkDskRow",
+   "name": "E2E",
+   "parent": "file",
+   "qualifiedName": "E2E",
+   "startLine": 11,
+   "text": "E2E; provides E2E; requires UI"
+  },
+  {
+   "endLine": 17,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_KGVMcKETEeu-mYqkDskRow",
+   "name": "GAE Datastore",
+   "parent": "file",
+   "qualifiedName": "GAE Datastore",
+   "startLine": 15,
+   "text": "GAE Datastore; provides GAE Datastore"
+  },
+  {
+   "endLine": 21,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_zUmhEKESEeu-mYqkDskRow",
+   "name": "Common",
+   "parent": "file",
+   "qualifiedName": "Common",
+   "startLine": 18,
+   "text": "Common; provides Common; requires Storage"
+  },
+  {
+   "endLine": 26,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_9JlCIKESEeu-mYqkDskRow",
+   "name": "Storage",
+   "parent": "file",
+   "qualifiedName": "Storage",
+   "startLine": 22,
+   "text": "Storage; provides Storage; requires GAE Datastore, Common"
+  },
+  {
+   "endLine": 30,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_GaP8QKETEeu-mYqkDskRow",
+   "name": "Client",
+   "parent": "file",
+   "qualifiedName": "Client",
+   "startLine": 27,
+   "text": "Client; provides Client; requires GAE Datastore"
+  },
+  {
+   "endLine": 35,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_1lMqsKESEeu-mYqkDskRow",
+   "name": "UI",
+   "parent": "file",
+   "qualifiedName": "UI",
+   "startLine": 31,
+   "text": "UI; provides UI; requires Common, Logic"
+  },
+  {
+   "endLine": 39,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Bae2oKETEeu-mYqkDskRow",
+   "name": "Test Driver",
+   "parent": "file",
+   "qualifiedName": "Test Driver",
+   "startLine": 36,
+   "text": "Test Driver; provides Test Driver; requires UI"
+  },
+  {
+   "endLine": 44,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_3LCnIKESEeu-mYqkDskRow",
+   "name": "Logic",
+   "parent": "file",
+   "qualifiedName": "Logic",
+   "startLine": 40,
+   "text": "Logic; provides Logic; requires Storage, Common"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_EIoe8KETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_C6tTQKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_EIoe8KETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_0kie8KESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_KGVMcKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_IArukKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_zUmhEKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_zUmhEKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_777jQKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9JlCIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_777jQKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_9JlCIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_IArukKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_9JlCIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_GaP8QKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_FMKYgKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_GaP8QKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_IArukKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_1lMqsKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_0kie8KESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_1lMqsKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_1lMqsKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_2dI_UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Bae2oKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "__RE6IKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Bae2oKETEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_0kie8KESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_3LCnIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_2dI_UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_3LCnIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_777jQKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_3LCnIKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "target": {
+    "localKey": "_ylL2UKESEeu-mYqkDskRow",
+    "path": "benchmark/teammates/uml/teammates.uml"
+   },
+   "type": "REQUIRES"
+  }
+ ]
+}

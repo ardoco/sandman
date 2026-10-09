@@ -1,0 +1,2 @@
+teammates.txt is adapted from the TEAMMATES design documentation (https://teammates.github.io/teammates/design.html), licensed under GPL-2.0 (https://github.com/TEAMMATES/teammates/blob/master/LICENSE). Modified by the ArDoCo benchmark (images, listings, titles removed; see Benchmark teammates/text_2021/README.md).
+Models (pcm/, uml/): ArDoCo benchmark, MIT, see ../LICENSE-Benchmark; the benchmark states no separate model license.

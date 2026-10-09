@@ -1,13 +1,11 @@
 """Sentence alignment against ArDoCo benchmark texts (one sentence per line); prints the rate per project."""
 
-import os
 from pathlib import Path
 
 import pytest
 from sandman_extraction.text import extract, render_sentences
 
 FIXTURES = Path(__file__).parent / "fixtures" / "benchmark"
-EXTERNAL = {"mediastore": "mediastore/text_2016/mediastore.txt", "teastore": "teastore/text_2020/teastore.txt"}
 
 
 def aligned(text: bytes) -> tuple[int, int]:
@@ -16,16 +14,10 @@ def aligned(text: bytes) -> tuple[int, int]:
     return sum(a == b for a, b in zip(got, gold, strict=False)), len(gold)
 
 
-def test_vendored_teastore_alignment(capsys: pytest.CaptureFixture[str]) -> None:
-    ok, total = aligned((FIXTURES / "teastore" / "teastore.txt").read_bytes())
+@pytest.mark.parametrize("project", ["teastore", "mediastore", "teammates", "bigbluebutton", "jabref"])
+def test_vendored_alignment(project: str, capsys: pytest.CaptureFixture[str]) -> None:
+    ok, total = aligned((FIXTURES / project / f"{project}.txt").read_bytes())
     with capsys.disabled():
-        print(f"\nsentence alignment teastore: {ok}/{total}")
+        print(f"\nsentence alignment {project}: {ok}/{total}")
     assert ok == total
 
-
-@pytest.mark.skipif(not os.environ.get("SANDMAN_BENCHMARK_DIR"), reason="SANDMAN_BENCHMARK_DIR not set")
-def test_mediastore_alignment(capsys: pytest.CaptureFixture[str]) -> None:
-    ok, total = aligned((Path(os.environ["SANDMAN_BENCHMARK_DIR"]) / EXTERNAL["mediastore"]).read_bytes())
-    with capsys.disabled():
-        print(f"\nsentence alignment mediastore: {ok}/{total}")
-    assert ok == total

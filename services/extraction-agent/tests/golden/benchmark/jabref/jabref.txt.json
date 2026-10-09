@@ -1,0 +1,182 @@
+{
+ "elements": [
+  {
+   "endLine": 13,
+   "kind": "file",
+   "label": "TextUnit",
+   "localKey": "file",
+   "name": "jabref.txt",
+   "qualifiedName": "benchmark/jabref/jabref.txt",
+   "startLine": 1,
+   "text": "We have been successfully transitioning from a spaghetti to a more structured architecture with the model in the center, and the logic as an intermediate layer towards the gui which is the outer shell.\nThere are additional utility packages for preferences and the cli.\nThe dependencies are only directed towards the center.\nWe have JUnit tests to detect violations of the most crucial dependencies (between logic, model, and gui), and the build will fail automatically in these cases.\nThe model repre"
+  },
+  {
+   "endLine": 13,
+   "kind": "section",
+   "label": "TextUnit",
+   "localKey": "sec:",
+   "name": "(preamble)",
+   "parent": "file",
+   "qualifiedName": "benchmark/jabref/jabref.txt#sec:",
+   "startLine": 1,
+   "text": "We have been successfully transitioning from a spaghetti to a more structured architecture with the model in the center, and the logic as an intermediate layer towards the gui which is the outer shell.\nThere are additional utility packages for preferences and the cli.\nThe dependencies are only directed towards the center.\nWe have JUnit tests to detect violations of the most crucial dependencies (between logic, model, and gui), and the build will fail automatically in these cases.\nThe model represents the most important data structures (BibDatases, BibEntries, Events, and related aspects) and has only a little bit of logic attached.\nThe logic is responsible for reading/writing/importing/exporting and manipulating the model, and it is structured often as an API the gui can call and use.\nOnly the gui knows the user and his preferences and can interact with him to help him solve tasks.\nFor each layer, we form packages according to their responsibility, i.e., vertical structuring.\nThe model should have no dependencies to other classes of JabRef and the logic should only depend on model classes.\nThe cli package bundles classes that are responsible for JabRef’s command line interface.\nThe preferences represents all information customizable by a user for her personal needs.\nWe use an event bus to publish events from the model to the other layers.\nThis allows us to keep the architecture but still react upon changes within the core in the outer layers."
+  },
+  {
+   "endLine": 1,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/1ef6c77a12db",
+   "name": "We have been successfully transitioning from a spaghetti to a more structured ar",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 0,
+   "startLine": 1,
+   "text": "We have been successfully transitioning from a spaghetti to a more structured architecture with the model in the center, and the logic as an intermediate layer towards the gui which is the outer shell."
+  },
+  {
+   "endLine": 2,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/589d7be0efbe",
+   "name": "There are additional utility packages for preferences and the cli.",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 1,
+   "startLine": 2,
+   "text": "There are additional utility packages for preferences and the cli."
+  },
+  {
+   "endLine": 3,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/408c5a74888e",
+   "name": "The dependencies are only directed towards the center.",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 2,
+   "startLine": 3,
+   "text": "The dependencies are only directed towards the center."
+  },
+  {
+   "endLine": 4,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/72cadaf064ce",
+   "name": "We have JUnit tests to detect violations of the most crucial dependencies (betwe",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 3,
+   "startLine": 4,
+   "text": "We have JUnit tests to detect violations of the most crucial dependencies (between logic, model, and gui), and the build will fail automatically in these cases."
+  },
+  {
+   "endLine": 5,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/0b9e79d46e2f",
+   "name": "The model represents the most important data structures (BibDatases, BibEntries,",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 4,
+   "startLine": 5,
+   "text": "The model represents the most important data structures (BibDatases, BibEntries, Events, and related aspects) and has only a little bit of logic attached."
+  },
+  {
+   "endLine": 6,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/8efa3b33dcde",
+   "name": "The logic is responsible for reading/writing/importing/exporting and manipulatin",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 5,
+   "startLine": 6,
+   "text": "The logic is responsible for reading/writing/importing/exporting and manipulating the model, and it is structured often as an API the gui can call and use."
+  },
+  {
+   "endLine": 7,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/30eee96d53f2",
+   "name": "Only the gui knows the user and his preferences and can interact with him to hel",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 6,
+   "startLine": 7,
+   "text": "Only the gui knows the user and his preferences and can interact with him to help him solve tasks."
+  },
+  {
+   "endLine": 8,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/0853c4301b33",
+   "name": "For each layer, we form packages according to their responsibility, i.e., vertic",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 7,
+   "startLine": 8,
+   "text": "For each layer, we form packages according to their responsibility, i.e., vertical structuring."
+  },
+  {
+   "endLine": 9,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/5871ad50c05e",
+   "name": "The model should have no dependencies to other classes of JabRef and the logic s",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 8,
+   "startLine": 9,
+   "text": "The model should have no dependencies to other classes of JabRef and the logic should only depend on model classes."
+  },
+  {
+   "endLine": 10,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/397e8d40141a",
+   "name": "The cli package bundles classes that are responsible for JabRef’s command line i",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 9,
+   "startLine": 10,
+   "text": "The cli package bundles classes that are responsible for JabRef’s command line interface."
+  },
+  {
+   "endLine": 11,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/f147ba6f4c81",
+   "name": "The preferences represents all information customizable by a user for her person",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 10,
+   "startLine": 11,
+   "text": "The preferences represents all information customizable by a user for her personal needs."
+  },
+  {
+   "endLine": 12,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/3d0cd84e602c",
+   "name": "We use an event bus to publish events from the model to the other layers.",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 11,
+   "startLine": 12,
+   "text": "We use an event bus to publish events from the model to the other layers."
+  },
+  {
+   "endLine": 13,
+   "kind": "sentence",
+   "label": "TextUnit",
+   "localKey": "sec:/0e7e7eb81b6c",
+   "name": "This allows us to keep the architecture but still react upon changes within the ",
+   "parent": "sec:",
+   "qualifiedName": null,
+   "sentenceIndex": 12,
+   "startLine": 13,
+   "text": "This allows us to keep the architecture but still react upon changes within the core in the outer layers."
+  }
+ ],
+ "relations": []
+}

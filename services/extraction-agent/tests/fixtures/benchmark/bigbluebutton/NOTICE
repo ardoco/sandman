@@ -1,0 +1,2 @@
+bigbluebutton.txt is adapted from the BigBlueButton 2.4 architecture documentation (http://web.archive.org/web/20230315102607/https://docs.bigbluebutton.org/2.4/architecture.html), licensed under LGPL (https://bigbluebutton.org/open-source-project/open-source-license/). Modified by the ArDoCo benchmark (images removed, captions kept with a final dot).
+Models (pcm/, uml/): ArDoCo benchmark, MIT, see ../LICENSE-Benchmark; the benchmark states no separate model license.

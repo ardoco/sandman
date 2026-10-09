@@ -1,0 +1,1142 @@
+{
+ "elements": [
+  {
+   "endLine": 245,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "teammates-with-details.uml",
+   "qualifiedName": "benchmark/teammates/uml/teammates-with-details.uml",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<uml:Model xmi:version=\"20131001\" xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\" xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\" xmi:id=\"_C4gjILI6Eeq_5exudZzC_Q\" name=\"defaultRepository\">\n  <packagedElement xmi:type=\"uml:Interface\" xmi:id=\"_poN6IL3rEeqiZs-fCJoCdg\" name=\"IDataMigrationEntititiesBaseScript\">\n    <ownedOperation xmi:id=\"\" name=\"_G-oTIL3vEeqiZs-fCJoCdg\"/>\n    <ownedOperation xmi:id=\"__aKuEL3sEeqiZs-fCJoCdg\" name=\"migrateEntity\"/>\n    <owned"
+  },
+  {
+   "endLine": 12,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_poN6IL3rEeqiZs-fCJoCdg",
+   "name": "IDataMigrationEntititiesBaseScript",
+   "parent": "file",
+   "qualifiedName": "IDataMigrationEntititiesBaseScript",
+   "startLine": 3,
+   "text": "IDataMigrationEntititiesBaseScript"
+  },
+  {
+   "endLine": 17,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_OF9e4L9zEeqSc8-CZh1-3g",
+   "name": "ISearchManager",
+   "parent": "file",
+   "qualifiedName": "ISearchManager",
+   "startLine": 13,
+   "text": "ISearchManager"
+  },
+  {
+   "endLine": 24,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_i_LwkL6vEeq7qcuoLWDPOg",
+   "name": "IWebApiServlet",
+   "parent": "file",
+   "qualifiedName": "IWebApiServlet",
+   "startLine": 18,
+   "text": "IWebApiServlet"
+  },
+  {
+   "endLine": 31,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_wOALML7DEeq7qcuoLWDPOg",
+   "name": "IGateKeeper",
+   "parent": "file",
+   "qualifiedName": "IGateKeeper",
+   "startLine": 25,
+   "text": "IGateKeeper"
+  },
+  {
+   "endLine": 34,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_yXh60NsPEeq5Z-GRYz8EWA",
+   "name": "IActionFactory",
+   "parent": "file",
+   "qualifiedName": "IActionFactory",
+   "startLine": 32,
+   "text": "IActionFactory"
+  },
+  {
+   "endLine": 41,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ajPooL33EeqiZs-fCJoCdg",
+   "name": "IAutomatedAction",
+   "parent": "file",
+   "qualifiedName": "IAutomatedAction",
+   "startLine": 35,
+   "text": "IAutomatedAction"
+  },
+  {
+   "endLine": 48,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_zdhOYL93EeqARJdkkPLGWw",
+   "name": "IEntityAttributes",
+   "parent": "file",
+   "qualifiedName": "IEntityAttributes",
+   "startLine": 42,
+   "text": "IEntityAttributes"
+  },
+  {
+   "endLine": 51,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_mwU-oL35EeqiZs-fCJoCdg",
+   "name": "IAutomatedServlet",
+   "parent": "file",
+   "qualifiedName": "IAutomatedServlet",
+   "startLine": 49,
+   "text": "IAutomatedServlet"
+  },
+  {
+   "endLine": 54,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_fEJbMLw6EeqrWoDAAYkXmg",
+   "name": "IAutomatedActionFactory",
+   "parent": "file",
+   "qualifiedName": "IAutomatedActionFactory",
+   "startLine": 52,
+   "text": "IAutomatedActionFactory"
+  },
+  {
+   "endLine": 58,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_jiMekL7REeq7qcuoLWDPOg",
+   "name": "TaskQueuesLogic",
+   "parent": "file",
+   "qualifiedName": "TaskQueuesLogic",
+   "startLine": 55,
+   "text": "TaskQueuesLogic"
+  },
+  {
+   "endLine": 62,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_vGDEoL7DEeq7qcuoLWDPOg",
+   "name": "IEmailSender",
+   "parent": "file",
+   "qualifiedName": "IEmailSender",
+   "startLine": 59,
+   "text": "IEmailSender"
+  },
+  {
+   "endLine": 67,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_6bzBYL9yEeqSc8-CZh1-3g",
+   "name": "ISearchQuery",
+   "parent": "file",
+   "qualifiedName": "ISearchQuery",
+   "startLine": 63,
+   "text": "ISearchQuery"
+  },
+  {
+   "endLine": 73,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_PLFT4L9zEeqSc8-CZh1-3g",
+   "name": "ISearchDocument",
+   "parent": "file",
+   "qualifiedName": "ISearchDocument",
+   "startLine": 68,
+   "text": "ISearchDocument"
+  },
+  {
+   "endLine": 76,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_mPWLsL6tEeq7qcuoLWDPOg",
+   "name": "IActionResult",
+   "parent": "file",
+   "qualifiedName": "IActionResult",
+   "startLine": 74,
+   "text": "IActionResult"
+  },
+  {
+   "endLine": 81,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_DQkHEL7NEeq7qcuoLWDPOg",
+   "name": "ICoursesLogic",
+   "parent": "file",
+   "qualifiedName": "ICoursesLogic",
+   "startLine": 77,
+   "text": "ICoursesLogic"
+  },
+  {
+   "endLine": 84,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ra3ykL7zEeq7qcuoLWDPOg",
+   "name": "IEntities",
+   "parent": "file",
+   "qualifiedName": "IEntities",
+   "startLine": 82,
+   "text": "IEntities"
+  },
+  {
+   "endLine": 94,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+   "name": "IUtilOperations",
+   "parent": "file",
+   "qualifiedName": "IUtilOperations",
+   "startLine": 85,
+   "text": "IUtilOperations"
+  },
+  {
+   "endLine": 106,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_ZldiIL7xEeq7qcuoLWDPOg",
+   "name": "IEntitiesDB",
+   "parent": "file",
+   "qualifiedName": "IEntitiesDB",
+   "startLine": 95,
+   "text": "IEntitiesDB"
+  },
+  {
+   "endLine": 111,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_igRukL7REeq7qcuoLWDPOg",
+   "name": "IProfilesLogic",
+   "parent": "file",
+   "qualifiedName": "IProfilesLogic",
+   "startLine": 107,
+   "text": "IProfilesLogic"
+  },
+  {
+   "endLine": 117,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_23oKkL7DEeq7qcuoLWDPOg",
+   "name": "ITaskQueuer",
+   "parent": "file",
+   "qualifiedName": "ITaskQueuer",
+   "startLine": 112,
+   "text": "ITaskQueuer"
+  },
+  {
+   "endLine": 121,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_p7OYwL93EeqARJdkkPLGWw",
+   "name": "IRemoteApiClient",
+   "parent": "file",
+   "qualifiedName": "IRemoteApiClient",
+   "startLine": 118,
+   "text": "IRemoteApiClient"
+  },
+  {
+   "endLine": 126,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_izbUEL7REeq7qcuoLWDPOg",
+   "name": "IStudentsLogic",
+   "parent": "file",
+   "qualifiedName": "IStudentsLogic",
+   "startLine": 122,
+   "text": "IStudentsLogic"
+  },
+  {
+   "endLine": 133,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_fn7QIL7LEeq7qcuoLWDPOg",
+   "name": "ILogic",
+   "parent": "file",
+   "qualifiedName": "ILogic",
+   "startLine": 127,
+   "text": "ILogic"
+  },
+  {
+   "endLine": 141,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_8DjrsL35EeqiZs-fCJoCdg",
+   "name": "IAction",
+   "parent": "file",
+   "qualifiedName": "IAction",
+   "startLine": 134,
+   "text": "IAction"
+  },
+  {
+   "endLine": 146,
+   "kind": "interface",
+   "label": "ModelElement",
+   "localKey": "_qwkSIL7DEeq7qcuoLWDPOg",
+   "name": "IEmailGenerator",
+   "parent": "file",
+   "qualifiedName": "IEmailGenerator",
+   "startLine": 142,
+   "text": "IEmailGenerator"
+  },
+  {
+   "endLine": 152,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Sc_0ENtgEeqDmpXQxczSng",
+   "name": "AutomatedServlet",
+   "parent": "file",
+   "qualifiedName": "AutomatedServlet",
+   "startLine": 147,
+   "text": "AutomatedServlet; provides IAutomatedServlet; requires IAutomatedAction, IUtilOperations, IAutomatedActionFactory"
+  },
+  {
+   "endLine": 156,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_wRkT4NsPEeq5Z-GRYz8EWA",
+   "name": "ActionFactory",
+   "parent": "file",
+   "qualifiedName": "ActionFactory",
+   "startLine": 153,
+   "text": "ActionFactory; provides IActionFactory; requires IAction"
+  },
+  {
+   "endLine": 163,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_dZLuMLw6EeqrWoDAAYkXmg",
+   "name": "EntitiesDB",
+   "parent": "file",
+   "qualifiedName": "EntitiesDB",
+   "startLine": 157,
+   "text": "EntitiesDB; provides IEntitiesDB; requires ISearchDocument, ISearchManager, ISearchQuery, IUtilOperations"
+  },
+  {
+   "endLine": 164,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_nw6Nch8CEe2st8EPFuwF6A",
+   "name": "Exception",
+   "parent": "file",
+   "qualifiedName": "Exception",
+   "startLine": 164,
+   "text": "Exception"
+  },
+  {
+   "endLine": 172,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+   "name": "LogicCore",
+   "parent": "file",
+   "qualifiedName": "LogicCore",
+   "startLine": 165,
+   "text": "LogicCore; provides TaskQueuesLogic, ICoursesLogic, IProfilesLogic, IStudentsLogic; requires IEntitiesDB, IUtilOperations"
+  },
+  {
+   "endLine": 177,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_M8HO8L3TEeqiZs-fCJoCdg",
+   "name": "Attributes",
+   "parent": "file",
+   "qualifiedName": "Attributes",
+   "startLine": 173,
+   "text": "Attributes; provides IEntityAttributes; requires IEntities, IUtilOperations"
+  },
+  {
+   "endLine": 182,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Pp5q4L3TEeqiZs-fCJoCdg",
+   "name": "Bundles",
+   "parent": "file",
+   "qualifiedName": "Bundles",
+   "startLine": 182,
+   "text": "Bundles"
+  },
+  {
+   "endLine": 193,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+   "name": "Action",
+   "parent": "file",
+   "qualifiedName": "Action",
+   "startLine": 183,
+   "text": "Action; provides IAction, IActionResult; requires ILogic, IGateKeeper, IUtilOperations, IEmailGenerator, IEntityAttributes, ITaskQueuer, IEmailSender"
+  },
+  {
+   "endLine": 206,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+   "name": "LogicApi",
+   "parent": "file",
+   "qualifiedName": "LogicApi",
+   "startLine": 194,
+   "text": "LogicApi; provides IEmailSender, ILogic, IGateKeeper, IEmailGenerator, ITaskQueuer; requires TaskQueuesLogic, IUtilOperations, IStudentsLogic, IEntityAttributes, IProfilesLogic, ICoursesLogic"
+  },
+  {
+   "endLine": 210,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_ynfTsNtiEeqDmpXQxczSng",
+   "name": "AutomatedActionFactory",
+   "parent": "file",
+   "qualifiedName": "AutomatedActionFactory",
+   "startLine": 207,
+   "text": "AutomatedActionFactory; provides IAutomatedActionFactory; requires IAutomatedAction"
+  },
+  {
+   "endLine": 219,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+   "name": "AutomatedAction",
+   "parent": "file",
+   "qualifiedName": "AutomatedAction",
+   "startLine": 211,
+   "text": "AutomatedAction; provides IAutomatedAction; requires IEmailGenerator, IEmailSender, IUtilOperations, IEntityAttributes, ITaskQueuer, ILogic"
+  },
+  {
+   "endLine": 222,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_ChpKUL93EeqSc8-CZh1-3g",
+   "name": "RemoteApi",
+   "parent": "file",
+   "qualifiedName": "RemoteApi",
+   "startLine": 220,
+   "text": "RemoteApi; provides IRemoteApiClient"
+  },
+  {
+   "endLine": 225,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_gae0AMs4Eeqk0PuRhY6yBQ",
+   "name": "Util",
+   "parent": "file",
+   "qualifiedName": "Util",
+   "startLine": 223,
+   "text": "Util; provides IUtilOperations"
+  },
+  {
+   "endLine": 233,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+   "name": "Search",
+   "parent": "file",
+   "qualifiedName": "Search",
+   "startLine": 226,
+   "text": "Search; provides ISearchDocument, ISearchQuery, ISearchManager; requires IUtilOperations, IEntitiesDB, IEntityAttributes"
+  },
+  {
+   "endLine": 240,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_8x3XYLwxEeqrWoDAAYkXmg",
+   "name": "WebApiServlet",
+   "parent": "file",
+   "qualifiedName": "WebApiServlet",
+   "startLine": 234,
+   "text": "WebApiServlet; provides IWebApiServlet; requires IActionResult, IActionFactory, IAction, IUtilOperations"
+  }
+ ],
+ "relations": [
+  {
+   "source": {
+    "localKey": "_Sc_0ENtgEeqDmpXQxczSng",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_mwU-oL35EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Sc_0ENtgEeqDmpXQxczSng",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ajPooL33EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Sc_0ENtgEeqDmpXQxczSng",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Sc_0ENtgEeqDmpXQxczSng",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_fEJbMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_wRkT4NsPEeq5Z-GRYz8EWA",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_yXh60NsPEeq5Z-GRYz8EWA",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_wRkT4NsPEeq5Z-GRYz8EWA",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_8DjrsL35EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dZLuMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ZldiIL7xEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_dZLuMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_PLFT4L9zEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dZLuMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_OF9e4L9zEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dZLuMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_6bzBYL9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_dZLuMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_jiMekL7REeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_DQkHEL7NEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_igRukL7REeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_izbUEL7REeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ZldiIL7xEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_iL-EkLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_M8HO8L3TEeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_zdhOYL93EeqARJdkkPLGWw",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_M8HO8L3TEeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ra3ykL7zEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_M8HO8L3TEeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_8DjrsL35EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_mPWLsL6tEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_fn7QIL7LEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_wOALML7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_qwkSIL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_zdhOYL93EeqARJdkkPLGWw",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_23oKkL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_Z8kf8Ms5Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_vGDEoL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_vGDEoL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_fn7QIL7LEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_wOALML7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_qwkSIL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_23oKkL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_jiMekL7REeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_izbUEL7REeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_zdhOYL93EeqARJdkkPLGWw",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_igRukL7REeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_fN_3kLw2EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_DQkHEL7NEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_ynfTsNtiEeqDmpXQxczSng",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_fEJbMLw6EeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_ynfTsNtiEeqDmpXQxczSng",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ajPooL33EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ajPooL33EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_qwkSIL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_vGDEoL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_zdhOYL93EeqARJdkkPLGWw",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_23oKkL7DEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_m5pjYLwwEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_fn7QIL7LEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_ChpKUL93EeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_p7OYwL93EeqARJdkkPLGWw",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_gae0AMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_PLFT4L9zEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_6bzBYL9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_OF9e4L9zEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_ZldiIL7xEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_3mTa8L9yEeqSc8-CZh1-3g",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_zdhOYL93EeqARJdkkPLGWw",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_8x3XYLwxEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_i_LwkL6vEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "PROVIDES"
+  },
+  {
+   "source": {
+    "localKey": "_8x3XYLwxEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_mPWLsL6tEeq7qcuoLWDPOg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_8x3XYLwxEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_yXh60NsPEeq5Z-GRYz8EWA",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_8x3XYLwxEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_8DjrsL35EeqiZs-fCJoCdg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  },
+  {
+   "source": {
+    "localKey": "_8x3XYLwxEeqrWoDAAYkXmg",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "target": {
+    "localKey": "_q0hxAMs4Eeqk0PuRhY6yBQ",
+    "path": "benchmark/teammates/uml/teammates-with-details.uml"
+   },
+   "type": "REQUIRES"
+  }
+ ],
+ "warnings": [
+  "benchmark/teammates/uml/teammates-with-details.uml:178: duplicate model id _fEJbMLw6EeqrWoDAAYkXmg skipped",
+  "benchmark/teammates/uml/teammates-with-details.uml:241: duplicate model id _p7OYwL93EeqARJdkkPLGWw skipped"
+ ]
+}

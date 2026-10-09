@@ -1,0 +1,81 @@
+{
+ "elements": [
+  {
+   "endLine": 9,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "jabref.repository",
+   "qualifiedName": "benchmark/jabref/pcm/jabref.repository",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n<repository:Repository xmi:version=\"2.0\" xmlns:xmi=\"http://www.omg.org/XMI\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:repository=\"http://palladiosimulator.org/PalladioComponentModel/Repository/5.2\" id=\"__nu3UEl3Ee243f2e4VWs6w\" entityName=\"JabRef\">\n  <components__Repository xsi:type=\"repository:BasicComponent\" id=\"_Coy0kEl4Ee243f2e4VWs6w\" entityName=\"gui\"/>\n  <components__Repository xsi:type=\"repository:BasicComponent\" id=\"_EBiwMEl4Ee243f2e"
+  },
+  {
+   "endLine": 3,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Coy0kEl4Ee243f2e4VWs6w",
+   "name": "gui",
+   "parent": "file",
+   "qualifiedName": "gui",
+   "startLine": 3,
+   "text": "BasicComponent gui"
+  },
+  {
+   "endLine": 4,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_EBiwMEl4Ee243f2e4VWs6w",
+   "name": "cli",
+   "parent": "file",
+   "qualifiedName": "cli",
+   "startLine": 4,
+   "text": "BasicComponent cli"
+  },
+  {
+   "endLine": 5,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_He3LoEl4Ee243f2e4VWs6w",
+   "name": "logic",
+   "parent": "file",
+   "qualifiedName": "logic",
+   "startLine": 5,
+   "text": "BasicComponent logic"
+  },
+  {
+   "endLine": 6,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_KsOfgEl4Ee243f2e4VWs6w",
+   "name": "globals",
+   "parent": "file",
+   "qualifiedName": "globals",
+   "startLine": 6,
+   "text": "BasicComponent globals"
+  },
+  {
+   "endLine": 7,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_MFIzMEl4Ee243f2e4VWs6w",
+   "name": "model",
+   "parent": "file",
+   "qualifiedName": "model",
+   "startLine": 7,
+   "text": "BasicComponent model"
+  },
+  {
+   "endLine": 8,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_NUdtEEl4Ee243f2e4VWs6w",
+   "name": "preferences",
+   "parent": "file",
+   "qualifiedName": "preferences",
+   "startLine": 8,
+   "text": "BasicComponent preferences"
+  }
+ ],
+ "relations": []
+}

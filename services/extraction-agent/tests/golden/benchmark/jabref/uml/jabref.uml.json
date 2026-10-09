@@ -1,0 +1,81 @@
+{
+ "elements": [
+  {
+   "endLine": 9,
+   "kind": "file",
+   "label": "ModelElement",
+   "localKey": "file",
+   "name": "jabref.uml",
+   "qualifiedName": "benchmark/jabref/uml/jabref.uml",
+   "startLine": 1,
+   "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<uml:Model xmi:version=\"20131001\" xmlns:xmi=\"http://www.omg.org/spec/XMI/20131001\" xmlns:uml=\"http://www.eclipse.org/uml2/5.0.0/UML\" xmi:id=\"__nu3UEl3Ee243f2e4VWs6w\" name=\"JabRef\">\n  <packagedElement xmi:type=\"uml:Component\" xmi:id=\"_EBiwMEl4Ee243f2e4VWs6w\" name=\"cli\"/>\n  <packagedElement xmi:type=\"uml:Component\" xmi:id=\"_Coy0kEl4Ee243f2e4VWs6w\" name=\"gui\"/>\n  <packagedElement xmi:type=\"uml:Component\" xmi:id=\"_MFIzMEl4Ee243f2e4VWs6w\" name=\"model\"/>\n  <packa"
+  },
+  {
+   "endLine": 3,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_EBiwMEl4Ee243f2e4VWs6w",
+   "name": "cli",
+   "parent": "file",
+   "qualifiedName": "cli",
+   "startLine": 3,
+   "text": "cli"
+  },
+  {
+   "endLine": 4,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_Coy0kEl4Ee243f2e4VWs6w",
+   "name": "gui",
+   "parent": "file",
+   "qualifiedName": "gui",
+   "startLine": 4,
+   "text": "gui"
+  },
+  {
+   "endLine": 5,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_MFIzMEl4Ee243f2e4VWs6w",
+   "name": "model",
+   "parent": "file",
+   "qualifiedName": "model",
+   "startLine": 5,
+   "text": "model"
+  },
+  {
+   "endLine": 6,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_He3LoEl4Ee243f2e4VWs6w",
+   "name": "logic",
+   "parent": "file",
+   "qualifiedName": "logic",
+   "startLine": 6,
+   "text": "logic"
+  },
+  {
+   "endLine": 7,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_KsOfgEl4Ee243f2e4VWs6w",
+   "name": "globals",
+   "parent": "file",
+   "qualifiedName": "globals",
+   "startLine": 7,
+   "text": "globals"
+  },
+  {
+   "endLine": 8,
+   "kind": "component",
+   "label": "ModelElement",
+   "localKey": "_NUdtEEl4Ee243f2e4VWs6w",
+   "name": "preferences",
+   "parent": "file",
+   "qualifiedName": "preferences",
+   "startLine": 8,
+   "text": "preferences"
+  }
+ ],
+ "relations": []
+}

@@ -1,0 +1,2 @@
+jabref.txt is adapted from the JabRef high-level documentation (https://github.com/JabRef/jabref/blob/main/docs/getting-into-the-code/high-level-documentation.md), licensed under MIT (https://github.com/JabRef/jabref/blob/main/LICENSE.md). Modified by the ArDoCo benchmark (first paragraph skipped).
+Models (pcm/, uml/): ArDoCo benchmark, MIT, see ../LICENSE-Benchmark; the benchmark states no separate model license.

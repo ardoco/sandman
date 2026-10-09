@@ -11,6 +11,7 @@ from openai import APIStatusError, AsyncOpenAI
 from sandman_agent import telemetry
 
 LOCAL_ONLY = "local-only"
+REASONING_EFFORT_PREFIXES = ("ollama/",)  # cloud models reject the parameter unless they are reasoning models
 
 
 class PolicyError(Exception):
@@ -53,7 +54,7 @@ class ChatRequest:
     seed: int | None = None
     max_tokens: int | None = None
     user: str | None = None  # run id for attribution
-    reasoning_effort: str | None = None  # e.g. "none" switches thinking off on self-hosted reasoning models
+    reasoning_effort: str | None = None  # "none" switches thinking off; sent to self-hosted (ollama/) models only
 
 
 @dataclass(frozen=True)
@@ -117,7 +118,10 @@ class OpenAiLlmClient:
             ("seed", req.seed),
             ("max_tokens", req.max_tokens),
             ("user", req.user),
-            ("reasoning_effort", req.reasoning_effort),
+            (
+                "reasoning_effort",
+                req.reasoning_effort if kwargs["model"].startswith(REASONING_EFFORT_PREFIXES) else None,
+            ),
         ):
             if value is not None:
                 kwargs[key] = value

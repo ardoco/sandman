@@ -178,3 +178,25 @@ async def test_reasoning_effort_is_sent_only_when_set() -> None:
     await client.chat(ChatRequest("chat-local", [ChatMessage("user", "hi")]))
     await client.chat(ChatRequest("chat-local", [ChatMessage("user", "hi")], reasoning_effort="none"))
     assert "reasoning_effort" not in bodies[0] and bodies[1]["reasoning_effort"] == "none"
+
+
+async def test_reasoning_effort_is_not_sent_to_cloud_models() -> None:
+    import httpx2 as httpx
+    from openai import AsyncOpenAI
+    from sandman_agent.llm import OpenAiLlmClient
+
+    bodies: list[dict[str, Any]] = []
+    reply = {
+        "model": "m",
+        "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": "x"}}],
+    }
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        bodies.append(json.loads(request.content))
+        return httpx.Response(200, json=reply)
+
+    client = OpenAiLlmClient("http://gw/openai", "k", {"chat-default": "openrouter/openai/gpt-4o-mini"})
+    client._client = AsyncOpenAI(base_url="http://gw/openai", api_key="k", max_retries=0,
+                                 http_client=httpx.AsyncClient(transport=httpx.MockTransport(handle)))  # fmt: skip
+    await client.chat(ChatRequest("chat-default", [ChatMessage("user", "hi")], reasoning_effort="none"))
+    assert "reasoning_effort" not in bodies[0]

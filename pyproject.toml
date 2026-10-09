@@ -85,5 +85,5 @@ markers = [
   "slow: long-running performance checks",
   "docling: needs the prefetched Docling models (python -m sandman_document_converter.prefetch); deselect with -m 'not docling'",
 ]
-pythonpath = ["scripts"]
-testpaths = ["libs/python", "services", "tools", "tests/plugin-stubs", "tests/conformance", "scripts"]
+pythonpath = ["scripts", "tests/e2e"]
+testpaths = ["libs/python", "services", "tools", "tests/plugin-stubs", "tests/conformance", "tests/cassettes", "scripts"]

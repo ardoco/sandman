@@ -52,7 +52,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 1. **Languages:** Python for orchestrator, extraction agent and query service; Java 21 for TLR and inconsistency agents (in-process reuse of ArDoCo/LiSSA). Two small agent libraries with shared contracts and conformance tests. Code extraction and further detectors come from **plugged-in services** behind fixed plugin operations (A2A skill or plain HTTP).
 2. **Communication:** commands to agents via **A2A 1.0** (JSON-RPC binding, non-blocking send; `GetTask` polling only to detect failures); domain events via **NATS JetStream** (CloudEvents envelope, at-least-once, dedup, replayable log), which are the only signal the orchestrator chains steps on; plain REST for queries, triage and uploads; Bolt for the KG.
 3. **Orchestration:** deterministic rule table driven by events, with debounce/coalescing, idempotent action keys and SQLite workflow state; optional LLM planner only for ad-hoc natural-language requests.
-4. **Knowledge graph:** single writer per node type; reified `TraceLink` and `Inconsistency` nodes; PROV-style `Run` nodes for provenance; immutable snapshots per artifact version with stable, content-based element keys; `Ingestion` nodes record how the current state changed (incl. reverts); readers see only facts of finished runs ("active facts"); inconsistency fingerprints over keys enable re-detection across versions.
+4. **Knowledge graph:** single writer per node type (one exception: the extraction-agent also writes `explicit-reference` `TraceLink`s and owns their cleanup; tlr-agent cleanup and prune skip them); reified `TraceLink` and `Inconsistency` nodes; PROV-style `Run` nodes for provenance; immutable snapshots per artifact version with stable, content-based element keys; `Ingestion` nodes record how the current state changed (incl. reverts); readers see only facts of finished runs ("active facts"); inconsistency fingerprints over keys enable re-detection across versions.
 5. **Inconsistency lifecycle:** `OPEN, DEFERRED, ACCEPTED, REJECTED (false positive), RESOLVED (verification pending/confirmed), REOPENED`, with system transitions on re-detection.
 6. **Query service:** schema-grounded NL-to-Cypher with a parse-tree scope guard (allowlisted clauses, every pattern anchored to one project) + `EXPLAIN` validation, read transactions as primary write guard (Memgraph Community has no read-only roles), bounded repair; hosts a minimal server-rendered console.
 7. **LLM gateway:** **Bifrost** preferred (single container, Apache-2.0; providers OpenAI, OpenRouter, Ollama), **LiteLLM** runner-up; decision final after an M0 smoke test. Agents use the OpenAI-compatible API only; no egress except through the gateway (internal Docker network); the gateway enforces the `local-only` project policy through Ollama-only virtual keys.
@@ -362,7 +362,7 @@ Startup order via `depends_on: condition: service_healthy`: `memgraph`, `nats`, 
 | Catalog lookups (TLR approaches, detectors) | sync | REST `GET /v1/approaches`, `GET /v1/detectors` | Static lists; an A2A task lifecycle adds nothing (Q-13) |
 | Agent → plugin service | async command or sync call | A2A plugin skill, **or** plain HTTP plugin contract | A2A for long-running/cancellable work; plain HTTP for fast calls and wrapped existing services (Q-13, ADR-0012) |
 | User → triage of inconsistencies | sync request/response | REST on `inconsistency-agent`, called by the console | Owner of `Inconsistency` nodes handles writes (single-writer rule) |
-| User/CLI → artifact upload | sync request (202 Accepted) | REST on `extraction-agent` (via console or CLI) | Owner of `Artifact` nodes |
+| User/CLI → artifact upload | sync request (201 Created) | REST on `extraction-agent` (via console or CLI) | Owner of `Artifact` nodes |
 | User → workflow status / manual trigger | sync | REST on `orchestrator` | Workflow state lives there |
 | Any component → LLM | sync (optionally streaming) | OpenAI-compatible HTTP via `llm-gateway` | Gateway-only access |
 | Any component → KG | sync | Bolt (Neo4j driver) | Native protocol |
@@ -420,7 +420,7 @@ Version pinned: **A2A spec 1.0.x**, JSON-RPC 2.0 binding over HTTP (most widely 
 - **Long-running tasks:** the orchestrator stores the A2A task id in its SQLite state; the step completes when the task's completion event arrives. It polls `GetTask` with backoff (30 s → 2 min) only to detect `FAILED`/`REJECTED`/lost tasks and timeouts. Polling survives orchestrator restarts, unlike an open SSE stream. Streaming (`SendStreamingMessage`) and push notifications are not needed for the prototype; they can be enabled later without contract changes for existing callers.
 - **Task store:** in-memory task store in all agents. If an agent restarts and loses a task, `GetTask` returns "task not found"; the orchestrator treats this as a retryable failure (scenario d). Durable task state lives in the orchestrator, and agent work is idempotent, so a durable agent-side task store adds nothing. *(Ceiling: lost progress on agent restart; switch to the SDKs' SQL/JPA stores if tasks get long enough for this to hurt.)*
 - **Java runtime (provisional, D-6):** the `a2a-java` server integration is CDI-based with Quarkus as reference runtime; Java agents run on Quarkus (3.x LTS) using the reference JSON-RPC server module, unless T0.4 shows that a custom executor cannot run in a plain Quarkus app or that `a2a-java` conflicts with the ArDoCo/LiSSA dependencies. Then a hand-written JSON-RPC endpoint (`SendMessage`, `GetTask`, `CancelTask`, static card) without Quarkus replaces it. Quarkus is an application framework, not an agent framework.
-- **Auth between agents:** HTTP bearer token declared in the card. Each service holds only its own token (secret `svc_token_<name>`); receivers verify tokens against a file of sha256 hashes (`svc_tokens_verify`) and map each to a caller name, so no service can impersonate another. Trusted forwarders: only the `query-service` may carry an end-user identity in REST calls (`X-Sandman-Actor`, `X-Sandman-Roles`), only the `orchestrator` in A2A metadata (`sandman.actor`); owners ignore these from other callers. Network isolation (internal Docker network) is the second line of defense. mTLS/OAuth2 are out of scope (single server).
+- **Auth between agents:** HTTP bearer token declared in the card. Each service holds only its own token (secret `svc_token_<name>`); receivers verify tokens against a file of sha256 hashes (`svc_tokens_verify`) and map each to a caller name, so no service can impersonate another. Trusted forwarders: only the `query-service` may carry an end-user identity in REST calls (`X-Sandman-Actor`, `X-Sandman-Roles`), only the `orchestrator` in A2A metadata (`sandman.actor`); owners reject these headers from other callers with 403 (A2A `sandman.actor` from a non-orchestrator caller likewise). Network isolation (internal Docker network) is the second line of defense. mTLS/OAuth2 are out of scope (single server).
 - **Plugins:** extraction and detector plugins implement one fixed SANDMAN plugin operation each, either as A2A skill (`sandman.plugin.extract`, `sandman.plugin.detect`) or via the synchronous plain-HTTP contract (`GET /manifest`, `POST /v1/extract`, `POST /v1/detect`, [contracts/openapi/plugin-http.yaml](../contracts/openapi/plugin-http.yaml)) with identical payloads (Q-13). A2A when calls can run long, must be cancellable or the plugin is itself an agent; HTTP for fast calls or wrapped existing services. They are registered in the owner's configuration (`config/extraction/plugins.yaml`, `config/inconsistency/plugins.yaml`: id, URL, inbound token file, which kinds/formats or detector types they handle). Until a need arises, the extraction-agent calls plugins via A2A only and the inconsistency-agent via HTTP only (D-7). Plugins are external systems (D-9): any language and design, but no egress, LLM calls only through the gateway with their own virtual keys, honoring `llmPolicy`. Owners call a plugin with its inbound token (`plugin_in_<plugin>`), never with their own service token. Plugins return results; the owner validates against the plugin output schema and writes to the KG, so provenance (`Run.tool = plugin id@version` from the plugin's Agent Card or manifest) and the single-writer rule hold. Plugins read artifact content from the read-only artifact store mount; detector plugins read the KG through the query-service API with their own plugin token (caller `plugin:<id>`, read-only, project-scoped queries).
 
 **Where A2A fits and where not** (→ ADR-0002): A2A is used for *commands to agents* (task delegation with lifecycle, discovery of skills, cross-language standard). It is **not** used for domain events (no pub/sub in A2A), for KG access (Bolt), for user-facing CRUD/query APIs (plain REST is simpler and better tooled: OpenAPI, curl, browser), or for LLM access (OpenAI-compatible API).
@@ -447,7 +447,7 @@ sequenceDiagram
   EX->>EX: store blob (sha256), dedupe by hash
   EX->>KG: MERGE Artifacts, CREATE ArtifactVersions, move CURRENT_VERSION, mark deleted (full snapshot)
   EX->>BUS: publish ingestion.completed (await ack)
-  EX-->>QS: 202 {ingestionId, createdVersionIds}
+  EX-->>QS: 201 {ingestionId, createdVersionIds}
   BUS-->>OR: deliver event
   OR->>OR: inbox dedupe, rule: extract
   OR->>EX: A2A SendMessage(extract-artifact-versions)
@@ -788,7 +788,7 @@ Common to all agents: built on the shared agent library (Section 9); stateless a
 | Responsibilities | Consume events; map events to actions via rules; issue A2A tasks; track workflows/steps; retries/timeouts; debounce/coalesce; expose workflow REST API; manual triggers. |
 | Inputs | NATS events (incl. completion events of its own tasks); REST `POST /v1/workflows` (manual trigger); Agent Cards (fetched at startup and every 5 min); `GetTask` polling for failures. |
 | Outputs | A2A tasks; workflow state (REST `GET /v1/workflows[/{id}]`). |
-| Tools | A2A client, NATS consumer, SQLite. No KG writes. |
+| Tools | A2A client, NATS consumer, SQLite, read-only KG access (affected artifacts and kind pairs for planning). No KG writes. |
 | State | SQLite (`/data/orchestrator.db`): `inbox`, `workflows`, `steps`, `dead_events`. |
 | Failure modes | Crash → restart; JetStream redelivers unacked events; in-flight steps resumed by polling persisted task ids. Agent down → step retries; KG/NATS down → readiness false, consumer paused. |
 | LLM usage | None in the rule path. Final version: optional planner for natural-language user requests (Section 6), behind a feature flag. |
@@ -917,7 +917,7 @@ Rows contain only JSON-serializable values; nodes/relationships are returned as 
 
 NL-to-Cypher pipeline:
 1. **Schema grounding:** prompt contains the schema contract `contracts/kg/schema.yaml` (labels, relationship types with endpoint labels, properties, enumerations, short descriptions). At startup the service compares it with `SHOW SCHEMA INFO` (Memgraph flag `--schema-info-enabled=true`) and logs drift. Memgraph-specific dialect notes (e.g., no pattern expressions in `size()`) are part of the system prompt.
-2. **Few-shot examples:** curated question→Cypher pairs in `query-service/examples.yaml`; top-k (k=5) selected by embedding similarity. The same file, split into dev/test, is the evaluation set.
+2. **Few-shot examples:** curated question→Cypher pairs in `config/query/examples.yaml`; top-k (k=5) selected by embedding similarity. The same file, split into dev/test, is the evaluation set.
 3. **Generation:** structured output `{cypher, params, explanation}` validated against a JSON Schema. `projectId` is always bound by the service as parameter `$projectId`.
 4. **Validation (also applied to the direct Cypher endpoint):**
    - **scope guard on the parse tree** (openCypher grammar, parser to verify V-28): only allowlisted clauses (`MATCH`, `OPTIONAL MATCH`, `WHERE`, `WITH`, `UNWIND`, `RETURN`, `ORDER BY`, `SKIP`, `LIMIT`, `UNION`); no `CALL`, no write or Memgraph-specific clauses (`SHOW …`, `DUMP DATABASE`, `TERMINATE TRANSACTIONS`, streams, settings); every connected pattern component in every `MATCH`, pattern comprehension and existential subquery contains a node anchored by `{projectId: $projectId}` or `(:Project {id: $projectId})`, or a variable bound by an earlier anchored pattern. This relies on the writer invariant that no relationship connects nodes of different projects. Example rejected: `WITH $projectId AS p MATCH (r:Requirement) RETURN r`;
@@ -995,7 +995,7 @@ Goal: the smallest set of building blocks that every agent would otherwise re-im
 libs/python/sandman-agent/            # Python 3.13, package sandman_agent
   sandman_agent/
     config.py      # Settings from env + *_FILE secrets
-    ids.py         # stable_id(*parts) – shared id function
+    ids.py         # stable_id(prefix, *parts) – shared id function
     llm.py         # LlmClient protocol, OpenAiLlmClient, ModelSelector (route + key by policy), data types
     a2a.py         # Skill, SkillContext, SkillResult, serve(), A2aClient (wraps a2a-sdk)
     plugins.py     # A2aPluginClient (extraction plugins)
@@ -1058,7 +1058,7 @@ class SkillContext:
     task_id: str; workflow_id: str | None
     llm: LlmClient; kg: "KgClient"; events: "EventPublisher"; artifacts: "ArtifactStore"; settings: Settings
     async def progress(self, text: str) -> None: ...            # TASK_STATE_WORKING status message
-def serve(agent: AgentInfo, skills: Sequence[Skill], settings: Settings) -> ASGIApp: ...
+def serve(agent_card_path: Path, skills: Sequence[Skill], settings: Settings, *, events=None, contracts=None, status=None) -> ASGIApp: ...
     # builds Agent Card, validates input (→ REJECTED), runs skill, validates output,
     # publishes the completion event (causationid = messageId of the A2A request), then emits the result artifact
 class A2aClient:

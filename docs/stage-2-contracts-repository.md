@@ -109,7 +109,7 @@ All reads are confined to one project by the scope guard (Stage 1 §7); members 
 
 ### 1.6 Configuration file contracts
 
-Mounted read-only at `/config` (repository folder `config/`); the effective file hash is stored in `Run.configHash`. Schemas for these files are added to `contracts/config/` in M0 together with the first implementation (formats below are binding).
+Mounted read-only at `/config` (repository folder `config/`); the effective file hash is stored in `Run.configHash`, except for `config/tlr/approaches.yaml`: there `configHash` is the sha256 of the JCS of one approach's effective params (T0.6), so enabling another approach does not change existing link ids. Schemas for these files are added to `contracts/config/` in M0 together with the first implementation (formats below are binding).
 
 ```yaml
 # config/llm/models.yaml – logical routes → gateway model names (all LLM users)
@@ -380,7 +380,7 @@ General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards 
 
 | | |
 |---|---|
-| Stub behavior | Full intake (check, upload, content-addressed store, versions, deletions, `ingestion.completed`). Extraction: one `Element` per file (label by kind: `TextUnit`/`ModelElement`/`CodeUnit`/`TestCase`/`Requirement`, `kind=file`, `text` = first 500 chars); for `requirements` Markdown additionally one `Requirement` per heading `## <ID> <title>` (`localKey` = ID, `name` = title); routes artifacts matching `plugins.yaml` to plugins (A2A) and writes their elements/relations; explicit-reference regex matcher (cheap, real). |
+| Stub behavior | Full intake (check, upload, content-addressed store, versions, deletions, `ingestion.completed`). Extraction: one `Element` per file (label by kind: `TextUnit`/`ModelElement`/`CodeUnit`/`TestCase`/`Requirement`, `kind=file`, `text` = first 500 chars); the file-level element is never a `Requirement` (`TextUnit` for `requirements`, `localKey` `file`); for `requirements` Markdown additionally one `Requirement` per heading `## <ID> <title>` (`localKey` = ID, `name` = title); routes artifacts matching `plugins.yaml` to plugins (A2A) and writes their elements/relations; explicit-reference regex matcher (cheap, real). |
 | Configuration | `config/extraction/plugins.yaml`; fixtures in `tests/e2e/fixtures/`. |
 | Finalized when | Built-in extractors for Markdown/text (sections, sentences with `sentenceIndex`), PDF/DOCX (Docling), requirements CSV/Markdown, PCM and UML models (ids preserved) pass golden-file tests on the ArDoCo benchmark projects' artifacts; LLM enrichment validated against schemas and covered by replay tests; incremental ingestion of 1 000 files < 60 s (excluding plugins). |
 

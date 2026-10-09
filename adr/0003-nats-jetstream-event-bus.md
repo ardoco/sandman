@@ -82,3 +82,4 @@ Integration test: kill orchestrator, publish events, restart → all events proc
 ## Amendments
 
 * 2026-10-06, review decision D-1 (option b): events are the **only** signal the orchestrator chains steps on. Every A2A skill task publishes exactly one completion event (`extraction.completed`, `tracelinks.updated`, `inconsistencies.updated`) with `causationid` = `messageId` of the A2A request. The agent library validates the skill output, then publishes the event (await ack), then completes the task, so an event never precedes a failed output validation. `tracelinks.updated` is published once per task (listing all approach runs) instead of once per approach. A2A polling only detects failures (ADR-0002 amendment). Contract version 0.2.0.
+* 2026-10-09, review decision D-8 (R-004): intake via REST returns **201** (completion is synchronous), not 202; "Intake via REST returns 202" above is superseded.

@@ -84,6 +84,18 @@ public record Settings(
                 path(env, "SANDMAN_LOG_FILE"));
     }
 
+    /** SANDMAN_LLM_MODE (live|record|replay, default live); anything else is a ConfigException. */
+    public static String llmMode(Map<String, String> env) {
+        String mode = plain(env, "SANDMAN_LLM_MODE");
+        if (mode == null) {
+            return "live";
+        }
+        if (!List.of("live", "record", "replay").contains(mode)) {
+            throw new ConfigException("invalid SANDMAN_LLM_MODE '" + mode + "', expected one of live, record, replay");
+        }
+        return mode;
+    }
+
     /** The repository's contracts/ directory, searched upwards from the working directory. */
     public static Path defaultContractsDir() {
         for (Path dir = Path.of("").toAbsolutePath(); dir != null; dir = dir.getParent()) {

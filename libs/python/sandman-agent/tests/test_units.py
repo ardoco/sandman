@@ -7,8 +7,9 @@ from typing import Any
 import pytest
 from sandman_agent import auth, events
 from sandman_agent.artifacts import ArtifactStore
-from sandman_agent.config import ConfigError, Settings
+from sandman_agent.config import ConfigError, Settings, llm_mode
 from sandman_agent.contracts import ContractError, Contracts
+from sandman_agent.kg import RunRecorder
 from sandman_agent.llm import ChatMessage, ChatRequest, ModelSelector, PolicyError
 from starlette.exceptions import HTTPException
 
@@ -35,6 +36,41 @@ def test_settings_read_file_secrets_and_report_missing(tmp_path: Path) -> None:
         s.require("kg_uri", "nats_url", "kg_password")
     with pytest.raises(ConfigError, match="SANDMAN_SERVICE_NAME"):
         Settings.from_env({})
+
+
+@pytest.mark.parametrize(
+    ("env", "expected"),
+    [({}, "live"), ({"SANDMAN_LLM_MODE": "record"}, "record"), ({"SANDMAN_LLM_MODE": "replay"}, "replay")],
+)
+def test_llm_mode_defaults_to_live(env: dict[str, str], expected: str) -> None:
+    assert llm_mode(env) == expected
+
+
+def test_llm_mode_rejects_unknown() -> None:
+    with pytest.raises(ConfigError, match="SANDMAN_LLM_MODE"):
+        llm_mode({"SANDMAN_LLM_MODE": "bogus"})
+
+
+class RecordingKg:
+    def __init__(self) -> None:
+        self.params: dict[str, Any] = {}
+
+    async def write(self, cypher: str, **params: Any) -> list[dict[str, Any]]:
+        self.params = params
+        return []
+
+
+async def test_run_recorder_takes_replay_mode_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    kg = RecordingKg()
+    runs = RunRecorder(kg, "a", "0")  # type: ignore[arg-type]
+    monkeypatch.setenv("SANDMAN_LLM_MODE", "replay")
+    await runs.start(project_id="p", skill="s", tool="t", tool_version="0", input_key="k")
+    assert kg.params["props"]["replayMode"] == "replay"
+    await runs.start(project_id="p", skill="s", tool="t", tool_version="0", input_key="k", replay_mode="record")
+    assert kg.params["props"]["replayMode"] == "record"
+    monkeypatch.setenv("SANDMAN_LLM_MODE", "bogus")
+    with pytest.raises(ConfigError):
+        await runs.start(project_id="p", skill="s", tool="t", tool_version="0", input_key="k")
 
 
 def test_model_selector_enforces_local_only(tmp_path: Path) -> None:

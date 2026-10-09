@@ -41,6 +41,17 @@ class LibraryTest {
     }
 
     @Test
+    void llmModeReadsEnvAndRejectsUnknown() {
+        assertEquals("live", Settings.llmMode(Map.of()));
+        assertEquals("live", Settings.llmMode(Map.of("SANDMAN_LLM_MODE", "")));
+        assertEquals("record", Settings.llmMode(Map.of("SANDMAN_LLM_MODE", "record")));
+        assertEquals("replay", Settings.llmMode(Map.of("SANDMAN_LLM_MODE", "replay")));
+        var e = assertThrows(
+                Settings.ConfigException.class, () -> Settings.llmMode(Map.of("SANDMAN_LLM_MODE", "bogus")));
+        assertTrue(e.getMessage().contains("SANDMAN_LLM_MODE"));
+    }
+
+    @Test
     void fingerprintSortsByUtf8BytesNotUtf16() {
         String bmp = "Ａ"; // UTF-8 EF BC A1; UTF-16 FF21
         String astral = "😀"; // U+1F600: UTF-8 F0 9F 98 80; UTF-16 D83D DE00

@@ -118,7 +118,7 @@ public class RecoverTraceLinks implements Skill {
                 ctx.workflowId(),
                 ctx.taskId(),
                 ctx.actor() != null ? ctx.actor() : "service:" + ctx.caller(),
-                "live"));
+                null));
         ObjectNode run = JsonMapper.shared().createObjectNode();
         run.put("approach", approach.id());
         run.put("approachVersion", approach.version());

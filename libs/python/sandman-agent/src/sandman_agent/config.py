@@ -13,6 +13,17 @@ class ConfigError(Exception):
     """Missing or invalid configuration."""
 
 
+LLM_MODES = ("live", "record", "replay")
+
+
+def llm_mode(env: Mapping[str, str] | None = None) -> str:
+    """SANDMAN_LLM_MODE (live|record|replay, default live); anything else is a ConfigError."""
+    mode = (os.environ if env is None else env).get("SANDMAN_LLM_MODE") or "live"
+    if mode not in LLM_MODES:
+        raise ConfigError(f"invalid SANDMAN_LLM_MODE {mode!r}, expected one of {', '.join(LLM_MODES)}")
+    return mode
+
+
 @dataclass(frozen=True)
 class Settings:
     """Runtime configuration of one service (Stage 2 §1.7)."""

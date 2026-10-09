@@ -37,7 +37,10 @@ public final class KgClient implements AutoCloseable {
         this.driver = driver;
     }
 
-    /** Runs a read query; rows as maps. */
+    /**
+     * Runs a read query; rows as maps. Rule: a query whose rows enter an LLM prompt or set the order of LLM calls must
+     * end in ORDER BY on a stable key (e.g. e.id); unordered rows break replay determinism.
+     */
     public List<Map<String, Object>> read(String cypher, Map<String, Object> params) {
         return Telemetry.inSpan(Telemetry.kgSpan("read", cypher), () -> {
             try (Session session = driver.session()) {

@@ -26,19 +26,7 @@ public final class RunRecorder {
 
         public static RunInfo of(String projectId, String skill, String tool, String toolVersion, String inputKey) {
             return new RunInfo(
-                    projectId,
-                    skill,
-                    tool,
-                    toolVersion,
-                    inputKey,
-                    null,
-                    null,
-                    null,
-                    List.of(),
-                    null,
-                    null,
-                    null,
-                    "live");
+                    projectId, skill, tool, toolVersion, inputKey, null, null, null, List.of(), null, null, null, null);
         }
     }
 
@@ -52,7 +40,7 @@ public final class RunRecorder {
         this.agentVersion = agentVersion;
     }
 
-    /** Creates a running Run with USED edges; returns its id. */
+    /** Creates a running Run with USED edges; returns its id. A null replayMode defaults to SANDMAN_LLM_MODE. */
     public String start(RunInfo run) {
         String runId = Ids.newRunId();
         Map<String, Object> props = new LinkedHashMap<>();
@@ -70,7 +58,7 @@ public final class RunRecorder {
         props.put("workflowId", run.workflowId());
         props.put("a2aTaskId", run.taskId());
         props.put("triggeredBy", run.triggeredBy());
-        props.put("replayMode", run.replayMode() != null ? run.replayMode() : "live");
+        props.put("replayMode", run.replayMode() != null ? run.replayMode() : Settings.llmMode(System.getenv()));
         props.put("status", "running");
         props.put("startedAt", Event.now());
         props.values().removeIf(v -> v == null);

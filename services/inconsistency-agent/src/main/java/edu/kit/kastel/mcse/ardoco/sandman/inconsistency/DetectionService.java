@@ -179,7 +179,7 @@ public final class DetectionService {
                 req.workflowId(),
                 req.taskId(),
                 req.actor(),
-                "live");
+                null);
     }
 
     /** Validates findings and resolves their involved elements and links; throws on unknown references. */

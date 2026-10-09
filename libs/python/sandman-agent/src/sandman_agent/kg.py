@@ -9,6 +9,7 @@ from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction
 from neo4j.exceptions import Neo4jError
 
 from sandman_agent import telemetry
+from sandman_agent.config import llm_mode
 from sandman_agent.ids import new_run_id
 from sandman_agent.llm import Usage
 
@@ -49,7 +50,11 @@ class KgClient:
         await self._driver.close()
 
     async def read(self, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:
-        """Run a read query; rows as dicts."""
+        """Run a read query; rows as dicts.
+
+        Rule: a query whose rows enter an LLM prompt or set the order of LLM calls must end in ORDER BY on a stable
+        key (e.g. e.id); Memgraph returns unordered rows in no guaranteed order, which breaks replay determinism.
+        """
 
         async def work(tx: AsyncManagedTransaction) -> list[dict[str, Any]]:
             return [r.data() async for r in await tx.run(cypher, params)]
@@ -109,17 +114,17 @@ class RunRecorder:
         workflow_id: str | None = None,
         task_id: str | None = None,
         triggered_by: str | None = None,
-        replay_mode: str = "live",
+        replay_mode: str | None = None,
         prompt_ids: Sequence[str] = (),
     ) -> str:
-        """Create a running Run and USED edges; return its id."""
+        """Create a running Run and USED edges; return its id. replay_mode defaults to SANDMAN_LLM_MODE."""
         run_id = new_run_id()
         props = {
             "id": run_id, "projectId": project_id, "agent": self._agent, "agentVersion": self._agent_version,
             "skill": skill, "tool": tool, "toolVersion": tool_version, "inputKey": input_key, "model": model,
             "params": params, "configHash": config_hash, "workflowId": workflow_id, "a2aTaskId": task_id,
-            "triggeredBy": triggered_by, "replayMode": replay_mode, "status": "running", "startedAt": now(),
-            "promptIds": list(prompt_ids) or None,
+            "triggeredBy": triggered_by, "replayMode": replay_mode or llm_mode(),
+            "status": "running", "startedAt": now(), "promptIds": list(prompt_ids) or None,
         }  # fmt: skip
         await self._kg.write(
             "CREATE (r:Run) SET r = $props "

@@ -3,7 +3,7 @@ COMPOSE     := docker compose -f deploy/docker-compose.yml
 COMPOSE_DEV := $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e backup
+.PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -50,11 +50,46 @@ guard:              ## no agent frameworks in Python code (NFR-3)
 contracts:
 	uv run python scripts/validate_contracts.py
 
-e2e: secrets        ## walking skeleton and dashboard: stack with plugin stubs and dashboard up, then the e2e tests
+REPLAY_ENV  := SANDMAN_LLM_RECORDS_HOST_DIR=$(CURDIR)/tests/cassettes SANDMAN_EXPERIMENT=walking-skeleton
+DETERMINISM := uv run pytest tests/e2e/test_replay_determinism.py -q
+STACK_UP    := $(COMPOSE_DEV) --profile stubs --profile dashboard up -d --build --wait --wait-timeout 300
+STACK_DOWN  := $(COMPOSE_DEV) --profile stubs --profile dashboard down -v
+
+e2e: secrets        ## walking skeleton, dashboard and replay determinism: stack in strict replay mode from tests/cassettes
 	deploy/check-env.sh
-	$(COMPOSE) --profile stubs --profile dashboard up -d --build --wait --wait-timeout 300
+	$(STACK_DOWN)
+	$(REPLAY_ENV) SANDMAN_LLM_MODE=replay $(STACK_UP)
 	SANDMAN_E2E=1 uv run pytest tests/e2e/test_walking_skeleton.py -q
-	SANDMAN_E2E=1 uv run pytest tests/e2e/test_dashboard.py -q
+	SANDMAN_E2E=1 SANDMAN_LLM_MODE=replay uv run pytest tests/e2e/test_dashboard.py -q
+	SANDMAN_E2E=1 $(DETERMINISM)
+
+record-cassettes: secrets  ## record tests/cassettes/walking-skeleton (same test sequence as e2e, so replay has no misses) against the remote Ollama (SELFHOSTED_LLM_URL) and regenerate the golden KG export
+	deploy/check-env.sh
+	@url=$$(sed -n 's/^SELFHOSTED_LLM_URL=//p' deploy/secrets/gateway.env | tail -n 1); \
+		[ -n "$$url" ] && [ "$$url" != "http://ollama:11434" ] || { echo "record-cassettes: set SELFHOSTED_LLM_URL/KEY in deploy/secrets/gateway.env to the remote Ollama endpoint"; exit 1; }
+	$(STACK_DOWN)
+	rm -f tests/cassettes/walking-skeleton/cassette.jsonl
+	@rc=0; \
+		$(REPLAY_ENV) SANDMAN_LLM_MODE=record $(STACK_UP) && \
+		SANDMAN_E2E=1 uv run pytest tests/e2e/test_walking_skeleton.py -q && \
+		SANDMAN_E2E=1 SANDMAN_LLM_MODE=record uv run pytest tests/e2e/test_dashboard.py -q && \
+		SANDMAN_E2E=1 SANDMAN_UPDATE_GOLDEN=1 $(DETERMINISM) || rc=$$?; \
+		$(STACK_DOWN); \
+		exit $$rc
+
+replay-twice: secrets  ## two fresh replay runs must export byte-identical canonical KGs
+	deploy/check-env.sh
+	@mkdir -p $(CURDIR)/.work; \
+	rc=0; \
+	for n in 1 2; do \
+		$(STACK_DOWN) && \
+		$(REPLAY_ENV) SANDMAN_LLM_MODE=replay $(STACK_UP) && \
+		SANDMAN_E2E=1 $(DETERMINISM) && \
+		uv run python scripts/kg_canonical_export.py --project replay-mini --out $(CURDIR)/.work/replay-$$n.json || { rc=$$?; break; }; \
+	done; \
+	$(STACK_DOWN); \
+	[ $$rc -eq 0 ] || exit $$rc; \
+	cmp .work/replay-1.json .work/replay-2.json && echo "replay-twice: identical"
 
 backup:
 	@echo "not implemented (T5.3)"; exit 1

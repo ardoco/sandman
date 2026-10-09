@@ -69,9 +69,9 @@ def client(token: str) -> httpx.Client:
 
 
 class Stack:
-    def __init__(self) -> None:
-        suffix = secrets.token_hex(3)
-        self.project = f"e2e-{suffix}"
+    def __init__(self, project: str | None = None) -> None:
+        suffix = project or secrets.token_hex(3)
+        self.project = project or f"e2e-{suffix}"
         admin = client(
             console_token(
                 "admin",

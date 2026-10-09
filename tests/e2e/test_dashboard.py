@@ -186,8 +186,9 @@ def test_events_page_shows_the_ingestion_event(dashboard: httpx.Client) -> None:
     assert seq and project in dashboard.get(f"/events/{seq[1]}").text
 
 
-def test_experiments_page_shows_live_mode(dashboard: httpx.Client) -> None:
-    assert "<th>Mode</th><td>live</td>" in dashboard.get("/experiments").text
+def test_experiments_page_shows_llm_mode(dashboard: httpx.Client) -> None:
+    mode = os.environ.get("SANDMAN_LLM_MODE", "live")
+    assert f"<th>Mode</th><td>{mode}</td>" in dashboard.get("/experiments").text
 
 
 def test_state_changing_requests_need_csrf(dashboard: httpx.Client) -> None:

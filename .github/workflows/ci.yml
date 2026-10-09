@@ -146,7 +146,8 @@ jobs:
         with:
           python-version: "3.13"
       - run: uv sync --locked
-      - run: make e2e
+      - name: e2e (strict replay from tests/cassettes, no provider keys)
+        run: make e2e
       - name: logs
         if: failure()
         run: docker compose -f deploy/docker-compose.yml --profile stubs logs --no-color --tail 300

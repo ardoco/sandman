@@ -116,7 +116,7 @@ def test_empty_url_fails_closed(gateway):
         pytest.skip("configured case")
     gateway = gateway.removesuffix("#empty")
     for path, body in (
-        ("chat/completions", {"model": "ollama/qwen3:1.7b", "messages": [{"role": "user", "content": "x"}]}),
+        ("chat/completions", {"model": "ollama/qwen3:4b", "messages": [{"role": "user", "content": "x"}]}),
         ("embeddings", {"model": "ollama/nomic-embed-text:v1.5", "input": "x"}),
     ):
         assert httpx.post(f"{gateway}/openai/v1/{path}", json=body, timeout=30).status_code >= 400
@@ -128,7 +128,7 @@ def test_chat_and_embeddings_through_open_webui_proxy(gateway):
         pytest.skip("empty-url case")
     chat = httpx.post(
         f"{gateway}/openai/v1/chat/completions",
-        json={"model": "ollama/qwen3:1.7b", "messages": [{"role": "user", "content": "ping"}]},
+        json={"model": "ollama/qwen3:4b", "messages": [{"role": "user", "content": "ping"}]},
         timeout=30,
     )
     assert chat.status_code == 200, chat.text

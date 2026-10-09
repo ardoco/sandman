@@ -113,7 +113,7 @@ async def test_enrichment_writes_summaries_concepts_and_provenance(env: Any) -> 
         "extract-artifact-versions",
     )
     params = json.loads(props["params"])
-    assert (params["seed"], params["temperature"], params["model"]) == (42, 0.0, "ollama/qwen3:1.7b")
+    assert (params["seed"], params["temperature"], params["model"]) == (42, 0.0, "ollama/qwen3:4b")
     assert (params["maxSummaryChars"], params["maxConcepts"], params["maxInputChars"]) == (400, 8, 6000)
     assert props["promptIds"] == enrich.PROMPT_IDS
     assert (props["inputTokens"], props["outputTokens"]) == (7 * len(llm.requests), 3 * len(llm.requests))
@@ -294,7 +294,7 @@ async def test_reuse_is_invalidated_by_limits_and_model_mapping(env: Any, change
     if change == "summary-limit":
         env.svc.enrichment = dataclasses.replace(env.svc.enrichment, max_summary_chars=300)
     else:
-        env.svc.selector.routes["chat-local"] = "ollama/qwen3:4b"
+        env.svc.selector.routes["chat-local"] = "ollama/qwen3:8b"
     resp = await env.ingest(files | {REQ: files[REQ] + b"\n## REQ-4 New\nSomething new.\n"})
     task = await env.extract(resp.json()["createdVersionIds"])
     assert task.state == "TASK_STATE_COMPLETED"

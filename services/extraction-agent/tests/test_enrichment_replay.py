@@ -71,7 +71,7 @@ async def test_enrichment_on_recorded_model_output(env: Any) -> None:
 
     assert capture.requests
     assert {auth for auth, _ in capture.requests} == {f"Bearer {RECORD_KEY or 'local-key'}"}
-    assert {body["model"] for _, body in capture.requests} == {"ollama/qwen3:1.7b"}
+    assert {body["model"] for _, body in capture.requests} == {"ollama/qwen3:4b"}
     assert {body["response_format"]["type"] for _, body in capture.requests} == {"json_schema"}
 
     cfg = svc.enrichment

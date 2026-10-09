@@ -30,7 +30,7 @@ Cloud routes (`chat-default`, `chat-alt`, `embed-default` in `config/llm/models.
 
 `make secrets` sets `SELFHOSTED_LLM_URL=http://ollama:11434`. Choose one of two modes for the self-hosted models:
 
-**A. Local container (default).** Start the Ollama container and pull the two models (`qwen3:1.7b` for chat, `nomic-embed-text` for embeddings, about 2 GB), then start the stack:
+**A. Local container (default).** Start the Ollama container and pull the two models (`qwen3:4b` for chat, `nomic-embed-text` for embeddings, about 3 GB), then start the stack:
 
 ```sh
 make models

@@ -175,7 +175,8 @@ plugins:
 |---|---|
 | `SANDMAN_SERVICE_NAME` | caller name (logs, `source` of events, token lookup) |
 | `SANDMAN_LLM_BASE_URL` (the `llm-replay` proxy), `SANDMAN_LLM_KEY_FILE`, `SANDMAN_LLM_LOCAL_KEY_FILE`, `SANDMAN_LLM_MODELS_FILE` | LLM access (local key for `local-only` projects) |
-| `SANDMAN_LLM_MODE` (`live`/`record`/`replay`), `SANDMAN_LLM_RECORDS_DIR`, `SANDMAN_LLM_UPSTREAM` | `llm-replay` only |
+| `SANDMAN_LLM_MODE` (`live`/`record`/`replay`) | all agents (`Run.replayMode`) and `llm-replay` (behavior) |
+| `SANDMAN_LLM_RECORDS_DIR`, `SANDMAN_LLM_UPSTREAM` | `llm-replay` only |
 | `SANDMAN_KG_URI`, `SANDMAN_KG_USER`, `SANDMAN_KG_PASSWORD_FILE` | Memgraph |
 | `SANDMAN_NATS_URL` | event bus |
 | `SANDMAN_SERVICE_TOKEN_FILE`, `SANDMAN_SERVICE_VERIFY_FILE` | own token; `{callerName: sha256(token)}` for verifying callers |

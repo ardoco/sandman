@@ -9,6 +9,7 @@ name: sandman
 x-agent-env: &agent-env
   SANDMAN_LLM_BASE_URL: http://llm-replay:8000/openai    # record/replay proxy in front of the gateway (ADR-0010)
   SANDMAN_LLM_MODELS_FILE: /config/llm/models.yaml
+  SANDMAN_LLM_MODE: ${SANDMAN_LLM_MODE:-live}               # recorded as Run.replayMode
   SANDMAN_KG_URI: bolt://memgraph:7687
   SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
   SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
@@ -100,7 +101,7 @@ services:
       SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
     secrets: [svc_tokens_verify]
     volumes:
-      - ../data/llm-records:/llm-records
+      - ${SANDMAN_LLM_RECORDS_HOST_DIR:-../data/llm-records}:/llm-records
       - ../data/logs:/logs
     networks: [internal]
     mem_limit: 512m
@@ -372,7 +373,7 @@ services:
     volumes:
       - ollama-models:/root/.ollama
     networks: [llm-local, egress]                # reachable only by the gateway; egress for model pulls
-    mem_limit: 4g                                # CPU-only; Docker VM of 7.75 GiB; qwen3:1.7b + nomic-embed-text
+    mem_limit: 4g                                # CPU-only; Docker VM of 7.75 GiB; qwen3:4b + nomic-embed-text
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 15s

@@ -13,6 +13,9 @@ CLAUDE.local.md
 
 .github/workflows/openwiki-update.yml
 
+.claude
+.serena
+
 # General
 .DS_Store
 .localized

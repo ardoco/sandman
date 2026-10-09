@@ -94,7 +94,8 @@ class ExtractSkill:
         project = await kg.read("MATCH (p:Project {id: $p}) RETURN p.llmPolicy AS llmPolicy", p=pid)
         versions = await kg.read(
             "MATCH (a:Artifact)-[:HAS_VERSION]->(v:ArtifactVersion {projectId: $p}) WHERE v.id IN $ids "
-            "RETURN v.id AS id, a.id AS art, a.path AS path, a.kind AS kind, a.format AS format, v.storageUri AS uri",
+            "RETURN v.id AS id, a.id AS art, a.path AS path, a.kind AS kind, a.format AS format, v.storageUri AS uri "
+            "ORDER BY v.id",
             p=pid, ids=vids,
         )  # fmt: skip
         if not project or len(versions) != len(vids):
@@ -156,7 +157,8 @@ class ExtractSkill:
         summaries, warnings, status = [], [], "completed"
         current = await svc.kg.read(
             "MATCH (a:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v) "
-            "RETURN a.path AS path, a.kind AS kind, a.format AS format, v.id AS id, v.storageUri AS uri",
+            "RETURN a.path AS path, a.kind AS kind, a.format AS format, v.id AS id, v.storageUri AS uri "
+            "ORDER BY v.id",
             p=pid,
         )
 
@@ -261,13 +263,13 @@ class ExtractSkill:
             element_count += await self._write_elements(pid, meta[vid]["art"], vid, producer[vid], els)
         # links and relations after all element sets, so references into this run's other versions resolve
         targets: dict[str, list[tuple[str, str]]] = defaultdict(list)
-        for r in await svc.kg.read(
+        for r in sorted(await svc.kg.read(
             "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v)-[:HAS_ELEMENT]->(e:Requirement) "
             "RETURN e.id AS id, e.key AS key "
             "UNION MATCH (v:ArtifactVersion)-[:HAS_ELEMENT]->(e:Requirement) WHERE v.id IN $vids "
             "RETURN e.id AS id, e.key AS key",
             p=pid, vids=list(meta),
-        ):  # fmt: skip
+        ), key=lambda r: r["id"]):  # fmt: skip
             targets[r["key"].split("#", 1)[1]].append((r["id"], r["key"]))
         version_of = {c["path"]: c["id"] for c in current} | {v["path"]: v["id"] for v in meta.values()}
         link_count = 0

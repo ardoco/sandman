@@ -57,13 +57,16 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T1.9 | Dashboard core (Stage 1 §10.1): admin login, services page (health + working/idle, Memgraph/NATS/gateway), KG graph view with Cytoscape.js incl. extras (Cypher box in read transactions, paths, PNG/JSON export), LLM gateway statistics and budgets, Dockerfile + Compose | L | T0.11, T0.14 | [T1.9](tasks/T1.9-dashboard-core.md) |
 | T1.10 | Dashboard operations: workflow monitor with cancel and dead-event replay, event stream viewer, alerts (banner + `event=alert` log), record/replay status page | M | T1.9 | [T1.10](tasks/T1.10-dashboard-operations.md) |
 | T1.11 | Dashboard insights: project statistics, history charts (SQLite samples, uPlot), resource usage via cAdvisor (profile `resources`) | M | T1.9 | [T1.11](tasks/T1.11-dashboard-insights.md) |
+| T1.12 | Explicit-link re-resolution: reference texts stored on elements (additive contract change), re-resolved after every ingestion in the extraction step (R-014) | S | T1.3 | [T1.12](tasks/T1.12-explicit-link-re-resolution.md) |
+| T1.13 | Review follow-ups, contract semantics: planned operations returning 501 and config schemas (R-019), lifecycle table and `evidenceHash` (R-018), idempotency-key vectors (R-028), actor 403 and roles header (R-005, R-006), forwarding gaps (R-007), walking-skeleton fixes (R-021), workflow debounce/retry (R-023), inbox crash safety (R-024) | M | T0.5–T0.11 | [T1.13](tasks/T1.13-review-follow-ups-semantics.md) |
+| T1.14 | Review follow-ups, hardening: upload/parser limits and schema migration (R-029), custom OpenAI-compatible provider check (R-031), no fallbacks and mixed-model flag for experiments (R-041), pinned images and models (R-046) | M | T0.4, T1.4 | [T1.14](tasks/T1.14-hardening-and-supply-chain.md) |
 | **M2** | | | | |
-| T2.1 | ArDoCo TLR approach adapter(s) (SAD↔SAM, SAD↔code) | L | T1.1, T1.2, T0.6 | |
-| T2.2 | LiSSA adapter (LangChain4j configured via `LlmAccess` to `llm-replay`/gateway with the policy-dependent key; embeddings likewise) | L | T0.6 | |
-| T2.3 | Evaluation harness: exports in benchmark formats, metric computation (paired bootstrap CIs, McNemar, effect sizes, Holm correction), experiment manifests; pre-registered protocol `experiments/PROTOCOL.md` (§3.3) | M | T2.1 | |
+| T2.1 | ArDoCo TLR approach adapter(s) (SAD↔SAM, SAD↔code) Includes R-022: approaches declare `scopeMode: pairwise \| whole-project`; whole-project approaches (ArDoCo SAD↔SAM) recompute over all current versions of the pair; contract PR first; incremental equals batch test | L | T1.1, T1.2, T0.6, T1.13 | |
+| T2.2 | LiSSA adapter (LangChain4j configured via `LlmAccess` to `llm-replay`/gateway with the policy-dependent key; embeddings likewise) Lives in its own Maven module `approach-lissa` (the only LangChain4j exception, ArchUnit rule forbids `dev.langchain4j..` elsewhere; R-030) | L | T0.6 | |
+| T2.3 | Evaluation harness: exports in benchmark formats, metric computation (paired bootstrap CIs, McNemar, effect sizes, Holm correction), experiment manifests; pre-registered protocol `experiments/PROTOCOL.md` (§3.3); additive export `format=ardoco-sad-sam \| ardoco-sad-code \| lissa` with the column mapping once V-24 is answered (R-027) | M | T2.1 | |
 | T2.4 | Reproduction study per §3.3 (ArDoCo exact equality; LiSSA live re-run with Δ and CI), variance pilot deciding the number of runs, perturbed-benchmark contamination probe | M | T2.3 | |
 | **M3** | | | | |
-| T3.1 | ArDoCo `InconsistencyDetection` adapter: own pipeline from public factories, `runWithoutSaving()`; hands in the one-sentence-per-line rendering as pre-annotated `PreprocessingData` (`ssplit.eolonly`), maps sentence *i* to line *i* (hash as assertion), model elements by XMI id incl. interfaces; **active trace links of all approaches** via a custom step after `ConnectionGenerator` (Q-20 workaround; exact semantics need the upstream extension); deduplicates text findings by (sentence, word) (ADR-0015, spike T0.12) | L | T2.1, T0.7 | |
+| T3.1 | ArDoCo `InconsistencyDetection` adapter: own pipeline from public factories, `runWithoutSaving()`; hands in the one-sentence-per-line rendering as pre-annotated `PreprocessingData` (`ssplit.eolonly`), maps sentence *i* to line *i* (hash as assertion), model elements by XMI id incl. interfaces; **active trace links of all approaches** via a custom step after `ConnectionGenerator` (Q-20 workaround; exact semantics need the upstream extension); deduplicates text findings by (sentence, word) (ADR-0015, spike T0.12); lives in its own Maven module `detector-ardoco` (LangChain4j allowed only there, R-030) | L | T2.1, T0.7 | |
 | T3.2 | ArDoCo `ArtemisInconsistencyDetection` adapter (LLM via gateway through ArDoCo's client) | M | T3.1 | |
 | T3.3 | Equivalence test vs. standalone ArDoCo runner on benchmark inputs (`linkApproaches: [ardoco]`) | M | T3.1 | |
 | T3.4 | Console evidence view (sentence text, model element, involved links, history) | S | T3.1, T0.9 | |
@@ -72,8 +75,8 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M4** | | | | |
 | T4.1 | NL-to-Cypher generation + validation + repair | M | T0.9 | |
 | T4.2 | Example/evaluation set (≥ 150 question–Cypher pairs on benchmark projects, split by template and by project; test questions written by people not tuning the prompts); intent-template baseline | M | T1.x data | |
-| T4.3 | Answer synthesis with citations; console "Ask" page | S | T4.1 | |
-| T4.4 | Security test suite for the query path | S | T4.1 | |
+| T4.3 | Answer synthesis with citations; answers may cite only ids present in the result rows (R-032); console "Ask" page | S | T4.1 | |
+| T4.4 | Security test suite for the query path; includes prompt-injection fixtures that measure effects on outputs, and escaping and CSP checks for LLM rationale and plugin evidence in the console (R-032) | S | T4.1 | |
 | **M5** | | | | |
 | T5.1 | GitHub Action `sandman-ingest` for user projects (token from secrets) | S | T0.10 | |
 | T5.2 | Retention: `prune` skills (tlr, extraction) + scheduled workflow | M | M2 | |

@@ -1,8 +1,12 @@
 openapi: 3.1.0
 info:
   title: SANDMAN orchestrator API
-  version: 0.3.0
-  description: Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
+  version: 0.4.0
+  description: |
+    Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
+    The query-service forwards in M0 only list/create/get workflows; cancel, retry, dead-event listing and replay are
+    x-sandman-status: out-of-scope-M0 there (R-007; the dashboard calls cancel and replay directly, ADR-0016).
+    Operations with x-sandman-status: planned are final-contract operations that answer 501 until implemented (R-019).
 servers:
   - url: http://orchestrator:8000
 security:
@@ -72,6 +76,35 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/WorkflowDetail" }
         "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+  /v1/requests:
+    post:
+      summary: Natural-language request for the LLM planner (planner behind a feature flag, approval gate)
+      operationId: createRequest
+      x-sandman-status: planned
+      description: Planned (final version, M6). Answers 501 until the planner exists; the plan is then executed as a workflow that stays BLOCKED until approved (/v1/workflows/{workflowId}/approval).
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [projectId, text]
+              properties:
+                projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+                text: { type: string, minLength: 3, maxLength: 4000 }
+              additionalProperties: false
+      responses:
+        "202":
+          description: Request accepted; the returned workflow holds the proposed plan until approved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
   /v1/workflows/{workflowId}:
     parameters:
       - $ref: "#/components/parameters/WorkflowId"
@@ -91,6 +124,7 @@ paths:
     post:
       summary: Cancel running steps (A2A CancelTask) and pending steps
       operationId: cancelWorkflow
+      x-sandman-status: out-of-scope-M0
       parameters:
         - $ref: "shared.yaml#/components/parameters/Actor"
       responses:
@@ -99,12 +133,67 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "404": { $ref: "shared.yaml#/components/responses/NotFound" }
         "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+  /v1/workflows/{workflowId}/retry:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    post:
+      summary: Resume a BLOCKED workflow (its BLOCKED steps become PENDING, e.g. after a budget was raised)
+      operationId: retryWorkflow
+      x-sandman-status: out-of-scope-M0
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      responses:
+        "202":
+          description: Retry accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409":
+          description: Workflow is not BLOCKED
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+  /v1/workflows/{workflowId}/approval:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    post:
+      summary: Approve or reject the plan of a planner workflow (approval gate)
+      operationId: decideWorkflowApproval
+      x-sandman-status: planned
+      description: Planned (final version, M6). Answers 501 until the planner exists.
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { enum: [approve, reject] }
+                reason: { type: string, maxLength: 2000 }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkflowDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
   /v1/dead-events:
     get:
       summary: Events that exceeded MaxDeliver
       operationId: listDeadEvents
+      x-sandman-status: out-of-scope-M0
       responses:
         "200":
           description: Dead events
@@ -128,6 +217,7 @@ paths:
     post:
       summary: Re-process a dead event
       operationId: replayDeadEvent
+      x-sandman-status: out-of-scope-M0
       parameters:
         - name: eventId
           in: path
@@ -136,6 +226,7 @@ paths:
         - $ref: "shared.yaml#/components/parameters/Actor"
       responses:
         "202": { description: Re-queued }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "404": { $ref: "shared.yaml#/components/responses/NotFound" }
 components:
   securitySchemes:
@@ -188,6 +279,9 @@ components:
                   status: { $ref: "#/components/schemas/StepStatus" }
                   attempts: { type: integer, minimum: 0 }
                   actionKey: { $ref: "../common.schema.json#/$defs/Sha256" }
+                  mergedInto:
+                    type: string
+                    description: Id of the step of the newest workflow this step was merged into (debounce coalescing, R-023); absent otherwise.
                   a2aTaskId: { type: string }
                   input: { type: object }
                   result: { type: object }

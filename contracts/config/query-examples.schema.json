@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/query-examples.schema.json",
+  "title": "config/query/examples.yaml",
+  "description": "Few-shot question to Cypher pairs for the NL-to-Cypher prompt (top-k by embedding similarity); the same file, split into dev/test, is the evaluation set (Stage 1 \u00a77). Empty in the M0 stub. Contract version 0.4.0.",
+  "type": "object",
+  "required": [
+    "examples"
+  ],
+  "properties": {
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "question",
+          "cypher"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 3
+          },
+          "cypher": {
+            "type": "string",
+            "minLength": 1
+          },
+          "split": {
+            "enum": [
+              "dev",
+              "test"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

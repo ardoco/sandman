@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/extraction-plugins.schema.json",
+  "title": "config/extraction/plugins.yaml",
+  "description": "Extraction plugins, explicit-reference patterns and the built-in extractor. Run.configHash of plugin runs = sha256 of the file; the configHash of explicit-reference link ids = sha256 of the JCS of the explicitReferences member (kg/schema.yaml conventions.derivations). Contract version 0.4.0.",
+  "type": "object",
+  "properties": {
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "transport",
+          "url",
+          "tokenFile",
+          "match"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "transport": {
+            "enum": [
+              "a2a",
+              "http"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "tokenFile": {
+            "type": "string"
+          },
+          "match": {
+            "type": "object",
+            "properties": {
+              "kinds": {
+                "type": "array",
+                "items": {
+                  "$ref": "https://sandman.invalid/contracts/common.schema.json#/$defs/ArtifactKind"
+                }
+              },
+              "formats": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "globs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "timeout": {
+            "$ref": "#/$defs/duration"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "explicitReferences": {
+      "type": "object",
+      "required": [
+        "patterns"
+      ],
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regular expressions matching requirement ids in element text."
+        }
+      },
+      "additionalProperties": false
+    },
+    "builtin": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "converter": {
+          "type": "object",
+          "properties": {
+            "timeoutSeconds": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "duration": {
+      "description": "Duration: number of seconds or a string like 30s, 2m, 1h (ms accepted by the Java loader).",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^\\s*\\d+(\\.\\d+)?\\s*(ms|s|m|h)?\\s*$"
+        }
+      ]
+    }
+  }
+}

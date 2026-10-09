@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/skills.schema.json",
   "title": "SANDMAN A2A skill inputs and outputs",
-  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.3.0.",
+  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.4.0.",
   "$defs": {
     "ExtractArtifactVersionsInput": {
       "type": "object",
@@ -342,6 +342,13 @@
               },
               "error": {
                 "type": "string"
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Warnings of the detector or its plugin (e.g. plugin warnings, skipped inputs); surfaced to the API and the console (R-021)."
               }
             },
             "additionalProperties": false
@@ -742,6 +749,106 @@
         "evidence": {
           "type": "object",
           "description": "Free-form detector evidence shown in the console (e.g. sentence text, rationale)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "PruneTraceLinksInput": {
+      "type": "object",
+      "description": "Retention pruning of old trace links of the tlr-agent; explicit-reference links are never pruned (owned by the extraction-agent). PLANNED (x-sandman-status planned, M5/T5.2): the skill is declared in the card's plannedSkills; until implemented an invocation fails with sandman.error code NOT_IMPLEMENTED (retryable false).",
+      "required": [
+        "projectId"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "keepVersionsPerArtifact": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20,
+          "description": "Retention: newest versions kept per artifact (Stage 1 §4.2); versions referenced by an experiment manifest, an inconsistency or a non-rejected current link are always kept."
+        },
+        "dryRun": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "PruneTraceLinksOutput": {
+      "type": "object",
+      "required": [
+        "runId",
+        "removedCount"
+      ],
+      "properties": {
+        "runId": {
+          "$ref": "common.schema.json#/$defs/RunId"
+        },
+        "removedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "keptCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PruneArtifactDataInput": {
+      "type": "object",
+      "description": "Retention pruning of old artifact versions, their elements and runs of the extraction-agent. PLANNED (x-sandman-status planned, M5/T5.2): the skill is declared in the card's plannedSkills; until implemented an invocation fails with sandman.error code NOT_IMPLEMENTED (retryable false).",
+      "required": [
+        "projectId"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "keepVersionsPerArtifact": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 20,
+          "description": "Retention: newest versions kept per artifact (Stage 1 §4.2); versions referenced by an experiment manifest, an inconsistency or a non-rejected current link are always kept."
+        },
+        "dryRun": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "PruneArtifactDataOutput": {
+      "type": "object",
+      "required": [
+        "runId",
+        "removedCount"
+      ],
+      "properties": {
+        "runId": {
+          "$ref": "common.schema.json#/$defs/RunId"
+        },
+        "removedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "keptCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false

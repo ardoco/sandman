@@ -1,7 +1,7 @@
 {
   "name": "sandman-extraction-agent",
   "description": "Extracts structure and content of ingested artifact versions into the SANDMAN knowledge graph; delegates configured formats to extraction plugins.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "supportedInterfaces": [
     {
       "url": "http://extraction-agent:8000/a2a",
@@ -23,6 +23,12 @@
             "extract-artifact-versions": {
               "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/ExtractArtifactVersionsInput",
               "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/ExtractArtifactVersionsOutput"
+            }
+          },
+          "plannedSkills": {
+            "prune-artifact-data": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneArtifactDataInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneArtifactDataOutput"
             }
           }
         }

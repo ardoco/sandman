@@ -1,9 +1,11 @@
 openapi: 3.1.0
 info:
   title: SANDMAN tlr-agent REST API
-  version: 0.3.0
+  version: 0.4.0
   description: |
     Catalog and health. Trace link recovery itself is an A2A skill (contracts/agent-cards/tlr-agent.json).
+    Operations marked x-sandman-status: out-of-scope-M0 are not forwarded by the query-service in M0 (R-007);
+    x-sandman-status: planned operations answer 501 until implemented (R-019).
 servers:
   - url: http://tlr-agent:8080
 security:
@@ -19,6 +21,7 @@ paths:
     get:
       summary: Available TLR approaches with versions and supported kind pairs
       operationId: listApproaches
+      x-sandman-status: out-of-scope-M0
       responses:
         "200":
           description: Approach catalog
@@ -26,6 +29,44 @@ paths:
             application/json:
               schema: { $ref: "../skills.schema.json#/$defs/ListApproachesOutput" }
         "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+  /v1/links/{linkId}/review:
+    parameters:
+      - name: linkId
+        in: path
+        required: true
+        schema: { $ref: "../common.schema.json#/$defs/StableId" }
+    post:
+      summary: Confirm or reject a trace link (user review, sets TraceLink.status)
+      operationId: reviewLink
+      x-sandman-status: planned
+      description: Planned (later milestone, Stage 1 §6 human in the loop). Answers 501 until implemented. Requires X-Sandman-Actor from the query-service (other callers 403).
+      parameters:
+        - $ref: "shared.yaml#/components/parameters/Actor"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { enum: [confirmed, rejected, candidate] }
+                reason: { type: string, maxLength: 2000 }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Link updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status]
+                properties:
+                  id: { $ref: "../common.schema.json#/$defs/StableId" }
+                  status: { $ref: "../common.schema.json#/$defs/LinkStatus" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
 components:
   securitySchemes:
     serviceToken:

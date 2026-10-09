@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/inconsistency-plugins.schema.json",
+  "title": "config/inconsistency/plugins.yaml",
+  "description": "Enabled detectors and detector plugins (plain HTTP in M0). Contract version 0.4.0.",
+  "type": "object",
+  "properties": {
+    "detectors": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "params": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "transport",
+          "url",
+          "tokenFile"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "transport": {
+            "enum": [
+              "a2a",
+              "http"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "tokenFile": {
+            "type": "string"
+          },
+          "timeout": {
+            "$ref": "#/$defs/duration"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "duration": {
+      "description": "Duration: number of seconds or a string like 30s, 2m, 1h (ms accepted by the Java loader).",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "string",
+          "pattern": "^\\s*\\d+(\\.\\d+)?\\s*(ms|s|m|h)?\\s*$"
+        }
+      ]
+    }
+  }
+}

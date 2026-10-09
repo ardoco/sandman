@@ -1,5 +1,5 @@
 {
-  "description": "Language-neutral conformance vectors. Both agent libraries must reproduce every 'expected*' value. Contract version 0.3.0.",
+  "description": "Language-neutral conformance vectors. Both agent libraries must reproduce every 'expected*' value; groups a library does not know yet (inputKey, actionKey, ingestionId, traceLinkId, evidenceHash) are verified by scripts/validate_contracts.py and implemented with the code tasks (T1.13). Contract version 0.4.0.",
   "stableId": {
     "rule": "prefix + '_' + first 32 hex chars of sha256(UTF-8(parts joined by U+001F))",
     "cases": [
@@ -42,6 +42,17 @@
           "7"
         ],
         "expected": "ing_35e685b38d2e94ebd9b9009f05c626df"
+      },
+      {
+        "prefix": "tl",
+        "parts": [
+          "explicit-reference",
+          "0",
+          "91a0fb00485d920eb07bbee420b8cbd329bc7e081cf3fe1081ca3734d1483caa",
+          "el_0123456789abcdef0123456789abcdef",
+          "el_fedcba9876543210fedcba9876543210"
+        ],
+        "expected": "tl_eb4a05a6acc5e39d02fc66e996cb9e67"
       }
     ]
   },
@@ -395,6 +406,243 @@
             ]
           }
         }
+      }
+    ]
+  },
+  "inputKey": {
+    "rule": "sha256 hex of UTF-8(JCS({input, tool, configHash} plus promptIds when the tool uses prompt templates)). input = the skill input exactly as received; tool = extractor/approach/detector id or the plugin's config id; configHash per kg/schema.yaml conventions.derivations. Member order in the object is irrelevant (JCS sorts).",
+    "cases": [
+      {
+        "name": "extraction, built-in extractor",
+        "skill": "extract-artifact-versions",
+        "object": {
+          "input": {
+            "projectId": "mini",
+            "artifactVersionIds": [
+              "ver_0123456789abcdef0123456789abcdef"
+            ]
+          },
+          "tool": "builtin",
+          "configHash": "543c25bed460a65c8b4b3f35320e6fbfa8ab4b6cda5d958e097c63f2333d63bc"
+        },
+        "canonical": "{\"configHash\":\"543c25bed460a65c8b4b3f35320e6fbfa8ab4b6cda5d958e097c63f2333d63bc\",\"input\":{\"artifactVersionIds\":[\"ver_0123456789abcdef0123456789abcdef\"],\"projectId\":\"mini\"},\"tool\":\"builtin\"}",
+        "expected": "19fd44ed5b83d75789516f8e3e472c7e1729b30976e783b75a199fc0147189cc"
+      },
+      {
+        "name": "tlr approach with params hash",
+        "skill": "recover-trace-links",
+        "object": {
+          "input": {
+            "projectId": "mini",
+            "sourceVersionIds": [
+              "ver_0123456789abcdef0123456789abcdef"
+            ],
+            "targetVersionIds": [
+              "ver_fedcba9876543210fedcba9876543210"
+            ]
+          },
+          "tool": "stub-name-match",
+          "configHash": "9fe73fc59085844dd08dabfdcd129d617c850c962d8b53a3a981a16c26bd0c9d"
+        },
+        "canonical": "{\"configHash\":\"9fe73fc59085844dd08dabfdcd129d617c850c962d8b53a3a981a16c26bd0c9d\",\"input\":{\"projectId\":\"mini\",\"sourceVersionIds\":[\"ver_0123456789abcdef0123456789abcdef\"],\"targetVersionIds\":[\"ver_fedcba9876543210fedcba9876543210\"]},\"tool\":\"stub-name-match\"}",
+        "expected": "c7407b4ff8b4c31ead56c780dd591f4e31bd40d52887ac3085f1ac3d3a678ab1"
+      },
+      {
+        "name": "enrichment with prompt ids",
+        "skill": "extract-artifact-versions",
+        "object": {
+          "input": {
+            "projectId": "mini",
+            "artifactVersionIds": [
+              "ver_0123456789abcdef0123456789abcdef"
+            ],
+            "options": {
+              "llmEnrichment": true
+            }
+          },
+          "tool": "llm-enrichment",
+          "configHash": "0e989b97b30e4a992df917f2dcd8b2ab3999886a1f3b66ea852ed99386a17051",
+          "promptIds": [
+            "prompts/summary.txt@0123456789ab",
+            "prompts/concepts.txt@ba9876543210"
+          ]
+        },
+        "canonical": "{\"configHash\":\"0e989b97b30e4a992df917f2dcd8b2ab3999886a1f3b66ea852ed99386a17051\",\"input\":{\"artifactVersionIds\":[\"ver_0123456789abcdef0123456789abcdef\"],\"options\":{\"llmEnrichment\":true},\"projectId\":\"mini\"},\"promptIds\":[\"prompts/summary.txt@0123456789ab\",\"prompts/concepts.txt@ba9876543210\"],\"tool\":\"llm-enrichment\"}",
+        "expected": "02a8c77b2ce168c1d3b58661f846062adc90c92574f35d28f38ef823cbcf811c"
+      }
+    ]
+  },
+  "actionKey": {
+    "rule": "sha256 hex of UTF-8(JCS({agent, skill, input, triggerId})); triggerId = id of the triggering event or of the manual request. (Replaces the earlier array form [agent, skill, input, triggerId].)",
+    "cases": [
+      {
+        "name": "event trigger",
+        "object": {
+          "agent": "tlr-agent",
+          "skill": "recover-trace-links",
+          "input": {
+            "projectId": "mini",
+            "sourceVersionIds": [
+              "ver_0123456789abcdef0123456789abcdef"
+            ],
+            "targetVersionIds": [
+              "ver_fedcba9876543210fedcba9876543210"
+            ]
+          },
+          "triggerId": "evt_0123456789abcdef0123456789abcdef"
+        },
+        "canonical": "{\"agent\":\"tlr-agent\",\"input\":{\"projectId\":\"mini\",\"sourceVersionIds\":[\"ver_0123456789abcdef0123456789abcdef\"],\"targetVersionIds\":[\"ver_fedcba9876543210fedcba9876543210\"]},\"skill\":\"recover-trace-links\",\"triggerId\":\"evt_0123456789abcdef0123456789abcdef\"}",
+        "expected": "95080a39d57cf0ec65376845c3c15780187b6185a59cdb8bb3f672d60bd08b2e"
+      },
+      {
+        "name": "manual trigger with params",
+        "object": {
+          "agent": "inconsistency-agent",
+          "skill": "detect-inconsistencies",
+          "input": {
+            "projectId": "mini",
+            "detectors": [
+              "stub-untraced"
+            ]
+          },
+          "triggerId": "req_fedcba9876543210fedcba9876543210"
+        },
+        "canonical": "{\"agent\":\"inconsistency-agent\",\"input\":{\"detectors\":[\"stub-untraced\"],\"projectId\":\"mini\"},\"skill\":\"detect-inconsistencies\",\"triggerId\":\"req_fedcba9876543210fedcba9876543210\"}",
+        "expected": "a345756bc2aed59ea17698d92674eac86b6d97db69e0836725431b3bbd128d86"
+      }
+    ]
+  },
+  "ingestionId": {
+    "rule": "'ing_' + first 32 hex chars of sha256(UTF-8(projectId U+001F decimal seq)); same as stableId('ing', [projectId, str(seq)]).",
+    "cases": [
+      {
+        "input": {
+          "projectId": "mediastore",
+          "seq": 7
+        },
+        "expected": "ing_35e685b38d2e94ebd9b9009f05c626df"
+      },
+      {
+        "input": {
+          "projectId": "mini",
+          "seq": 1
+        },
+        "expected": "ing_512995c86a77167d1aaf095e8c8b0bed"
+      }
+    ]
+  },
+  "traceLinkId": {
+    "rule": "'tl_' + first 32 hex chars of sha256(UTF-8(approach, approachVersion, configHash, sourceId, targetId joined by U+001F)) = stableId('tl', [...]) with the per-version Element ids. configHash of a TLR approach = sha256(JCS(effective params of the approach)); of explicit-reference = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)); sourceId = referenced Requirement, targetId = referring element.",
+    "cases": [
+      {
+        "input": {
+          "approach": "stub-name-match",
+          "approachVersion": "1",
+          "configHash": "9fe73fc59085844dd08dabfdcd129d617c850c962d8b53a3a981a16c26bd0c9d",
+          "sourceId": "el_0123456789abcdef0123456789abcdef",
+          "targetId": "el_fedcba9876543210fedcba9876543210"
+        },
+        "expected": "tl_2370852322c95b613f86e8caf4a53ad5"
+      },
+      {
+        "input": {
+          "approach": "explicit-reference",
+          "approachVersion": "0",
+          "configHash": "91a0fb00485d920eb07bbee420b8cbd329bc7e081cf3fe1081ca3734d1483caa",
+          "sourceId": "el_0123456789abcdef0123456789abcdef",
+          "targetId": "el_fedcba9876543210fedcba9876543210"
+        },
+        "expected": "tl_eb4a05a6acc5e39d02fc66e996cb9e67",
+        "configSource": {
+          "explicitReferences": {
+            "patterns": [
+              "REQ-\\d+",
+              "FR-\\d+"
+            ]
+          }
+        },
+        "configCanonical": "{\"patterns\":[\"REQ-\\\\d+\",\"FR-\\\\d+\"]}"
+      }
+    ]
+  },
+  "evidenceHash": {
+    "rule": "sha256 hex of UTF-8(pairs joined by U+001F); pairs = set of 'Element.key=Element.contentHash' of all involved Elements (an involved link contributes both endpoint Elements), duplicates removed, sorted byte-wise by UTF-8. contentHash is required on every Element.",
+    "cases": [
+      {
+        "name": "unsorted elements",
+        "involved": {
+          "elements": [
+            {
+              "key": "art_bb#mini.MediaCache",
+              "contentHash": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+            },
+            {
+              "key": "art_aa#REQ-2",
+              "contentHash": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+            }
+          ]
+        },
+        "sortedPairs": [
+          "art_aa#REQ-2=ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+          "art_bb#mini.MediaCache=3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+        ],
+        "expected": "37a2dcdbc799abad57ac8fcf880f379598af7ae1ddec4750a7cb5f2d7494f5b3"
+      },
+      {
+        "name": "duplicate element and link endpoints",
+        "involved": {
+          "elements": [
+            {
+              "key": "art_aa#REQ-2",
+              "contentHash": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+            },
+            {
+              "key": "art_aa#REQ-2",
+              "contentHash": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+            },
+            {
+              "key": "art_aa#REQ-1",
+              "contentHash": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6"
+            }
+          ],
+          "links": [
+            {
+              "sourceKey": "art_aa#REQ-2",
+              "targetKey": "art_bb#mini.MediaCache",
+              "endpoints": [
+                {
+                  "key": "art_aa#REQ-2",
+                  "contentHash": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+                },
+                {
+                  "key": "art_bb#mini.MediaCache",
+                  "contentHash": "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+                }
+              ]
+            }
+          ]
+        },
+        "sortedPairs": [
+          "art_aa#REQ-1=2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+          "art_aa#REQ-2=ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+          "art_bb#mini.MediaCache=3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d"
+        ],
+        "expected": "d1810c6a5b3f3fb4031ce08639144bc5ec4057c19fb123153268a82f08fcc5f3"
+      },
+      {
+        "name": "single element",
+        "involved": {
+          "elements": [
+            {
+              "key": "art_aa#REQ-1",
+              "contentHash": "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6"
+            }
+          ]
+        },
+        "sortedPairs": [
+          "art_aa#REQ-1=2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6"
+        ],
+        "expected": "5e9875b22528026a1e6436dc05c16176da7aca2d50789d2fd7e0ccb927f6fd0f"
       }
     ]
   }

@@ -54,6 +54,10 @@ def fingerprint(type_: str, detector: str, involved: list[str]) -> str:
     return sha(SEP.join([type_, detector, *sorted(involved, key=str.encode)]))
 
 
+def evidence_hash(pairs: list[str]) -> str:
+    return sha(SEP.join(sorted(set(pairs), key=str.encode)))
+
+
 def check(errors: list[str], label: str, ok: bool) -> None:
     if not ok:
         errors.append(label)
@@ -92,6 +96,28 @@ def main(contracts: Path) -> list[str]:
         canonical = rfc8785.dumps(body).decode()
         check(errors, f"cassette canonical {c['endpoint']}", canonical == c["canonical"])
         check(errors, f"cassette key {c['endpoint']}", sha(canonical) == c["expectedKey"])
+    for c in v["inputKey"]["cases"]:
+        canonical = rfc8785.dumps(c["object"]).decode()
+        check(errors, f"inputKey {c['name']}", canonical == c["canonical"] and sha(canonical) == c["expected"])
+    for c in v["actionKey"]["cases"]:
+        canonical = rfc8785.dumps(c["object"]).decode()
+        check(errors, f"actionKey {c['name']}", canonical == c["canonical"] and sha(canonical) == c["expected"])
+    for c in v["ingestionId"]["cases"]:
+        i = c["input"]
+        check(errors, f"ingestionId {i['seq']}", stable_id("ing", [i["projectId"], str(i["seq"])]) == c["expected"])
+    for c in v["traceLinkId"]["cases"]:
+        i = c["input"]
+        parts = [i["approach"], i["approachVersion"], i["configHash"], i["sourceId"], i["targetId"]]
+        check(errors, f"traceLinkId {i['approach']}", stable_id("tl", parts) == c["expected"])
+        if "configSource" in c:
+            canonical = rfc8785.dumps(c["configSource"]["explicitReferences"]).decode()
+            check(errors, "traceLinkId explicit configHash", canonical == c["configCanonical"] and sha(canonical) == i["configHash"])
+    for c in v["evidenceHash"]["cases"]:
+        inv = c["involved"]
+        elements = [*inv["elements"], *(e for link in inv.get("links", []) for e in link["endpoints"])]
+        pairs = [f"{e['key']}={e['contentHash']}" for e in elements]
+        check(errors, f"evidenceHash {c['name']}", sorted(set(pairs), key=str.encode) == c["sortedPairs"])
+        check(errors, f"evidenceHash {c['name']} hash", evidence_hash(pairs) == c["expected"])
     events = validator(schemas["events.schema.json"]["$id"])
     for c in v["eventEnvelope"]["cases"]:
         check(errors, f"eventEnvelope {c['event']['id']}", events.is_valid(c["event"]) == c["valid"])
@@ -100,16 +126,48 @@ def main(contracts: Path) -> list[str]:
     for card_path in sorted((contracts / "agent-cards").glob("*.json")):
         card = json.loads(card_path.read_text())
         for ext in card["capabilities"]["extensions"]:
-            for skill, io in ext.get("params", {}).get("skills", {}).items():
+            params = ext.get("params", {})
+            for skill, io in {**params.get("skills", {}), **params.get("plannedSkills", {})}.items():
                 for ref in io.values():
                     base, _, pointer = ref.partition("#")
                     defs = schemas[base.rsplit("/", 1)[-1]]["$defs"]
                     check(errors, f"{card_path.name}: {ref}", pointer.rsplit("/", 1)[-1] in defs)
-                skill_inputs[skill] = io["inputSchema"]
+                if skill in params.get("skills", {}):
+                    skill_inputs[skill] = io["inputSchema"]
     for c in v["skillInvocation"]["cases"]:
         if c["skill"] in skill_inputs:  # metadata/unknown-skill cases are library behavior, not schema checks
             valid = validator(skill_inputs[c["skill"]]).is_valid(c["message"]["parts"][0]["data"])
             check(errors, f"skillInvocation {c['name']}", valid == (c["expectedState"] != "TASK_STATE_REJECTED"))
+
+    config_dir = contracts / "config"
+    repo_config = contracts.parent / "config"
+    config_schemas = {
+        "llm/models.yaml": "llm-models",
+        "orchestrator/rules.yaml": "orchestrator-rules",
+        "extraction/plugins.yaml": "extraction-plugins",
+        "extraction/enrichment.yaml": "extraction-enrichment",
+        "tlr/approaches.yaml": "tlr-approaches",
+        "inconsistency/plugins.yaml": "inconsistency-plugins",
+        "query/plugins.yaml": "query-plugins",
+        "query/intents.yaml": "query-intents",
+        "query/examples.yaml": "query-examples",
+    }
+    config_registry = registry.with_resources(
+        (s["$id"], Resource.from_contents(s))
+        for s in (json.loads(f.read_text()) for f in config_dir.glob("*.schema.json"))
+    )
+    for rel, name in config_schemas.items():
+        schema_file = config_dir / f"{name}.schema.json"
+        check(errors, f"config/{name}.schema.json missing", schema_file.exists())
+        if not schema_file.exists():
+            continue
+        schema = json.loads(schema_file.read_text())
+        errors.extend(f"{schema_file.name}: {e.message}" for e in Draft202012Validator(Draft202012Validator.META_SCHEMA).iter_errors(schema))
+        if (repo_config / rel).exists():
+            instance = yaml.safe_load((repo_config / rel).read_text()) or {}
+            errors.extend(
+                f"config/{rel}: {e.message}" for e in Draft202012Validator(schema, registry=config_registry).iter_errors(instance)
+            )
 
     for path in sorted((contracts / "openapi").glob("*.yaml")):
         try:

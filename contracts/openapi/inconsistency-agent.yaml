@@ -1,10 +1,12 @@
 openapi: 3.1.0
 info:
   title: SANDMAN inconsistency-agent triage API
-  version: 0.3.0
+  version: 0.4.0
   description: |
     Read and triage inconsistencies. Owner of Inconsistency and StatusChange nodes.
-    Transitions require X-Sandman-Actor, accepted only from the query-service's service token.
+    Transitions require X-Sandman-Actor, accepted only from the query-service's service token (any other caller: 403, R-005).
+    The normative transition table is the 2026-10-09 amendment of adr/0007-inconsistency-lifecycle.md; the user
+    transition RESOLVED -> OPEN is allowed. Catalogs marked x-sandman-status: out-of-scope-M0 are not forwarded by the query-service in M0 (R-007).
     Authorization (role triager) is checked by the query-service. The A2A interface is described by
     contracts/agent-cards/inconsistency-agent.json.
 servers:
@@ -22,6 +24,7 @@ paths:
     get:
       summary: Available detectors and plugins with versions and inconsistency types
       operationId: listDetectors
+      x-sandman-status: out-of-scope-M0
       responses:
         "200":
           description: Detector catalog
@@ -206,9 +209,11 @@ components:
               type: array
               items:
                 type: object
-                required: [from, to, actor, at]
+                required: [to, actor, at]
                 properties:
-                  from: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
+                  from:
+                    $ref: "../common.schema.json#/$defs/InconsistencyStatus"
+                    description: Absent on the creation entry (the inconsistency had no earlier status).
                   to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
                   actor: { $ref: "../common.schema.json#/$defs/Actor" }
                   reason: { type: string }

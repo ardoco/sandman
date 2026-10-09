@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/llm-models.schema.json",
+  "title": "config/llm/models.yaml",
+  "description": "Logical LLM routes mapped to gateway model names. Used by all LLM users and the gateway setup. Contract version 0.4.0.",
+  "type": "object",
+  "required": [
+    "routes"
+  ],
+  "properties": {
+    "routes": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Route id (chat-default, chat-alt, chat-local, embed-default, embed-local, ...) -> gateway model name (provider/model)."
+    }
+  },
+  "additionalProperties": false
+}

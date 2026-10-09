@@ -1,11 +1,12 @@
 openapi: 3.1.0
 info:
   title: SANDMAN extraction-agent REST API
-  version: 0.3.0
+  version: 0.4.0
   description: |
     Artifact intake and project registration. Owner of Project, Artifact, ArtifactVersion and Element nodes.
     Called by the query-service (user requests, actor forwarded) and by services. The A2A interface is
-    described by contracts/agent-cards/extraction-agent.json.
+    described by contracts/agent-cards/extraction-agent.json. Operations marked x-sandman-status: out-of-scope-M0 are
+    not forwarded by the query-service in M0 (R-007).
 servers:
   - url: http://extraction-agent:8000
 security:
@@ -38,9 +39,11 @@ paths:
               schema: { $ref: "#/components/schemas/Project" }
         "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
         "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
     get:
       summary: Get a project
       operationId: getProject
+      x-sandman-status: out-of-scope-M0
       responses:
         "200":
           description: Project
@@ -117,6 +120,7 @@ paths:
               schema: { $ref: "#/components/schemas/Ingestion" }
         "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
         "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "404": { $ref: "shared.yaml#/components/responses/NotFound" }
         "422":
           description: Archive lacks content for unknown hashes, or hash mismatch
@@ -134,6 +138,7 @@ paths:
     get:
       summary: Get an ingestion result
       operationId: getIngestion
+      x-sandman-status: out-of-scope-M0
       responses:
         "200":
           description: Ingestion

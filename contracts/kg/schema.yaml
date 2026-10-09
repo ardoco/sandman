@@ -1,7 +1,9 @@
 # SANDMAN knowledge graph schema contract.
 # Source of truth for writers (single-writer rule), contract tests and the NL-to-Cypher prompt.
 # Changes: additive -> minor version; renames/removals -> major version + migration script.
-version: 0.2.0
+# 0.3.0 (contracts 0.4.0, additive): Element.references, Element.contentHash required, evidenceHash and idempotency-key
+#   derivations (conventions.evidence_hash, conventions.derivations), StatusChange.from optional.
+version: 0.3.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -10,6 +12,8 @@ conventions:
   active_facts: "Readers never see facts of unfinished runs: the extraction-agent writes the element set of one artifact version in one transaction (re-extraction replaces the set: elements not produced again lose their HAS_ELEMENT edge); the tlr-agent writes links in batches with active = false and activates them in the run's final transaction, which also deactivates earlier links of the same approach (any version/configHash) between the run's source and target versions; the inconsistency-agent writes one detection run in one transaction."
   keys: "Element.key = artifactId + '#' + localKey, stable across versions. TextUnit localKeys are content-based (see labels.TextUnit), so inserting text does not change other keys."
   fingerprint: "sha256 hex of UTF-8(type, detector id without version, involved keys sorted byte-wise by UTF-8; joined by U+001F). Involved key = Element.key, or sourceKey + '->' + targetKey for a TraceLink (contracts/conformance/vectors.json)."
+  evidence_hash: "Inconsistency.evidenceHash = sha256 hex of UTF-8(pairs joined by U+001F); pairs = the set of 'key=contentHash' strings of all involved Elements (for an involved TraceLink: of both endpoint Elements; duplicates removed), sorted byte-wise by UTF-8 (vectors evidenceHash). Element.contentHash is required, so no pair is ever incomplete."
+  derivations: "Idempotency keys (contracts/conformance/vectors.json; JCS = RFC 8785, sha256 = lowercase hex of UTF-8). Run.inputKey = sha256(JCS({input, tool, configHash} + promptIds when the tool uses prompts)), input = the skill input as received, tool = extractor/approach/detector id or the plugin's config id, configHash per tool kind (conventions below). Orchestrator actionKey = sha256(JCS({agent, skill, input, triggerId})). Ingestion id: ing_ = stableId(projectId, decimal seq). TraceLink id: tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId) with the ids of the per-version elements; for approach explicit-reference: approachVersion from the extractor ('0'), configHash = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)), sourceId = referenced Requirement, targetId = referring element. configHash of a TLR approach = sha256(JCS(effective params of that approach)); of other tools = sha256 of the config file. Plugin identity: Run.tool = config id of the plugin (config/extraction/plugins.yaml, config/inconsistency/plugins.yaml), Run.toolVersion = version from the plugin's Agent Card or manifest."
 
 nodes:
   Project:
@@ -82,7 +86,8 @@ nodes:
       startLine: { type: integer, required: false }
       endLine: { type: integer, required: false }
       sentenceIndex: { type: integer, required: false, description: "0-based sentence number within the document (TextUnit sentences); not part of the key." }
-      contentHash: { type: string, required: false }
+      contentHash: { type: string, required: true, description: "sha256 hex of the element's content as defined by its extractor (built-in: text, else name). Enters Inconsistency.evidenceHash." }
+      references: { type: string, required: false, description: "JSON string, array of {text, linkType}: unresolved explicit-reference texts found in the element (explicitReferences patterns or plugin explicitReferences), written with the element and re-resolved against the current Requirements after every ingestion (R-014). Absent when the element has none." }
       runId: { type: string, required: true }
 
   Concept:
@@ -98,7 +103,7 @@ nodes:
     co_owner: "extraction-agent writes links with approach = explicit-reference only"
     description: Candidate or confirmed trace link between two elements, produced by one approach.
     properties:
-      id: { type: string, required: true, description: "tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId)" }
+      id: { type: string, required: true, description: "tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId); see conventions.derivations (also for explicit-reference)" }
       projectId: { type: string, required: true }
       linkType: { type: string, required: true, enum: [documents, implements, satisfies, verifies, relates] }
       confidence: { type: float, required: true, description: "0..1" }
@@ -130,7 +135,7 @@ nodes:
       detectorVersion: { type: string, required: true }
       firstRunId: { type: string, required: true }
       lastRunId: { type: string, required: true }
-      evidenceHash: { type: string, required: true, description: "sha256 over contentHashes of involved elements at last detection" }
+      evidenceHash: { type: string, required: true, description: "conventions.evidence_hash, at last detection" }
       acceptedEvidenceHash: { type: string, required: false }
       createdAt: { type: string, required: true }
       updatedAt: { type: string, required: true }
@@ -138,10 +143,10 @@ nodes:
   StatusChange:
     owner: inconsistency-agent
     properties:
-      from: { type: string, required: true }
+      from: { type: string, required: false, description: "Absent on the creation entry (no earlier status)." }
       to: { type: string, required: true }
       actor: { type: string, required: true, description: "user:<name> | system:<detector>" }
-      reason: { type: string, required: false, description: "User text, or for system transitions: re-detected, not-redetected, artifact-deleted." }
+      reason: { type: string, required: false, description: "User text, or for system transitions: detected (creation entry, no from), re-detected, not-redetected, artifact-deleted." }
       at: { type: string, required: true }
       runId: { type: string, required: false }
 
@@ -161,7 +166,7 @@ nodes:
       params: { type: string, required: false, description: "JSON string incl. temperature, seed" }
       configHash: { type: string, required: false }
       promptIds: { type: list, required: false, description: "template id@hash" }
-      inputKey: { type: string, required: true, description: "sha256 of canonical skill input + tool + config" }
+      inputKey: { type: string, required: true, description: "conventions.derivations (sha256 of the JCS object {input, tool, configHash[, promptIds]})" }
       workflowId: { type: string, required: false }
       a2aTaskId: { type: string, required: false }
       triggeredBy: { type: string, required: false, description: "actor" }

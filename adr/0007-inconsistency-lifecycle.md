@@ -85,3 +85,23 @@ State machine unit tests covering every allowed/forbidden transition; scenario t
   * **Auto-resolvable states:** `OPEN`, `REOPENED`, `DEFERRED` and `RESOLVED` with `verification=pending`. `ACCEPTED`, `REJECTED` and confirmed `RESOLVED` are never changed by non-detection.
   * **Deleted artifacts:** every detection run resolves auto-resolvable items that involve an artifact without current version (reason `artifact-deleted`, `verification=confirmed`), independent of scope and detector; if the artifact returns and the finding is re-detected, the item is `REOPENED`.
   * **Conditional system writes:** system transitions use `WHERE i.status = $observed`; on a concurrent user transition the user's decision wins and the system transition is skipped.
+* 2026-10-09, review decision D-8 (R-018):
+  * **Normative transition table.** This table replaces the transition prose of the Decision Outcome; the contracts (`inconsistency-agent.yaml`, `contracts/kg/schema.yaml`) and the state machine tests follow it. "Event" is the CloudEvent published; every transition writes one `StatusChange` node (`HAS_STATUS_CHANGE`). System writes are conditional on the observed status (`WHERE i.status = $observed`), so a concurrent user decision wins.
+
+    | # | From | To | Actor | Condition | StatusChange (`reason`) | Event |
+    |---|---|---|---|---|---|---|
+    | 1 | – (new) | `OPEN` | `system:<detector>` | finding with unknown fingerprint; `verification=none` | creation entry, **no `from`**, `to=OPEN` (`detected`) | `inconsistencies.updated` (`newIds`) |
+    | 2 | `OPEN`, `REOPENED`, `DEFERRED` | same | `system:<detector>` | re-detected | none (evidence and `lastRunId` refreshed) | – |
+    | 3 | `RESOLVED` (any `verification`) | `REOPENED` | `system:<detector>` | re-detected; `verification=none` | `re-detected` | `inconsistencies.updated` (`reopenedIds`) |
+    | 4 | `ACCEPTED`, `REJECTED` | `REOPENED` | `system:<detector>` | re-detected and `evidenceHash ≠ acceptedEvidenceHash`; `verification=none` | `re-detected` | `inconsistencies.updated` (`reopenedIds`) |
+    | 5 | `ACCEPTED`, `REJECTED` | same | `system:<detector>` | re-detected and `evidenceHash = acceptedEvidenceHash` | none (only `lastRunId`, `detectorVersion`) | – |
+    | 6 | `OPEN`, `REOPENED`, `DEFERRED`, `RESOLVED` with `verification=pending` | `RESOLVED`, `verification=confirmed` | `system:<detector>` | not re-detected, its detector completed in this run, and every involved artifact is in the run's scope | `not-redetected` | `inconsistencies.updated` (`autoResolvedIds`) |
+    | 7 | as row 6 | `RESOLVED`, `verification=confirmed` | `system:<detector>` | an involved artifact has no current version (independent of scope and detector) | `artifact-deleted` | `inconsistencies.updated` (`autoResolvedIds`) |
+    | 8 | `ACCEPTED`, `REJECTED`, `RESOLVED` with `verification=confirmed` | same | – | not re-detected | none (untouched) | – |
+    | 9 | `OPEN`, `REOPENED` | `DEFERRED`, `ACCEPTED`, `REJECTED`, `RESOLVED` | `user:<name>` | `expectedStatus` matches; `reason` required for `DEFERRED`, `ACCEPTED`, `REJECTED`; `RESOLVED` sets `verification=pending`; `ACCEPTED`/`REJECTED` set `acceptedEvidenceHash = evidenceHash` | user text | `inconsistency.status.changed` |
+    | 10 | `DEFERRED` | `OPEN`, `ACCEPTED`, `REJECTED`, `RESOLVED` | `user:<name>` | as row 9 | user text | `inconsistency.status.changed` |
+    | 11 | `ACCEPTED`, `REJECTED` | `OPEN` | `user:<name>` | `expectedStatus` matches | user text (optional) | `inconsistency.status.changed` |
+    | 12 | `RESOLVED` | `OPEN` | `user:<name>` | **new:** any `verification` (the user disagrees with the resolution or a claimed fix is wrong); `expectedStatus` matches; sets `verification=none` | user text (optional) | `inconsistency.status.changed` |
+
+    Every other user transition is rejected with 422 (e.g. `RESOLVED → ACCEPTED`, `OPEN → OPEN`); `allowedTransitions` of the API lists the targets of rows 9 to 12 for the current status. `status.changed` has a required `from` (it is published for user transitions only, which always have one); rows 6 and 7 from `RESOLVED` with `verification=pending` write a `StatusChange` `RESOLVED → RESOLVED` (verification confirmed) and count as auto-resolved.
+  * **`evidenceHash`** = sha256 hex of the involved Elements' `key=contentHash` pairs (for an involved link: of both endpoint Elements), de-duplicated, sorted byte-wise by UTF-8 and joined by U+001F (conformance vectors `evidenceHash`). `Element.contentHash` is required, so a pair is never incomplete.

@@ -1,8 +1,10 @@
 openapi: 3.1.0
 info:
   title: SANDMAN shared OpenAPI components
-  version: 0.3.0
-  description: Components referenced by the service OpenAPI documents. Not a service itself.
+  version: 0.4.0
+  description: |
+    Components referenced by the service OpenAPI documents. Not a service itself.
+    Operations marked x-sandman-status: planned are part of the final contract but answer 501 with the NotImplemented problem body until implemented (R-019). Operations marked x-sandman-status: out-of-scope-M0 exist only on the owner service and are not forwarded by the query-service in M0 (R-007).
 paths: {}
 components:
   securitySchemes:
@@ -24,18 +26,10 @@ components:
       name: X-Sandman-Actor
       in: header
       required: false
-      description: End-user identity forwarded by the query-service (trusted forwarder). Ignored from other callers.
+      description: End-user identity forwarded by the query-service (trusted forwarder). A request carrying it from any other caller is rejected with 403 (R-005).
       schema:
         type: string
         pattern: "^user:[A-Za-z0-9._@-]+$"
-    Roles:
-      name: X-Sandman-Roles
-      in: header
-      required: false
-      description: Comma-separated roles of the actor for the addressed project, forwarded by the query-service.
-      schema:
-        type: string
-        examples: ["triager", "maintainer,admin"]
     ProjectId:
       name: projectId
       in: path
@@ -45,6 +39,7 @@ components:
     Limit:
       name: limit
       in: query
+      description: Page size of the owner list endpoints (maximum 500 in every service). The raw Cypher limit of the query-service is separate (query-service.yaml queryCypher, maximum 1000).
       schema: { type: integer, minimum: 1, maximum: 500, default: 50 }
     Cursor:
       name: cursor
@@ -115,6 +110,11 @@ components:
           schema: { $ref: "#/components/schemas/Problem" }
     Unavailable:
       description: Dependency unavailable (KG, NATS, gateway)
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotImplemented:
+      description: Planned operation (x-sandman-status planned); defined in the contract, not implemented yet. Always this body, with type about:blank and title Not Implemented.
       content:
         application/problem+json:
           schema: { $ref: "#/components/schemas/Problem" }

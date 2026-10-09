@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/query-intents.schema.json",
+  "title": "config/query/intents.yaml",
+  "description": "Regex intents of the NL stub (M0, no LLM). pattern must match the whole normalized question; named groups become Cypher parameters; every template passes the scope guard. Contract version 0.4.0.",
+  "type": "object",
+  "required": [
+    "intents"
+  ],
+  "properties": {
+    "intents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "pattern",
+          "cypher"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "pattern": {
+            "type": "string",
+            "format": "regex"
+          },
+          "cypher": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

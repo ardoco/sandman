@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: SANDMAN query-service API (user and agent entry point)
-  version: 0.3.0
+  version: 0.4.0
   description: |
     The only user-facing API. Authenticates users (session cookie or personal API token) and services
-    (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor/X-Sandman-Roles.
+    (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor only; roles are checked here and never forwarded (ADR-0013).
     Roles: global admin; per project viewer < triager < maintainer. Reads are per project (ADR-0013):
     every query is confined to one project by the Cypher scope guard (ADR-0009); only admin may run unscoped queries.
     Each operation lists its minimum role in x-sandman-min-role. Console HTML routes (/console/...) are not part of this contract.
@@ -442,7 +442,7 @@ paths:
     get:
       summary: KG schema contract (contracts/kg/schema.yaml as JSON)
       operationId: getSchema
-      x-sandman-min-role: authenticated
+      x-sandman-min-role: viewer
       responses:
         "200":
           description: Schema
@@ -478,7 +478,7 @@ paths:
                   minimum: 1
                   maximum: 1000
                   default: 200
-                  description: Services may be configured with a higher maximum.
+                  description: "Maximum 1000 for this operation; the owner list endpoints (shared.yaml Limit) allow 500. A service may be configured with a higher maximum."
                 timeoutMs: { type: integer, minimum: 100, maximum: 30000, default: 10000, description: "Users are capped at 10000." }
               additionalProperties: false
       responses:
@@ -519,8 +519,9 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: "#/components/schemas/QueryResult"
+                  - $ref: "#/components/schemas/QueryResultColumns"
                   - type: object
+                    description: rows are present unless mode is cypher-only (the Cypher is then returned without execution).
                     required: [cypher, attempts, warnings]
                     properties:
                       answer: { type: string }
@@ -678,6 +679,20 @@ components:
         createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
         expiresAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
         lastUsedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+    QueryResultColumns:
+      type: object
+      description: QueryResult with rows optional; NL answers in mode cypher-only carry no rows.
+      required: [columns, truncated, elapsedMs]
+      properties:
+        columns:
+          type: array
+          items: { type: string }
+        rows:
+          type: array
+          items:
+            type: array
+        truncated: { type: boolean }
+        elapsedMs: { type: integer }
     QueryResult:
       type: object
       required: [columns, rows, truncated, elapsedMs]

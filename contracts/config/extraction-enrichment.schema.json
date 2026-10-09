@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/extraction-enrichment.schema.json",
+  "title": "config/extraction/enrichment.yaml",
+  "description": "LLM enrichment of extracted elements (summaries, concepts). Its hash is the configHash of the enrichment run. Contract version 0.4.0.",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "properties": {
+          "label": {
+            "$ref": "https://sandman.invalid/contracts/common.schema.json#/$defs/ElementLabel"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "maxElementsPerRun": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "concurrency": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxSummaryChars": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxConceptsPerElement": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxTokens": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxInputChars": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "reasoningEffort": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Route id -> effort (e.g. none)."
+    }
+  },
+  "additionalProperties": false
+}

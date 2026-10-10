@@ -77,3 +77,13 @@ write e2e_admin_password "$(rand)"
 write session_secret "$(rand)"
 write dashboard_admin_password "$(rand)"
 write dashboard_session_secret "$(rand)"
+
+# Compose file secrets are bind mounts that keep host owner/mode (uid/gid/mode are ignored outside swarm). Containers run as
+# uid 10001 and get $GID via group_add, so the files must be group-readable: 0640, dir 2750, group $GID, never world-readable.
+# Host user not in the group (CI runner, macOS): chgrp as root in a throwaway container, like data/logs above.
+FIX_SECRETS='[ ! -L "$D" ] && ! find "$D" -type l | grep -q . && chgrp "$GID" "$D" && find "$D" -type f -exec chgrp "$GID" {} + && chmod 2750 "$D" && find "$D" -type f -exec chmod 640 {} +'
+if ! D=secrets GID="$GID" sh -c "$FIX_SECRETS" 2>/dev/null; then
+  docker compose -f docker-compose.yml run --rm --no-deps -u 0 -e GID="$GID" -e D=/d -e FIX_SECRETS="$FIX_SECRETS" -v "$(pwd)/secrets":/d --entrypoint sh edge-proxy -c \
+    'sh -c "$FIX_SECRETS"' || { echo "could not make secrets group-readable (symlink in secrets/ or no docker)" >&2; exit 1; }
+fi
+echo "secrets group $GID, mode 0640"

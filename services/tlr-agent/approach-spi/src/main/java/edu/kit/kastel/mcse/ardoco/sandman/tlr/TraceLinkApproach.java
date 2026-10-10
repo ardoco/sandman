@@ -19,6 +19,11 @@ public interface TraceLinkApproach {
         return false;
     }
 
+    /** Allowed parameter names; the skill rejects other names with INVALID_INPUT. Null = not restricted. */
+    default Set<String> paramKeys() {
+        return null;
+    }
+
     default ScopeMode scopeMode() {
         return ScopeMode.PAIRWISE;
     }

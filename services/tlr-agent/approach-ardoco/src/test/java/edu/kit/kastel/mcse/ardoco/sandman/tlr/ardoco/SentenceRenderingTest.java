@@ -47,16 +47,23 @@ class SentenceRenderingTest {
                 "Größe und Café.\nThe MediaCache stores audio files.\nThe MediaCache stores audio files.\n"
                         + "The MediaCache stores  audio files.\n",
                 SentenceRendering.text(lines));
-        SentenceRendering.assertHashes(sentences, lines);
+        SentenceRendering.assertHashes(sentences);
         assertEquals(List.of(), SentenceRendering.sentences(List.of(a), "ver_2"));
     }
 
     @Test
     void hashMismatchFailsTheRun() {
         var s = sentence(0, "sec:/000000000000", "The MediaCache stores audio files.");
-        var e = assertThrows(
-                IllegalStateException.class,
-                () -> SentenceRendering.assertHashes(List.of(s), SentenceRendering.lines(List.of(s))));
+        var e = assertThrows(IllegalStateException.class, () -> SentenceRendering.assertHashes(List.of(s)));
         assertEquals(true, e.getMessage().contains("703c4e4a5dd6"));
+    }
+
+    @Test
+    void hashesTheRawTextEvenWhenTheRenderedLineDiffers() {
+        String raw = "The MediaCache\u2028stores audio files.";
+        var s = sentence(0, "sec:/" + SentenceRendering.hash(raw), raw);
+
+        assertEquals(List.of("The MediaCache stores audio files."), SentenceRendering.lines(List.of(s)));
+        SentenceRendering.assertHashes(List.of(s));
     }
 }

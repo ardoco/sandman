@@ -38,11 +38,15 @@ final class SentenceRendering {
         return lines.stream().map(l -> l + "\n").reduce("", String::concat);
     }
 
-    /** Sentence key hash assertion: the hash of every normalized line equals the hash part of the sentence's localKey. */
-    static void assertHashes(List<TlrInput.Element> sentences, List<String> lines) {
-        for (int i = 0; i < lines.size(); i++) {
+    /**
+     * Sentence key hash assertion: the hash of every raw sentence text (not the rendered line: line breaks inside the
+     * sentence are replaced there, the key hash was taken before) equals the hash part of the sentence's localKey.
+     */
+    static void assertHashes(List<TlrInput.Element> sentences) {
+        for (int i = 0; i < sentences.size(); i++) {
             String expected = hashPart(sentences.get(i).localKey());
-            String actual = hash(lines.get(i));
+            String actual =
+                    hash(sentences.get(i).text() == null ? "" : sentences.get(i).text());
             if (!actual.equals(expected)) {
                 throw new IllegalStateException(
                         "sentence " + i + " of version " + sentences.get(i).versionId() + " does not match its key "

@@ -31,13 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import org.eclipse.collections.api.factory.SortedMaps;
-import org.eclipse.collections.api.map.sorted.ImmutableSortedMap;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ArDoCo SWATTR (SAD to SAM) over all current architecture documents and models (T2.1). The sentences come from the KG,
@@ -76,12 +75,20 @@ public final class ArdocoApproach implements TraceLinkApproach {
         return ScopeMode.WHOLE_PROJECT;
     }
 
+    /** ArDoCo additional configs are not passed through: no parameter is needed, so none is accepted. */
+    @Override
+    public Set<String> paramKeys() {
+        return Set.of();
+    }
+
     @Override
     public List<CandidateLink> recover(TlrInput in, TlrContext ctx) {
-        ImmutableSortedMap<String, String> configs = additionalConfigs(ctx.params());
         List<TlrInput.Version> docs = versions(in, "architecture-doc");
         List<TlrInput.Version> models = versions(in, "architecture-model");
         Map<String, CandidateLink> links = new LinkedHashMap<>();
+        // ponytail: every doc x model pair re-annotates the document and re-runs the whole pipeline; cost is
+        // docs x models CoreNLP runs per call. Upgrade: cache the annotated text per document version and reuse it
+        // for all models.
         for (TlrInput.Version doc : docs) {
             List<TlrInput.Element> sentences = SentenceRendering.sentences(in.sources(), doc.id());
             if (sentences.isEmpty()) {
@@ -95,9 +102,9 @@ public final class ArdocoApproach implements TraceLinkApproach {
                     continue;
                 }
                 if (ctx.cancelled().getAsBoolean()) {
-                    throw new IllegalStateException("cancelled");
+                    throw new CancellationException("cancelled");
                 }
-                runPair(in, ctx, configs, sentences, model, format)
+                runPair(in, ctx, sentences, model, format)
                         .forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));
             }
         }
@@ -123,33 +130,23 @@ public final class ArdocoApproach implements TraceLinkApproach {
                 .toList();
     }
 
-    private static ImmutableSortedMap<String, String> additionalConfigs(JsonNode params) {
-        Map<String, String> map = new TreeMap<>();
-        params.path("additionalConfigs")
-                .properties()
-                .forEach(e -> map.put(e.getKey(), e.getValue().asString()));
-        return SortedMaps.immutable.ofSortedMap(new TreeMap<>(map));
-    }
-
     private List<CandidateLink> runPair(
-            TlrInput in,
-            TlrContext ctx,
-            ImmutableSortedMap<String, String> configs,
-            List<TlrInput.Element> sentences,
-            TlrInput.Version model,
-            ModelFormat format) {
+            TlrInput in, TlrContext ctx, List<TlrInput.Element> sentences, TlrInput.Version model, ModelFormat format) {
+        List<String> lines = SentenceRendering.lines(sentences);
+        SentenceRendering.assertHashes(sentences);
+        Map<String, TlrInput.Element> modelElements = new LinkedHashMap<>();
+        for (TlrInput.Element t : in.targets()) {
+            if (model.id().equals(t.versionId()) && modelElements.put(t.localKey(), t) != null) {
+                throw new IllegalStateException(
+                        "model " + model.path() + " has two elements with local key " + t.localKey());
+            }
+        }
+
         if (ctx.artifacts() == null) {
             throw new IllegalStateException("no artifact store configured, cannot read " + model.path());
         }
-        List<String> lines = SentenceRendering.lines(sentences);
-        SentenceRendering.assertHashes(sentences, lines);
-        Map<String, TlrInput.Element> modelElements = new LinkedHashMap<>();
-        in.targets().stream()
-                .filter(t -> model.id().equals(t.versionId()))
-                .forEach(t -> modelElements.put(t.localKey(), t));
-
         Path dir = null;
-        LOCK.lock();
+        acquire(ctx);
         try {
             dir = Files.createTempDirectory("ardoco-");
             Path modelFile = dir.resolve(Path.of(model.path()).getFileName().toString());
@@ -174,7 +171,7 @@ public final class ArdocoApproach implements TraceLinkApproach {
             runner.setUp(
                     textFile.toFile(),
                     new ArchitectureConfiguration(new File(modelFile.toString()), format),
-                    configs,
+                    SortedMaps.immutable.empty(),
                     dir.resolve("out").toFile());
             DataRepositoryHelper.putPreprocessingData(
                     runner.getArdoco().getDataRepository(), new PreprocessingData(new TextImpl(annotated)));
@@ -214,8 +211,21 @@ public final class ArdocoApproach implements TraceLinkApproach {
         } finally {
             LOCK.unlock();
             if (dir != null) {
-                delete(dir);
+                delete(dir, ctx);
             }
+        }
+    }
+
+    private static void acquire(TlrContext ctx) {
+        try {
+            while (!LOCK.tryLock(100, TimeUnit.MILLISECONDS)) {
+                if (ctx.cancelled().getAsBoolean()) {
+                    throw new CancellationException("cancelled");
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CancellationException("interrupted");
         }
     }
 
@@ -233,11 +243,15 @@ public final class ArdocoApproach implements TraceLinkApproach {
         return nlp;
     }
 
-    private static void delete(Path dir) {
+    private static void delete(Path dir, TlrContext ctx) {
         try (Stream<Path> files = Files.walk(dir)) {
-            files.sorted(Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+            files.sorted(Comparator.reverseOrder()).forEach(p -> {
+                if (!p.toFile().delete()) {
+                    ctx.log().warn("ardoco: could not delete {}", p);
+                }
+            });
         } catch (IOException e) {
-            // temp dir cleanup is best effort
+            ctx.log().warn("ardoco: could not clean up temp dir {}", dir, e);
         }
     }
 }

@@ -1,5 +1,34 @@
 {
   "$schema": "https://www.getbifrost.ai/schema",
+  "_comment_custom_provider": "Example, ignored by Bifrost: copy 'provider' into 'providers' under 'name' for a vLLM or institutional OpenAI-compatible server, then allow the name in the virtual keys' provider_configs. base_url takes a literal URL (env.* is not resolved there). Checked by spikes/T0.4/custom_provider_check.py (V-42).",
+  "_example_custom_provider": {
+    "name": "vllm-local",
+    "provider": {
+      "network_config": {
+        "base_url": "http://vllm.example.org:8000",
+        "allow_private_network": true,
+        "default_request_timeout_in_seconds": 300
+      },
+      "custom_provider_config": {
+        "base_provider_type": "openai",
+        "allowed_requests": {
+          "chat_completion": true,
+          "chat_completion_stream": true,
+          "embedding": true
+        }
+      },
+      "keys": [
+        {
+          "name": "vllm-1",
+          "value": "env.CUSTOM_LLM_KEY",
+          "models": [
+            "*"
+          ],
+          "weight": 1.0
+        }
+      ]
+    }
+  },
   "client": {
     "enforce_auth_on_inference": true,
     "enable_logging": true

@@ -311,8 +311,6 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs/Zensical documentation
-/site
 
 # mypy
 .mypy_cache/
@@ -363,3 +361,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated site (make site)
+site/dist/

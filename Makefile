@@ -3,7 +3,7 @@ COMPOSE     := docker compose -f deploy/docker-compose.yml
 COMPOSE_DEV := $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup
+.PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup site
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -94,3 +94,6 @@ replay-twice: secrets  ## two fresh replay runs must export byte-identical canon
 
 backup:
 	@echo "not implemented (T5.3)"; exit 1
+
+site:               ## build the component site into site/dist (open index.html via a local web server)
+	uv run python scripts/build_site.py site/dist

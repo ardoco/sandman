@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SANDMAN Components</title>
+<style>
+:root{--bg:#fff;--fg:#1b1f24;--muted:#5b6570;--card:#f3f5f8;--line:#c5ccd6;--accent:#0b5fcc;--sel:#fff3c4;
+--g-platform:#dbe8ff;--g-agents:#d9f3df;--g-plugins:#f1e0ff;--g-infrastructure:#ececec;--g-libraries:#ffe6d1}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#14181d;--fg:#e6e9ed;--muted:#9aa5b1;--card:#1d232a;--line:#3a444f;--accent:#6aa9ff;--sel:#5a4a10;
+--g-platform:#1f3556;--g-agents:#1f4a2c;--g-plugins:#47285e;--g-infrastructure:#2c3138;--g-libraries:#5a3a1c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
+header,main{padding:0 16px;max-width:1200px;margin:0 auto}
+h1{font-size:1.4rem;margin:16px 0 4px}
+p.hint{color:var(--muted);margin:0 0 12px}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:24px}
+@media (min-width:900px){main{grid-template-columns:minmax(0,1fr) 340px}}
+#graph{min-width:0}
+svg{display:block;width:100%}
+.band{font-size:11px;fill:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.node{cursor:pointer}
+.node rect{stroke:var(--line);stroke-width:1.5}
+.node text{fill:var(--fg);font-size:12px;pointer-events:none}
+.node:focus{outline:none}
+.node:focus rect,.node.sel rect{stroke:var(--accent);stroke-width:3}
+.node.sel rect{fill:var(--sel)!important}
+.edge{stroke:var(--line);stroke-width:1;fill:none;opacity:.35}
+.edge.on{stroke:var(--accent);stroke-width:2;opacity:1}
+.edge.calls{stroke-dasharray:5 3}
+.dim{opacity:.25}
+aside{background:var(--card);border-radius:8px;padding:12px 16px;align-self:start}
+aside h2{margin:0 0 4px;font-size:1.1rem}
+aside h3{font-size:.85rem;margin:12px 0 4px;color:var(--muted);text-transform:uppercase}
+aside ul{margin:0;padding-left:18px}
+a{color:var(--accent)}
+.tag{display:inline-block;font-size:.75rem;border:1px solid var(--line);border-radius:10px;padding:0 8px;margin-right:4px}
+button.chip{font:inherit;background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0}
+</style>
+</head>
+<body>
+<header>
+<h1>SANDMAN components</h1>
+<p class="hint">Select a component (click, or Tab and Enter) to see its description and docs. Solid lines: depends on. Dashed: calls.</p>
+</header>
+<main>
+<div id="graph" aria-label="Component graph"></div>
+<aside id="panel" aria-live="polite"><p>No component selected.</p></aside>
+</main>
+<script>
+const NS = "http://www.w3.org/2000/svg", NW = 150, NH = 36, GX = 14, GY = 14, PAD = 8, BAND = 26;
+let data, byId, selected = null;
+const el = (n, a = {}, t) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (t) e.textContent = t; return e; };
+const h = (n, a = {}, t) => { const e = document.createElement(n); for (const k in a) e.setAttribute(k, a[k]); if (t) e.textContent = t; return e; };
+
+function layout(width) {
+  const perRow = Math.max(1, Math.floor((width - 2 * PAD + GX) / (NW + GX)));
+  let y = PAD; const pos = {}, bands = [];
+  for (const g of data.groups) {
+    const items = data.components.filter(c => c.group === g);
+    if (!items.length) continue;
+    bands.push({ g, y: y + 12 }); y += BAND;
+    items.forEach((c, i) => { pos[c.id] = { x: PAD + (i % perRow) * (NW + GX), y: y + Math.floor(i / perRow) * (NH + GY) }; });
+    y += Math.ceil(items.length / perRow) * (NH + GY) + 6;
+  }
+  return { pos, bands, height: y };
+}
+
+function render() {
+  const box = document.getElementById("graph"), width = box.clientWidth || 800;
+  const { pos, bands, height } = layout(width);
+  const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, height, role: "group", "aria-label": "Component graph" });
+  bands.forEach(b => svg.append(el("text", { class: "band", x: PAD, y: b.y }, b.g)));
+  const edgeEls = data.edges.map(e => {
+    const a = pos[e.from], b = pos[e.to];
+    const x1 = a.x + NW / 2, y1 = a.y + NH / 2, x2 = b.x + NW / 2, y2 = b.y + NH / 2, my = (y1 + y2) / 2;
+    const p = el("path", { class: "edge " + e.kind, d: `M${x1} ${y1} C${x1} ${my} ${x2} ${my} ${x2} ${y2}` });
+    p.dataset.from = e.from; p.dataset.to = e.to; svg.append(p); return p;
+  });
+  data.components.forEach(c => {
+    const g = el("g", { class: "node", tabindex: 0, role: "button", "data-id": c.id, "aria-label": `${c.name}, ${c.group}`, transform: `translate(${pos[c.id].x} ${pos[c.id].y})` });
+    g.append(el("rect", { width: NW, height: NH, rx: 6, style: `fill:var(--g-${c.group})` }), el("text", { x: NW / 2, y: NH / 2 + 4, "text-anchor": "middle" }, c.name));
+    g.addEventListener("click", () => select(c.id));
+    g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(c.id); } });
+    svg.append(g);
+  });
+  box.replaceChildren(svg);
+  svg._edges = edgeEls;
+  mark();
+}
+
+function mark() {
+  const svg = document.querySelector("#graph svg"); if (!svg) return;
+  const c = selected && byId[selected], rel = c ? new Set([c.id, ...c.dependsOn, ...c.usedBy]) : null;
+  svg.querySelectorAll(".node").forEach(n => { n.classList.toggle("sel", n.dataset.id === selected); n.classList.toggle("dim", !!rel && !rel.has(n.dataset.id)); n.setAttribute("aria-pressed", n.dataset.id === selected); });
+  svg._edges.forEach(e => e.classList.toggle("on", !!c && (e.dataset.from === c.id || e.dataset.to === c.id)));
+}
+
+function list(title, ids) {
+  const s = document.createDocumentFragment();
+  if (!ids.length) return s;
+  s.append(h("h3", {}, title));
+  const ul = h("ul");
+  ids.forEach(i => { const li = h("li"), b = h("button", { class: "chip" }, i); b.onclick = () => select(i); li.append(b); ul.append(li); });
+  s.append(ul); return s;
+}
+
+function select(id) {
+  selected = id; const c = byId[id], p = document.getElementById("panel");
+  const tags = h("p");
+  [c.group, c.kind, ...c.profiles.map(x => "profile " + x), ...(c.image ? [c.image] : [])].forEach(t => tags.append(h("span", { class: "tag" }, t)));
+  const links = h("ul");
+  c.links.forEach(l => { const li = h("li"), a = h("a", { href: l.url, target: "_blank", rel: "noopener" }, l.label); li.append(a); links.append(li); });
+  p.replaceChildren(h("h2", {}, c.name), tags, h("p", {}, c.description), list("Depends on / calls", c.dependsOn), list("Used by", c.usedBy), h("h3", {}, "Docs and sources"), links);
+  history.replaceState(null, "", "#" + id);
+  mark();
+}
+
+fetch("components.json").then(r => r.json()).then(d => {
+  data = d; byId = Object.fromEntries(d.components.map(c => [c.id, c]));
+  render(); let w = document.getElementById("graph").clientWidth;
+  addEventListener("resize", () => { const n = document.getElementById("graph").clientWidth; if (n !== w) { w = n; render(); } });
+  const hash = decodeURIComponent(location.hash.slice(1)); if (byId[hash]) select(hash);
+}).catch(e => { document.getElementById("graph").textContent = "Could not load components.json: " + e; });
+</script>
+</body>
+</html>

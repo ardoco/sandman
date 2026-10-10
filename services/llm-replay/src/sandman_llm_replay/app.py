@@ -8,13 +8,14 @@ import os
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
 import rfc8785
+import yaml
 from starlette.applications import Starlette
 from starlette.background import BackgroundTask
 from starlette.requests import Request
@@ -25,6 +26,8 @@ MODES = ("live", "record", "replay")
 ENDPOINTS = ("chat/completions", "embeddings")
 ENTRY_KEYS = ("key", "endpoint", "request", "response", "recordedAt")
 EXCLUDED_MEMBERS = ("user", "stream", "stream_options")
+OPENROUTER_PREFIX = "openrouter/"
+PASSTHROUGH_HEADER = "x-bf-passthrough-extra-params"
 NOT_FORWARDED = {
     "connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te",
     "trailers", "transfer-encoding", "upgrade", "host", "content-length",
@@ -37,6 +40,7 @@ class Settings:
     mode: str = "live"
     records_dir: Path = Path("/llm-records")
     status_tokens: tuple[str, ...] = ()  # sha256 hex of service tokens allowed to read /v1/status
+    openrouter_providers: dict[str, str] = field(default_factory=dict)  # model (without openrouter/) -> provider
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -48,7 +52,13 @@ class Settings:
             raise ValueError(f"SANDMAN_LLM_UPSTREAM is required in mode {mode}")
         verify_file = os.environ.get("SANDMAN_SERVICE_VERIFY_FILE")
         hashes = tuple(json.loads(Path(verify_file).read_text(encoding="utf-8")).values()) if verify_file else ()
-        return cls(upstream, mode, Path(os.environ.get("SANDMAN_LLM_RECORDS_DIR", "/llm-records")), hashes)
+        models_file = os.environ.get("SANDMAN_LLM_MODELS_FILE")
+        pins = (
+            yaml.safe_load(Path(models_file).read_text(encoding="utf-8")).get("openrouterProviders", {})
+            if models_file
+            else {}
+        )
+        return cls(upstream, mode, Path(os.environ.get("SANDMAN_LLM_RECORDS_DIR", "/llm-records")), hashes, pins)
 
 
 def canonical(body: dict[str, Any]) -> bytes:
@@ -106,11 +116,36 @@ def create_app(settings: Settings, transport: httpx.AsyncBaseTransport | None = 
             line["key"] = key
         print(json.dumps(line), file=sys.stdout, flush=True)
 
+    unpinned: set[str] = set()
+
+    def pin_provider(body: bytes) -> tuple[bytes, dict[str, str]]:
+        try:
+            req = json.loads(body)
+        except ValueError:
+            return body, {}
+        model = req.get("model") if isinstance(req, dict) else None
+        if not isinstance(model, str) or not model.startswith(OPENROUTER_PREFIX):
+            return body, {}
+        provider = settings.openrouter_providers.get(model.removeprefix(OPENROUTER_PREFIX))
+        if provider is None and model not in unpinned:
+            unpinned.add(model)
+            line = {
+                "level": "WARNING",
+                "service": "llm-replay",
+                "msg": "openrouter model without provider pin",
+                "model": model,
+            }
+            print(json.dumps(line), file=sys.stdout, flush=True)
+        extra = {"allow_fallbacks": False, **({"order": [provider]} if provider else {})}
+        return json.dumps({**req, "extra_params": {"provider": extra}}).encode(), {PASSTHROUGH_HEADER: "true"}
+
     async def send(request: Request, path: str, body: bytes, stream: bool) -> httpx.Response:
+        body, extra_headers = pin_provider(body)
         url = f"{settings.upstream}/{path}"
         if request.url.query:
             url += f"?{request.url.query}"
         headers = [(k, v) for k, v in request.headers.items() if k not in NOT_FORWARDED]
+        headers += list(extra_headers.items())
         upstream_request = client.build_request(request.method, url, headers=headers, content=body)
         return await client.send(upstream_request, stream=stream)
 

@@ -149,3 +149,49 @@ def test_status_counts_hits_and_misses(tmp_path: Path) -> None:
     assert status["details"] == {"mode": "replay", "experiment": tmp_path.name, "entries": 1,
                                  "hits": 1, "misses": 1, "recorded": 0, "forwarded": 0}  # fmt: skip
     assert status["activeTasks"] == 0 and "lastActivityAt" in status
+
+
+PIN = {"openai/m": "openai"}
+OR_BODY = {**BODY, "model": "openrouter/openai/m"}
+
+
+def make_pinned(tmp_path: Path, mode: str, upstream: Upstream) -> TestClient:
+    settings = Settings("http://gw/openai", mode, tmp_path, (), PIN)
+    return TestClient(create_app(settings, httpx.MockTransport(upstream)))
+
+
+def test_openrouter_pin_injected_after_key(tmp_path: Path) -> None:
+    up = Upstream()
+    with make_pinned(tmp_path, "record", up) as c:
+        assert c.post("/openai/chat/completions", json=OR_BODY).status_code == 200
+    sent = up.requests[0]
+    pin = {"order": ["openai"], "allow_fallbacks": False}
+    assert json.loads(sent.content) == {**OR_BODY, "extra_params": {"provider": pin}}
+    assert sent.headers["x-bf-passthrough-extra-params"] == "true"
+    (entry,) = cassette_lines(tmp_path)
+    assert entry["key"] == cassette_key(OR_BODY) and entry["request"] == OR_BODY
+
+
+def test_openrouter_without_pin_disables_fallbacks(tmp_path: Path) -> None:
+    up = Upstream()
+    with make_pinned(tmp_path, "live", up) as c:
+        c.post("/openai/chat/completions", json={**OR_BODY, "model": "openrouter/other/m"})
+    assert json.loads(up.requests[0].content)["extra_params"]["provider"] == {"allow_fallbacks": False}
+
+
+def test_non_openrouter_untouched(tmp_path: Path) -> None:
+    up = Upstream()
+    with make_pinned(tmp_path, "live", up) as c:
+        c.post("/openai/chat/completions", json=BODY)
+    assert json.loads(up.requests[0].content) == BODY
+    assert "x-bf-passthrough-extra-params" not in up.requests[0].headers
+
+
+def test_replay_unaffected(tmp_path: Path) -> None:
+    up = Upstream()
+    with make_pinned(tmp_path, "record", up) as c:
+        c.post("/openai/chat/completions", json=OR_BODY)
+    up2 = Upstream()
+    with make_pinned(tmp_path, "replay", up2) as c:
+        assert c.post("/openai/chat/completions", json=OR_BODY).json() == REPLY
+    assert not up2.requests

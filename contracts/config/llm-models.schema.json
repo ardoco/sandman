@@ -19,6 +19,14 @@
         "minLength": 1
       },
       "description": "Route id (chat-default, chat-alt, chat-local, embed-default, embed-local, ...) -> gateway model name (provider/model)."
+    },
+    "openrouterProviders": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "OpenRouter model (the route value without the openrouter/ prefix) -> upstream provider. llm-replay sends it as provider.order with allow_fallbacks=false."
     }
   },
   "additionalProperties": false

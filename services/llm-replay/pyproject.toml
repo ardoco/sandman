@@ -5,6 +5,7 @@ description = "OpenAI-compatible record/replay proxy (standalone)."
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "httpx==0.28.1",
+    "pyyaml==6.0.3",
     "rfc8785==0.1.4",
     "starlette==1.7.0",
     "uvicorn==0.54.0",

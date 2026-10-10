@@ -111,6 +111,7 @@ services:
     environment:
       SANDMAN_SERVICE_NAME: llm-replay
       SANDMAN_LLM_UPSTREAM: http://llm-gateway:8080/openai
+      SANDMAN_LLM_MODELS_FILE: /config/llm/models.yaml
       SANDMAN_LLM_MODE: ${SANDMAN_LLM_MODE:-live}           # live | record | replay
       SANDMAN_LLM_RECORDS_DIR: /llm-records/${SANDMAN_EXPERIMENT:-default}
       SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify    # GET /v1/status
@@ -119,6 +120,7 @@ services:
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ${SANDMAN_LLM_RECORDS_HOST_DIR:-../data/llm-records}:/llm-records
+      - ../config:/config:ro
       - ../data/logs:/logs
     networks: [internal]
     mem_limit: 512m

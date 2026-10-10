@@ -2284,6 +2284,7 @@ version = "0.1.0"
 source = { editable = "services/llm-replay" }
 dependencies = [
     { name = "httpx" },
+    { name = "pyyaml" },
     { name = "rfc8785" },
     { name = "starlette" },
     { name = "uvicorn" },
@@ -2292,6 +2293,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = "==0.28.1" },
+    { name = "pyyaml", specifier = "==6.0.3" },
     { name = "rfc8785", specifier = "==0.1.4" },
     { name = "starlette", specifier = "==1.7.0" },
     { name = "uvicorn", specifier = "==0.54.0" },

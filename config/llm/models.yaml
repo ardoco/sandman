@@ -4,3 +4,7 @@ routes:
   embed-default: openai/text-embedding-3-small       # cloud: needs OPENAI_API_KEY
   chat-local: ollama/qwen3:4b                        # self-hosted (Apache-2.0)
   embed-local: ollama/nomic-embed-text:v1.5          # self-hosted (Apache-2.0)
+
+openrouterProviders:                                 # pinned upstream provider per openrouter/ model; llm-replay sends provider.order and allow_fallbacks=false (R-041)
+  openai/gpt-4o-mini: openai
+  anthropic/claude-3.5-haiku: anthropic

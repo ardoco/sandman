@@ -20,4 +20,3 @@ def test_vendored_alignment(project: str, capsys: pytest.CaptureFixture[str]) ->
     with capsys.disabled():
         print(f"\nsentence alignment {project}: {ok}/{total}")
     assert ok == total
-

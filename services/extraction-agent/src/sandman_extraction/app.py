@@ -14,7 +14,6 @@ from typing import Annotated, Any, Literal
 
 import httpx
 import nats
-import yaml
 from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
 from fastapi import Path as PathParam
 from fastapi.exceptions import RequestValidationError
@@ -35,7 +34,7 @@ from sandman_agent import (
     serve,
     trusted_actor,
 )
-from sandman_agent.ids import sha256_hex
+from sandman_agent.ids import canonical_json, sha256_hex
 from sandman_agent.kg import now
 from sandman_agent.llm import LOCAL_ONLY, LlmClient, ModelSelector
 from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
@@ -72,18 +71,26 @@ class Service:
         self.settings = settings
         self.contracts = Contracts(settings.contracts_dir)
         self.store = ArtifactStore(settings.artifact_store)  # type: ignore[arg-type]
-        raw = ((settings.config_dir or DEFAULT_CONFIG_DIR) / "extraction" / "plugins.yaml").read_bytes()
-        self.config: dict[str, Any] = yaml.safe_load(raw) or {}
-        self.config_hash = sha256_hex(raw)
         config_dir = settings.config_dir or DEFAULT_CONFIG_DIR
+        plugins_file = config_dir / "extraction" / "plugins.yaml"
+        raw = plugins_file.read_bytes()
+        self.config: dict[str, Any] = self.contracts.load_config("extraction-plugins", plugins_file)
+        self.config_hash = sha256_hex(raw)
+        self.explicit_hash = sha256_hex(canonical_json(self.config.get("explicitReferences", {})))
         enrichment_file = config_dir / "extraction" / "enrichment.yaml"
         enrichment_raw = enrichment_file.read_bytes() if enrichment_file.is_file() else b""
-        self.enrichment = EnrichConfig.from_dict(yaml.safe_load(enrichment_raw) or {})
+        self.enrichment = EnrichConfig.from_dict(
+            self.contracts.load_config("extraction-enrichment", enrichment_file) if enrichment_raw else {}
+        )
         self.enrichment_hash = sha256_hex(enrichment_raw)
         self.selector: ModelSelector | None = None
         if settings.llm_models_file and settings.llm_base_url and settings.llm_key:
             self.selector = ModelSelector(
-                settings.llm_models_file, settings.llm_base_url, settings.llm_key, settings.llm_local_key
+                settings.llm_models_file,
+                settings.llm_base_url,
+                settings.llm_key,
+                settings.llm_local_key,
+                self.contracts,
             )
         self.llm_factory: Callable[[str], LlmClient] | None = None  # tests inject scripted or replay clients
         self.status = StatusTracker(settings.service_name)

@@ -3,8 +3,10 @@
 import hashlib
 import io
 import json
+import shutil
 import tarfile
 import zipfile
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -203,7 +205,7 @@ async def test_extract_mini(env: Any) -> None:
         True,
     )
     el_test = stable_id("el", ver(env.project, TEST, files[TEST]), "MediaCacheTest")
-    cfg = env.config_hash
+    cfg = env.svc.explicit_hash
     assert link[0]["id"] == stable_id("tl", "explicit-reference", "0", cfg, reqs[0]["id"], el_test)
     done = await env.events("sandman.extraction.completed")
     assert len(done) == 1 and done[0]["data"]["elementCount"] == result["elementCount"]
@@ -345,7 +347,7 @@ async def test_requirement_references_direction_and_idempotence(env: Any) -> Non
     found = await cypher(env, query, p=env.project)
     assert {(r["s"], r["t"]) for r in found} == expected
     for r in found:
-        assert r["id"] == stable_id("tl", APPROACH, APPROACH_VERSION, env.config_hash, r["s"], r["t"])
+        assert r["id"] == stable_id("tl", APPROACH, APPROACH_VERSION, env.svc.explicit_hash, r["s"], r["t"])
     versions = [
         r["id"]
         for r in await cypher(
@@ -412,3 +414,19 @@ async def test_reference_equal_to_non_requirement_key_creates_no_link(env: Any) 
         "WHERE e.name = 'Nine' OR e.text CONTAINS 'REQ-9' RETURN count(l) AS n"
     )
     assert (await cypher(env, query, p=env.project))[0]["n"] == 0
+
+
+@pytest.mark.parametrize("name", ["plugins", "enrichment"])
+def test_invalid_config_fails_at_startup(tmp_path: Path, name: str) -> None:
+    from sandman_agent import Settings
+    from sandman_agent.contracts import ContractError
+    from sandman_extraction.app import DEFAULT_CONFIG_DIR, Service
+
+    shutil.copytree(DEFAULT_CONFIG_DIR, tmp_path / "config")
+    (tmp_path / "config" / "extraction" / f"{name}.yaml").write_text("plugins: nope\nenabled: maybe\n")
+    settings = Settings(
+        service_name="extraction-agent", kg_uri="bolt://x:1", nats_url="nats://x:1",
+        artifact_store=tmp_path / "store", config_dir=tmp_path / "config",
+    )  # fmt: skip
+    with pytest.raises(ContractError, match=name):
+        Service(settings)

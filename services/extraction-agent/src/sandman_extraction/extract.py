@@ -1,6 +1,7 @@
 """Skill extract-artifact-versions: stub extraction, explicit references, plugin routing (Stage 2 §4.2)."""
 
 import asyncio
+import json
 import logging
 import re
 from collections import defaultdict
@@ -26,6 +27,7 @@ log = logging.getLogger(__name__)
 SKILL = "extract-artifact-versions"
 TOOL, TOOL_VERSION = "stub-extractor", "0"
 APPROACH, APPROACH_VERSION = "explicit-reference", "0"
+LINK_BATCH = 5000
 
 
 def _element_query(label: LiteralString) -> LiteralString:
@@ -35,7 +37,7 @@ def _element_query(label: LiteralString) -> LiteralString:
         "SET n:" + label + " "
         "SET n.key = e.key, n.projectId = $pid, n.kind = e.kind, n.name = e.name, n.qualifiedName = e.qualifiedName, "
         "n.text = e.text, n.sentenceIndex = e.sentenceIndex, n.startLine = e.startLine, "
-        "n.endLine = e.endLine, n.contentHash = e.contentHash "
+        "n.endLine = e.endLine, n.contentHash = e.contentHash, n.references = e.references "
         "MERGE (v)-[:HAS_ELEMENT]->(n) MERGE (r)-[:PRODUCED]->(n)"
     )
 
@@ -260,7 +262,7 @@ class ExtractSkill:
         meta = {v["id"]: v for vs in plugins.values() for v in vs}
         element_count = 0
         for vid, els in elements.items():
-            element_count += await self._write_elements(pid, meta[vid]["art"], vid, producer[vid], els)
+            element_count += await self._write_elements(pid, meta[vid]["art"], vid, producer[vid], els, refs[vid])
         # links and relations after all element sets, so references into this run's other versions resolve
         targets: dict[str, list[tuple[str, str]]] = defaultdict(list)
         for r in sorted(await svc.kg.read(
@@ -280,7 +282,7 @@ class ExtractSkill:
                 for referenced, key in targets.get(ref["text"], []):
                     if referenced != referrer and key != f"{meta[vid]['art']}#{ref['source']}":
                         # link runs from the referenced requirement to the referring element, never to its definition
-                        lid = stable_id("tl", APPROACH, APPROACH_VERSION, svc.config_hash, referenced, referrer)
+                        lid = stable_id("tl", APPROACH, APPROACH_VERSION, svc.explicit_hash, referenced, referrer)
                         links[lid] = {"id": lid, "source": referenced, "target": referrer, "linkType": ref["linkType"]}
             rels = defaultdict(list)
             for r in relations[vid]:
@@ -291,6 +293,13 @@ class ExtractSkill:
                 rels[r["type"]].append({"s": stable_id("el", src, r["source"]["localKey"]),
                                         "t": stable_id("el", tgt, r["target"]["localKey"])})  # fmt: skip
             link_count += await self._write_links(pid, vid, run_id, list(links.values()), rels)
+        holds_requirements = await svc.kg.read(
+            "MATCH (a:Artifact {projectId: $p})-[:HAS_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(:Requirement) "
+            "WHERE a.id IN $arts RETURN a.id AS id LIMIT 1",
+            p=pid, arts=sorted({m["art"] for m in meta.values()}),
+        )  # fmt: skip
+        if holds_requirements:  # R-014: only a changed (or emptied) requirements artifact moves link endpoints
+            link_count += await self._re_resolve(pid, run_id)
         return {"runId": run_id, "status": status, "elementCount": element_count, "explicitLinkCount": link_count,
                 "pluginRuns": summaries} | ({"warnings": warnings} if warnings else {})  # fmt: skip
 
@@ -303,11 +312,18 @@ class ExtractSkill:
         finally:
             await client.close()
 
-    async def _write_elements(self, pid: str, art: str, vid: str, rid: str, els: list[dict[str, Any]]) -> int:
+    async def _write_elements(
+        self, pid: str, art: str, vid: str, rid: str, els: list[dict[str, Any]], refs: list[dict[str, Any]]
+    ) -> int:
         """Replace the version's element set in one transaction."""
         unique: dict[str, dict[str, Any]] = {}
         for e in els:
             unique.setdefault(e["localKey"], e)
+        stored: dict[str, list[dict[str, str]]] = defaultdict(list)
+        for ref in refs:
+            item = {"text": ref["text"], "linkType": ref["linkType"]}
+            if item not in stored[ref["source"]]:
+                stored[ref["source"]].append(item)
         by_label: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for key, e in unique.items():
             by_label[e["label"]].append({
@@ -315,6 +331,7 @@ class ExtractSkill:
                 "qualifiedName": e.get("qualifiedName"), "text": e.get("text"), "startLine": e.get("startLine"),
                 "endLine": e.get("endLine"), "sentenceIndex": e.get("sentenceIndex"),
                 "contentHash": sha256_hex(e.get("text") or e["name"]),
+                "references": canonical_json(stored[key]).decode() if key in stored else None,
             })  # fmt: skip
         ids = [stable_id("el", vid, k) for k in unique]
         parents = [{"s": stable_id("el", vid, e["parent"]), "t": stable_id("el", vid, k)}
@@ -336,29 +353,79 @@ class ExtractSkill:
     async def _write_links(
         self, pid: str, vid: str, rid: str, links: list[dict[str, Any]], rels: dict[str, list[dict[str, str]]]
     ) -> int:
-        """Deactivate the version's explicit-reference links, (re)activate the found ones, merge relations."""
+        """Deactivate the version's explicit-reference links not found again, activate found ones."""
 
         async def work(tx: AsyncManagedTransaction) -> int:
             await rows(
                 tx,
                 "MATCH (:ArtifactVersion {id: $vid})-[:HAS_ELEMENT]->(:Element)<-[:TARGET]-"
-                "(l:TraceLink {approach: $approach, active: true}) SET l.active = false",
-                vid=vid, approach=APPROACH,
+                "(l:TraceLink {approach: $approach, active: true}) WHERE NOT l.id IN $keep SET l.active = false",
+                vid=vid, approach=APPROACH, keep=[x["id"] for x in links],
             )  # fmt: skip
-            created = await rows(
-                tx,
-                "MATCH (r:Run {id: $rid}) UNWIND $links AS x "
-                "MATCH (s:Element {id: x.source}), (t:Element {id: x.target}) "
-                "MERGE (l:TraceLink {id: x.id}) ON CREATE SET l.projectId = $pid, l.linkType = x.linkType, "
-                "l.confidence = 1.0, l.approach = $approach, l.approachVersion = $version, l.configHash = $configHash, "
-                "l.status = 'candidate', l.runId = $rid, l.createdAt = $now "
-                "SET l.active = true MERGE (l)-[:SOURCE]->(s) MERGE (l)-[:TARGET]->(t) MERGE (r)-[:PRODUCED]->(l) "
-                "RETURN count(l) AS n",
-                rid=rid, links=links, pid=pid, approach=APPROACH, version=APPROACH_VERSION,
-                configHash=self.service.config_hash, now=now(),
-            )  # fmt: skip
+            created = await self._activate(tx, pid, rid, links)
             for rel, batch in rels.items():
                 await rows(tx, RELATION_QUERIES[rel], rels=batch)
-            return int(created[0]["n"]) if created else 0
+            return created
 
         return await self.service.kg.write_tx(work)
+
+    async def _activate(self, tx: AsyncManagedTransaction, pid: str, rid: str, links: list[dict[str, Any]]) -> int:
+        created = await rows(
+            tx,
+            "MATCH (r:Run {id: $rid}) UNWIND $links AS x "
+            "MATCH (s:Element {id: x.source}), (t:Element {id: x.target}) "
+            "MERGE (l:TraceLink {id: x.id}) ON CREATE SET l.projectId = $pid, l.linkType = x.linkType, "
+            "l.confidence = 1.0, l.approach = $approach, l.approachVersion = $version, l.configHash = $configHash, "
+            "l.status = 'candidate', l.runId = $rid, l.createdAt = $now "
+            "WITH r, s, t, l, coalesce(l.active, false) AS was "
+            "SET l.active = true MERGE (l)-[:SOURCE]->(s) MERGE (l)-[:TARGET]->(t) MERGE (r)-[:PRODUCED]->(l) "
+            "RETURN sum(CASE WHEN was THEN 0 ELSE 1 END) AS n",
+            rid=rid, links=links, pid=pid, approach=APPROACH, version=APPROACH_VERSION,
+            configHash=self.service.explicit_hash, now=now(),
+        )  # fmt: skip
+        return int(created[0]["n"]) if created else 0
+
+    async def _re_resolve(self, pid: str, rid: str) -> int:
+        """Explicit links of the whole project against the current Requirements (R-014); writes only the difference."""
+        kg, h = self.service.kg, self.service.explicit_hash
+        targets: dict[str, list[tuple[str, str]]] = defaultdict(list)
+        for r in await kg.read(
+            "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v)-[:HAS_ELEMENT]->(e:Requirement) "
+            "RETURN e.id AS id, e.key AS key ORDER BY e.id",
+            p=pid,
+        ):  # fmt: skip
+            targets[r["key"].split("#", 1)[1]].append((r["id"], r["key"]))
+        desired: dict[str, dict[str, Any]] = {}
+        for e in await kg.read(
+            "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v)-[:HAS_ELEMENT]->(e:Element) "
+            "WHERE e.references IS NOT NULL RETURN e.id AS id, e.key AS key, e.references AS refs ORDER BY e.id",
+            p=pid,
+        ):  # fmt: skip
+            for ref in json.loads(e["refs"]):
+                for referenced, key in targets.get(ref["text"], []):
+                    if referenced != e["id"] and key != e["key"]:
+                        lid = stable_id("tl", APPROACH, APPROACH_VERSION, h, referenced, e["id"])
+                        desired[lid] = {"id": lid, "source": referenced, "target": e["id"], "linkType": ref["linkType"]}
+        active = {
+            r["id"]
+            for r in await kg.read(
+                "MATCH (l:TraceLink {projectId: $p, approach: $a, active: true})-[:TARGET]->(e:Element) "
+                "WHERE e.references IS NOT NULL RETURN l.id AS id ORDER BY l.id",
+                p=pid,
+                a=APPROACH,
+            )  # fmt: skip
+        }
+        stale = sorted(active - desired.keys())
+        missing = [desired[i] for i in sorted(desired.keys() - active)]
+        if not stale and not missing:
+            return 0
+
+        async def work(tx: AsyncManagedTransaction) -> int:
+            for i in range(0, len(stale), LINK_BATCH):
+                await rows(
+                    tx, "MATCH (l:TraceLink) WHERE l.id IN $ids SET l.active = false", ids=stale[i : i + LINK_BATCH]
+                )
+            return sum([await self._activate(tx, pid, rid, missing[i : i + LINK_BATCH])
+                        for i in range(0, len(missing), LINK_BATCH)])  # fmt: skip
+
+        return await kg.write_tx(work)

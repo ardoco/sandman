@@ -178,6 +178,32 @@ async def test_same_message_id_runs_the_skill_once(settings: Settings, contracts
     assert len(skill.seen) == 2
 
 
+async def test_reused_message_id_with_different_input_is_rejected_without_running(
+    settings: Settings, contracts: Contracts
+) -> None:
+    skill = Recover()
+    _, client = setup(settings, contracts, skill)
+    await wait(client, (await client.submit(URL, "recover-trace-links", INPUT, message_id="m-fp")).task_id)
+    other = {**INPUT, "projectId": "other"}
+    snap = await wait(client, (await client.submit(URL, "recover-trace-links", other, message_id="m-fp")).task_id)
+    assert snap.state == "TASK_STATE_REJECTED" and snap.result is None
+    assert snap.error is not None and snap.error["code"] == "INVALID_INPUT" and snap.error["retryable"] is False
+    assert len(skill.seen) == 1
+
+
+async def test_same_message_id_from_different_callers_runs_separately(settings: Settings, contracts: Contracts) -> None:
+    skill = Recover()
+    app = serve(CARD, [skill], settings, events=InMemoryEventBus(contracts, "tlr-agent"), contracts=contracts)
+    transport = httpx.ASGITransport(app=app)
+    one = A2aClient(TOKENS["orchestrator"], transport=transport)
+    two = A2aClient(TOKENS["tlr-agent"], transport=transport)
+    first = await wait(one, (await one.submit(URL, "recover-trace-links", INPUT, message_id="m-c")).task_id)
+    skill.output = {"runs": []}
+    second = await wait(two, (await two.submit(URL, "recover-trace-links", INPUT, message_id="m-c")).task_id)
+    assert first.result == TLR_OUTPUT and second.result == {"runs": []}
+    assert [c.caller for c in skill.seen] == ["orchestrator", "tlr-agent"]
+
+
 async def test_retryable_failure_is_not_cached_but_permanent_failure_is(
     settings: Settings, contracts: Contracts
 ) -> None:

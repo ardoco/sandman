@@ -155,9 +155,9 @@ class _Executor(AgentExecutor):
         self._contracts, self._events, self._authenticate = contracts, events, authenticate
         self._running: dict[str, SkillContext] = {}
         self._status = status
-        self._seen: OrderedDict[str, asyncio.Future[tuple[dict[str, Any] | None, SkillError | None, bool]]] = (
-            OrderedDict()
-        )
+        self._seen: OrderedDict[
+            tuple[str, str], tuple[str, asyncio.Future[tuple[dict[str, Any] | None, SkillError | None, bool]]]
+        ] = OrderedDict()
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         message = context.message
@@ -198,10 +198,16 @@ class _Executor(AgentExecutor):
         except PermissionError as e:
             await self._end(updater, SkillError("FORBIDDEN", str(e), False), True)
             return
-        first = self._seen.get(message.message_id)
-        if first is not None:
+        key = (caller, message.message_id)
+        fingerprint = json.dumps([skill_id, input], sort_keys=True)
+        entry = self._seen.get(key)
+        if entry is not None:
+            if entry[0] != fingerprint:
+                reused = SkillError("INVALID_INPUT", "messageId reused with a different request", False)
+                await self._end(updater, reused, True)
+                return
             await updater.start_work()
-            output, error, reject = await asyncio.shield(first)
+            output, error, reject = await asyncio.shield(entry[1])
             if error is not None:
                 await self._end(updater, error, reject)
             else:
@@ -213,9 +219,9 @@ class _Executor(AgentExecutor):
         )
         token = None
         try:
-            self._seen[message.message_id] = done
-            for key in [k for k, f in self._seen.items() if f.done()][: max(0, len(self._seen) - MAX_SEEN)]:
-                del self._seen[key]
+            self._seen[key] = (fingerprint, done)
+            for old in [k for k, (_, f) in self._seen.items() if f.done()][: max(0, len(self._seen) - MAX_SEEN)]:
+                del self._seen[old]
             ctx = SkillContext(
                 task_id=context.task_id,
                 message_id=message.message_id,
@@ -237,8 +243,8 @@ class _Executor(AgentExecutor):
             if token is not None:
                 telemetry.reset(token)
             if not done.done():
-                if self._seen.get(message.message_id) is done:
-                    del self._seen[message.message_id]
+                if key in self._seen and self._seen[key][1] is done:
+                    del self._seen[key]
                 done.set_result((None, SkillError("INTERNAL", "first attempt was interrupted", True), False))
 
     async def _run(
@@ -287,7 +293,7 @@ class _Executor(AgentExecutor):
         if done is not None and not done.done():
             done.set_result((None, error, reject))
             if error.retryable:
-                for key in [k for k, f in self._seen.items() if f is done]:
+                for key in [k for k, (_, f) in self._seen.items() if f is done]:
                     del self._seen[key]
         msg = updater.new_agent_message([new_text_part(error.message)], metadata={ERROR_KEY: error.to_json()})
         await (updater.reject(msg) if reject else updater.failed(msg))

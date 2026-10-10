@@ -190,6 +190,33 @@ class A2aServerTest {
     }
 
     @Test
+    void reusedMessageIdWithDifferentInputIsRejectedWithoutRunning() throws Exception {
+        A2aClient client = client(TOKENS.get("orchestrator"));
+        await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-fp"));
+        JsonNode other = JsonMapper.shared()
+                .readTree("{\"projectId\":\"other\",\"sourceVersionIds\":[\"ver_" + "0".repeat(32)
+                        + "\"],\"targetVersionIds\":[\"ver_" + "1".repeat(32) + "\"]}");
+        var rejected = await(client, client.submit(agent(), "recover-trace-links", other, WF, null, "m-fp"));
+        assertEquals("TASK_STATE_REJECTED", rejected.state());
+        assertEquals("INVALID_INPUT", rejected.error().get("code").asString());
+        assertEquals(null, rejected.result());
+        assertEquals(1, skill.seen.size());
+    }
+
+    @Test
+    void sameMessageIdFromDifferentCallersRunsSeparately() throws Exception {
+        var first = await(
+                client(TOKENS.get("orchestrator")),
+                client(TOKENS.get("orchestrator")).submit(agent(), "recover-trace-links", INPUT, WF, null, "m-caller"));
+        assertEquals(OUTPUT, first.result());
+        skill.output = JsonMapper.shared().readTree("{\"runs\":[]}");
+        A2aClient other = client(TOKENS.get("tlr-agent"));
+        var second = await(other, other.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-caller"));
+        assertEquals(skill.output, second.result());
+        assertEquals(2, skill.seen.size());
+    }
+
+    @Test
     void retryableFailureIsNotCachedButPermanentFailureIs() throws Exception {
         A2aClient client = client(TOKENS.get("orchestrator"));
         skill.error = new IllegalStateException("boom");

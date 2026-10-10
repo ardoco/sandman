@@ -28,6 +28,7 @@ import org.a2aproject.sdk.transport.jsonrpc.context.JSONRPCContextKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -66,16 +67,22 @@ public class SkillExecutor implements AgentExecutor {
     Instance<EventSink> events;
 
     private static final int MAX_SEEN = 1024;
+    private static final JsonMapper CANONICAL = JsonMapper.builder()
+            .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+            .build();
 
     private record Outcome(Object output, SkillException error, boolean reject) {}
 
     private final Map<String, SkillContext> running = new ConcurrentHashMap<>();
-    private final Map<String, CompletableFuture<Outcome>> seen = Collections.synchronizedMap(new LinkedHashMap<>() {
+
+    private record Seen(String fingerprint, CompletableFuture<Outcome> outcome) {}
+
+    private final Map<List<String>, Seen> seen = Collections.synchronizedMap(new LinkedHashMap<>() {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, CompletableFuture<Outcome>> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<List<String>, Seen> eldest) {
             if (size() > MAX_SEEN) {
                 entrySet().stream()
-                        .filter(e -> e.getValue().isDone())
+                        .filter(e -> e.getValue().outcome().isDone())
                         .findFirst()
                         .ifPresent(e -> remove(e.getKey()));
             }
@@ -142,9 +149,19 @@ public class SkillExecutor implements AgentExecutor {
             return;
         }
         CompletableFuture<Outcome> done = new CompletableFuture<>();
-        CompletableFuture<Outcome> first = seen.putIfAbsent(message.messageId(), done);
+        List<String> key = List.of(caller, message.messageId());
+        String fingerprint = skillId + "\n"
+                + CANONICAL.writeValueAsString(JsonMapper.shared().convertValue(input, Object.class));
+        Seen first = seen.putIfAbsent(key, new Seen(fingerprint, done));
         if (first != null) {
-            replay(first, emitter);
+            if (!first.fingerprint().equals(fingerprint)) {
+                end(
+                        emitter,
+                        new SkillException("INVALID_INPUT", "messageId reused with a different request", false),
+                        true);
+                return;
+            }
+            replay(first.outcome(), emitter);
             return;
         }
         SkillContext ctx = new SkillContext(
@@ -163,7 +180,7 @@ public class SkillExecutor implements AgentExecutor {
         } finally {
             running.remove(ctx.taskId());
             if (!done.isDone()) {
-                seen.remove(message.messageId(), done);
+                seen.values().removeIf(s -> s.outcome() == done);
                 done.complete(new Outcome(
                         null, new SkillException("INTERNAL", "first attempt was interrupted", true), false));
             }
@@ -236,7 +253,7 @@ public class SkillExecutor implements AgentExecutor {
 
     private String end(AgentEmitter emitter, CompletableFuture<Outcome> done, SkillException error, boolean reject) {
         if (error.retryable()) {
-            seen.values().removeIf(f -> f == done);
+            seen.values().removeIf(s -> s.outcome() == done);
         }
         done.complete(new Outcome(null, error, reject));
         return end(emitter, error, reject);

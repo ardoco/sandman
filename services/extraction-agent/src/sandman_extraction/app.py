@@ -95,6 +95,7 @@ class Service:
         self.llm_factory: Callable[[str], LlmClient] | None = None  # tests inject scripted or replay clients
         self.status = StatusTracker(settings.service_name)
         self.max_archive_bytes = max_archive_bytes or int(os.environ.get("SANDMAN_MAX_ARCHIVE_BYTES", 1 << 30))
+        self.max_entry_bytes = int(os.environ.get("SANDMAN_MAX_ENTRY_BYTES", ingest.MAX_ENTRY_BYTES))
         self.converter = documents.converter_client(
             os.environ.get("SANDMAN_CONVERTER_URL"),
             settings.service_token,
@@ -239,14 +240,16 @@ def create_app(
         projectId: ProjectId,
         caller: Caller,
         request: Request,
-        manifest: Annotated[str, Form()],
+        manifest: Annotated[str | None, Form()] = None,
         archive: Annotated[UploadFile | None, File()] = None,
     ) -> dict[str, Any]:
         actor = trusted_actor(caller, request.headers) or f"service:{caller}"
         if not ACTOR.match(actor):
             raise HTTPException(400, "invalid X-Sandman-Actor")
+        if manifest is None and archive is None:
+            raise HTTPException(400, "manifest or archive is required")
         try:
-            parsed = ingest.Manifest.model_validate_json(manifest)
+            parsed = None if manifest is None else ingest.Manifest.model_validate_json(manifest)
         except ValidationError as e:
             raise RequestValidationError(e.errors()) from None
         async with svc.status.track():
@@ -257,7 +260,14 @@ def create_app(
                 data = await archive.read(svc.max_archive_bytes + 1)
                 if len(data) > svc.max_archive_bytes:
                     raise HTTPException(400, f"archive exceeds {svc.max_archive_bytes} bytes")
-                files = ingest.read_archive(data, svc.max_archive_bytes)
+                files = ingest.read_archive(data, svc.max_archive_bytes, max_entry_bytes=svc.max_entry_bytes)
+            if parsed is None:
+                if not files:
+                    raise HTTPException(400, "archive without manifest holds no files")
+                try:
+                    parsed = ingest.manifest_of(files)
+                except ValidationError as e:
+                    raise HTTPException(400, f"archive: {e.errors()[0]['msg']}") from None
             ing_id = await ingest.ingest(svc.kg, svc.store, projectId, parsed, files, actor)
             ing = await ingest.load_ingestion(svc.kg, projectId, ing_id)
             assert ing is not None

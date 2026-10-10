@@ -1,10 +1,12 @@
 """Artifact intake: manifest checks, safe archive reading, the versioning transaction, event (re-)publishing."""
 
 import io
+import re
 import stat
 import tarfile
 import uuid
 import zipfile
+import zlib
 from pathlib import PurePosixPath
 from typing import Any, Literal, LiteralString
 
@@ -16,13 +18,16 @@ from sandman_agent.kg import now
 from starlette.exceptions import HTTPException
 
 MAX_FILES = 20_000
+MAX_ENTRY_BYTES = 256 * 1024**2
+SPECIAL_MODES = (stat.S_IFLNK, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFIFO, stat.S_IFSOCK)
+_DRIVE = re.compile(r"^[A-Za-z]:")
 INGESTION_COMPLETED = "sandman.ingestion.completed"
 Kind = Literal["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
 
 
 def safe_path(path: str) -> str:
     """Relative path with forward slashes and no empty, '.' or '..' segments."""
-    if not path or path.startswith("/") or "\\" in path or "\0" in path:
+    if not path or path.startswith("/") or "\\" in path or "\0" in path or _DRIVE.match(path):
         raise ValueError(f"unsafe path {path!r}")
     if any(s in ("", ".", "..") for s in path.split("/")):
         raise ValueError(f"unsafe path {path!r}")
@@ -69,53 +74,75 @@ class Manifest(BaseModel):
         return "other", None
 
 
-def read_archive(data: bytes, max_bytes: int, max_entries: int = 2 * MAX_FILES) -> dict[str, bytes]:
-    """Regular files of a tar(.gz) or zip archive; rejects links, special files, unsafe paths and oversize."""
+def read_archive(
+    data: bytes, max_bytes: int, max_entries: int = 2 * MAX_FILES, max_entry_bytes: int = MAX_ENTRY_BYTES
+) -> dict[str, bytes]:
+    """Regular files of a tar(.gz) or zip archive; rejects links, special files, unsafe paths and oversize.
+
+    Entry data is read in bounded steps: at most the remaining total and per-entry budget plus one byte, so a lying
+    zip header or a compression bomb never allocates more than the caps.
+    """
     files: dict[str, bytes] = {}
     total = 0
 
-    def add(name: str, size: int, read: Any) -> None:
+    def add(name: str, open_entry: Any) -> None:
         nonlocal total
         try:
             path = safe_path(name.removeprefix("./"))
         except ValueError as e:
             raise HTTPException(400, f"archive: {e}") from None
-        total += size
-        if total > max_bytes:
-            raise HTTPException(400, f"archive content exceeds {max_bytes} bytes")
         if path in files:
             raise HTTPException(400, f"archive: duplicate entry {path}")
-        files[path] = read()
+        limit = min(max_entry_bytes, max_bytes - total)
+        with open_entry() as f:
+            content = f.read(limit + 1)
+        if len(content) > max_entry_bytes:
+            raise HTTPException(400, f"archive: entry {path} exceeds {max_entry_bytes} bytes")
+        total += len(content)
+        if total > max_bytes:
+            raise HTTPException(400, f"archive content exceeds {max_bytes} bytes")
+        files[path] = content
 
     if zipfile.is_zipfile(io.BytesIO(data)):
-        with zipfile.ZipFile(io.BytesIO(data)) as zf:
-            infos = zf.infolist()
-            if len(infos) > max_entries:
-                raise HTTPException(400, "archive has too many entries")
-            for info in infos:
-                if stat.S_ISLNK(info.external_attr >> 16):
-                    raise HTTPException(400, f"archive: link {info.filename} not allowed")
-                if not info.is_dir():
-                    add(info.filename, info.file_size, lambda i=info: zf.read(i))
+        try:
+            with zipfile.ZipFile(io.BytesIO(data)) as zf:
+                infos = zf.infolist()
+                if len(infos) > max_entries:
+                    raise HTTPException(400, "archive has too many entries")
+                for info in infos:
+                    if stat.S_IFMT(info.external_attr >> 16) in SPECIAL_MODES:
+                        raise HTTPException(400, f"archive: {info.filename} is not a regular file")
+                    if not info.is_dir():
+                        add(info.filename, lambda i=info: zf.open(i))
+        except (zipfile.BadZipFile, zlib.error, NotImplementedError, EOFError, RuntimeError) as e:
+            raise HTTPException(400, f"archive is corrupt: {e}") from None
         return files
     try:
         tf = tarfile.open(fileobj=io.BytesIO(data), mode="r:*")
     except tarfile.TarError:
         raise HTTPException(400, "archive is neither tar(.gz) nor zip") from None
-    with tf:
-        for n, member in enumerate(tf):
-            if n >= max_entries:
-                raise HTTPException(400, "archive has too many entries")
-            if member.isdir():
-                continue
-            if not member.isreg():
-                raise HTTPException(400, f"archive: {member.name} is not a regular file")
-            try:
-                tarfile.data_filter(member, "/archive")  # stdlib check: absolute paths, escapes, modes
-            except tarfile.FilterError as e:
-                raise HTTPException(400, f"archive: {e}") from None
-            add(member.name, member.size, lambda m=member: tf.extractfile(m).read())  # type: ignore[union-attr]
+    try:
+        with tf:
+            for n, member in enumerate(tf):
+                if n >= max_entries:
+                    raise HTTPException(400, "archive has too many entries")
+                if member.isdir():
+                    continue
+                if not member.isreg() or member.issparse():
+                    raise HTTPException(400, f"archive: {member.name} is not a regular file")
+                try:
+                    tarfile.data_filter(member, "/archive")
+                except tarfile.FilterError as e:
+                    raise HTTPException(400, f"archive: {e}") from None
+                add(member.name, lambda m=member: tf.extractfile(m))
+    except (tarfile.TarError, EOFError, OSError, zlib.error) as e:
+        raise HTTPException(400, f"archive is corrupt: {e}") from None
     return files
+
+
+def manifest_of(archive: dict[str, bytes]) -> Manifest:
+    """Full-snapshot manifest of an archive uploaded without one: every file hashed, no kind rules."""
+    return Manifest(mode="full", files=[ManifestFile(path=p, sha256=sha256_hex(d)) for p, d in archive.items()])
 
 
 async def rows(tx: AsyncManagedTransaction, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:

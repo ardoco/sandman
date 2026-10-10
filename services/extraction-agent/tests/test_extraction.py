@@ -3,7 +3,9 @@
 import hashlib
 import io
 import json
+import random
 import shutil
+import stat
 import tarfile
 import zipfile
 from pathlib import Path
@@ -430,3 +432,128 @@ def test_invalid_config_fails_at_startup(tmp_path: Path, name: str) -> None:
     )  # fmt: skip
     with pytest.raises(ContractError, match=name):
         Service(settings)
+
+
+def raw_tar(entries: list[tuple[str, bytes, bytes | None]]) -> bytes:
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+        for name, data, kind in entries:
+            info = tarfile.TarInfo(name)
+            if kind is not None:
+                info.type, info.linkname = kind, "a.txt"
+                tf.addfile(info)
+            else:
+                info.size = len(data)
+                tf.addfile(info, io.BytesIO(data))
+    return buf.getvalue()
+
+
+def zipped(entries: dict[str, bytes], compression: int = zipfile.ZIP_DEFLATED) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression) as zf:
+        for name, data in entries.items():
+            zf.writestr(name, data)
+    return buf.getvalue()
+
+
+HOSTILE = {
+    "tar hardlink": raw_tar([("a.txt", b"x", None), ("l", b"", tarfile.LNKTYPE)]),
+    "tar symlink": raw_tar([("l", b"", tarfile.SYMTYPE)]),
+    "tar chardev": raw_tar([("d", b"", tarfile.CHRTYPE)]),
+    "tar fifo": raw_tar([("f", b"", tarfile.FIFOTYPE)]),
+    "tar backslash": raw_tar([("..\\x", b"x", None)]),
+    "tar drive": raw_tar([("C:\\x", b"x", None)]),
+    "tar drive slash": raw_tar([("C:/x", b"x", None)]),
+    "tar dotdot": raw_tar([("a/../../x", b"x", None)]),
+    "tar absolute": raw_tar([("/x", b"x", None)]),
+    "zip backslash": zipped({"..\\x": b"x"}),
+    "zip drive": zipped({"C:\\x": b"x"}),
+    "zip dotdot": zipped({"../x": b"x"}),
+    "zip absolute": zipped({"/x": b"x"}),
+}
+
+
+@pytest.mark.parametrize("name", HOSTILE)
+def test_hostile_archive_entries_rejected(name: str) -> None:
+    with pytest.raises(HTTPException) as e:
+        ingest.read_archive(HOSTILE[name], max_bytes=1 << 20)
+    assert e.value.status_code == 400 and "archive" in e.value.detail
+
+
+def test_zip_symlink_and_device_rejected() -> None:
+    for mode in (stat.S_IFLNK, stat.S_IFCHR, stat.S_IFIFO):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            info = zipfile.ZipInfo("l")
+            info.external_attr = (mode | 0o777) << 16
+            zf.writestr(info, "a.txt")
+        with pytest.raises(HTTPException):
+            ingest.read_archive(buf.getvalue(), max_bytes=1 << 20)
+
+
+def test_encrypted_zip_and_corrupt_gzip_in_tar_are_rejected() -> None:
+    raw = bytearray(zipped({"a.txt": b"hello"}))
+    for sig, off in ((b"PK\x03\x04", 6), (b"PK\x01\x02", 8)):
+        raw[raw.index(sig) + off] |= 0x1
+    with pytest.raises(HTTPException, match="corrupt") as e:
+        ingest.read_archive(bytes(raw), max_bytes=1 << 20)
+    assert e.value.status_code == 400
+    rnd = random.Random(0)
+    text = " ".join(f"{rnd.choice(['alpha', 'beta', 'gamma'])}{rnd.randrange(50)}" for _ in range(3000)).encode()
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+        info = tarfile.TarInfo("a")
+        info.size = len(text)
+        tf.addfile(info, io.BytesIO(text))
+    gz = bytearray(buf.getvalue())
+    gz[1900:1908] = b"\xff" * 8
+    with pytest.raises(HTTPException, match="corrupt") as e:
+        ingest.read_archive(bytes(gz), max_bytes=1 << 20)
+    assert e.value.status_code == 400
+
+
+def test_zip_bomb_stops_at_caps_with_lying_header() -> None:
+    bomb = zipped({"a": b"\0" * (4 << 20)})
+    raw = bytearray(bomb)
+    for sig, off in ((b"PK\x03\x04", 22), (b"PK\x01\x02", 24)):
+        raw[raw.index(sig) + off : raw.index(sig) + off + 4] = (1).to_bytes(4, "little")
+    for data in (bomb, bytes(raw)):
+        with pytest.raises(HTTPException, match="exceeds|corrupt"):
+            ingest.read_archive(data, max_bytes=1 << 20)
+        with pytest.raises(HTTPException, match="exceeds|corrupt"):
+            ingest.read_archive(data, max_bytes=1 << 30, max_entry_bytes=1 << 20)
+
+
+def test_tar_bomb_and_total_cap() -> None:
+    bomb = raw_tar([("a", b"\0" * (4 << 20), None)])
+    with pytest.raises(HTTPException, match="exceeds"):
+        ingest.read_archive(bomb, max_bytes=1 << 20)
+    with pytest.raises(HTTPException, match="exceeds"):
+        ingest.read_archive(bomb, max_bytes=1 << 30, max_entry_bytes=1 << 20)
+    two = raw_tar([("a", b"x" * 600, None), ("b", b"x" * 600, None)])
+    with pytest.raises(HTTPException, match="exceeds"):
+        ingest.read_archive(two, max_bytes=1000)
+
+
+def test_entry_count_bomb_rejected_for_tar_and_zip() -> None:
+    many = {f"f{i}": b"" for i in range(50)}
+    for data in (raw_tar([(n, b"", None) for n in many]), zipped(many)):
+        with pytest.raises(HTTPException, match="too many entries"):
+            ingest.read_archive(data, max_bytes=1 << 20, max_entries=10)
+
+
+async def test_archive_only_upload_and_missing_parts(env: Any) -> None:
+    await env.put_project()
+    url = f"/v1/projects/{env.project}/ingestions"
+    assert (await env.http.post(url, data={})).status_code == 400
+    empty = await env.http.post(url, files={"archive": ("a", env.tar_gz({}), "application/octet-stream")})
+    assert empty.status_code == 400
+    files = env.mini()
+    resp = await env.http.post(url, files={"archive": ("a", env.tar_gz(files), "application/octet-stream")})
+    assert resp.status_code == 201, resp.text
+    assert resp.json()["mode"] == "full" and len(resp.json()["createdVersionIds"]) == len(files)
+    assert "sourceRevision" not in resp.json()
+    again = await env.http.post(url, files={"archive": ("a", env.tar_gz(files), "application/octet-stream")})
+    assert again.status_code == 201 and again.json()["unchangedCount"] == len(files)
+    hostile = await env.http.post(url, files={"archive": ("a", HOSTILE["tar hardlink"], "application/octet-stream")})
+    assert hostile.status_code == 400

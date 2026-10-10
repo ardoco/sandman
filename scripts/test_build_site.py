@@ -59,3 +59,15 @@ def test_glossary_and_intro_present(data):
     assert data["intro"]["paragraphs"] and len(data["glossary"]) >= 10
     assert {g["term"] for g in data["glossary"]} >= {"Knowledge graph", "Trace link", "Inconsistency", "Gateway"}
     assert all(c["summary"] and c["details"] and c["flow"] for c in data["components"])
+
+
+def test_milestone_text_only_via_planned_field(data):
+    ms = build_site.milestones()
+    assert {m["id"] for m in ms} >= {"M0", "M1", "M2", "M3", "M4"}
+    assert build_site.sync_problems({c["id"] for c in data["components"]}, meta(), ms) == []
+    bad = meta()
+    bad["components"]["nats"]["details"] += " Planned for M1."
+    assert any("nats.details" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, bad, ms))
+    done = [{**m, "done": True} for m in ms]
+    assert any("already done" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, meta(), done))
+    assert "Status:" in data["status"]

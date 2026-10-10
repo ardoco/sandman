@@ -3,6 +3,7 @@
 import json
 import re
 import shutil
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -15,6 +16,7 @@ GROUPS = ["platform", "agents", "plugins", "infrastructure", "libraries"]
 DOC_FILES = ["docs/stage-1-analysis-architecture.md", "docs/stage-2-contracts-repository.md", "docs/plugins.md"]
 DOC_GLOBS = ["docs/tasks/*.md", "adr/*.md"]
 MAX_PER_DOC = 5
+PLAN = ROOT / "docs/stage-3-implementation-plan.md"
 META = ROOT / "site/src/components.yaml"
 TEXT_FIELDS = ("zone", "title", "summary", "details", "flow")
 
@@ -114,8 +116,41 @@ def classify(name: str, svc: dict) -> str:
     return "platform" if "build" in svc else "infrastructure"
 
 
-def sync_problems(ids: set[str], meta: dict) -> list[str]:
+def strings(node, path=""):
+    if isinstance(node, str):
+        yield path, node
+    elif isinstance(node, dict):
+        for k, v in node.items():
+            yield from strings(v, f"{path}.{k}" if path else k)
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from strings(v, f"{path}[{i}]")
+
+
+def milestones() -> list[dict]:
+    """Milestones (id, name, goal) from the Stage 3 table; done = an M* git tag exists (none if tags are unavailable)."""
+    rows = re.findall(r"^\| \*\*(M\w+) ([^*]+)\*\* \| ([^|]+) \|", PLAN.read_text(), re.M)
+    try:
+        tags = set(subprocess.run(["git", "tag", "--list", "M*"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split())
+    except (OSError, subprocess.CalledProcessError):
+        tags = set()
+    return [{"id": i, "name": n.strip(), "goal": g.strip(), "done": i in tags} for i, n, g in rows]
+
+
+def status_line(ms: list[dict]) -> str:
+    done = [f"{m['id']} {m['name']}" for m in ms if m["done"]]
+    todo = [m for m in ms if not m["done"] and re.fullmatch(r"M\d", m["id"])]
+    text = "Status: " + (f"finished milestones: {', '.join(done)}. " if done else "milestone tags are not available in this build. ")
+    if todo:
+        text += f"Next: {todo[0]['id']} {todo[0]['name']} ({todo[0]['goal']})."
+        if len(todo) > 1:
+            text += " Later: " + "; ".join(f"{m['id']} {m['name']}" for m in todo[1:]) + "."
+    return text
+
+
+def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> list[str]:
     """Return mismatches between components found in the repo and the human-written components.yaml."""
+    ms = milestones() if ms is None else ms
     texts = meta["components"]
     problems = [f"no entry in components.yaml: {i}" for i in sorted(ids - set(texts))]
     problems += [f"components.yaml entry without component: {i}" for i in sorted(set(texts) - ids)]
@@ -123,6 +158,13 @@ def sync_problems(ids: set[str], meta: dict) -> list[str]:
         problems += [f"{i}: missing {f}" for f in TEXT_FIELDS if not str(t.get(f, "")).strip()]
         if t.get("zone") not in meta["zones"]:
             problems.append(f"{i}: unknown zone {t.get('zone')}")
+    byid = {m["id"]: m for m in ms}
+    for i, t in texts.items():
+        if "planned" in t and (t["planned"] not in byid or byid[t["planned"]]["done"]):
+            problems.append(f"{i}: planned milestone {t['planned']} unknown or already done")
+    for path, text in strings(meta):
+        if re.search(r"\bM\d+\b|planned", text, re.I) and not path.endswith(".planned"):
+            problems.append(f"{path}: milestone or 'planned' text in YAML, use the planned field")
     for step in meta["flow"]:
         problems += [f"flow step {step['title']}: unknown component {i}" for i in step["components"] if i not in ids]
     return problems
@@ -210,15 +252,20 @@ def build() -> dict:
         c["usedBy"] = sorted(c.get("usedBy", []))
 
     meta = yaml.safe_load(META.read_text())
-    if problems := sync_problems(set(comps), meta):
+    ms = milestones()
+    if problems := sync_problems(set(comps), meta, ms):
         raise SystemExit("site/src/components.yaml out of sync:\n  " + "\n  ".join(problems))
     order = list(meta["components"])
     for i, c in comps.items():
         c.update({f: " ".join(meta["components"][i][f].split()) for f in TEXT_FIELDS})
+        if "planned" in meta["components"][i]:
+            c["planned"] = meta["components"][i]["planned"]
 
     return {
         "repo": REPO,
         "intro": meta["intro"],
+        "status": status_line(ms),
+        "milestones": ms,
         "flow": meta["flow"],
         "glossary": meta["glossary"],
         "zones": [{"id": k, **v} for k, v in meta["zones"].items()],

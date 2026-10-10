@@ -50,6 +50,9 @@ svg.map{display:block;width:100%;height:auto;margin:0 auto}
 .edge.calls{stroke-dasharray:6 4}
 .edge.on{stroke:var(--accent);stroke-width:2.2;opacity:1}
 .dim{opacity:.2}
+.edge.quiet:not(.on){opacity:0}
+.planned{display:inline-block;font-size:.75rem;border-radius:10px;padding:0 8px;background:var(--sel);color:var(--fg);margin:0 4px 4px 0}
+.status{color:var(--muted)}
 .narrow .edge:not(.on){display:none}
 marker path{fill:var(--edge)}
 marker.on path{fill:var(--accent)}
@@ -87,7 +90,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6"/><path d="M33 5l-7-4v8z" fill="var(--edge)"/></svg>needs / starts after</span>
 <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="5 3"/><path d="M33 5l-7-4v8z" fill="var(--edge)"/></svg>calls over the network</span>
 <span><svg width="30" height="14" aria-hidden="true"><rect x="1" y="1" width="28" height="12" rx="4" fill="none" stroke="var(--edge)" stroke-dasharray="4 3"/></svg>outside system</span>
-<span>Hover or focus a component to highlight its neighbours.</span>
+<span>Main flow lines are always shown. Hover, focus or select a component to see all its connections.</span>
 </div>
 </header>
 <main>
@@ -157,7 +160,10 @@ function render() {
   });
   svg._edges = data.edges.map(e => {
     const p = el("path", { class: "edge " + e.kind, d: edgePath(pos[e.from], pos[e.to]), "marker-end": "url(#arr)" });
-    p.dataset.from = e.from; p.dataset.to = e.to; svg.append(p); return p;
+    p.dataset.from = e.from; p.dataset.to = e.to;
+    const top = new Set(["access", "ingest", "analysis", "plugins"]), za = byId[e.from].zone, zb = byId[e.to].zone;
+    if (!(za === zb || (top.has(za) && top.has(zb) && e.from !== "dashboard"))) p.classList.add("quiet");
+    svg.append(p); return p;
   });
   zs.forEach(z => z.members.forEach(c => {
     const g = el("g", { class: "node", tabindex: 0, role: "button", "data-id": c.id, style: `--zc:var(--z-${c.zone})`, "aria-label": `${c.title} (${c.name}), ${z.title}. ${c.summary}`, transform: `translate(${pos[c.id].x} ${pos[c.id].y})` });
@@ -204,7 +210,8 @@ function select(id) {
   c.links.forEach(l => { const li = h("li"), a = h("a", { href: l.url, target: "_blank", rel: "noopener" }, l.label); li.append(a); links.append(li); });
   const tech = h("details"); tech.append(h("summary", {}, "Technical details"), tags, h("p", {}, c.description), h("h3", {}, "Docs and sources"), links);
   const close = h("button", { class: "close", "aria-label": "Close details" }, "×"); close.onclick = clearSel;
-  p.replaceChildren(close, h("h2", {}, c.title), h("code", {}, c.name), h("p", { class: "sum" }, c.summary), h("p", {}, c.details), h("h3", {}, "How it fits in the flow"), h("p", {}, c.flow), list("Talks to / needs", c.dependsOn), list("Used by", c.usedBy), tech);
+  const plan = c.planned ? [h("span", { class: "planned" }, `planned for ${c.planned}: ${data.milestones.find(m => m.id === c.planned)?.name ?? ""}`)] : [];
+  p.replaceChildren(close, h("h2", {}, c.title), h("code", {}, c.name), ...plan, h("p", { class: "sum" }, c.summary), h("p", {}, c.details), h("h3", {}, "How it fits in the flow"), h("p", {}, c.flow), list("Talks to / needs", c.dependsOn), list("Used by", c.usedBy), tech);
   p.classList.add("has"); document.body.classList.add("sheet");
   history.replaceState(null, "", "#" + id);
   mark();
@@ -229,6 +236,7 @@ function setTour(i) {
 function init() {
   $("h1").textContent = data.intro.title;
   data.intro.paragraphs.forEach(t => $("intro").append(h("p", {}, t)));
+  $("intro").append(h("p", { class: "status" }, data.status));
   const tr = $("tour");
   tr.append(Object.assign(h("button", { class: "nav", id: "prev" }, "← Previous"), { onclick: () => setTour(Math.max(0, (tour ?? 1) - 1)) }));
   data.flow.forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, "→")); tr.append(Object.assign(h("button", { class: "step" }, `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });

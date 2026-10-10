@@ -15,11 +15,6 @@ intro:
       It is built for architects, researchers and operators. You upload a snapshot of a project,
       the system processes it in the background, and you read the results in a web console,
       through a REST API or with a command line tool.
-    - >-
-      Status: the walking skeleton works end to end, but with demonstration components for trace
-      links and inconsistencies. Real extractors and the system dashboard are planned for the next
-      milestone (M1). The research approaches ArDoCo and LiSSA are planned integrations and are
-      not active yet.
 
 flow:
   - title: Upload
@@ -32,7 +27,7 @@ flow:
     text: >-
       The extraction agent turns every file into small, typed elements (a requirement, a document
       section, a model component, a code unit). Documents such as PDF or Word are first converted to
-      text (planned). Code is understood by plugins.
+      text. Code is understood by plugins.
     components: [extraction-agent, document-converter, plugin-stubs]
   - title: Knowledge graph
     text: >-
@@ -42,8 +37,8 @@ flow:
   - title: Trace links
     text: >-
       The trace link agent connects elements that belong together, for example a requirement and the
-      code that implements it. It can host several approaches; research approaches such as ArDoCo and
-      LiSSA are planned.
+      code that implements it. It can host several approaches, for example the research approaches ArDoCo
+      and LiSSA.
     components: [tlr-agent, llm-replay, llm-gateway]
   - title: Inconsistencies
     text: >-
@@ -59,7 +54,7 @@ flow:
   - title: Query, console and dashboard
     text: >-
       You read results in the console, the REST API or an export, and you can ask questions about
-      the graph. Administrators get a system overview dashboard (planned for M1).
+      the graph. Administrators get a system overview dashboard.
     components: [query-service, dashboard]
 
 glossary:
@@ -156,16 +151,17 @@ components:
     details: >-
       It checks who you are (session or personal token), what role you have in a project, and then answers questions
       about the graph, lists findings, accepts uploads and lets you triage findings. Questions can be asked in
-      natural language (today five fixed question patterns, LLM based translation is planned) or as database queries
+      natural language (today five fixed question patterns, with LLM based translation to follow) or as database queries
       that are always confined to one project. Without it nobody could use the results.
+    planned: M4
     flow: Receives requests from the front door, reads the knowledge graph, and forwards uploads and workflow commands to the agents.
   dashboard:
     zone: access
-    title: System overview dashboard (planned)
+    title: System overview dashboard
     summary: An admin-only page that shows whether all parts of the system are healthy.
     details: >-
-      It is planned for milestone M1. It shows service status, running workflows, the event stream, resource usage and
-      project statistics. It is a separate service so that it keeps working when the part it monitors fails.
+      It shows service status, running workflows, the event stream, resource usage and
+      project statistics. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
     flow: Reads status pages of all services, the message bus and resource data; changes nothing.
   document-converter:
     zone: ingest
@@ -173,7 +169,7 @@ components:
     summary: Turns PDF and Word files into plain text structure that the extraction agent can read.
     details: >-
       Many architecture documents are PDF or Word files. Converting them is slow and needs heavy libraries, so it
-      runs in an isolated service with its own limits. Support for these formats is planned for M1.
+      runs in an isolated service with its own limits.
     flow: Called only by the extraction agent; returns Markdown text.
   extraction-agent:
     zone: ingest
@@ -192,8 +188,9 @@ components:
     details: >-
       Trace link recovery (TLR) connects artifacts of different kinds automatically, so nobody has to maintain
       the links by hand. The agent runs one or more approaches and stores each result as a trace link with
-      confidence and origin. Today only a simple name matching demo approach is active. ArDoCo and LiSSA are
-      planned as real approaches.
+      confidence and origin. Today only a simple name matching demo approach is active. The real approaches
+      ArDoCo and LiSSA follow.
+    planned: M2
     flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
   inconsistency-agent:
     zone: analysis
@@ -203,7 +200,8 @@ components:
       It runs detectors over the elements and trace links and stores each finding in the graph. People then set
       a status (open, accepted, false positive, resolved), and the agent keeps this history when a later version
       of the project shows the same problem again. Today only a demo detector is active (requirement without any
-      trace link). Detectors from ArDoCo and further plugin detectors are planned.
+      trace link). Detectors from ArDoCo and further plugin detectors follow.
+    planned: M3
     flow: Starts after trace link recovery, reads elements and links, calls detector plugins, and writes findings to the graph.
   orchestrator:
     zone: analysis

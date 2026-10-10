@@ -250,6 +250,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-39 | Versions and licenses of the vendored front-end libraries (Cytoscape.js 3.34.x MIT, uPlot 1.6.x MIT, htmx) and offline use without a CDN (T1.9). |
 | V-40 | Rust Bolt drivers against Memgraph 3.13: `neo4rs` 0.9 (Bolt 4.4/5.x, read transactions rejecting writes, auto-commit for schema statements) vs. Memgraph's `rsmgclient` (TX.3). |
 | V-41 | Availability of the npm scope `@ardoco`, Go module path `github.com/ArDoCo/sandman`, crate names `sandman-*` (Q-22). |
+| V-42 | **Answered (T1.14):** Bifrost custom provider with `custom_provider_config.base_provider_type: openai` and `network_config.base_url` reaches an OpenAI-compatible server (chat, embeddings, key forwarded); `base_url` is a literal (`env.*` is not resolved there, the key is); unknown top-level keys such as `_comment*` are ignored (`spikes/T0.4/custom_provider_check.py`, stub server, Bifrost v2.2.6 in Docker; custom provider PASS). OpenRouter provider preferences (`order`, `allow_fallbacks`) have no config-level option; only per-request `extra_params.provider` with the header `x-bf-passthrough-extra-params: true` on `/openai/v1`, which Bifrost forwards (run, v2.2.6); a top-level `provider` is dropped on that route. |
 
 ## 8. Open questions
 

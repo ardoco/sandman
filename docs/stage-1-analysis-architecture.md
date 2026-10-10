@@ -348,7 +348,7 @@ flowchart TB
 | `session_secret` (cookie signing) | query-service |
 | `dashboard_admin_password`, `dashboard_session_secret`; read access to `gateway_admin_password` and `memgraph_password` | dashboard (admin-only operator tool, ADR-0016) |
 
-Startup order via `depends_on: condition: service_healthy`: `memgraph`, `nats`, `llm-gateway` → `llm-replay` → agents → `orchestrator` → `query-service`. All services `restart: unless-stopped` and have a `mem_limit` (memory budget in Stage 2 §3.2). Profiles: `default` (core), `obs` (OpenTelemetry backend), `local-llm` (Ollama), `stubs` (plugin stubs); a `docker-compose.dev.yml` overlay publishes Bolt and NATS ports on localhost (Memgraph Lab is excluded as proprietary). Full Compose file: [deploy/docker-compose.yml](../deploy/docker-compose.yml) (Stage 2).
+Startup order via `depends_on: condition: service_healthy`: `memgraph`, `nats`, `llm-gateway` → `kg-migrate` (one-shot, applies `init.cypher` and writes `SchemaVersion`), `llm-replay` → agents → `orchestrator` → `query-service`. All services `restart: unless-stopped` and have a `mem_limit` (memory budget in Stage 2 §3.2). Profiles: `default` (core), `obs` (OpenTelemetry backend), `local-llm` (Ollama), `stubs` (plugin stubs); a `docker-compose.dev.yml` overlay publishes Bolt and NATS ports on localhost (Memgraph Lab is excluded as proprietary). Full Compose file: [deploy/docker-compose.yml](../deploy/docker-compose.yml) (Stage 2).
 
 ## 3. Communication design
 
@@ -968,7 +968,7 @@ Research date: 2026-10-06. Details and sources: Section 14 and ADR-0004.
 
 ### 8.4 Configuration and usage
 
-- **Providers (Q-3):** OpenAI (and any further OpenAI-compatible endpoint), OpenRouter, local Ollama. Bifrost supports all three natively (`openai/<model>`, `openrouter/<model>`, Ollama provider); with LiteLLM the same holds (`openai/`, `openrouter/`, `ollama/` prefixes).
+- **Providers (Q-3):** OpenAI (and any further OpenAI-compatible endpoint), OpenRouter, local Ollama. Bifrost supports all three natively (`openai/<model>`, `openrouter/<model>`, Ollama provider). A further OpenAI-compatible server (vLLM, institutional server) is a Bifrost custom provider with `base_provider_type: openai` and a `network_config.base_url`. `deploy/gateway/config.json` holds a commented example. The `base_url` must be a literal, because `env.*` is not resolved there (V-42); with LiteLLM the same holds (`openai/`, `openrouter/`, `ollama/` prefixes).
 - **Model names:** agents never hard-code provider models. Each agent's config maps logical roles to gateway model names, e.g.:
 
   ```yaml
@@ -980,7 +980,8 @@ Research date: 2026-10-06. Details and sources: Section 14 and ADR-0004.
     embed-default: openai/<embedding-model>
     embed-local:   ollama/<embedding-model>
   ```
-  Concrete models are chosen per experiment and recorded in the experiment manifest and every `Run` (`model` = route, `resolvedModel` = name returned by the gateway). No cross-provider fallbacks are configured (they would move `local-only` content to the cloud and mix models within experiments); the resolved model is always logged.
+  Concrete models are chosen per experiment and recorded in the experiment manifest and every `Run` (`model` = route, `resolvedModel` = name returned by the gateway). No cross-provider fallbacks are configured (they would move `local-only` content to the cloud and mix models within experiments), and the `experiments` key has no gateway fallbacks at all. The resolved model is always logged. `Run.resolvedModel` holds the first resolved model. `Run.mixedModels` is `true` if one run saw more than one model (T1.14).
+- **OpenRouter provider pin:** `openrouterProviders` in `config/llm/models.yaml` maps each OpenRouter model to one upstream provider. `llm-replay` adds the pin after it computes the cassette key, so the key does not change. The pin is `extra_params.provider` with `allow_fallbacks: false` in the request body. `llm-replay` also sets the header `x-bf-passthrough-extra-params: true`. It sends the request to the Bifrost integration route `/openai/v1`. Bifrost drops a top-level `provider` field on that route (V-42).
 - **Keys:** one virtual key per component (`orchestrator`, `extraction`, `tlr`, `inconsistency`, `query`) plus, for every LLM-using component, a `<component>-local` key restricted to the Ollama provider; plugins that use LLMs get `plugin-<id>` and `plugin-<id>-local` keys (provisioned by the operator, ADR-0012); one `experiments` key for evaluation scripts. Each key: allowed providers/models, monthly USD budget, requests/min and tokens/min limits. Initial budgets are placeholders to be set by you (tlr highest). The admin UI/API is password-protected (`governance.auth_config`); the password never enters agent containers.
 - **Project policy:** `Project.llmPolicy = local-only` makes the caller use its `-local` virtual key (Python `ModelSelector`, Java `LlmAccess`, plugins via `llmPolicy` in their input) and `*-local` routes; the gateway rejects any other provider for that key, so the policy also holds for LangChain4j inside reused code. OpenRouter is used only for `cloud-allowed` projects, with the account-level privacy setting that excludes providers training on data (to verify, V-32). Gateway request logs serve as audit trail (retention 30 days).
 - **Agent usage:** `SANDMAN_LLM_BASE_URL` = the `llm-replay` proxy (`http://llm-replay:8000/openai`), which forwards to the gateway's OpenAI-compatible path (`/openai`, V-2); keys from `/run/secrets/llm_key_<component>[_local]`. The library sends only standard OpenAI fields (`model`, `messages`, `tools`, `response_format`, `temperature`, `seed`, `user` = runId for attribution) plus the W3C `traceparent` header. No gateway-specific headers in agent code → the gateway can be swapped by changing URL and keys. Reused Java code (LiSSA, ArDoCo `llm-access`, LangChain4j inside) gets the same base URL and the policy-dependent key through its own configuration (`LlmAccess`).
@@ -1210,6 +1211,7 @@ A separate service `dashboard` for **global admins** (operators). It is independ
 ### 11.6 Reproducibility of experiments
 - **Experiment manifest** (`experiments/<name>/experiment.yaml`): SANDMAN Git commit, image digests, configuration files, gateway model routes with pinned provider model versions, project snapshot hashes, LLM mode (`record`/`replay`), seeds.
 - **Run provenance** in the KG (Section 4.1) links every fact to code version, tool version, model, parameters and prompts.
+- **Mixed models:** `Run.mixedModels` is `true` if one run saw more than one resolved model. See Section 8.4 for the route and provider pin settings.
 - **Record/replay:** experiments run once in `record` mode of the `llm-replay` proxy; re-runs use `replay` and are deterministic independent of provider drift, including LangChain4j calls inside LiSSA/ArDoCo. Determinism is checked on a canonical KG export without ids and timestamps. Temperature 0 and seeds are set but not relied upon (providers do not guarantee determinism).
 - **Evaluation protocol (D-8):** pre-registered in `experiments/PROTOCOL.md` (statistics, reproduction, contamination probe, labeling study; Stage 3 §3.3).
 - **Artifacts of an experiment:** cassettes, KG export, JetStream stream export (`nats stream backup` or consumer dump), metrics output — archived together.
@@ -1219,7 +1221,7 @@ A separate service `dashboard` for **global admins** (operators). It is independ
 - **Prompt injection via artifacts:** artifact text is always placed in delimited data sections of prompts; LLM outputs are parsed as data and validated against JSON Schemas; tool-calling loops get only read-only tools; no LLM output is executed except validated read-only Cypher.
 - **Cypher injection:** agent queries are parameterized only (no string concatenation of values; labels come from a fixed enum); NL/direct Cypher goes through the guarded read path.
 - **Code confidentiality:** `local-only` project policy, enforced by the gateway through Ollama-only virtual keys; gateway logs as audit trail. Retention: gateway request logs 30 days; JSONL log files rotated, 30 days; cassettes and KG exports kept with their experiment and deleted with it; backups of confidential projects stay on the server.
-- **Supply chain:** pinned versions and image digests; signed images where available (Memgraph images carry cosign signatures since 3.12); dependency updates via a bot with CI; gateway kept internal (LiteLLM's 2026 incidents show the risk class).
+- **Supply chain:** pinned versions and image digests (`image@sha256` in compose, `FROM …@sha256` in Dockerfiles; Renovate bumps the digests, `renovate.json`); signed images where available (Memgraph images carry cosign signatures since 3.12); dependency updates via a bot with CI; gateway kept internal (LiteLLM's 2026 incidents show the risk class).
 
 ## 12. Architecture Decision Records
 

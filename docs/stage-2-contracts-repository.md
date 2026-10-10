@@ -29,7 +29,7 @@ Status: revision 4 (Stage 4 review decisions and the system overview dashboard i
 | [contracts/openapi/query-service.yaml](../contracts/openapi/query-service.yaml) | user/agent entry point: auth, admin, projects, forwarded operations, query, schema, export; minimum role per operation (`x-sandman-min-role`) | query-service | users, CLI/CI, agents, detector plugins |
 | [contracts/openapi/shared.yaml](../contracts/openapi/shared.yaml) | problem details, security schemes, shared parameters/responses, `ServiceStatus` + `GET /v1/status` (working/idle), health endpoints | – | all OpenAPI documents |
 | [contracts/kg/schema.yaml](../contracts/kg/schema.yaml) | node labels, properties, relationships, owners, dialect notes | writers | contract tests, NL-to-Cypher prompt, `GET /v1/schema` |
-| [contracts/kg/init.cypher](../contracts/kg/init.cypher) | constraints and indexes | extraction-agent at startup | – |
+| [contracts/kg/init.cypher](../contracts/kg/init.cypher) | constraints and indexes, `SchemaVersion` | `kg-migrate` service (owners keep an idempotent `init_schema`) | – |
 | [contracts/conformance/vectors.json](../contracts/conformance/vectors.json) | expected values for `stableId`, sentence keys, fingerprints, cassette keys (RFC 8785, llm-replay), skill invocation, event validation | both libraries, llm-replay | CI |
 
 ### 1.2 Conventions
@@ -119,6 +119,8 @@ routes:
   chat-local: ollama/<model>:<tag>
   embed-default: openai/<embedding-model>
   embed-local: ollama/<embedding-model>
+openrouterProviders:        # optional: pinned upstream provider per OpenRouter model (llm-replay)
+  <vendor>/<model>: <provider>
 ```
 
 ```yaml

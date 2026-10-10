@@ -66,12 +66,12 @@ async def test_round_trip_publishes_event_before_completion(settings: Settings, 
     assert skill.seen[0].caller == "orchestrator" and skill.seen[0].actor == "user:alice"
 
 
-async def test_actor_ignored_from_non_orchestrator(settings: Settings, contracts: Contracts) -> None:
+async def test_actor_rejected_from_non_orchestrator(settings: Settings, contracts: Contracts) -> None:
     skill = Recover()
     _, client = setup(settings, contracts, skill, TOKENS["tlr-agent"])
     task = await client.submit(URL, "recover-trace-links", INPUT, actor="user:mallory")
-    await wait(client, task.task_id)
-    assert skill.seen[0].caller == "tlr-agent" and skill.seen[0].actor is None
+    done = await wait(client, task.task_id)
+    assert done.state == "TASK_STATE_REJECTED" and done.error["code"] == "FORBIDDEN" and not skill.seen
 
 
 async def test_invalid_output_fails_without_event(settings: Settings, contracts: Contracts) -> None:
@@ -140,3 +140,14 @@ async def test_status_reports_working_while_a_skill_runs(settings: Settings, con
     release.set()
     await wait(client, task.task_id)
     assert (await http.get("/v1/status", headers=headers)).json()["state"] == "idle"
+
+
+async def test_planned_skill_is_rejected_not_implemented(settings: Settings, contracts: Contracts) -> None:
+    _, client = setup(settings, contracts, Recover())
+    task = await client.submit(URL, "prune-trace-links", {})
+    done = await wait(client, task.task_id)
+    assert (
+        done.state == "TASK_STATE_REJECTED"
+        and done.error["code"] == "NOT_IMPLEMENTED"
+        and done.error["retryable"] is False
+    )

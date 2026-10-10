@@ -2,6 +2,8 @@ package edu.kit.kastel.mcse.ardoco.sandman.agent.testing;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Jcs;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +47,55 @@ public final class ConformanceRunner {
                     Ids.stableId("inc", text(c, "projectId"), fp),
                     text(c, "expectedInconsistencyId"));
         }
+        for (String group : List.of("inputKey", "actionKey")) {
+            for (JsonNode c : v.get(group).get("cases")) {
+                byte[] canonical = Jcs.canonicalize(c.get("object"));
+                String label = group + " " + text(c, "name");
+                check(
+                        failures,
+                        label + " canonical",
+                        new String(canonical, StandardCharsets.UTF_8),
+                        text(c, "canonical"));
+                check(failures, label, Ids.sha256Hex(canonical), text(c, "expected"));
+            }
+        }
+        for (JsonNode c : v.get("ingestionId").get("cases")) {
+            JsonNode i = c.get("input");
+            check(
+                    failures,
+                    "ingestionId " + i,
+                    Ids.stableId(
+                            "ing",
+                            text(i, "projectId"),
+                            String.valueOf(i.get("seq").asInt())),
+                    text(c, "expected"));
+        }
+        for (JsonNode c : v.get("traceLinkId").get("cases")) {
+            JsonNode i = c.get("input");
+            check(
+                    failures,
+                    "traceLinkId " + text(i, "approach"),
+                    Ids.stableId(
+                            "tl",
+                            text(i, "approach"),
+                            text(i, "approachVersion"),
+                            text(i, "configHash"),
+                            text(i, "sourceId"),
+                            text(i, "targetId")),
+                    text(c, "expected"));
+            if (c.has("configSource")) {
+                String config =
+                        Ids.sha256Hex(Jcs.canonicalize(c.get("configSource").get("explicitReferences")));
+                check(failures, "traceLinkId configHash " + text(i, "approach"), config, text(i, "configHash"));
+            }
+        }
+        for (JsonNode c : v.get("evidenceHash").get("cases")) {
+            JsonNode involved = c.get("involved");
+            List<String> pairs = new ArrayList<>();
+            involved.path("elements").forEach(e -> pairs.add(pair(e)));
+            involved.path("links").forEach(l -> l.get("endpoints").forEach(e -> pairs.add(pair(e))));
+            check(failures, "evidenceHash " + text(c, "name"), Ids.evidenceHash(pairs), text(c, "expected"));
+        }
         for (JsonNode c : v.get("eventEnvelope").get("cases")) {
             boolean got = contracts.isValid("events.schema.json", c.get("event"));
             check(
@@ -60,6 +111,10 @@ public final class ConformanceRunner {
         if (!Objects.equals(got, expected)) {
             failures.add(label + ": got " + got + ", expected " + expected);
         }
+    }
+
+    private static String pair(JsonNode element) {
+        return text(element, "key") + "=" + text(element, "contentHash");
     }
 
     private static String text(JsonNode node, String field) {

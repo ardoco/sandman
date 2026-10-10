@@ -76,6 +76,29 @@ def run_conformance(vectors_path: Path, contracts: Contracts) -> list[str]:
         fp = ids.fingerprint(i["type"], i["detector"], i["involved"])
         check(f"fingerprint {i['type']}", fp, c["expected"])
         check(f"inc id {i['type']}", ids.stable_id("inc", c["projectId"], fp), c["expectedInconsistencyId"])
+    for group in (
+        "inputKey",
+        "actionKey",
+    ):  # keys derive from the JCS of the object; tool-specific assembly is tested by the owners
+        for c in v[group]["cases"]:
+            canonical = ids.canonical_json(c["object"]).decode()
+            check(f"{group} {c['name']} canonical", canonical, c["canonical"])
+            check(f"{group} {c['name']}", ids.sha256_hex(canonical), c["expected"])
+    for c in v["ingestionId"]["cases"]:
+        i = c["input"]
+        check(f"ingestionId {i['seq']}", ids.stable_id("ing", i["projectId"], str(i["seq"])), c["expected"])
+    for c in v["traceLinkId"]["cases"]:
+        i = c["input"]
+        parts = [i["approach"], i["approachVersion"], i["configHash"], i["sourceId"], i["targetId"]]
+        check(f"traceLinkId {i['approach']}", ids.stable_id("tl", *parts), c["expected"])
+    for c in v["evidenceHash"]["cases"]:
+        inv = c["involved"]
+        elements = [*inv["elements"], *(e for link in inv.get("links", []) for e in link["endpoints"])]
+        check(
+            f"evidenceHash {c['name']}",
+            ids.evidence_hash(f"{e['key']}={e['contentHash']}" for e in elements),
+            c["expected"],
+        )
     for c in v["eventEnvelope"]["cases"]:
         check(f"eventEnvelope {c['event']['id']}", contracts.is_valid("events.schema.json", c["event"]), c["valid"])
     return failures

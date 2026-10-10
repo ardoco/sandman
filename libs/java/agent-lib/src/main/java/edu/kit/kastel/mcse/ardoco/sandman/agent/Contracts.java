@@ -13,8 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Validation against the JSON Schemas in contracts/; $id URIs resolve to the local files, never the network. */
 public final class Contracts {
@@ -46,7 +48,16 @@ public final class Contracts {
 
     public Contracts(Path contractsDir) {
         Map<String, String> byId = new HashMap<>();
-        for (String file : SCHEMA_FILES) {
+        List<String> files = new java.util.ArrayList<>(SCHEMA_FILES);
+        try (Stream<Path> configs = Files.list(contractsDir.resolve("config"))) {
+            configs.map(p -> "config/" + p.getFileName())
+                    .filter(f -> f.endsWith(".schema.json"))
+                    .sorted()
+                    .forEach(files::add);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        for (String file : files) {
             try {
                 String text = Files.readString(contractsDir.resolve(file));
                 String id = JsonMapper.shared().readTree(text).get("$id").asString();
@@ -76,6 +87,25 @@ public final class Contracts {
             throw new ContractException(
                     ref, errors.stream().map(Error::toString).toList());
         }
+    }
+
+    /** YAML file validated against contracts/config/{schema}.schema.json (e.g. 'tlr-approaches'); empty file = {}. */
+    public JsonNode loadConfig(String schema, Path file) {
+        JsonNode config;
+        try {
+            config = new YAMLMapper().readTree(Files.readString(file));
+        } catch (IOException e) {
+            throw new Settings.ConfigException("cannot read " + file + ": " + e, e);
+        }
+        if (config == null || config.isMissingNode() || config.isNull()) {
+            config = JsonMapper.shared().createObjectNode();
+        }
+        try {
+            validate("config/" + schema + ".schema.json", config);
+        } catch (ContractException e) {
+            throw new Settings.ConfigException("invalid config " + file + ": " + String.join("; ", e.messages()), e);
+        }
+        return config;
     }
 
     public boolean isValid(String ref, JsonNode instance) {

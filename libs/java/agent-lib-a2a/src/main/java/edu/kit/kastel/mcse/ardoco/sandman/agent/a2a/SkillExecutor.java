@@ -90,6 +90,13 @@ public class SkillExecutor implements AgentExecutor {
             return;
         }
         Skill skill = skills.get(skillId);
+        if (skill == null && server.plannedSkills().contains(skillId)) {
+            end(
+                    emitter,
+                    new SkillException("NOT_IMPLEMENTED", "skill " + skillId + " is planned, not implemented", false),
+                    true);
+            return;
+        }
         if (skill == null) {
             end(emitter, new SkillException("UNKNOWN_SKILL", "unknown skill " + skillId, false), true);
             return;
@@ -109,12 +116,19 @@ public class SkillExecutor implements AgentExecutor {
             end(emitter, new SkillException("INVALID_INPUT", e.getMessage(), false), true);
             return;
         }
+        String actor;
+        try {
+            actor = ServiceAuth.actorFromMetadata(caller, metadata);
+        } catch (ServiceAuth.ForbiddenException e) {
+            end(emitter, new SkillException("FORBIDDEN", e.getMessage(), false), true);
+            return;
+        }
         SkillContext ctx = new SkillContext(
                 context.getTaskId(),
                 message.messageId(),
                 metadata.get(WORKFLOW_KEY) instanceof String w ? w : null,
                 caller,
-                ServiceAuth.actorFromMetadata(caller, metadata),
+                actor,
                 emitter);
         running.put(ctx.taskId(), ctx);
         try (var active = status.track()) {

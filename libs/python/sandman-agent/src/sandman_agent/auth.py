@@ -60,6 +60,10 @@ def trusted_actor(caller: str, headers: Mapping[str, str]) -> str | None:
 
 
 def actor_from_metadata(caller: str, metadata: Mapping[str, object]) -> str | None:
-    """A2A sandman.actor, accepted only from the orchestrator (ignored otherwise)."""
+    """A2A sandman.actor, accepted only from the orchestrator; PermissionError if another caller sends it."""
     actor = metadata.get("sandman.actor")
-    return actor if caller == ORCHESTRATOR and isinstance(actor, str) else None
+    if actor is None:
+        return None
+    if caller != ORCHESTRATOR:
+        raise PermissionError("sandman.actor is accepted only from the orchestrator")
+    return actor if isinstance(actor, str) else None

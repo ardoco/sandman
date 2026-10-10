@@ -9,6 +9,7 @@ import yaml
 from openai import APIStatusError, AsyncOpenAI
 
 from sandman_agent import telemetry
+from sandman_agent.contracts import Contracts
 
 LOCAL_ONLY = "local-only"
 REASONING_EFFORT_PREFIXES = ("ollama/",)  # cloud models reject the parameter unless they are reasoning models
@@ -157,8 +158,13 @@ class OpenAiLlmClient:
 class ModelSelector:
     """Picks routes and the virtual key by project LLM policy (models.yaml)."""
 
-    def __init__(self, models_file: Path, base_url: str, key: str, local_key: str | None) -> None:
-        data = yaml.safe_load(models_file.read_text(encoding="utf-8")) or {}
+    def __init__(
+        self, models_file: Path, base_url: str, key: str, local_key: str | None, contracts: Contracts | None = None
+    ) -> None:
+        if contracts is not None:
+            data = contracts.load_config("llm-models", models_file)
+        else:
+            data = yaml.safe_load(models_file.read_text(encoding="utf-8")) or {}
         self.routes: dict[str, str] = dict(data.get("routes", {}))
         self._base_url, self._key, self._local_key = base_url, key, local_key
 

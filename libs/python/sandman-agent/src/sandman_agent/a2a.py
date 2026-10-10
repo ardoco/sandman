@@ -125,14 +125,16 @@ def _struct(message: Any) -> dict[str, Any]:
     return json_value(MessageToDict(message)) if message is not None else {}
 
 
-def load_card(path: Path) -> tuple[AgentCard, dict[str, dict[str, str]]]:
-    """Agent Card from JSON plus the skill -> {inputSchema, outputSchema} map of the invocation extension."""
+def load_card(path: Path) -> tuple[AgentCard, dict[str, dict[str, str]], frozenset[str]]:
+    """Agent Card, skill -> {inputSchema, outputSchema} of the invocation extension, and plannedSkills ids."""
     raw = json.loads(path.read_text(encoding="utf-8"))
     schemas: dict[str, dict[str, str]] = {}
+    planned: set[str] = set()
     for ext in raw.get("capabilities", {}).get("extensions", []):
         if ext.get("uri") == INVOCATION_EXTENSION:
             schemas.update(ext.get("params", {}).get("skills", {}))
-    return ParseDict(raw, AgentCard()), schemas
+            planned.update(ext.get("params", {}).get("plannedSkills", {}))
+    return ParseDict(raw, AgentCard()), schemas, frozenset(planned)
 
 
 class _Executor(AgentExecutor):
@@ -145,8 +147,9 @@ class _Executor(AgentExecutor):
         events: EventSink | None,
         authenticate: "_Authenticator",
         status: StatusTracker,
+        planned: frozenset[str] = frozenset(),
     ) -> None:
-        self._skills, self._schemas, self._settings = skills, schemas, settings
+        self._skills, self._schemas, self._settings, self._planned = skills, schemas, settings, planned
         self._contracts, self._events, self._authenticate = contracts, events, authenticate
         self._running: dict[str, SkillContext] = {}
         self._status = status
@@ -166,6 +169,11 @@ class _Executor(AgentExecutor):
             await self._end(updater, SkillError("INVALID_INPUT", f"metadata {SKILL_KEY} missing", False), True)
             return
         skill = self._skills.get(skill_id)
+        if skill is None and skill_id in self._planned:
+            await self._end(
+                updater, SkillError("NOT_IMPLEMENTED", f"skill {skill_id} is planned, not implemented", False), True
+            )
+            return
         if skill is None or skill_id not in self._schemas:
             await self._end(updater, SkillError("UNKNOWN_SKILL", f"unknown skill {skill_id}", False), True)
             return
@@ -180,12 +188,17 @@ class _Executor(AgentExecutor):
             await self._end(updater, SkillError("INVALID_INPUT", str(e), False), True)
             return
 
+        try:
+            actor = auth.actor_from_metadata(caller, metadata)
+        except PermissionError as e:
+            await self._end(updater, SkillError("FORBIDDEN", str(e), False), True)
+            return
         ctx = SkillContext(
             task_id=context.task_id,
             message_id=message.message_id,
             workflow_id=metadata.get(WORKFLOW_KEY) if isinstance(metadata.get(WORKFLOW_KEY), str) else None,
             caller=caller,
-            actor=auth.actor_from_metadata(caller, metadata),
+            actor=actor,
             settings=self._settings,
             updater=updater,
         )
@@ -298,7 +311,7 @@ def serve(
     status: StatusTracker | None = None,
 ) -> Starlette:
     """Starlette app: Agent Card, JSON-RPC endpoint of the card's interface URL, GET /v1/status."""
-    card, schemas = load_card(agent_card_path)
+    card, schemas, planned = load_card(agent_card_path)
     missing = [s.id for s in skills if s.id not in schemas]
     if missing:
         raise ValueError(f"skills without schemas in {agent_card_path.name}: {missing}")
@@ -311,6 +324,7 @@ def serve(
         events,
         authenticate,
         status := status or StatusTracker(settings.service_name),
+        planned,
     )
     handler = DefaultRequestHandlerV2(executor, InMemoryTaskStore(), card)
     rpc_path = urlsplit(card.supported_interfaces[0].url).path or "/"

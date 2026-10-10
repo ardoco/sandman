@@ -135,7 +135,10 @@ class LibraryTest {
         assertNull(ServiceAuth.trustedActor("tlr-agent", null));
         assertThrows(ServiceAuth.ForbiddenException.class, () -> ServiceAuth.trustedActor("tlr-agent", "user:bob"));
         assertEquals("user:bob", ServiceAuth.actorFromMetadata("orchestrator", Map.of("sandman.actor", "user:bob")));
-        assertNull(ServiceAuth.actorFromMetadata("tlr-agent", Map.of("sandman.actor", "user:bob")));
+        assertNull(ServiceAuth.actorFromMetadata("tlr-agent", Map.of()));
+        assertThrows(
+                ServiceAuth.ForbiddenException.class,
+                () -> ServiceAuth.actorFromMetadata("tlr-agent", Map.of("sandman.actor", "user:bob")));
     }
 
     @Test

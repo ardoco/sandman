@@ -111,7 +111,11 @@ def main(contracts: Path) -> list[str]:
         check(errors, f"traceLinkId {i['approach']}", stable_id("tl", parts) == c["expected"])
         if "configSource" in c:
             canonical = rfc8785.dumps(c["configSource"]["explicitReferences"]).decode()
-            check(errors, "traceLinkId explicit configHash", canonical == c["configCanonical"] and sha(canonical) == i["configHash"])
+            check(
+                errors,
+                "traceLinkId explicit configHash",
+                canonical == c["configCanonical"] and sha(canonical) == i["configHash"],
+            )
     for c in v["evidenceHash"]["cases"]:
         inv = c["involved"]
         elements = [*inv["elements"], *(e for link in inv.get("links", []) for e in link["endpoints"])]
@@ -162,11 +166,15 @@ def main(contracts: Path) -> list[str]:
         if not schema_file.exists():
             continue
         schema = json.loads(schema_file.read_text())
-        errors.extend(f"{schema_file.name}: {e.message}" for e in Draft202012Validator(Draft202012Validator.META_SCHEMA).iter_errors(schema))
+        errors.extend(
+            f"{schema_file.name}: {e.message}"
+            for e in Draft202012Validator(Draft202012Validator.META_SCHEMA).iter_errors(schema)
+        )
         if (repo_config / rel).exists():
             instance = yaml.safe_load((repo_config / rel).read_text()) or {}
             errors.extend(
-                f"config/{rel}: {e.message}" for e in Draft202012Validator(schema, registry=config_registry).iter_errors(instance)
+                f"config/{rel}: {e.message}"
+                for e in Draft202012Validator(schema, registry=config_registry).iter_errors(instance)
             )
 
     for path in sorted((contracts / "openapi").glob("*.yaml")):

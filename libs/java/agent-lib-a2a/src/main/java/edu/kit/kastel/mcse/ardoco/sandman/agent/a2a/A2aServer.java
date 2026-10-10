@@ -24,6 +24,8 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.a2aproject.sdk.jsonrpc.common.json.JsonProcessingException;
 import org.a2aproject.sdk.jsonrpc.common.json.JsonUtil;
 import org.a2aproject.sdk.server.PublicAgentCard;
@@ -51,6 +53,7 @@ public class A2aServer {
 
     private AgentCard card;
     private Map<String, Map<String, String>> schemas;
+    private Set<String> plannedSkills = Set.of();
     private ServiceAuth auth;
 
     @PostConstruct
@@ -66,6 +69,13 @@ public class A2aServer {
         card.capabilities().extensions().stream()
                 .filter(e -> SkillExecutor.EXTENSION.equals(e.uri()))
                 .forEach(e -> schemas.putAll(SkillExecutor.cast(e.params().get("skills"))));
+        plannedSkills = card.capabilities().extensions().stream()
+                .filter(e -> SkillExecutor.EXTENSION.equals(e.uri()))
+                .flatMap(
+                        e -> SkillExecutor.<Map<String, Object>>cast(e.params().getOrDefault("plannedSkills", Map.of()))
+                                .keySet()
+                                .stream())
+                .collect(Collectors.toUnmodifiableSet());
         auth = ServiceAuth.fromSettings(settings);
     }
 
@@ -78,6 +88,11 @@ public class A2aServer {
     /** Skill id -> {inputSchema, outputSchema} from the card's skill-invocation extension. */
     Map<String, Map<String, String>> schemas() {
         return schemas;
+    }
+
+    /** Skills declared in the card's plannedSkills: defined in the contract, answered with NOT_IMPLEMENTED. */
+    Set<String> plannedSkills() {
+        return plannedSkills;
     }
 
     /** Accepted caller of an Authorization header, or null. */

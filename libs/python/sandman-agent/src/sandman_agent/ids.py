@@ -56,6 +56,11 @@ def fingerprint(type_: str, detector_id: str, involved_keys: Iterable[str]) -> s
     return sha256_hex(SEP.join([type_, detector_id, *sorted(involved_keys, key=str.encode)]))
 
 
+def evidence_hash(pairs: Iterable[str]) -> str:
+    """sha256 over the distinct 'Element.key=Element.contentHash' pairs sorted byte-wise by UTF-8."""
+    return sha256_hex(SEP.join(sorted(set(pairs), key=str.encode)))
+
+
 def new_run_id() -> str:
     """Random run id."""
     return f"run_{uuid.uuid4().hex}"

@@ -104,6 +104,18 @@ class A2aServerTest {
     }
 
     @Test
+    void plannedSkillIsNotImplementedAndUnknownSkillIsUnknown() throws Exception {
+        A2aClient client = client(TOKENS.get("orchestrator"));
+        var planned = await(client, client.submit(agent(), "prune-trace-links", INPUT, null, null, "m-planned"));
+        assertEquals("TASK_STATE_REJECTED", planned.state());
+        assertEquals("NOT_IMPLEMENTED", planned.error().get("code").asString());
+        assertFalse(planned.error().get("retryable").asBoolean());
+        var unknown = await(client, client.submit(agent(), "no-such-skill", INPUT, null, null, "m-unknown"));
+        assertEquals("UNKNOWN_SKILL", unknown.error().get("code").asString());
+        assertTrue(events.events.isEmpty());
+    }
+
+    @Test
     void skillInvocationVectors() throws Exception {
         A2aClient client = client(TOKENS.get("orchestrator"));
         JsonNode cases = JsonMapper.shared()
@@ -208,11 +220,13 @@ class A2aServerTest {
     }
 
     @Test
-    void actorIgnoredFromNonOrchestrator() throws Exception {
+    void actorRejectedFromNonOrchestrator() throws Exception {
         A2aClient client = client(TOKENS.get("tlr-agent"));
-        await(client, submit(client, "user:mallory"));
-        assertEquals("tlr-agent", skill.seen.getFirst().caller());
-        assertNull(skill.seen.getFirst().actor());
+        var done = await(client, submit(client, "user:mallory"));
+        assertEquals("TASK_STATE_REJECTED", done.state());
+        assertEquals("FORBIDDEN", done.error().get("code").asString());
+        assertFalse(done.error().get("retryable").asBoolean());
+        assertTrue(skill.seen.isEmpty());
     }
 
     @Test

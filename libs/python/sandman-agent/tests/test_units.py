@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from sandman_agent import auth, events
 from sandman_agent.artifacts import ArtifactStore
-from sandman_agent.config import ConfigError, Settings, llm_mode
+from sandman_agent.config import DEFAULT_CONTRACTS_DIR, ConfigError, Settings, llm_mode
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.kg import RunRecorder
 from sandman_agent.llm import ChatMessage, ChatRequest, ModelSelector, PolicyError
@@ -97,7 +97,9 @@ def test_token_verification_and_forwarders() -> None:
         auth.trusted_actor("tlr-agent", {"x-sandman-actor": "user:bob"})
     assert e.value.status_code == 403
     assert auth.actor_from_metadata("orchestrator", {"sandman.actor": "user:bob"}) == "user:bob"
-    assert auth.actor_from_metadata("tlr-agent", {"sandman.actor": "user:bob"}) is None
+    with pytest.raises(PermissionError):
+        auth.actor_from_metadata("tlr-agent", {"sandman.actor": "user:bob"})
+    assert auth.actor_from_metadata("tlr-agent", {}) is None
 
 
 async def test_require_service_rejects_plugins_unless_allowed() -> None:
@@ -236,3 +238,30 @@ async def test_reasoning_effort_is_not_sent_to_cloud_models() -> None:
                                  http_client=httpx.AsyncClient(transport=httpx.MockTransport(handle)))  # fmt: skip
     await client.chat(ChatRequest("chat-default", [ChatMessage("user", "hi")], reasoning_effort="none"))
     assert "reasoning_effort" not in bodies[0]
+
+
+def test_config_loaders_validate_against_contract_schemas(tmp_path: Path, contracts: Contracts) -> None:
+    repo_config = DEFAULT_CONTRACTS_DIR.parent / "config"
+    assert contracts.load_config("llm-models", repo_config / "llm" / "models.yaml")["routes"]
+    bad = tmp_path / "models.yaml"
+    bad.write_text("routes: {Chat_Default: ''}\n")
+    with pytest.raises(ContractError, match="models.yaml"):
+        ModelSelector(bad, "u", "k", None, contracts)
+    ModelSelector(bad, "u", "k", None)  # without contracts the file is read unvalidated
+
+
+def test_group_log_file_is_0660_under_umask_and_symlinks_are_refused(tmp_path: Path) -> None:
+    import os
+
+    from sandman_agent.telemetry import _GroupLogHandler
+
+    old = os.umask(0o022)
+    try:
+        handler = _GroupLogHandler(tmp_path / "a.jsonl")
+        handler.close()
+        assert (tmp_path / "a.jsonl").stat().st_mode & 0o777 == 0o660
+        (tmp_path / "link.jsonl").symlink_to(tmp_path / "a.jsonl")
+        with pytest.raises(OSError):
+            _GroupLogHandler(tmp_path / "link.jsonl")
+    finally:
+        os.umask(old)

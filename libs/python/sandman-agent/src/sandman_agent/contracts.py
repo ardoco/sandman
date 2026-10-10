@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+import yaml
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
@@ -23,8 +24,9 @@ class Contracts:
     """Loads the schemas once; refs like 'skills.schema.json#/$defs/X' or full $id URIs."""
 
     def __init__(self, contracts_dir: Path) -> None:
-        schemas = [json.loads((contracts_dir / name).read_text(encoding="utf-8")) for name in SCHEMA_FILES]
-        self._base = {name: s["$id"] for name, s in zip(SCHEMA_FILES, schemas, strict=True)}
+        names = [*SCHEMA_FILES, *(f"config/{p.name}" for p in sorted((contracts_dir / "config").glob("*.schema.json")))]
+        schemas = [json.loads((contracts_dir / name).read_text(encoding="utf-8")) for name in names]
+        self._base = {name: s["$id"] for name, s in zip(names, schemas, strict=True)}
         self._registry: Registry[Any] = Registry().with_resources(
             (s["$id"], Resource.from_contents(s)) for s in schemas
         )
@@ -53,3 +55,12 @@ class Contracts:
         except ContractError:
             return False
         return True
+
+    def load_config(self, schema: str, path: Path) -> Any:
+        """YAML file validated against contracts/config/<schema>.schema.json (e.g. 'query-plugins'); empty file = {}."""
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        try:
+            self.validate(f"config/{schema}.schema.json", data)
+        except ContractError as e:
+            raise ContractError(f"{path}", e.messages) from None
+        return data

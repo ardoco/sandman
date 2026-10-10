@@ -13,6 +13,7 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /** Deterministic ids, keys and fingerprints (contracts/conformance/vectors.json). */
 public final class Ids {
@@ -77,6 +78,11 @@ public final class Ids {
         List<String> parts = new ArrayList<>(List.of(type, detectorId));
         involvedKeys.stream().sorted(UTF8_ORDER).forEach(parts::add);
         return sha256Hex(String.join(SEP, parts));
+    }
+
+    /** sha256 of the 'key=contentHash' pairs of the involved Elements, de-duplicated, sorted byte-wise by UTF-8. */
+    public static String evidenceHash(Collection<String> keyHashPairs) {
+        return sha256Hex(keyHashPairs.stream().distinct().sorted(UTF8_ORDER).collect(Collectors.joining(SEP)));
     }
 
     public static String newRunId() {

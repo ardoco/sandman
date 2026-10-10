@@ -88,8 +88,15 @@ public final class ServiceAuth {
         return actorHeader;
     }
 
-    /** A2A metadata sandman.actor, accepted only from the orchestrator (ignored otherwise). */
+    /** A2A metadata sandman.actor, accepted only from the orchestrator (ForbiddenException from any other caller). */
     public static String actorFromMetadata(String caller, Map<String, ?> metadata) {
-        return ORCHESTRATOR.equals(caller) && metadata.get("sandman.actor") instanceof String actor ? actor : null;
+        Object actor = metadata.get("sandman.actor");
+        if (actor == null) {
+            return null;
+        }
+        if (!ORCHESTRATOR.equals(caller)) {
+            throw new ForbiddenException("sandman.actor is accepted only from the orchestrator");
+        }
+        return actor instanceof String a ? a : null;
     }
 }

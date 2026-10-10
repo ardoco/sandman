@@ -15,6 +15,8 @@ GROUPS = ["platform", "agents", "plugins", "infrastructure", "libraries"]
 DOC_FILES = ["docs/stage-1-analysis-architecture.md", "docs/stage-2-contracts-repository.md", "docs/plugins.md"]
 DOC_GLOBS = ["docs/tasks/*.md", "adr/*.md"]
 MAX_PER_DOC = 5
+META = ROOT / "site/src/components.yaml"
+TEXT_FIELDS = ("zone", "title", "summary", "details", "flow")
 
 
 def url(path: str, anchor: str = "") -> str:
@@ -112,6 +114,20 @@ def classify(name: str, svc: dict) -> str:
     return "platform" if "build" in svc else "infrastructure"
 
 
+def sync_problems(ids: set[str], meta: dict) -> list[str]:
+    """Return mismatches between components found in the repo and the human-written components.yaml."""
+    texts = meta["components"]
+    problems = [f"no entry in components.yaml: {i}" for i in sorted(ids - set(texts))]
+    problems += [f"components.yaml entry without component: {i}" for i in sorted(set(texts) - ids)]
+    for i, t in texts.items():
+        problems += [f"{i}: missing {f}" for f in TEXT_FIELDS if not str(t.get(f, "")).strip()]
+        if t.get("zone") not in meta["zones"]:
+            problems.append(f"{i}: unknown zone {t.get('zone')}")
+    for step in meta["flow"]:
+        problems += [f"flow step {step['title']}: unknown component {i}" for i in step["components"] if i not in ids]
+    return problems
+
+
 def build() -> dict:
     compose_path = ROOT / "deploy/docker-compose.yml"
     compose = yaml.safe_load(compose_path.read_text())
@@ -193,10 +209,21 @@ def build() -> dict:
         c["dependsOn"] = sorted(c.get("dependsOn", []))
         c["usedBy"] = sorted(c.get("usedBy", []))
 
+    meta = yaml.safe_load(META.read_text())
+    if problems := sync_problems(set(comps), meta):
+        raise SystemExit("site/src/components.yaml out of sync:\n  " + "\n  ".join(problems))
+    order = list(meta["components"])
+    for i, c in comps.items():
+        c.update({f: " ".join(meta["components"][i][f].split()) for f in TEXT_FIELDS})
+
     return {
         "repo": REPO,
+        "intro": meta["intro"],
+        "flow": meta["flow"],
+        "glossary": meta["glossary"],
+        "zones": [{"id": k, **v} for k, v in meta["zones"].items()],
         "groups": GROUPS,
-        "components": sorted(comps.values(), key=lambda c: (GROUPS.index(c["group"]), c["id"])),
+        "components": sorted(comps.values(), key=lambda c: order.index(c["id"])),
         "edges": [{"from": a, "to": b, "kind": k} for (a, b), k in sorted(edges.items())],
     }
 

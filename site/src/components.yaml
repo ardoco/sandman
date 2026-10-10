@@ -1,0 +1,322 @@
+# Human-written text for the component map (scripts/build_site.py reads this file).
+# Every component found in compose, services/ or libs/ needs an entry under "components"
+# (scripts/test_build_site.py fails otherwise). Entry order = card order inside a zone.
+# Write for a newcomer: no task ids, ADR numbers or review ids. Mark planned things as planned.
+
+intro:
+  title: Keep architecture documentation, models, requirements and code consistent
+  paragraphs:
+    - >-
+      SANDMAN (Software Architecture kNowledge Description and MANagement) helps teams whose
+      documentation, models, requirements and code drift apart. It reads these project files,
+      stores what they say in a knowledge graph, finds the links between them (trace links)
+      and reports places where they contradict each other (inconsistencies).
+    - >-
+      It is built for architects, researchers and operators. You upload a snapshot of a project,
+      the system processes it in the background, and you read the results in a web console,
+      through a REST API or with a command line tool.
+    - >-
+      Status: the walking skeleton works end to end, but with demonstration components for trace
+      links and inconsistencies. Real extractors and the system dashboard are planned for the next
+      milestone (M1). The research approaches ArDoCo and LiSSA are planned integrations and are
+      not active yet.
+
+flow:
+  - title: Upload
+    text: >-
+      You upload a project snapshot (requirements, documentation, models, code) with the console or
+      the command line tool. All user traffic enters through one front door and the query service
+      checks who you are and what you may do.
+    components: [edge-proxy, query-service]
+  - title: Extraction
+    text: >-
+      The extraction agent turns every file into small, typed elements (a requirement, a document
+      section, a model component, a code unit). Documents such as PDF or Word are first converted to
+      text (planned). Code is understood by plugins.
+    components: [extraction-agent, document-converter, plugin-stubs]
+  - title: Knowledge graph
+    text: >-
+      All extracted elements are stored in one graph database. Every later step reads from it and
+      writes its results back to it, so the graph is the shared memory of the system.
+    components: [memgraph, kg-migrate]
+  - title: Trace links
+    text: >-
+      The trace link agent connects elements that belong together, for example a requirement and the
+      code that implements it. It can host several approaches; research approaches such as ArDoCo and
+      LiSSA are planned.
+    components: [tlr-agent, llm-replay, llm-gateway]
+  - title: Inconsistencies
+    text: >-
+      The inconsistency agent looks at elements and links and reports findings, for example a
+      requirement that nothing traces to. Findings have a status that people change while they
+      review them.
+    components: [inconsistency-agent, plugin-stubs]
+  - title: Coordination
+    text: >-
+      The orchestrator listens to the event bus and starts each next step when the previous one is
+      done. It also lets users restart a workflow by hand.
+    components: [orchestrator, nats]
+  - title: Query, console and dashboard
+    text: >-
+      You read results in the console, the REST API or an export, and you can ask questions about
+      the graph. Administrators get a system overview dashboard (planned for M1).
+    components: [query-service, dashboard]
+
+glossary:
+  - term: Knowledge graph
+    text: A database that stores things (elements) and the relations between them as a network. SANDMAN keeps all project knowledge here.
+  - term: Artifact
+    text: One file of a project, such as a requirements file, a document, a model or a source file.
+  - term: Trace link
+    text: A relation between two elements, for example "this code unit implements this requirement". It has a confidence and the name of the approach that found it.
+  - term: Inconsistency
+    text: A finding that two parts of the project disagree or that something is missing. A person reviews it and sets its status.
+  - term: Agent
+    text: A service that does one kind of work, for example extraction. Agents talk to each other with messages and need no shared code at run time.
+  - term: Skill
+    text: One operation that an agent offers to others, for example "extract these files".
+  - term: A2A
+    text: Agent2Agent, an open protocol for agents to send each other tasks. SANDMAN sends it over the message bus.
+  - term: Plugin
+    text: An external system that adds abilities, such as code extraction or extra detectors, without changing SANDMAN.
+  - term: SAD / SAM
+    text: Software Architecture Documentation (text) and Software Architecture Model (a formal model). Trace link recovery connects them to each other and to code.
+  - term: Gateway
+    text: The single exit to language model providers. It holds the provider keys and applies rules such as "local models only".
+  - term: Record and replay (cassette)
+    text: A proxy records real language model answers into a "cassette" and plays them back later, so tests and experiments repeat without cost or randomness.
+  - term: Event bus
+    text: A message system where services announce that something happened, for example "extraction finished". The orchestrator reacts to these events.
+
+zones:
+  access:
+    title: Access
+    blurb: How people and scripts reach the system
+    glyph: "◎"
+    col: 0
+    row: 0
+  ingest:
+    title: Ingest and extraction
+    blurb: Turns uploaded files into graph elements
+    glyph: "⇩"
+    col: 1
+    row: 0
+  analysis:
+    title: Analysis agents
+    blurb: Find links and inconsistencies, coordinate the work
+    glyph: "✦"
+    col: 2
+    row: 0
+  plugins:
+    title: Plugins (external)
+    blurb: Outside systems that extend SANDMAN
+    glyph: "⧉"
+    col: 3
+    row: 0
+    external: true
+  infra:
+    title: Infrastructure
+    blurb: Messaging, monitoring and resource usage
+    glyph: "▦"
+    col: 0
+    row: 1
+  kg:
+    title: Knowledge graph
+    blurb: The shared memory of all agents
+    glyph: "⬡"
+    col: 1
+    row: 1
+  llm:
+    title: LLM access
+    blurb: Replay proxy, gateway, providers
+    glyph: "◆"
+    col: 2
+    row: 1
+  libs:
+    title: Libraries
+    blurb: Shared code used inside agents
+    glyph: "❖"
+    col: 3
+    row: 1
+
+components:
+  edge-proxy:
+    zone: access
+    title: Front door
+    summary: The one network address through which people and scripts reach SANDMAN.
+    details: >-
+      Most services run on an internal network that is closed to the outside. The front door is a small web
+      server that publishes only the user-facing web pages and the API. This keeps the attack surface small and gives
+      users a single address to remember.
+    flow: Receives every browser and command line request and passes it to the query service.
+  query-service:
+    zone: access
+    title: Query service (API and console)
+    summary: The only entry point for users, with the web console and the REST API.
+    details: >-
+      It checks who you are (session or personal token), what role you have in a project, and then answers questions
+      about the graph, lists findings, accepts uploads and lets you triage findings. Questions can be asked in
+      natural language (today five fixed question patterns, LLM based translation is planned) or as database queries
+      that are always confined to one project. Without it nobody could use the results.
+    flow: Receives requests from the front door, reads the knowledge graph, and forwards uploads and workflow commands to the agents.
+  dashboard:
+    zone: access
+    title: System overview dashboard (planned)
+    summary: An admin-only page that shows whether all parts of the system are healthy.
+    details: >-
+      It is planned for milestone M1. It shows service status, running workflows, the event stream, resource usage and
+      project statistics. It is a separate service so that it keeps working when the part it monitors fails.
+    flow: Reads status pages of all services, the message bus and resource data; changes nothing.
+  document-converter:
+    zone: ingest
+    title: Document converter
+    summary: Turns PDF and Word files into plain text structure that the extraction agent can read.
+    details: >-
+      Many architecture documents are PDF or Word files. Converting them is slow and needs heavy libraries, so it
+      runs in an isolated service with its own limits. Support for these formats is planned for M1.
+    flow: Called only by the extraction agent; returns Markdown text.
+  extraction-agent:
+    zone: ingest
+    title: Extraction agent
+    summary: Reads uploaded files and writes their content as elements into the knowledge graph.
+    details: >-
+      An upload is only a pile of files. This agent recognises what each file is (requirements, documentation,
+      architecture model, code) and splits it into elements such as sentences, requirements, model components
+      and code units. For formats it cannot read itself, it asks plugins. It also records explicit mentions,
+      for example a requirement id named in a source file, as trace links.
+    flow: Receives work from the orchestrator, writes to the knowledge graph, and calls the document converter and extraction plugins.
+  tlr-agent:
+    zone: analysis
+    title: Trace link agent
+    summary: Finds which elements belong together, such as a requirement and its implementing code.
+    details: >-
+      Trace link recovery (TLR) connects artifacts of different kinds automatically, so nobody has to maintain
+      the links by hand. The agent runs one or more approaches and stores each result as a trace link with
+      confidence and origin. Today only a simple name matching demo approach is active. ArDoCo and LiSSA are
+      planned as real approaches.
+    flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
+  inconsistency-agent:
+    zone: analysis
+    title: Inconsistency agent
+    summary: Detects places where documentation, models, requirements and code disagree or are missing something.
+    details: >-
+      It runs detectors over the elements and trace links and stores each finding in the graph. People then set
+      a status (open, accepted, false positive, resolved), and the agent keeps this history when a later version
+      of the project shows the same problem again. Today only a demo detector is active (requirement without any
+      trace link). Detectors from ArDoCo and further plugin detectors are planned.
+    flow: Starts after trace link recovery, reads elements and links, calls detector plugins, and writes findings to the graph.
+  orchestrator:
+    zone: analysis
+    title: Orchestrator
+    summary: Decides what runs next and shows the state of each processing chain.
+    details: >-
+      After an upload, several steps must run in order: extraction, trace link recovery, inconsistency detection.
+      The orchestrator follows fixed rules for this and starts the next step when the previous step reports that
+      it is done. It also lets users run a step again and shows events that failed.
+    flow: Listens to events on the message bus and sends tasks to the extraction, trace link and inconsistency agents.
+  plugin-stubs:
+    zone: plugins
+    title: Demo plugins
+    summary: Stand-ins that show how an outside extraction or detection plugin behaves.
+    details: >-
+      Real plugins are separate systems written in any language, for example a code analyser. These stubs
+      are small examples that prove the plugin contract works end to end and are used by the tests. Their
+      results are demonstration data, not analysis results.
+    flow: Called by the extraction agent (extract files) and the inconsistency agent (detect problems).
+  memgraph:
+    zone: kg
+    title: Graph database
+    summary: Stores the knowledge graph.
+    details: >-
+      Memgraph is a fast in-memory graph database. It holds projects, artifacts, elements, trace links,
+      findings and records of every run. Its query language is Cypher.
+    flow: Written by the agents, read by the agents and the query service.
+  kg-migrate:
+    zone: kg
+    title: Graph set-up
+    summary: A short job that prepares the database structure before any agent starts.
+    details: >-
+      It creates indexes and rules in the graph database and is safe to run again. Agents wait until it has
+      finished, so they never see a half-prepared database.
+    flow: Runs once at start-up after the graph database and before the agents.
+  llm-replay:
+    zone: llm
+    title: LLM replay proxy
+    summary: Sits in front of the gateway and can record and replay language model answers.
+    details: >-
+      Language models give different answers each time and cost money. In recording mode this proxy saves each
+      answer in a "cassette"; in replay mode it plays them back. Tests and experiments become repeatable and free.
+      In the default live mode it passes calls straight on.
+    flow: Receives all model calls from agents and forwards them to the gateway.
+  llm-gateway:
+    zone: llm
+    title: LLM gateway
+    summary: The only way out to language model providers.
+    details: >-
+      Agents never hold provider keys. They call one OpenAI-compatible address and the gateway forwards the
+      call to OpenAI, OpenRouter or a local Ollama server. It also enforces the "local only" policy of
+      confidential projects.
+    flow: Receives calls from the replay proxy and sends them to the providers.
+  ollama:
+    zone: llm
+    title: Local model server (optional)
+    summary: Runs language models on your own machine instead of a cloud provider.
+    details: >-
+      Optional. Use it when project data must not leave your network. It is started with the compose profile
+      local-llm, or you point the gateway at a remote server.
+    flow: Receives calls from the gateway.
+  nats:
+    zone: infra
+    title: Message bus
+    summary: Carries tasks and events between the services.
+    details: >-
+      Services do not call each other for the main workflow. They publish events such as "extraction finished"
+      on this bus. The bus keeps a log, so events survive a restart and can be replayed.
+    flow: Used by the agents, the orchestrator and the query service.
+  otel-lgtm:
+    zone: infra
+    title: Monitoring stack (optional)
+    summary: Collects logs, metrics and traces and shows them in Grafana.
+    details: >-
+      Optional bundle for operators who want to see what the services do. Start it with the compose profile obs.
+    flow: Receives telemetry from services that have it enabled.
+  docker-socket-proxy:
+    zone: infra
+    title: Docker socket proxy (optional)
+    summary: A read-only window onto Docker for resource monitoring.
+    details: >-
+      Warning: this gives indirect read access to the host through the Docker socket. Enable it only on
+      development machines (compose profile resources).
+    flow: Serves only the resource monitor.
+  cadvisor:
+    zone: infra
+    title: Resource monitor (optional)
+    summary: Measures CPU and memory use of the containers.
+    details: >-
+      Optional, for the resource view of the dashboard. It reads container data through the Docker socket proxy
+      (compose profile resources).
+    flow: Reads from the Docker socket proxy and is read by the dashboard.
+  sandman-agent:
+    zone: libs
+    title: Python agent library
+    summary: Shared building blocks for agents written in Python.
+    details: >-
+      Agents need the same basics: configuration, receiving tasks, publishing events, graph access and calling
+      language models. This small library provides them so each agent contains only its own logic.
+    flow: Included in the Python services at build time. It is not a running service.
+  agent-lib:
+    zone: libs
+    title: Java agent library
+    summary: The same building blocks for agents written in Java.
+    details: >-
+      Trace link and inconsistency agents are written in Java so they can reuse the Java research code of
+      ArDoCo and LiSSA directly. This library gives them the shared basics.
+    flow: Included in the Java services at build time. It is not a running service.
+  agent-lib-a2a:
+    zone: libs
+    title: Java A2A glue
+    summary: Connects the Java agents to the agent protocol (A2A).
+    details: >-
+      A thin layer on top of the Java A2A SDK and the Quarkus framework. It lets Java agents offer skills and
+      call other agents.
+    flow: Included in the Java services at build time. It is not a running service.

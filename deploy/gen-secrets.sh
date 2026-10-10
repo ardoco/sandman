@@ -8,6 +8,14 @@
 set -eu
 cd "$(dirname "$0")"
 mkdir -p secrets ../data/llm-records ../data/logs
+GID="${SANDMAN_LOG_GID:-10001}"   # containers get this group via group_add and all append to one JSONL file
+if [ -L ../data/logs ] || [ -L ../data/logs/sandman.jsonl ]; then echo "refusing symlinked data/logs" >&2; exit 1; fi
+touch ../data/logs/sandman.jsonl
+fix_log_modes() { chgrp "$GID" "$1/logs" "$1/logs/sandman.jsonl" && chmod 2770 "$1/logs" && chmod 660 "$1/logs/sandman.jsonl"; }
+if ! fix_log_modes ../data 2>/dev/null; then   # host user is not in the group: do it as root in a throwaway container
+  docker compose -f docker-compose.yml run --rm --no-deps -u 0 -e GID="$GID" -v "$(cd ../data/logs && pwd)":/d --entrypoint sh edge-proxy -c \
+    '[ ! -L /d ] && [ ! -L /d/sandman.jsonl ] && chgrp "$GID" /d /d/sandman.jsonl && chmod 2770 /d && chmod 660 /d/sandman.jsonl'
+fi
 umask 077
 
 SERVICES="orchestrator extraction-agent tlr-agent inconsistency-agent query-service dashboard"

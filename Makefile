@@ -50,7 +50,7 @@ guard:              ## no agent frameworks in Python code (NFR-3)
 contracts:
 	uv run python scripts/validate_contracts.py
 
-REPLAY_ENV  := SANDMAN_LLM_RECORDS_HOST_DIR=$(CURDIR)/tests/cassettes SANDMAN_EXPERIMENT=walking-skeleton
+REPLAY_ENV  := SANDMAN_LOG_FILE=/logs/sandman.jsonl SANDMAN_LLM_RECORDS_HOST_DIR=$(CURDIR)/tests/cassettes SANDMAN_EXPERIMENT=walking-skeleton
 DETERMINISM := uv run pytest tests/e2e/test_replay_determinism.py -q
 STACK_UP    := $(COMPOSE_DEV) --profile stubs --profile dashboard up -d --build --wait --wait-timeout 300
 STACK_DOWN  := $(COMPOSE_DEV) --profile stubs --profile dashboard down -v

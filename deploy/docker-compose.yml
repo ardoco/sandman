@@ -100,6 +100,7 @@ services:
       SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify    # GET /v1/status
       SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
     secrets: [svc_tokens_verify]
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ${SANDMAN_LLM_RECORDS_HOST_DIR:-../data/llm-records}:/llm-records
       - ../data/logs:/logs
@@ -125,6 +126,7 @@ services:
       SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_extraction
       SANDMAN_LLM_LOCAL_KEY_FILE: /run/secrets/llm_key_extraction_local
       SANDMAN_CONVERTER_URL: http://document-converter:8000
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
@@ -133,7 +135,9 @@ services:
               llm_key_extraction, llm_key_extraction_local]
     networks: [internal]
     mem_limit: 2g                                # large ingests hold archive and files in memory
-    depends_on: *depends-core                    # not on the converter: documents fall back to file-level elements
+    depends_on:                                  # not on the converter: documents fall back to file-level elements
+      <<: *depends-core
+      plugin-stubs: { condition: service_healthy, required: false }   # only with profile stubs
     healthcheck: *py-health
     restart: unless-stopped
 
@@ -165,6 +169,7 @@ services:
       QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
@@ -193,6 +198,7 @@ services:
       QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
@@ -201,7 +207,9 @@ services:
               llm_key_inconsistency, llm_key_inconsistency_local]
     networks: [internal]
     mem_limit: 5g
-    depends_on: *depends-core
+    depends_on:
+      <<: *depends-core
+      plugin-stubs: { condition: service_healthy, required: false }   # only with profile stubs
     healthcheck: *java-health
     restart: unless-stopped
 
@@ -214,6 +222,7 @@ services:
       SANDMAN_LLM_KEY_FILE: /run/secrets/llm_key_orchestrator
       SANDMAN_STATE_DB: /data/orchestrator.db
       SANDMAN_AGENTS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
@@ -243,6 +252,7 @@ services:
       SANDMAN_EXTRACTION_URL: http://extraction-agent:8000
       SANDMAN_INCONSISTENCY_URL: http://inconsistency-agent:8080
       SANDMAN_ORCHESTRATOR_URL: http://orchestrator:8000
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
@@ -279,6 +289,7 @@ services:
       SANDMAN_CADVISOR_URL: http://cadvisor:8080           # optional (profile resources)
       SANDMAN_TARGETS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080,orchestrator=http://orchestrator:8000,query-service=http://query-service:8000,llm-replay=http://llm-replay:8000,document-converter=http://document-converter:8000
       SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - dashboard-data:/data
       - ../data/logs:/logs
@@ -350,6 +361,12 @@ services:
     secrets: [svc_token_plugin-stubs, plugin_in_plugin-stubs]
     networks: [internal]
     mem_limit: 512m
+    healthcheck:                                 # extract (A2A, 8000) and detect (HTTP, 8001) both serve /healthz
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if all(urllib.request.urlopen(f'http://127.0.0.1:{p}/healthz').status==200 for p in (8000,8001)) else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   otel-lgtm:

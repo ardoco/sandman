@@ -106,12 +106,25 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(line, ensure_ascii=False, default=str)
 
 
+def _open_group_only(path: str, flags: int) -> int:
+    fd = os.open(path, flags | os.O_NOFOLLOW, 0o660)
+    os.fchmod(fd, 0o660)
+    return fd
+
+
+class _GroupLogHandler(logging.handlers.RotatingFileHandler):
+    """Log file shared by several containers through a group: created and rotated as rw-rw----, whatever the umask."""
+
+    def _open(self) -> Any:
+        return open(self.baseFilename, self.mode, encoding=self.encoding, errors=self.errors, opener=_open_group_only)
+
+
 def setup_logging(service: str, log_file: Path | None = None, level: int = logging.INFO) -> None:
     """Configure the root logger (stdout plus optional rotating JSONL file) and, if enabled, OpenTelemetry."""
     handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
     if log_file:
         log_file.parent.mkdir(parents=True, exist_ok=True)
-        handlers.append(logging.handlers.RotatingFileHandler(log_file, maxBytes=50_000_000, backupCount=5))
+        handlers.append(_GroupLogHandler(log_file, maxBytes=50_000_000, backupCount=5))
     for h in handlers:
         h.setFormatter(JsonFormatter(service))
     logging.basicConfig(level=level, handlers=handlers, force=True)

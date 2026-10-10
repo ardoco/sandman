@@ -3,7 +3,8 @@
 # Changes: additive -> minor version; renames/removals -> major version + migration script.
 # 0.3.0 (contracts 0.4.0, additive): Element.references, Element.contentHash required, evidenceHash and idempotency-key
 #   derivations (conventions.evidence_hash, conventions.derivations), StatusChange.from optional.
-version: 0.3.0
+# 0.4.0 (contracts 0.5.0, additive): Run.mixedModels, SchemaVersion node (R-029, R-041).
+version: 0.4.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -25,6 +26,14 @@ nodes:
       llmPolicy: { type: string, required: true, enum: [cloud-allowed, local-only] }
       ingestionSeq: { type: integer, required: true, description: "Last ingestion sequence number (0 = none)." }
       createdAt: { type: string, required: true }
+
+  SchemaVersion:
+    owner: extraction-agent
+    description: Singleton (id = 'kg') recording the applied KG schema migration state (R-029); written by contracts/kg/init.cypher, a re-run changes nothing.
+    properties:
+      id: { type: string, required: true, description: "Always 'kg'." }
+      version: { type: integer, required: true, description: "Number of the last applied migration step (1 = initial schema)." }
+      appliedAt: { type: string, required: true, description: "Set when the node is created, not on re-runs." }
 
   Ingestion:
     owner: extraction-agent
@@ -162,7 +171,8 @@ nodes:
       tool: { type: string, required: true, description: "extractor/plugin/approach/detector id" }
       toolVersion: { type: string, required: true }
       model: { type: string, required: false, description: "logical route, e.g. chat-default" }
-      resolvedModel: { type: string, required: false }
+      resolvedModel: { type: string, required: false, description: "First model that answered an LLM call of the run." }
+      mixedModels: { type: boolean, required: false, description: "true when the LLM calls of the run were answered by more than one model (gateway fallback); absent or false otherwise." }
       params: { type: string, required: false, description: "JSON string incl. temperature, seed" }
       configHash: { type: string, required: false }
       promptIds: { type: list, required: false, description: "template id@hash" }

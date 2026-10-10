@@ -25,3 +25,5 @@ CREATE INDEX ON :Inconsistency(fingerprint);
 CREATE INDEX ON :Inconsistency(projectId);
 CREATE INDEX ON :Run(id);
 CREATE INDEX ON :Run(inputKey);
+CREATE CONSTRAINT ON (n:SchemaVersion) ASSERT n.id IS UNIQUE;
+MERGE (v:SchemaVersion {id: 'kg'}) ON CREATE SET v.version = 1, v.appliedAt = toString(localDateTime());

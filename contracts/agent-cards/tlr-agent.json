@@ -1,7 +1,7 @@
 {
   "name": "sandman-tlr-agent",
   "description": "Recovers trace links between artifact versions using pluggable approaches (e.g. ArDoCo, LiSSA). Approach catalog: REST GET /v1/approaches.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "supportedInterfaces": [
     {
       "url": "http://tlr-agent:8080/a2a",

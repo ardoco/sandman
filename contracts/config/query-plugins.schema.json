@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/query-plugins.schema.json",
   "title": "config/query/plugins.yaml",
-  "description": "Projects each plugin may read through POST /v1/query/cypher (ADR-0013): plugin id -> list of project ids or \"*\". Contract version 0.4.0.",
+  "description": "Projects each plugin may read through POST /v1/query/cypher (ADR-0013): plugin id -> list of project ids or \"*\". Contract version 0.5.0.",
   "type": "object",
   "additionalProperties": {
     "oneOf": [

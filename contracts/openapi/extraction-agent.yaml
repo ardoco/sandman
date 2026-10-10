@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN extraction-agent REST API
-  version: 0.4.0
+  version: 0.5.0
   description: |
     Artifact intake and project registration. Owner of Project, Artifact, ArtifactVersion and Element nodes.
     Called by the query-service (user requests, actor forwarded) and by services. The A2A interface is
@@ -92,6 +92,9 @@ paths:
         so a retried request never loses it.
         The archive must contain every file whose hash is unknown (see /ingestions/check); paths in the
         archive are relative to the project root and must match manifest paths.
+        The manifest part is optional for archive-only uploads: without it the server hashes every regular
+        file of the archive, and treats the archive as a full snapshot (mode full, no kindRules, no
+        sourceRevision). Without a manifest the archive part is required (400 otherwise).
       operationId: createIngestion
       parameters:
         - $ref: "shared.yaml#/components/parameters/Actor"
@@ -101,7 +104,6 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [manifest]
               properties:
                 manifest:
                   $ref: "#/components/schemas/Manifest"

@@ -24,7 +24,7 @@ MAX_DELIVER = 5  # EventConsumer.config().max_deliver
 
 
 def action_key(agent: str, skill: str, input: Mapping[str, Any], trigger_id: str) -> str:
-    return sha256_hex(canonical_json([agent, skill, dict(input), trigger_id]))
+    return sha256_hex(canonical_json({"agent": agent, "skill": skill, "input": dict(input), "triggerId": trigger_id}))
 
 
 def workflow_status(statuses: Sequence[str]) -> str:
@@ -42,7 +42,7 @@ def error(code: str, message: str, retryable: bool) -> dict[str, Any]:
 
 
 class Conflict(Exception):
-    """Nothing to cancel."""
+    """Nothing to cancel, or not BLOCKED."""
 
 
 class Orchestrator:
@@ -129,13 +129,14 @@ class Orchestrator:
         if not event.causation_id:
             return None
         step = self.db.execute(
-            "SELECT s.* FROM messages m JOIN steps s ON s.id = m.step_id WHERE m.message_id = ?",
+            "SELECT s.*, m.rowid = (SELECT max(rowid) FROM messages WHERE step_id = s.id) AS current "
+            "FROM messages m JOIN steps s ON s.id = m.step_id WHERE m.message_id = ?",
             (event.causation_id,),
         ).fetchone()
         if step is None:
             return None
-        if step["status"] not in ACTIVE:
-            log.info("completion event for finished step ignored", extra={"fields": {"step": step["id"]}})
+        if step["status"] not in ACTIVE or not step["current"]:
+            log.info("stale completion event ignored", extra={"fields": {"step": step["id"]}})
             return False
         self.db.execute(
             "UPDATE steps SET status = 'SUCCEEDED', result_json = ?, ended_at = ?, next_poll_at = NULL WHERE id = ?",
@@ -147,8 +148,8 @@ class Orchestrator:
             return False
         return str(step["workflow_id"])
 
-    def _workflow(self, wf_id: str) -> sqlite3.Row:
-        row: sqlite3.Row = self.db.execute("SELECT * FROM workflows WHERE id = ?", (wf_id,)).fetchone()
+    def _workflow(self, wf_id: str) -> sqlite3.Row | None:
+        row: sqlite3.Row | None = self.db.execute("SELECT * FROM workflows WHERE id = ?", (wf_id,)).fetchone()
         return row
 
     def _add_steps(
@@ -180,11 +181,17 @@ class Orchestrator:
                 if target is not None:
                     merged = merge(json.loads(target["input_json"]), spec.input)
                     assert merged is not None
+                    if wf_id is None:
+                        assert isinstance(workflow, dict)
+                        wf_id = self._new_workflow(project, workflow)
+                    if target["workflow_id"] != wf_id:
+                        self._move_merged(target, wf_id)
                     self.db.execute(
                         "UPDATE steps SET input_json = ?, action_key = ?, next_attempt_at = ? WHERE id = ?",
                         (json.dumps(merged), action_key(agent, spec.skill, merged, trigger_id),
                          now + self.rules.debounce, target["id"]),
                     )  # fmt: skip
+                    self._touch(wf_id)
                     continue
             if wf_id is None:
                 assert isinstance(workflow, dict)
@@ -198,6 +205,17 @@ class Orchestrator:
             )  # fmt: skip
             self._touch(wf_id)
         return wf_id
+
+    def _move_merged(self, target: sqlite3.Row, new_wf: str) -> None:
+        """A merged step belongs to the newest workflow; the old one keeps a SUCCEEDED marker (R-023)."""
+        self.db.execute(
+            "INSERT INTO steps (id, workflow_id, project_id, agent, skill, input_json, action_key, mergeable, status, "
+            "next_attempt_at, ended_at, merged_into) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'SUCCEEDED', ?, ?, ?)",
+            (f"step_{uuid.uuid4().hex}", target["workflow_id"], target["project_id"], target["agent"],
+             target["skill"], target["input_json"], target["action_key"], self.clock(), self.iso(), target["id"]),
+        )  # fmt: skip
+        self.db.execute("UPDATE steps SET workflow_id = ? WHERE id = ?", (new_wf, target["id"]))
+        self._touch(target["workflow_id"])
 
     def _new_workflow(self, project: str, trigger: dict[str, Any]) -> str:
         wf_id, now = new_workflow_id(), self.iso()
@@ -235,6 +253,23 @@ class Orchestrator:
         self.wake.set()
         assert wf_id is not None
         return wf_id
+
+    def retry(self, wf_id: str) -> bool:
+        """Resume a BLOCKED workflow: its BLOCKED steps become PENDING. False if unknown, Conflict if not BLOCKED."""
+        with self.db:
+            wf = self._workflow(wf_id)
+            if wf is None:
+                return False
+            if wf["status"] != "BLOCKED":
+                raise Conflict(wf_id)
+            self.db.execute(
+                "UPDATE steps SET status = 'PENDING', attempts = 0, error_json = NULL, ended_at = NULL, "
+                "a2a_task_id = NULL, next_attempt_at = ? WHERE workflow_id = ? AND status = 'BLOCKED'",
+                (self.clock(), wf_id),
+            )
+            self._touch(wf_id)
+        self.wake.set()
+        return True
 
     async def replay(self, event_id: str) -> bool:
         """Move a dead event back into the inbox and process it."""
@@ -408,8 +443,9 @@ class Orchestrator:
             self._failed(step_id, attempt, {**err, "retryable": False})
         elif snap.state == "TASK_STATE_CANCELED":
             self._finish(step, "CANCELED", err)
-        elif snap.state != "TASK_STATE_COMPLETED" and now >= step["attempt_at"] + self.rules.timeouts[step["skill"]]:
-            await self._cancel_task(step)
+        elif now >= step["attempt_at"] + self.rules.timeouts[step["skill"]]:
+            if snap.state != "TASK_STATE_COMPLETED":  # a COMPLETED task whose event never came is retried
+                await self._cancel_task(step)
             self._failed(step_id, attempt, error("TIMEOUT", f"{step['skill']} timed out", True))
         else:
             interval = min(self.rules.poll_max, max(self.rules.poll_initial, now - step["attempt_at"]))
@@ -467,7 +503,8 @@ class Orchestrator:
     def _step_json(s: sqlite3.Row) -> dict[str, Any]:
         step = {
             "id": s["id"], "agent": s["agent"], "skill": s["skill"], "status": s["status"], "attempts": s["attempts"],
-            "actionKey": s["action_key"], "a2aTaskId": s["a2a_task_id"], "input": json.loads(s["input_json"]),
+            "actionKey": s["action_key"], "mergedInto": s["merged_into"], "a2aTaskId": s["a2a_task_id"],
+            "input": json.loads(s["input_json"]),
             "result": json.loads(s["result_json"] or "null"), "error": json.loads(s["error_json"] or "null"),
             "startedAt": s["started_at"], "endedAt": s["ended_at"],
         }  # fmt: skip

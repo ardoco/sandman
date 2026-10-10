@@ -65,7 +65,7 @@ async def test_debounce_merges_three_extractions_into_one_tlr_step(env: Env) -> 
     [step] = pending(env)
     assert step["skill"] == TLR
     await env.orch.tick()  # inside the debounce window nothing starts
-    assert [s["status"] for s in env.steps()] == ["PENDING"]
+    assert [s["status"] for s in env.steps() if s["merged_into"] is None] == ["PENDING"]
 
 
 async def test_inconsistencies_updated_and_status_changed_create_no_steps(env: Env) -> None:
@@ -89,3 +89,37 @@ async def test_no_step_starts_while_another_of_the_project_runs(env: Env) -> Non
     for _ in range(3):
         await env.orch.tick()
     assert sorted(s["status"] for s in env.steps()) == ["PENDING", "PENDING", "RUNNING"]
+
+
+async def test_merged_step_moves_to_newest_workflow_and_old_workflow_records_merged_into(env: Env) -> None:
+    env.with_rules(debounce=10)
+    await env.orch.handle(extraction(1))
+    [first] = pending(env)
+    old = first["workflow_id"]
+    await env.orch.handle(extraction(2))
+    [target] = pending(env)
+    assert target["id"] == first["id"] and target["workflow_id"] != old
+    old_wf = env.orch.get_workflow(old)
+    [marker] = old_wf["steps"]
+    assert marker["mergedInto"] == target["id"] and old_wf["status"] == "SUCCEEDED"
+    assert "mergedInto" not in env.orch.get_workflow(target["workflow_id"])["steps"][0]
+    assert env.orch.get_workflow(target["workflow_id"])["status"] == "PENDING"
+
+
+async def test_workflow_stays_running_while_debounce_timer_pending(env: Env) -> None:
+    env.with_rules(debounce=10)
+    wf = await env.orch.trigger("full", "mini", {}, "user:alice")
+    await env.until(lambda: any(s["skill"] == EXTRACT and s["status"] == "SUCCEEDED" for s in env.steps()))
+    assert any(s["status"] == "PENDING" for s in env.steps())
+    assert env.orch.get_workflow(wf)["status"] == "RUNNING"
+
+
+def test_invalid_rules_config_fails_at_startup(tmp_path, contracts) -> None:
+    import pytest
+    from sandman_agent.contracts import ContractError
+    from sandman_orchestrator.rules import Rules
+
+    bad = tmp_path / "rules.yaml"
+    bad.write_text("maxConcurrentPerAgent: 0\n")
+    with pytest.raises(ContractError, match="rules.yaml"):
+        Rules.load(bad, contracts)

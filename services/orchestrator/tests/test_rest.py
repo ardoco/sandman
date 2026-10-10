@@ -112,3 +112,37 @@ async def test_dashboard_may_cancel_and_replay_but_other_callers_may_not(client:
     bad = ingestion(created=["nope"])
     await env.orch.consume(bad, 1)
     assert (await client.post(f"/v1/dead-events/{bad.id}/replay", headers=auth("dashboard"))).status_code == 202
+
+
+async def test_planned_operations_answer_501_with_problem_body(client: httpx.AsyncClient, env: Env) -> None:
+    wf = await env.orch.trigger("detect", "mini", {}, "user:alice")
+    r = await client.post("/v1/requests", json={"projectId": "mini", "text": "run all"}, headers=auth())
+    r2 = await client.post(f"/v1/workflows/{wf}/approval", json={"decision": "approve"}, headers=auth())
+    for resp in (r, r2):
+        assert resp.status_code == 501 and resp.headers["content-type"] == "application/problem+json"
+        check(resp.json(), "Problem", SHARED)
+        assert (resp.json()["type"], resp.json()["title"]) == ("about:blank", "Not Implemented")
+    assert (await client.post("/v1/requests", json={"projectId": "mini"}, headers=auth())).status_code == 400
+
+
+async def test_retry_endpoint(client: httpx.AsyncClient, env: Env) -> None:
+    wf = await env.orch.trigger("detect", "mini", {}, "user:alice")
+    dash = auth("dashboard")
+    assert (await client.post(f"/v1/workflows/{wf}/retry", headers=dash)).status_code == 409
+    env.orch.db.execute("UPDATE steps SET status = 'BLOCKED'")
+    env.orch._touch(wf)
+    r = await client.post(f"/v1/workflows/{wf}/retry", headers=dash)
+    assert r.status_code == 202
+    check(r.json(), "WorkflowDetail")
+    assert r.json()["steps"][0]["status"] == "PENDING"
+    assert (await client.post("/v1/workflows/wf_" + "0" * 32 + "/retry", headers=dash)).status_code == 404
+    assert (await client.post(f"/v1/workflows/{wf}/retry", headers=auth("tlr-agent"))).status_code == 403
+
+
+async def test_actor_header_from_non_forwarder_is_403(client: httpx.AsyncClient, env: Env) -> None:
+    wf = await env.orch.trigger("detect", "mini", {}, "user:alice")
+    h = auth("dashboard", **{"x-sandman-actor": "user:mallory"})
+    for path in (f"/v1/workflows/{wf}/cancel", f"/v1/workflows/{wf}/retry", "/v1/dead-events/x/replay"):
+        assert (await client.post(path, headers=h)).status_code == 403, path
+    qs = auth(**{"x-sandman-actor": "user:alice"})
+    assert (await client.post("/v1/requests", json={"projectId": "mini", "text": "abc"}, headers=qs)).status_code == 501

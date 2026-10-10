@@ -3,8 +3,10 @@
 import json
 import sqlite3
 
-from fakes import AGENTS, RULES, Env, ingestion, vid
+import pytest
+from fakes import AGENTS, RULES, Env, event, ingestion, output_and_event, vid
 from sandman_agent import SkillError
+from sandman_orchestrator.orchestrator import Conflict
 from sandman_orchestrator.rules import DETECT, EXTRACT, StepSpec
 
 
@@ -81,6 +83,30 @@ async def test_timeout_cancels_task_and_retries(env: Env) -> None:
     assert env.steps()[0]["attempts"] == 2
 
 
+async def test_completed_task_without_event_times_out_and_retries(env: Env) -> None:
+    env.with_rules(timeouts={**RULES.timeouts, DETECT: 0.1})
+    env.bus.target = None  # the completion event is lost
+    await run_manual(env, "detect")
+    await env.until(lambda: bool(env.steps()) and env.steps()[0]["status"] == "PENDING" and env.steps()[0]["attempts"])
+    env.bus.target = env.orch.consume
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+    assert env.steps()[0]["attempts"] == 2 and env.skills[DETECT].cancelled == 0
+
+
+async def test_late_completion_of_abandoned_attempt_is_ignored(env: Env) -> None:
+    env.skills[DETECT].script = ["hang", "hang"]
+    await run_manual(env, "detect")
+    await env.until(lambda: bool(env.steps()) and env.steps()[0]["a2a_task_id"] is not None)
+    env.restart_agent(DETECT)
+    await env.until(lambda: env.steps()[0]["attempts"] == 2 and env.steps()[0]["a2a_task_id"] is not None)
+    first = env.orch.db.execute("SELECT message_id FROM messages ORDER BY rowid").fetchone()[0]
+    done = output_and_event(DETECT, {"projectId": "mini"})
+    await env.orch.consume(event(done.event_type, dict(done.event_data), causation=first), 1)
+    assert statuses(env) == ["RUNNING"]
+    env.skills[DETECT].release.set()
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+
+
 async def test_identical_trigger_once_force_twice(env: Env) -> None:
     await env.orch.trigger("detect", "mini", {}, "user:alice", request_id="r1")
     await env.orch.trigger("detect", "mini", {}, "user:alice", request_id="r1")
@@ -145,7 +171,20 @@ def test_migrations_apply_once(tmp_path) -> None:
 
     for _ in range(2):
         Orchestrator(tmp_path / "m.db", RULES, None, None, AGENTS, None).close()  # type: ignore[arg-type]
-    assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 2
+    assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 3
+
+
+def test_failing_migration_leaves_user_version(tmp_path, monkeypatch) -> None:
+    from pathlib import Path
+
+    from sandman_orchestrator.orchestrator import Orchestrator
+
+    real = Path.read_text
+    monkeypatch.setattr(Path, "read_text", lambda self, *a, **k: real(self, *a, **k) + (
+        "; CREATE TABLE inbox (x)" if self.name.startswith("003") else ""))  # fmt: skip
+    with pytest.raises(sqlite3.OperationalError):
+        Orchestrator(tmp_path / "f.db", RULES, None, None, AGENTS, None)  # type: ignore[arg-type]
+    assert sqlite3.connect(tmp_path / "f.db").execute("PRAGMA user_version").fetchone()[0] == 2
 
 
 def test_upgrade_from_v1_keeps_rows_and_is_atomic(tmp_path) -> None:
@@ -168,5 +207,52 @@ def test_upgrade_from_v1_keeps_rows_and_is_atomic(tmp_path) -> None:
     orch = Orchestrator(path, RULES, None, None, AGENTS, None)  # type: ignore[arg-type]
     row = orch.db.execute("SELECT id, traceparent FROM steps").fetchone()
     assert (row["id"], row["traceparent"]) == ("step_1", None)
-    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 2
+    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 3
     orch.close()
+
+
+async def test_crash_after_commit_before_ack_loses_nothing_and_duplicates_nothing(env: Env, tmp_path) -> None:
+    e = ingestion(created=[vid(1)])
+    await env.orch.handle(e)  # committed; the ack never happens
+    env.orch.close()
+    orch = env.new_orchestrator(tmp_path / "orchestrator.db")
+    await orch.recover()
+    await orch.consume(e, 2)  # redelivery
+    assert statuses(env) == ["PENDING"]
+
+
+async def test_crash_before_commit_is_redelivered(env: Env, tmp_path, monkeypatch) -> None:
+    e = ingestion(created=[vid(1)])
+
+    def boom(*a, **k):
+        raise RuntimeError("crash")
+
+    monkeypatch.setattr(env.orch, "_add_steps", boom)
+    with pytest.raises(RuntimeError):
+        await env.orch.consume(e, 1)  # not acked
+    assert env.steps() == [] and env.orch.db.execute("SELECT count(*) FROM inbox").fetchone()[0] == 0
+    env.orch.close()
+    orch = env.new_orchestrator(tmp_path / "orchestrator.db")
+    await orch.consume(e, 2)
+    assert statuses(env) == ["PENDING"]
+
+
+def test_action_key_vectors() -> None:
+    from sandman_agent.config import DEFAULT_CONTRACTS_DIR
+    from sandman_orchestrator.orchestrator import action_key
+
+    for case in json.loads((DEFAULT_CONTRACTS_DIR / "conformance" / "vectors.json").read_text())["actionKey"]["cases"]:
+        o = case["object"]
+        assert action_key(o["agent"], o["skill"], o["input"], o["triggerId"]) == case["expected"], case["name"]
+
+
+async def test_blocked_workflow_retry_resumes_and_non_blocked_conflicts(env: Env) -> None:
+    env.skills[DETECT].script = [SkillError("BUDGET_EXCEEDED", "limit", False)]
+    wf = await run_manual(env, "detect")
+    await env.until(lambda: statuses(env) == ["BLOCKED"])
+    assert env.orch.retry(wf)
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+    assert env.orch.get_workflow(wf)["status"] == "SUCCEEDED"
+    with pytest.raises(Conflict):
+        env.orch.retry(wf)
+    assert not env.orch.retry("wf_" + "0" * 32)

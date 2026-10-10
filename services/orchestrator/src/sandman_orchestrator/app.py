@@ -41,6 +41,18 @@ TRIGGER_CALLERS = {"query-service"}
 ADMIN_CALLERS = TRIGGER_CALLERS | {"dashboard"}  # cancel, replay
 
 
+class PlannerRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    projectId: str = Field(pattern=PROJECT_ID)
+    text: str = Field(min_length=3, max_length=4000)
+
+
+class ApprovalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: Literal["approve", "reject"]
+    reason: str | None = Field(default=None, max_length=2000)
+
+
 class WorkflowRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     type: Literal["full", "extract", "tlr", "detect"]
@@ -143,6 +155,32 @@ def create_app(
             return problem(409, "workflow has no pending or running steps")
         return orch.get_workflow(workflowId)
 
+    @app.post("/v1/workflows/{workflowId}/retry", status_code=202)
+    async def retry_workflow(workflowId: str, request: Request, name: str = caller) -> Any:
+        admin(name)
+        actor(name, request)
+        try:
+            if not orch.retry(workflowId):
+                return problem(404, "workflow not found")
+        except Conflict:
+            return problem(409, "workflow is not BLOCKED")
+        return orch.get_workflow(workflowId)
+
+    def not_implemented() -> JSONResponse:
+        return problem(501, "Not Implemented", "planned operation (M6)")
+
+    @app.post("/v1/requests", status_code=202)
+    async def create_request(body: PlannerRequest, request: Request, name: str = caller) -> Any:
+        admin(name, TRIGGER_CALLERS)
+        actor(name, request)
+        return not_implemented()
+
+    @app.post("/v1/workflows/{workflowId}/approval")
+    async def decide_approval(workflowId: str, body: ApprovalRequest, request: Request, name: str = caller) -> Any:
+        admin(name)
+        actor(name, request)
+        return not_implemented()
+
     @app.get("/v1/dead-events")
     async def dead_events(name: str = caller) -> dict[str, Any]:
         return {"items": orch.dead_events()}
@@ -182,13 +220,14 @@ def build(env: dict[str, str] | None = None) -> FastAPI:
     agents = dict(pair.split("=", 1) for pair in env.get("SANDMAN_AGENTS", "").split(",") if pair)
     kg = KgClient(settings.kg_uri, settings.kg_user, settings.kg_password)
     a2a = A2aClient(settings.service_token)
+    contracts = Contracts(settings.contracts_dir)
     orch = Orchestrator(
         env.get("SANDMAN_STATE_DB", "/data/orchestrator.db"),
-        Rules.load(Path(settings.config_dir) / "orchestrator" / "rules.yaml"),
+        Rules.load(Path(settings.config_dir) / "orchestrator" / "rules.yaml", contracts),
         KgGraph(kg),
         a2a,
         agents,
-        Contracts(settings.contracts_dir),
+        contracts,
     )
     tasks: list[asyncio.Task[None]] = []
 

@@ -6,8 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
-import yaml
-from sandman_agent import Event, KgClient
+from sandman_agent import Contracts, Event, KgClient
 
 EXTRACT, TLR, DETECT = "extract-artifact-versions", "recover-trace-links", "detect-inconsistencies"
 SKILL_AGENT = {EXTRACT: "extraction-agent", TLR: "tlr-agent", DETECT: "inconsistency-agent"}
@@ -43,8 +42,8 @@ class Rules:
     kind_pairs: tuple[KindPair, ...] = ()
 
     @classmethod
-    def load(cls, path: Path) -> "Rules":
-        raw: dict[str, Any] = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    def load(cls, path: Path, contracts: Contracts) -> "Rules":
+        raw: dict[str, Any] = contracts.load_config("orchestrator-rules", path)
         poll, retry = raw.get("poll", {}), raw.get("retry", {})
         return cls(
             debounce=seconds(raw.get("debounceSeconds", 10)),

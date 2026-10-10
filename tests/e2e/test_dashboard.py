@@ -137,8 +137,30 @@ def test_graph_of_the_e2e_project_and_read_only(dashboard: httpx.Client) -> None
 
 
 def test_gateway_page_renders(dashboard: httpx.Client) -> None:
-    assert dashboard.get("/gateway").status_code == 200
-    assert dashboard.get("/api/gateway").json()["available"] is True
+    page = dashboard.get("/gateway")
+    assert page.status_code == 200 and "<h2>Budgets</h2>" in page.text
+    stats = dashboard.get("/api/gateway").json()
+    assert stats["available"] is True
+    # structure, not traffic: in replay mode the counters may be zero, but the gateway lists its keys/budgets
+    assert stats["rows"] or stats["budgets"], stats
+    for row in stats["rows"]:
+        assert {"key", "model", "provider", "requests"} <= row.keys(), row
+    for budget in stats["budgets"] or []:
+        assert {"key", "limit", "usage", "warn"} <= budget.keys() and budget["limit"] > 0, budget
+
+
+def test_every_service_reports_working_or_idle_and_settles_to_idle(dashboard: httpx.Client) -> None:
+    for name, entry in services(dashboard).items():
+        if name in TARGETS:
+            assert entry["state"] in ("working", "idle"), (name, entry)
+            assert isinstance(entry["active_tasks"], int) and entry["active_tasks"] >= 0, (name, entry)
+
+    def idle() -> bool:
+        found = services(dashboard)
+        return all(found[n]["state"] == "idle" and found[n]["active_tasks"] == 0 for n in TARGETS)
+
+    wait_for(idle, 120, "all services idle after the walking skeleton")
+    assert dashboard.get("/").text.count("<td>idle</td>") >= len(TARGETS)
 
 
 def test_stopped_agent_is_shown_down_and_recovers(dashboard: httpx.Client) -> None:
@@ -155,6 +177,26 @@ def test_stopped_agent_is_shown_down_and_recovers(dashboard: httpx.Client) -> No
             capture_output=True,
         )
     wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "up", 60, "tlr-agent up again")
+
+
+def test_plugin_stubs_restart_becomes_healthy_again() -> None:
+    """`start --wait` only returns once the plugin-stubs healthcheck (extract 8000 and detect 8001) passes."""
+    compose = compose_command()
+    subprocess.run([*compose, "stop", "plugin-stubs"], check=True, cwd=ROOT, capture_output=True)
+    subprocess.run(
+        [*compose, "start", "--wait", "--wait-timeout", "120", "plugin-stubs"],
+        check=True,
+        cwd=ROOT,
+        capture_output=True,
+    )
+    ps = subprocess.run(
+        [*compose, "ps", "--format", "{{.Health}}", "plugin-stubs"],
+        check=True,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert ps.stdout.strip() == "healthy", ps.stdout
 
 
 def e2e_project(http: httpx.Client) -> str:

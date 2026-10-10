@@ -11,6 +11,8 @@ import json
 import os
 import re
 import secrets
+import shutil
+import subprocess
 import time
 from collections.abc import Iterator
 from pathlib import Path
@@ -27,6 +29,32 @@ MINI = Path(__file__).parent / "fixtures" / "mini"
 URL = os.environ.get("SANDMAN_E2E_URL", "http://127.0.0.1:8080")
 CSRF = re.compile(r'name="csrf" value="([^"]+)"')
 WORKFLOW_TIMEOUT = 240.0
+COMPOSE = [
+    "docker",
+    "compose",
+    "-f",
+    str(ROOT / "deploy" / "docker-compose.yml"),
+    "-f",
+    str(ROOT / "deploy" / "docker-compose.dev.yml"),
+    "--profile",
+    "stubs",
+    "--profile",
+    "dashboard",
+]
+LOG_CAT = [*COMPOSE, "exec", "-T", "inconsistency-agent", "cat", "/logs/sandman.jsonl"]
+
+
+def find_key(node: Any, key: str) -> Any:
+    """First value stored under `key` anywhere in a nested JSON document (None if absent)."""
+    if isinstance(node, dict):
+        if key in node:
+            return node[key]
+        node = list(node.values())
+    if isinstance(node, list):
+        for child in node:
+            if (found := find_key(child, key)) is not None:
+                return found
+    return None
 
 
 def console_token(username: str, initial: str, new: str, reused: bool = False) -> str:
@@ -93,7 +121,30 @@ class Stack:
         self.admin = admin
         self.alice_token = str(self.users["alice"].headers["Authorization"]).removeprefix("Bearer ")
 
-    def ingest(self, snapshot: str, revision: str, capsys: pytest.CaptureFixture[str]) -> dict[str, Any]:
+    def notifications(self) -> list[dict[str, Any]]:
+        """Notification lines of this project from the inconsistency-agent's JSONL log (SANDMAN_LOG_FILE, enabled by
+        `make e2e`); fails when the log is not readable."""
+        run = subprocess.run(LOG_CAT, capture_output=True, text=True, check=False)
+        if run.returncode:
+            pytest.fail(
+                f"log not readable in the container ({run.stderr.strip()}); run via make e2e (SANDMAN_LOG_FILE)"
+            )
+        lines = run.stdout.splitlines()
+        events = []
+        for line in lines:
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            if (
+                isinstance(event, dict)
+                and event.get("event") == "notification"
+                and event.get("projectId") == self.project
+            ):
+                events.append(event)
+        return events
+
+    def ingest(self, snapshot: str | Path, revision: str, capsys: pytest.CaptureFixture[str]) -> dict[str, Any]:
         """Runs `sandman ingest` (CLI) with alice's project token and returns the printed Ingestion."""
         os.environ.update(SANDMAN_URL=URL, SANDMAN_TOKEN=self.alice_token)
         capsys.readouterr()
@@ -119,6 +170,23 @@ class Stack:
             time.sleep(2)
         pytest.fail(f"no finished workflow within {WORKFLOW_TIMEOUT}s; known={known}")
 
+    def a2a_result(self, agent: str, task_id: str) -> dict[str, Any]:
+        """Output of an A2A task. The workflow step stores only the completion event, and A2A is internal, so the
+        orchestrator container asks the agent with its own client."""
+        code = (
+            "import asyncio,json,sys\n"
+            "from sandman_agent.a2a import A2aClient\n"
+            "async def main():\n"
+            "    a = A2aClient(open('/run/secrets/svc_token_orchestrator').read())\n"
+            "    print(json.dumps((await a.get(sys.argv[1], sys.argv[2])).result))\n"
+            "asyncio.run(main())\n"
+        )
+        port = 8000 if agent == "extraction-agent" else 8080
+        cmd = [*COMPOSE, "exec", "-T", "orchestrator", "python", "-c", code, f"http://{agent}:{port}", task_id]
+        run = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result: dict[str, Any] = json.loads(run.stdout.splitlines()[-1])
+        return result
+
     def cypher(self, who: str, text: str, **extra: Any) -> httpx.Response:
         return self.users[who].post("/v1/query/cypher", json={"projectId": self.project, "cypher": text, **extra})
 
@@ -127,6 +195,14 @@ class Stack:
         assert resp.status_code == 200, resp.text
         rows: list[list[Any]] = resp.json()["rows"]
         return rows
+
+    def explicit_link_count(self) -> int:
+        """Active explicit-reference links REQ-1 -> MediaCacheTest."""
+        rows = self.rows(
+            "MATCH (t:TraceLink {projectId: $projectId, active: true, approach: 'explicit-reference'})-[:SOURCE]->(s), "
+            "(t)-[:TARGET]->(g {name: 'MediaCacheTest'}) WHERE s.key ENDS WITH '#REQ-1' RETURN count(t)"
+        )
+        return int(rows[0][0])
 
     def inconsistencies(self) -> dict[str, dict[str, Any]]:
         items = self.users["alice"].get(f"/v1/projects/{self.project}/inconsistencies").json()["items"]
@@ -140,7 +216,7 @@ def stack() -> Iterator[Stack]:
     yield Stack()
 
 
-def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str]) -> None:
+def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
     project = stack.project
     alice, bob, carol = stack.users["alice"], stack.users["bob"], stack.users["carol"]
     known: set[str] = set()
@@ -163,6 +239,11 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str]) -> N
     tools = {r[0] for r in stack.rows("MATCH (r:Run {projectId: $projectId}) RETURN r.tool")}
     assert {"code-extractor", "stub-name-match", "stub-untraced,detect-stub"} <= tools
 
+    # the plugin stub's warning is passed through to detectorRuns[].warnings (R-021)
+    detect = stack.a2a_result("inconsistency-agent", w1["steps"][2]["a2aTaskId"])["detectorRuns"]
+    warnings = [w for run in detect for w in run.get("warnings", [])]
+    assert any(w.startswith(f"plugin-stubs: project {project} has ") for w in warnings), detect
+
     links = stack.rows(
         "MATCH (t:TraceLink {projectId: $projectId, active: true})-[:SOURCE]->(s), (t)-[:TARGET]->(g) "
         "RETURN t.approach, s.key, g.name"
@@ -176,6 +257,10 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str]) -> N
     assert {i["status"] for i in open_now.values()} == {"OPEN"}
     assert {i["type"] for i in open_now.values()} == {"untraced-requirement"}
     req2, req3 = open_now["Upload audio files"], open_now["Encrypt user passwords"]
+
+    # one notification line per new inconsistency
+    opened = {e["title"].rsplit(": ", 1)[1] for e in stack.notifications() if e["status"] == "OPEN"}
+    assert opened == {"Upload audio files", "Encrypt user passwords"}, opened
 
     # triage and authorization
     transition = {"to": "DEFERRED", "expectedStatus": "OPEN", "reason": "later"}
@@ -220,3 +305,40 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str]) -> N
     reopened = alice.get(f"/v1/inconsistencies/{req2['id']}").json()
     assert reopened["status"] == "REOPENED", reopened
     assert alice.get(f"/v1/inconsistencies/{req3['id']}").json()["status"] == "DEFERRED"
+    assert any(e["status"] == "REOPENED" and e["inconsistencyId"] == req2["id"] for e in stack.notifications())
+
+    # manual trigger (R-021): POST /workflows {type: tlr, force} runs TLR steps only (one per kind pair)
+    manual = alice.post(f"/v1/projects/{project}/workflows", json={"type": "tlr", "force": True})
+    assert manual.status_code == 202, manual.text
+    done_manual = stack.wait_workflow(known)
+    assert done_manual["id"] == manual.json()["id"]
+    assert {(s["agent"], s["skill"], s["status"]) for s in done_manual["steps"]} == {
+        ("tlr-agent", "recover-trace-links", "SUCCEEDED")
+    }
+    assert stack.explicit_link_count() == 1
+
+    # T1.12 scope 4: only the requirements file changes; REQ-1 -> MediaCacheTest is current again afterwards
+    changed = tmp_path / "s3"
+    shutil.copytree(MINI / "s1", changed)
+    file = changed / "requirements" / "requirements.md"
+    # new version with unchanged element contents: enrichment is reused, no new LLM call
+    file.write_text(file.read_text() + "\n")
+    third = stack.ingest(changed, "s3", capsys)
+    assert len(third["createdVersionIds"]) == 1 and third["deletedArtifactIds"] == [], third
+    stack.wait_workflow(known)
+    assert stack.explicit_link_count() == 1
+    current_req1 = stack.rows(
+        "MATCH (:Artifact {projectId: $projectId})-[:CURRENT_VERSION]->(:ArtifactVersion)"
+        "-[:HAS_ELEMENT]->(r:Requirement) WHERE r.key ENDS WITH '#REQ-1' RETURN r.id"
+    )
+    link_source = stack.rows(
+        "MATCH (t:TraceLink {projectId: $projectId, active: true, approach: 'explicit-reference'})-[:SOURCE]->(s), "
+        "(t)-[:TARGET]->(g {name: 'MediaCacheTest'}) WHERE s.key ENDS WITH '#REQ-1' RETURN s.id"
+    )
+    assert len(current_req1) == 1 and link_source == current_req1
+    stale = stack.rows(
+        "MATCH (t:TraceLink {projectId: $projectId, active: true, approach: 'explicit-reference'})"
+        "-[:SOURCE|TARGET]->(e) OPTIONAL MATCH (a:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(e) "
+        "WITH t, a WHERE a IS NULL RETURN count(t)"
+    )
+    assert stale == [[0]]

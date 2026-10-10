@@ -54,6 +54,7 @@ class AgentTest {
         reqArt = TestKg.artifact(kg, PROJECT, "requirements.md", "requirements");
         req1 = TestKg.element(kg, PROJECT, reqArt, "Requirement", "REQ-1", "h1");
         TestKg.element(kg, PROJECT, reqArt, "Requirement", "REQ-2", "h2");
+        String seedMessageId = "msg-seed-" + java.util.UUID.randomUUID();
         try (A2aClient client = new A2aClient(ORCH)) {
             var task = client.submit(
                     url.toString(),
@@ -61,7 +62,7 @@ class AgentTest {
                     JsonMapper.shared().readTree("{\"projectId\":\"mini\"}"),
                     null,
                     null,
-                    "msg-seed");
+                    seedMessageId);
             for (int i = 0; i < 500 && !task.terminal(); i++) {
                 Thread.sleep(20);
                 task = client.get(url.toString(), task.taskId());
@@ -72,7 +73,7 @@ class AgentTest {
         }
         assertEquals(1, events.events.size());
         assertEquals("sandman.inconsistencies.updated", events.events.get(0).type());
-        assertEquals("msg-seed", events.events.get(0).causationId());
+        assertEquals(seedMessageId, events.events.get(0).causationId());
         id1 = Ids.stableId("inc", PROJECT, Ids.fingerprint("untraced-requirement", "stub-untraced", List.of(req1)));
     }
 

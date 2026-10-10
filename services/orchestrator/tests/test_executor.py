@@ -3,6 +3,7 @@
 import json
 import sqlite3
 
+import httpx
 import pytest
 from fakes import AGENTS, RULES, Env, event, ingestion, output_and_event, vid
 from sandman_agent import SkillError
@@ -256,3 +257,46 @@ async def test_blocked_workflow_retry_resumes_and_non_blocked_conflicts(env: Env
     with pytest.raises(Conflict):
         env.orch.retry(wf)
     assert not env.orch.retry("wf_" + "0" * 32)
+
+
+async def test_retry_after_unacknowledged_submit_reuses_message_id_and_runs_skill_once(env: Env) -> None:
+    env.skills[DETECT].script = ["hang"]
+    send, sent = env.orch.a2a.send, []
+
+    async def lossy_send(agent_url, message):
+        sent.append(message["messageId"])
+        snap = await send(agent_url, message)
+        if len(sent) == 1:
+            raise httpx.ReadTimeout("response lost")
+        return snap
+
+    env.orch.a2a.send = lossy_send
+    await run_manual(env, "detect")
+    await env.until(lambda: len(sent) == 2)
+    env.skills[DETECT].release.set()
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+    assert sent[0] == sent[1] and len(env.skills[DETECT].calls) == 1
+    assert env.orch.db.execute("SELECT count(*) FROM messages").fetchone()[0] == 1
+
+
+async def test_retry_after_agent_error_uses_new_message_id(env: Env) -> None:
+    env.skills[DETECT].script = [SkillError("INTERNAL", "boom", True)]
+    await run_manual(env, "detect")
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+    first, second = (c.message_id for c in env.skills[DETECT].calls)
+    assert first != second
+
+
+async def test_retry_after_jsonrpc_error_answer_uses_new_message_id(env: Env) -> None:
+    send, sent = env.orch.a2a.send, []
+
+    async def rejecting_send(agent_url, message):
+        sent.append(message["messageId"])
+        if len(sent) == 1:
+            raise RuntimeError("JSON-RPC error -32602")
+        return await send(agent_url, message)
+
+    env.orch.a2a.send = rejecting_send
+    await run_manual(env, "detect")
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+    assert len(sent) == 2 and sent[0] != sent[1]

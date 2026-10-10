@@ -151,3 +151,63 @@ async def test_planned_skill_is_rejected_not_implemented(settings: Settings, con
         and done.error["code"] == "NOT_IMPLEMENTED"
         and done.error["retryable"] is False
     )
+
+
+async def test_same_message_id_runs_the_skill_once(settings: Settings, contracts: Contracts) -> None:
+    started, release = asyncio.Event(), asyncio.Event()
+
+    class Slow(Recover):
+        async def run(self, ctx: SkillContext, input: dict[str, Any]) -> SkillResult:
+            started.set()
+            await release.wait()
+            return await super().run(ctx, input)
+
+    skill = Slow()
+    bus, client = setup(settings, contracts, skill)
+    first = await client.submit(URL, "recover-trace-links", INPUT, message_id="m-dup")
+    await started.wait()
+    second = await client.submit(URL, "recover-trace-links", INPUT, message_id="m-dup")
+    release.set()
+    for snap in (first, second):
+        assert (await wait(client, snap.task_id)).result == TLR_OUTPUT
+    third = await client.submit(URL, "recover-trace-links", INPUT, message_id="m-dup")
+    assert (await wait(client, third.task_id)).result == TLR_OUTPUT
+    assert len(skill.seen) == 1 and len(bus.events) == 1
+    other = await client.submit(URL, "recover-trace-links", INPUT, message_id="m-other")
+    await wait(client, other.task_id)
+    assert len(skill.seen) == 2
+
+
+async def test_retryable_failure_is_not_cached_but_permanent_failure_is(
+    settings: Settings, contracts: Contracts
+) -> None:
+    retry = Recover(error=SkillError("INTERNAL", "boom", True))
+    _, client = setup(settings, contracts, retry)
+    for _ in range(2):
+        await wait(client, (await client.submit(URL, "recover-trace-links", INPUT, message_id="m-r")).task_id)
+    assert len(retry.seen) == 2
+    permanent = Recover(error=SkillError("INVALID_INPUT", "bad", False))
+    _, client = setup(settings, contracts, permanent)
+    for _ in range(2):
+        await wait(client, (await client.submit(URL, "recover-trace-links", INPUT, message_id="m-p")).task_id)
+    assert len(permanent.seen) == 1
+
+
+async def test_eviction_never_drops_pending_entries(
+    settings: Settings, contracts: Contracts, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("sandman_agent.a2a.MAX_SEEN", 1)
+    release = asyncio.Event()
+
+    class Slow(Recover):
+        async def run(self, ctx: SkillContext, input: dict[str, Any]) -> SkillResult:
+            await release.wait()
+            return await super().run(ctx, input)
+
+    skill = Slow()
+    _, client = setup(settings, contracts, skill)
+    snaps = [await client.submit(URL, "recover-trace-links", INPUT, message_id=m) for m in ("m-1", "m-2", "m-1")]
+    release.set()
+    for snap in snaps:
+        await wait(client, snap.task_id)
+    assert len(skill.seen) == 2

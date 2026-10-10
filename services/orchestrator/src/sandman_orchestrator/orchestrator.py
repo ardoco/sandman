@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
+import httpx
 from sandman_agent import A2aClient, ContractError, Contracts, Event, TaskNotFoundError, TaskSnapshot, telemetry
 from sandman_agent.ids import canonical_json, new_workflow_id, sha256_hex
 
@@ -374,12 +375,21 @@ class Orchestrator:
             await self._poll(step)
 
     async def _start(self, step_id: str) -> None:
-        message_id, now = str(uuid.uuid4()), self.clock()
+        now = self.clock()
         with self.db:  # store the messageId before SendMessage so a fast completion event always matches
             step = self.db.execute("SELECT * FROM steps WHERE id = ? AND status = 'PENDING'", (step_id,)).fetchone()
             if step is None:
                 return
-            self.db.execute("INSERT INTO messages VALUES (?, ?)", (message_id, step_id))
+            last = (
+                self.db.execute(
+                    "SELECT message_id FROM messages WHERE step_id = ? ORDER BY rowid DESC LIMIT 1", (step_id,)
+                ).fetchone()
+                if step["attempts"] and step["a2a_task_id"] is None
+                else None
+            )
+            message_id = last["message_id"] if last else str(uuid.uuid4())
+            if not last:
+                self.db.execute("INSERT INTO messages VALUES (?, ?)", (message_id, step_id))
             self.db.execute(
                 "UPDATE steps SET status = 'RUNNING', attempts = attempts + 1, a2a_task_id = NULL, attempt_at = ?, "
                 "started_at = coalesce(started_at, ?), next_poll_at = ? WHERE id = ?",
@@ -402,6 +412,11 @@ class Orchestrator:
                 )
         except Exception as e:  # noqa: BLE001 - connection errors and agent errors are retried
             log.warning("submit failed", extra={"fields": {"step": step_id, "error": str(e)}})
+            if not isinstance(e, httpx.TransportError):
+                with self.db:
+                    self.db.execute(
+                        "UPDATE steps SET a2a_task_id = '' WHERE id = ? AND attempts = ?", (step_id, attempt)
+                    )
             self._failed(step_id, attempt, error("DEPENDENCY_UNAVAILABLE", f"{type(e).__name__}: {e}", True))
             return
         finally:
@@ -503,7 +518,7 @@ class Orchestrator:
     def _step_json(s: sqlite3.Row) -> dict[str, Any]:
         step = {
             "id": s["id"], "agent": s["agent"], "skill": s["skill"], "status": s["status"], "attempts": s["attempts"],
-            "actionKey": s["action_key"], "mergedInto": s["merged_into"], "a2aTaskId": s["a2a_task_id"],
+            "actionKey": s["action_key"], "mergedInto": s["merged_into"], "a2aTaskId": s["a2a_task_id"] or None,
             "input": json.loads(s["input_json"]),
             "result": json.loads(s["result_json"] or "null"), "error": json.loads(s["error_json"] or "null"),
             "startedAt": s["started_at"], "endedAt": s["ended_at"],

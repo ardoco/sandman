@@ -171,6 +171,43 @@ class A2aServerTest {
     }
 
     @Test
+    void sameMessageIdRunsTheSkillOnce() throws Exception {
+        A2aClient client = client(TOKENS.get("orchestrator"));
+        skill.started = new CountDownLatch(1);
+        skill.release = new CountDownLatch(1);
+        var first = client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-dup");
+        assertTrue(skill.started.await(5, TimeUnit.SECONDS));
+        var second = client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-dup");
+        skill.release.countDown();
+        assertEquals(OUTPUT, await(client, first).result());
+        assertEquals(OUTPUT, await(client, second).result());
+        var third = client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-dup");
+        assertEquals(OUTPUT, await(client, third).result());
+        assertEquals(1, skill.seen.size());
+        assertEquals(1, events.events.size());
+        await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-other"));
+        assertEquals(2, skill.seen.size());
+    }
+
+    @Test
+    void retryableFailureIsNotCachedButPermanentFailureIs() throws Exception {
+        A2aClient client = client(TOKENS.get("orchestrator"));
+        skill.error = new IllegalStateException("boom");
+        await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-retry"));
+        skill.error = null;
+        var retried = await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-retry"));
+        assertEquals(OUTPUT, retried.result());
+        assertEquals(2, skill.seen.size());
+
+        skill.error = new SkillException("BUDGET_EXCEEDED", "budget", false);
+        await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-perm"));
+        skill.error = null;
+        var replayed = await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-perm"));
+        assertEquals("BUDGET_EXCEEDED", replayed.error().get("code").asString());
+        assertEquals(3, skill.seen.size());
+    }
+
+    @Test
     void invalidOutputFailsWithoutEvent() throws Exception {
         skill.output = JsonMapper.shared().readTree("{\"runs\":\"nope\"}");
         A2aClient client = client(TOKENS.get("orchestrator"));

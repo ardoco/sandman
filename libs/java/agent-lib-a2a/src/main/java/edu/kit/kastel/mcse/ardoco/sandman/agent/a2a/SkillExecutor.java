@@ -9,10 +9,12 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,7 +65,23 @@ public class SkillExecutor implements AgentExecutor {
     @Inject
     Instance<EventSink> events;
 
+    private static final int MAX_SEEN = 1024;
+
+    private record Outcome(Object output, SkillException error, boolean reject) {}
+
     private final Map<String, SkillContext> running = new ConcurrentHashMap<>();
+    private final Map<String, CompletableFuture<Outcome>> seen = Collections.synchronizedMap(new LinkedHashMap<>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, CompletableFuture<Outcome>> eldest) {
+            if (size() > MAX_SEEN) {
+                entrySet().stream()
+                        .filter(e -> e.getValue().isDone())
+                        .findFirst()
+                        .ifPresent(e -> remove(e.getKey()));
+            }
+            return false;
+        }
+    });
     private Map<String, Skill> skills;
 
     @PostConstruct
@@ -123,6 +141,12 @@ public class SkillExecutor implements AgentExecutor {
             end(emitter, new SkillException("FORBIDDEN", e.getMessage(), false), true);
             return;
         }
+        CompletableFuture<Outcome> done = new CompletableFuture<>();
+        CompletableFuture<Outcome> first = seen.putIfAbsent(message.messageId(), done);
+        if (first != null) {
+            replay(first, emitter);
+            return;
+        }
         SkillContext ctx = new SkillContext(
                 context.getTaskId(),
                 message.messageId(),
@@ -134,23 +158,41 @@ public class SkillExecutor implements AgentExecutor {
         try (var active = status.track()) {
             Telemetry.a2aTask(settings.serviceName(), skillId, ctx.taskId(), headers(context), () -> {
                 emitter.startWork();
-                return run(skill, ctx, input, emitter);
+                return run(skill, ctx, input, emitter, done);
             });
         } finally {
             running.remove(ctx.taskId());
+            if (!done.isDone()) {
+                seen.remove(message.messageId(), done);
+                done.complete(new Outcome(
+                        null, new SkillException("INTERNAL", "first attempt was interrupted", true), false));
+            }
         }
     }
 
-    private String run(Skill skill, SkillContext ctx, JsonNode input, AgentEmitter emitter) {
+    private static void replay(CompletableFuture<Outcome> first, AgentEmitter emitter) {
+        emitter.startWork();
+        Outcome o = first.join();
+        if (o.error() != null) {
+            end(emitter, o.error(), o.reject());
+            return;
+        }
+        emitter.addArtifact(List.of(new DataPart(o.output())), null, "result", null);
+        emitter.complete();
+    }
+
+    private String run(
+            Skill skill, SkillContext ctx, JsonNode input, AgentEmitter emitter, CompletableFuture<Outcome> done) {
         SkillResult result;
         try {
             result = skill.run(ctx, input);
         } catch (SkillException e) {
-            return end(emitter, e, false);
+            return end(emitter, done, e, false);
         } catch (RuntimeException e) { // unexpected failures are reported as retryable INTERNAL
             LOG.error("skill {} failed", skill.id(), e);
             return end(
                     emitter,
+                    done,
                     new SkillException("INTERNAL", e.getClass().getSimpleName() + ": " + e.getMessage(), true),
                     false);
         }
@@ -160,12 +202,16 @@ public class SkillExecutor implements AgentExecutor {
         try {
             contracts.validate(server.schemas().get(skill.id()).get("outputSchema"), result.output());
         } catch (Contracts.ContractException e) {
-            return end(emitter, new SkillException("INTERNAL", "invalid output: " + e.getMessage(), false), false);
+            return end(
+                    emitter, done, new SkillException("INTERNAL", "invalid output: " + e.getMessage(), false), false);
         }
         if (result.eventType() != null) {
             if (!events.isResolvable() || result.eventData() == null) {
                 return end(
-                        emitter, new SkillException("INTERNAL", "completion event without event sink", false), false);
+                        emitter,
+                        done,
+                        new SkillException("INTERNAL", "completion event without event sink", false),
+                        false);
             }
             try {
                 events.get()
@@ -178,13 +224,22 @@ public class SkillExecutor implements AgentExecutor {
                                 null);
             } catch (RuntimeException e) { // KG is committed; the retried task republishes
                 LOG.error("publishing completion event failed", e);
-                return end(emitter, new SkillException("DEPENDENCY_UNAVAILABLE", e.toString(), true), false);
+                return end(emitter, done, new SkillException("DEPENDENCY_UNAVAILABLE", e.toString(), true), false);
             }
         }
         Object output = JsonMapper.shared().convertValue(result.output(), Object.class);
         emitter.addArtifact(List.of(new DataPart(output)), null, "result", null);
         emitter.complete();
+        done.complete(new Outcome(output, null, false));
         return "completed";
+    }
+
+    private String end(AgentEmitter emitter, CompletableFuture<Outcome> done, SkillException error, boolean reject) {
+        if (error.retryable()) {
+            seen.values().removeIf(f -> f == done);
+        }
+        done.complete(new Outcome(null, error, reject));
+        return end(emitter, error, reject);
     }
 
     private static String end(AgentEmitter emitter, SkillException error, boolean reject) {

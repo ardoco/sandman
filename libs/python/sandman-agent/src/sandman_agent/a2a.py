@@ -11,6 +11,7 @@ import hmac
 import json
 import logging
 import uuid
+from collections import OrderedDict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -49,6 +50,7 @@ from sandman_agent.status import StatusTracker, status_route
 
 log = logging.getLogger(__name__)
 
+MAX_SEEN = 1024
 SKILL_KEY = "sandman.skill"
 WORKFLOW_KEY = "sandman.workflowId"
 ACTOR_KEY = "sandman.actor"
@@ -153,6 +155,9 @@ class _Executor(AgentExecutor):
         self._contracts, self._events, self._authenticate = contracts, events, authenticate
         self._running: dict[str, SkillContext] = {}
         self._status = status
+        self._seen: OrderedDict[str, asyncio.Future[tuple[dict[str, Any] | None, SkillError | None, bool]]] = (
+            OrderedDict()
+        )
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         message = context.message
@@ -193,48 +198,72 @@ class _Executor(AgentExecutor):
         except PermissionError as e:
             await self._end(updater, SkillError("FORBIDDEN", str(e), False), True)
             return
-        ctx = SkillContext(
-            task_id=context.task_id,
-            message_id=message.message_id,
-            workflow_id=metadata.get(WORKFLOW_KEY) if isinstance(metadata.get(WORKFLOW_KEY), str) else None,
-            caller=caller,
-            actor=actor,
-            settings=self._settings,
-            updater=updater,
+        first = self._seen.get(message.message_id)
+        if first is not None:
+            await updater.start_work()
+            output, error, reject = await asyncio.shield(first)
+            if error is not None:
+                await self._end(updater, error, reject)
+            else:
+                await updater.add_artifact([new_data_part(output or {})], name="result")
+                await updater.complete()
+            return
+        done: asyncio.Future[tuple[dict[str, Any] | None, SkillError | None, bool]] = (
+            asyncio.get_running_loop().create_future()
         )
-        self._running[context.task_id] = ctx
-        token = telemetry.bind(taskId=ctx.task_id, workflowId=ctx.workflow_id, actor=ctx.actor)
-        headers = context.call_context.state.get("headers", {})
+        token = None
         try:
+            self._seen[message.message_id] = done
+            for key in [k for k, f in self._seen.items() if f.done()][: max(0, len(self._seen) - MAX_SEEN)]:
+                del self._seen[key]
+            ctx = SkillContext(
+                task_id=context.task_id,
+                message_id=message.message_id,
+                workflow_id=metadata.get(WORKFLOW_KEY) if isinstance(metadata.get(WORKFLOW_KEY), str) else None,
+                caller=caller,
+                actor=actor,
+                settings=self._settings,
+                updater=updater,
+            )
+            self._running[context.task_id] = ctx
+            token = telemetry.bind(taskId=ctx.task_id, workflowId=ctx.workflow_id, actor=ctx.actor)
+            headers = context.call_context.state.get("headers", {})
             with telemetry.a2a_task_span(self._settings.service_name, skill_id, ctx.task_id, headers) as span:
                 async with self._status.track():
                     await updater.start_work()
-                    span["outcome"] = await self._run(skill, ctx, input, updater)
+                    span["outcome"] = await self._run(skill, ctx, input, updater, done)
         finally:
             self._running.pop(context.task_id, None)
-            telemetry.reset(token)
+            if token is not None:
+                telemetry.reset(token)
+            if not done.done():
+                if self._seen.get(message.message_id) is done:
+                    del self._seen[message.message_id]
+                done.set_result((None, SkillError("INTERNAL", "first attempt was interrupted", True), False))
 
-    async def _run(self, skill: Skill, ctx: SkillContext, input: dict[str, Any], updater: TaskUpdater) -> str:
+    async def _run(
+        self, skill: Skill, ctx: SkillContext, input: dict[str, Any], updater: TaskUpdater, done: asyncio.Future[Any]
+    ) -> str:
         try:
             result = await skill.run(ctx, input)
         except SkillError as e:
-            return await self._end(updater, e, False)
+            return await self._end(updater, e, False, done)
         except BudgetExceededError as e:  # orchestrator blocks the workflow until a user acts
-            return await self._end(updater, SkillError("BUDGET_EXCEEDED", str(e), False), False)
+            return await self._end(updater, SkillError("BUDGET_EXCEEDED", str(e), False), False, done)
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001 - unexpected failures are reported as retryable INTERNAL
             log.exception("skill failed")
-            return await self._end(updater, SkillError("INTERNAL", f"{type(e).__name__}: {e}", True), False)
+            return await self._end(updater, SkillError("INTERNAL", f"{type(e).__name__}: {e}", True), False, done)
         output = dict(result.output)
         try:
             self._contracts.validate(self._schemas[skill.id]["outputSchema"], output)
         except ContractError as e:
-            return await self._end(updater, SkillError("INTERNAL", f"invalid output: {e}", False), False)
+            return await self._end(updater, SkillError("INTERNAL", f"invalid output: {e}", False), False, done)
         if result.event_type is not None:
             if self._events is None or result.event_data is None:
                 return await self._end(
-                    updater, SkillError("INTERNAL", "completion event without event sink", False), False
+                    updater, SkillError("INTERNAL", "completion event without event sink", False), False, done
                 )
             try:
                 await self._events.publish(
@@ -246,12 +275,20 @@ class _Executor(AgentExecutor):
                 )
             except Exception as e:  # noqa: BLE001 - KG is committed; the retried task republishes
                 log.exception("publishing completion event failed")
-                return await self._end(updater, SkillError("DEPENDENCY_UNAVAILABLE", str(e), True), False)
+                return await self._end(updater, SkillError("DEPENDENCY_UNAVAILABLE", str(e), True), False, done)
         await updater.add_artifact([new_data_part(output)], name="result")
         await updater.complete()
+        done.set_result((output, None, False))
         return "completed"
 
-    async def _end(self, updater: TaskUpdater, error: SkillError, reject: bool) -> str:
+    async def _end(
+        self, updater: TaskUpdater, error: SkillError, reject: bool, done: asyncio.Future[Any] | None = None
+    ) -> str:
+        if done is not None and not done.done():
+            done.set_result((None, error, reject))
+            if error.retryable:
+                for key in [k for k, f in self._seen.items() if f is done]:
+                    del self._seen[key]
         msg = updater.new_agent_message([new_text_part(error.message)], metadata={ERROR_KEY: error.to_json()})
         await (updater.reject(msg) if reject else updater.failed(msg))
         return "rejected" if reject else "failed"

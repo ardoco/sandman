@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN plugin contract (plain HTTP variant)
-  version: 0.5.0
+  version: 0.6.0
   description: |
     Plain-HTTP alternative to the A2A plugin skills sandman.plugin.extract / sandman.plugin.detect (ADR-0012).
     Same payloads (contracts/skills.schema.json). Synchronous: the response is returned within the timeout

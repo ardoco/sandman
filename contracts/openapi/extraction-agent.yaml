@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN extraction-agent REST API
-  version: 0.5.0
+  version: 0.6.0
   description: |
     Artifact intake and project registration. Owner of Project, Artifact, ArtifactVersion and Element nodes.
     Called by the query-service (user requests, actor forwarded) and by services. The A2A interface is

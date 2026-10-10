@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN orchestrator API
-  version: 0.5.0
+  version: 0.6.0
   description: |
     Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
     The query-service forwards in M0 only list/create/get workflows; cancel, retry, dead-event listing and replay are

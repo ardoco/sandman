@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/orchestrator-rules.schema.json",
   "title": "config/orchestrator/rules.yaml",
-  "description": "Orchestrator rule configuration; the rules themselves are fixed in code. Contract version 0.5.0.",
+  "description": "Orchestrator rule configuration; the rules themselves are fixed in code. Contract version 0.6.0.",
   "type": "object",
   "properties": {
     "debounceSeconds": {

@@ -82,3 +82,7 @@ T0.12 spike answers V-16, V-17 and V-27; T3.3 equivalence test with `linkApproac
 ## More Information
 
 * Related: ADR-0001, ADR-0005, ADR-0007, ADR-0012.
+
+## Amendments
+
+* 2026-10-10, review item R-022 (task T2.1): TLR (`ardoco` approach, `approach-ardoco`) uses the released `io.github.ardoco.tlr:*:2.1.0` from Maven Central. Its SWATTR stages are identical to the pinned commit `0d1f22b`. B1 (pinned commit build) applies to the inconsistency branch only (T3.1) until T3.5. The approach declares `scopeMode: whole-project`.

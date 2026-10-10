@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN shared OpenAPI components
-  version: 0.5.0
+  version: 0.6.0
   description: |
     Components referenced by the service OpenAPI documents. Not a service itself.
     Operations marked x-sandman-status: planned are part of the final contract but answer 501 with the NotImplemented problem body until implemented (R-019). Operations marked x-sandman-status: out-of-scope-M0 exist only on the owner service and are not forwarded by the query-service in M0 (R-007).

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/extraction-enrichment.schema.json",
   "title": "config/extraction/enrichment.yaml",
-  "description": "LLM enrichment of extracted elements (summaries, concepts). Its hash is the configHash of the enrichment run. Contract version 0.5.0.",
+  "description": "LLM enrichment of extracted elements (summaries, concepts). Its hash is the configHash of the enrichment run. Contract version 0.6.0.",
   "type": "object",
   "properties": {
     "enabled": {

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/query-intents.schema.json",
   "title": "config/query/intents.yaml",
-  "description": "Regex intents of the NL stub (M0, no LLM). pattern must match the whole normalized question; named groups become Cypher parameters; every template passes the scope guard. Contract version 0.5.0.",
+  "description": "Regex intents of the NL stub (M0, no LLM). pattern must match the whole normalized question; named groups become Cypher parameters; every template passes the scope guard. Contract version 0.6.0.",
   "type": "object",
   "required": [
     "intents"

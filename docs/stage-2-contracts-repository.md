@@ -1,11 +1,11 @@
 # SANDMAN – Stage 2: Contracts and Repository
 
-Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.5.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
+Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.6.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
 
 ## 0. Summary of key decisions
 
 1. **Contracts are files, not prose.** `contracts/` holds JSON Schemas (common types, events, skill I/O incl. plugin skills), A2A Agent Cards, OpenAPI 3.1 documents for every REST API, the KG schema contract and init script, and language-neutral conformance vectors. All files are validated in CI (Section 1.8); stubs and final implementations are tested against the same files.
-2. **One contract version (0.5.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`, 0.4.0 added planned operations, config schemas, lifecycle table, idempotency vectors and `Element.references`, 0.5.0 added `Run.mixedModels`, the `SchemaVersion` node and the optional manifest for archive-only uploads (a partial ingestion: no deletions); the KG schema carries its own version, 0.4.0).
+2. **One contract version (0.6.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`, 0.4.0 added planned operations, config schemas, lifecycle table, idempotency vectors and `Element.references`, 0.5.0 added `Run.mixedModels`, the `SchemaVersion` node and the optional manifest for archive-only uploads (a partial ingestion: no deletions), 0.6.0 added the optional approach `scopeMode` (R-022); the KG schema carries its own version, 0.4.0).
 3. **Monorepo**: uv workspace (Python 3.13) and Maven multi-module build (Java 21, Quarkus for A2A servers) side by side; root-level contracts; one Compose file.
 4. **Docker:** multi-stage images with the repository root as build context (libraries and contracts are copied in); non-root runtime users; the ArDoCo inconsistency branch is built from a pinned commit inside the Java image build.
 5. **Reference Compose file** [deploy/docker-compose.yml](../deploy/docker-compose.yml) with three networks (internal without egress, egress, edge with only a reverse proxy), health-gated startup, per-service file secrets, memory limits, the `llm-replay` proxy, profiles `obs`, `local-llm`, `stubs`, and a dev overlay. Validated with `docker compose config`.
@@ -34,7 +34,7 @@ Status: revision 4 (Stage 4 review decisions and the system overview dashboard i
 
 ### 1.2 Conventions
 
-- **Versioning:** contract version `0.5.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
+- **Versioning:** contract version `0.6.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
 - **Ids:** `stableId(prefix, parts…)` (deterministic, see vectors) for everything that must be idempotent; `run_`/`wf_` ids are random. Element keys `artifactId#localKey` are stable across versions.
 - **Errors:** REST → RFC 9457 problem details; A2A → task state `TASK_STATE_FAILED`/`TASK_STATE_REJECTED` with `SkillError` in status message metadata `sandman.error` (`code`, `message`, `retryable`).
 - **Auth headers:** `Authorization: Bearer <service token>` between services; each service holds only its own token, receivers verify against hashes. User identity only via `X-Sandman-Actor` from the query-service and via `sandman.actor` A2A metadata from the orchestrator (trusted forwarders). Owners reject these headers from other callers with 403. Owners call plugins with the plugin's inbound token.
@@ -109,7 +109,7 @@ All reads are confined to one project by the scope guard (Stage 1 §7); members 
 
 ### 1.6 Configuration file contracts
 
-Mounted read-only at `/config` (repository folder `config/`); the effective file hash is stored in `Run.configHash`, except for `config/tlr/approaches.yaml`: there `configHash` is the sha256 of the JCS of one approach's effective params (T0.6), so enabling another approach does not change existing link ids. Schemas for these files are added to `contracts/config/` in M0 together with the first implementation (formats below are binding).
+Mounted read-only at `/config` (repository folder `config/`); the effective file hash is stored in `Run.configHash`, except for `config/tlr/approaches.yaml`: there `configHash` is the sha256 of the JCS of one approach's effective params (T0.6), so enabling another approach does not change existing link ids. Each approach declares an optional `scopeMode` (`pairwise` default, or `whole-project`; `GET /v1/approaches`). A `whole-project` approach ignores the version subset of the `RecoverTraceLinks` input, runs over all current versions of the artifact kinds it supports, retires its own active links of these kinds that the run did not produce, and records all used versions on the `Run`. Event and output keep the input version ids; the orchestrator is unchanged. Schemas for these files are added to `contracts/config/` in M0 together with the first implementation (formats below are binding).
 
 ```yaml
 # config/llm/models.yaml – logical routes → gateway model names (all LLM users)
@@ -390,7 +390,7 @@ General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards 
 
 | | |
 |---|---|
-| Stub behavior | Approach `stub-name-match`: tokens of element names (split on camelCase/punctuation, lowercase, length ≥ `minTokenLength`); link when source and target share a token; `confidence` from config; `linkType = relates`. `GET /v1/approaches` returns the enabled approaches. Deterministic ids, `Run` per approach; links written inactive and activated in each run's final transaction; one `tracelinks.updated` per task listing all runs. |
+| Stub behavior | Approach `stub-name-match`: tokens of element names (split on camelCase/punctuation, lowercase, length ≥ `minTokenLength`); link when source and target share a token; `confidence` from config; `linkType = relates`. `GET /v1/approaches` returns the enabled approaches. Deterministic ids, `Run` per approach; links written inactive and activated in each run's final transaction; one `tracelinks.updated` per task listing all runs. Approaches declare `scopeMode` (`pairwise` default, `whole-project`; semantics in §1.6, R-022). |
 | Configuration | `config/tlr/approaches.yaml`. |
 | Finalized when | ArDoCo and LiSSA approaches run in-process through `llm-replay` and the gateway and pass the reproduction protocol of Stage 3 §3.3 on at least two benchmark projects (ArDoCo: link set identical to the standalone runner; LiSSA: live re-run, Δ F1 with 95 % CI reported, then recorded); per-approach failure isolation tested; link carry-over optional. |
 

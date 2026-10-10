@@ -15,6 +15,13 @@ public interface InconsistencyDetector {
 
     List<Finding> detect(DetectionScope scope, DetectorContext ctx);
 
+    /** Findings plus warnings of the detector or its plugin (R-021). */
+    record Detection(List<Finding> findings, List<String> warnings) {}
+
+    default Detection detectWithWarnings(DetectionScope scope, DetectorContext ctx) {
+        return new Detection(detect(scope, ctx), List.of());
+    }
+
     default boolean usesLlm() {
         return false;
     }

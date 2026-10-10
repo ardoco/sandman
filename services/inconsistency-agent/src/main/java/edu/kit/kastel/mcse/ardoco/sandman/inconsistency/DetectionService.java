@@ -104,10 +104,14 @@ public final class DetectionService {
             for (InconsistencyDetector d : selected) {
                 ObjectNode entry = detectorRuns.addObject().put("detector", d.id());
                 try {
-                    List<Finding> findings = d.detect(ds, ctx);
+                    var detection = d.detectWithWarnings(ds, ctx);
+                    List<Finding> findings = detection.findings();
                     prepare(projectId, d, findings).forEach(p -> detected.putIfAbsent(p.id(), p));
                     completed.add(d.id());
                     entry.put("status", "completed").put("findingCount", findings.size());
+                    if (!detection.warnings().isEmpty()) {
+                        detection.warnings().forEach(entry.putArray("warnings")::add);
+                    }
                 } catch (RuntimeException e) { // a failing detector or plugin only makes the run partial
                     entry.put("status", "failed").put("findingCount", 0).put("error", String.valueOf(e.getMessage()));
                 }
@@ -221,7 +225,7 @@ public final class DetectionService {
         Map<String, Prepared> byId = new LinkedHashMap<>();
         for (Finding f : findings) {
             List<String> involvedKeys = new ArrayList<>();
-            List<String> hashKeys = new ArrayList<>();
+            List<String> hashPairs = new ArrayList<>();
             List<Edge> edges = new ArrayList<>();
             for (Finding.Involved i : f.involved()) {
                 if (i.elementKey() != null) {
@@ -230,7 +234,7 @@ public final class DetectionService {
                         throw new IllegalArgumentException("unknown or non-current element " + i.elementKey());
                     }
                     involvedKeys.add(i.elementKey());
-                    hashKeys.add(i.elementKey());
+                    hashPairs.add(pair(i.elementKey(), e.get("hash")));
                     edges.add(new Edge(false, (String) e.get("id"), i.role()));
                 } else {
                     String[] ends = links.get(i.traceLinkId());
@@ -238,19 +242,17 @@ public final class DetectionService {
                         throw new IllegalArgumentException("unknown trace link " + i.traceLinkId());
                     }
                     involvedKeys.add(ends[0] + "->" + ends[1]);
-                    hashKeys.add(ends[0]);
-                    hashKeys.add(ends[1]);
+                    for (String end : ends) {
+                        var e = elements.get(end);
+                        if (e == null) {
+                            throw new IllegalArgumentException("unknown or non-current element " + end);
+                        }
+                        hashPairs.add(pair(end, e.get("hash")));
+                    }
                     edges.add(new Edge(true, i.traceLinkId(), i.role()));
                 }
             }
             String fingerprint = Ids.fingerprint(f.type(), d.id(), involvedKeys);
-            String hashes = hashKeys.stream()
-                    .distinct()
-                    .sorted()
-                    .map(k -> elements.containsKey(k)
-                            ? String.valueOf(elements.get(k).get("hash"))
-                            : "")
-                    .collect(Collectors.joining(Ids.SEP));
             byId.putIfAbsent(
                     Ids.stableId("inc", projectId, fingerprint),
                     new Prepared(
@@ -260,9 +262,13 @@ public final class DetectionService {
                             Ids.stableId("inc", projectId, fingerprint),
                             fingerprint,
                             edges,
-                            Ids.sha256Hex(hashes)));
+                            Ids.evidenceHash(hashPairs)));
         }
         return List.copyOf(byId.values());
+    }
+
+    private static String pair(String key, Object hash) {
+        return key + "=" + hash;
     }
 
     /** Re-detection steps 2 to 5; every system write is conditional on the observed status. */
@@ -411,6 +417,8 @@ public final class DetectionService {
             MATCH (r:Run {id: $runId})
             UNWIND $items AS x
             CREATE (i:Inconsistency) SET i = x.props
+            CREATE (i)-[:HAS_STATUS_CHANGE]->(:StatusChange {to: 'OPEN', actor: x.actor, reason: 'detected',
+                    at: $now, runId: $runId})
             CREATE (r)-[:DETECTED]->(i)
             RETURN i.id AS id
             """;

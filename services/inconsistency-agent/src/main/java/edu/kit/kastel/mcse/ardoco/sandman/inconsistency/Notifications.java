@@ -2,9 +2,12 @@ package edu.kit.kastel.mcse.ardoco.sandman.inconsistency;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +30,29 @@ final class Notifications implements Consumer<ObjectNode> {
         LOG.info(line);
         if (file != null) {
             try {
-                Files.writeString(file, line + "\n", StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                create();
+                Files.writeString(
+                        file,
+                        line + "\n",
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.APPEND,
+                        LinkOption.NOFOLLOW_LINKS);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+        }
+    }
+
+    private void create() throws IOException {
+        if (Files.isSymbolicLink(file)) {
+            throw new IOException("refusing to write through symlink " + file);
+        }
+        var mode = PosixFilePermissions.fromString("rw-rw----");
+        try {
+            Files.createFile(file, PosixFilePermissions.asFileAttribute(mode));
+            Files.setPosixFilePermissions(file, mode); // createFile is masked by the umask
+        } catch (FileAlreadyExistsException e) {
+            // already there: keep its mode
         }
     }
 }

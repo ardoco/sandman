@@ -141,6 +141,18 @@ class PluginTest {
     }
 
     @Test
+    void pluginWarningsAreReportedInDetectorRuns() throws Exception {
+        response = "{\"findings\":[],\"warnings\":[\"skipped input a\",\"slow\"]}";
+        var run = detect(null).output().get("detectorRuns").get(0);
+        assertEquals("completed", run.get("status").asString());
+        assertEquals(
+                List.of("skipped input a", "slow"),
+                run.get("warnings").valueStream().map(JsonNode::asString).toList());
+        response = "{\"findings\":[]}";
+        assertFalse(detect(null).output().get("detectorRuns").get(0).has("warnings"));
+    }
+
+    @Test
     void invalidPluginOutputFailsTheDetectorRunWithoutCrash() throws Exception {
         response = "{\"findings\":[{\"type\":\"Bad Type\"}]}";
         var r = detect(null);
@@ -160,6 +172,15 @@ class PluginTest {
         var run = detect(null).output().get("detectorRuns").get(0);
         assertEquals("failed", run.get("status").asString());
         assertTrue(run.get("error").asString().contains("401"));
+    }
+
+    @Test
+    void registryRejectsSchemaInvalidConfig(@TempDir Path dir) throws Exception {
+        Path yaml = dir.resolve("plugins.yaml");
+        Files.writeString(
+                yaml, "plugins:\n  - { id: p, transport: carrier-pigeon, url: 'http://x', tokenFile: '/t' }\n");
+        var e = assertThrows(Settings.ConfigException.class, () -> DetectorRegistry.load(yaml, contracts));
+        assertTrue(e.getMessage().contains("invalid config " + yaml), e.getMessage());
     }
 
     @Test

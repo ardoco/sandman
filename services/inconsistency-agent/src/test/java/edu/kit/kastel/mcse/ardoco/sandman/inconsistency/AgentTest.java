@@ -1,6 +1,7 @@
 package edu.kit.kastel.mcse.ardoco.sandman.inconsistency;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
@@ -168,7 +169,7 @@ class AgentTest {
         assertEquals(req1, element.get("key").asString());
         assertEquals("Requirement", element.get("label").asString());
         assertEquals("requirements.md", element.get("artifactPath").asString());
-        assertEquals(0, body.get("history").size());
+        assertEquals(1, body.get("history").size()); // creation entry
         assertEquals(List.of("DEFERRED", "ACCEPTED", "REJECTED", "RESOLVED"), strings(body.get("allowedTransitions")));
         assertEquals(
                 404,
@@ -182,14 +183,30 @@ class AgentTest {
                 id1, QS, "user:alice", "{\"to\":\"ACCEPTED\",\"expectedStatus\":\"OPEN\",\"reason\":\"intended\"}");
         assertEquals(200, r.status(), r.body().toString());
         assertEquals("ACCEPTED", r.body().get("status").asString());
-        assertEquals("user:alice", r.body().get("history").get(0).get("actor").asString());
-        assertEquals("intended", r.body().get("history").get(0).get("reason").asString());
+        assertFalse(r.body().get("history").get(0).has("from")); // creation entry
+        assertEquals("OPEN", r.body().get("history").get(0).get("to").asString());
+        assertEquals("user:alice", r.body().get("history").get(1).get("actor").asString());
+        assertEquals("intended", r.body().get("history").get(1).get("reason").asString());
         assertEquals(List.of("OPEN"), strings(r.body().get("allowedTransitions")));
         var event = events.events.getLast();
         assertEquals("sandman.inconsistency.status.changed", event.type());
         assertEquals("ACCEPTED", event.data().get("to").asString());
         Response resolved = transition(id1, QS, "user:alice", "{\"to\":\"OPEN\",\"expectedStatus\":\"ACCEPTED\"}");
         assertEquals("OPEN", resolved.body().get("status").asString());
+    }
+
+    @Test
+    void actorHeaderFromANonForwarderIsForbidden() throws Exception {
+        assertEquals(
+                403,
+                transition(id1, ORCH, "user:alice", "{\"to\":\"RESOLVED\",\"expectedStatus\":\"OPEN\"}")
+                        .status());
+        assertEquals(
+                "OPEN",
+                call("GET", "/v1/inconsistencies/" + id1, QS, null, null)
+                        .body()
+                        .get("status")
+                        .asString());
     }
 
     @Test

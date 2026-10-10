@@ -70,6 +70,11 @@ public final class PluginDetector implements InconsistencyDetector {
 
     @Override
     public List<Finding> detect(DetectionScope scope, DetectorContext ctx) {
+        return detectWithWarnings(scope, ctx).findings();
+    }
+
+    @Override
+    public Detection detectWithWarnings(DetectionScope scope, DetectorContext ctx) {
         ObjectNode input = JsonMapper.shared().createObjectNode();
         input.put("projectId", scope.projectId());
         input.put("llmPolicy", ctx.llmPolicy());
@@ -82,8 +87,11 @@ public final class PluginDetector implements InconsistencyDetector {
         }
         input.put("queryServiceUrl", ctx.queryServiceUrl());
         List<Finding> findings = new ArrayList<>();
-        client.detect(input).path("findings").forEach(f -> findings.add(Finding.fromJson(f)));
-        return findings;
+        List<String> warnings = new ArrayList<>();
+        JsonNode output = client.detect(input);
+        output.path("findings").forEach(f -> findings.add(Finding.fromJson(f)));
+        output.path("warnings").forEach(w -> warnings.add(w.asString()));
+        return new Detection(findings, warnings);
     }
 
     /** Manifest, cached once fetched; an unreachable plugin yields an empty one (retried on the next call). */

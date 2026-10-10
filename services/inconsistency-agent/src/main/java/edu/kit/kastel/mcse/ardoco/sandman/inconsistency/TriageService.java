@@ -54,7 +54,8 @@ public final class TriageService {
     private static final String TRANSITION = """
             MATCH (i:Inconsistency {id: $id}) WHERE i.status = $expected
             SET i.status = $to, i.updatedAt = $now,
-                i.verification = CASE WHEN $to = 'RESOLVED' THEN 'pending' ELSE i.verification END,
+                i.verification = CASE WHEN $to = 'RESOLVED' THEN 'pending'
+                                      WHEN $expected = 'RESOLVED' THEN 'none' ELSE i.verification END,
                 i.acceptedEvidenceHash = CASE WHEN $to IN ['ACCEPTED', 'REJECTED'] THEN i.evidenceHash
                                               ELSE i.acceptedEvidenceHash END
             CREATE (i)-[:HAS_STATUS_CHANGE]->(:StatusChange {from: $expected, to: $to, actor: $actor,
@@ -171,10 +172,9 @@ public final class TriageService {
         ArrayNode hist = out.putArray("history");
         for (var row : history) {
             Map<String, Object> c = ((Node) row.get("c")).asMap();
-            ObjectNode h = hist.addObject()
-                    .put("from", (String) c.get("from"))
-                    .put("to", (String) c.get("to"))
-                    .put("actor", (String) c.get("actor"));
+            ObjectNode h = hist.addObject();
+            put(h, "from", c.get("from"));
+            h.put("to", (String) c.get("to")).put("actor", (String) c.get("actor"));
             put(h, "reason", c.get("reason"));
             h.put("at", (String) c.get("at"));
         }

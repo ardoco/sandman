@@ -13,7 +13,6 @@ import java.util.ServiceLoader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import tools.jackson.databind.JsonNode;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Enabled detectors: ServiceLoader detectors switched on and HTTP plugins registered in config/inconsistency/plugins.yaml. */
 public final class DetectorRegistry {
@@ -28,12 +27,7 @@ public final class DetectorRegistry {
 
     /** Fails on unknown enabled detectors, a2a plugins and unreadable token files. */
     public static DetectorRegistry load(Path pluginsYaml, Contracts contracts) {
-        JsonNode config;
-        try {
-            config = YAMLMapper.builder().build().readTree(Files.readString(pluginsYaml));
-        } catch (IOException e) {
-            throw new ConfigException("cannot read " + pluginsYaml + ": " + e, e);
-        }
+        JsonNode config = contracts.loadConfig("inconsistency-plugins", pluginsYaml);
         Map<String, InconsistencyDetector> available = new LinkedHashMap<>();
         ServiceLoader.load(InconsistencyDetector.class).forEach(d -> available.put(d.id(), d));
         List<InconsistencyDetector> enabled = new java.util.ArrayList<>();

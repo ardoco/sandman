@@ -143,7 +143,7 @@ class DetectionScenarioTest {
         assertEquals(List.of(stubId(req2)), ids(r2.output().get("autoResolvedIds")));
         assertEquals("RESOLVED", status(stubId(req2)));
         assertEquals("confirmed", inc(stubId(req2)).get("verification"));
-        assertEquals(List.of("not-redetected"), reasons(stubId(req2)));
+        assertEquals(List.of("detected", "not-redetected"), reasons(stubId(req2)));
         assertEquals("DEFERRED", status(stubId(req1)));
         assertEquals(r2.output().get("runId").asString(), inc(stubId(req1)).get("lastRunId"));
 
@@ -161,7 +161,7 @@ class DetectionScenarioTest {
         assertEquals(List.of(stubId(req3)), ids(r5.output().get("reopenedIds")));
         assertEquals("REOPENED", status(stubId(req3)));
         assertEquals("REOPENED", notifications.get(0).get("status").asString());
-        assertEquals("re-detected", reasons(stubId(req3)).get(1));
+        assertEquals("re-detected", reasons(stubId(req3)).get(2));
     }
 
     @Test
@@ -225,7 +225,7 @@ class DetectionScenarioTest {
         var r = detect(List.of(modelArt), List.of("scripted"));
         assertEquals(
                 Set.of(stubId(req1), stubId(req2)), Set.copyOf(ids(r.output().get("autoResolvedIds"))));
-        assertEquals(List.of("artifact-deleted"), reasons(stubId(req1)));
+        assertEquals(List.of("detected", "artifact-deleted"), reasons(stubId(req1)));
         assertEquals("confirmed", inc(stubId(req1)).get("verification"));
     }
 
@@ -268,5 +268,23 @@ class DetectionScenarioTest {
         assertEquals(
                 "failed", r.output().get("detectorRuns").get(0).get("status").asString());
         assertEquals("partial", r.output().get("status").asString());
+    }
+
+    @Test
+    void linkWithNonCurrentEndpointFailsTheDetector() throws Exception {
+        String link = TestKg.link(kg, PROJECT, req1, model1, true, "candidate");
+        kg.write("MATCH (:Artifact {id: $a})-[c:CURRENT_VERSION]->() DELETE c", Map.of("a", reqArt));
+        scripted.findings = List.of(new Finding(
+                "scripted-finding",
+                "info",
+                "scripted",
+                null,
+                null,
+                List.of(new Finding.Involved(null, link, "subject")),
+                null));
+        var r = detect(null, List.of("scripted"));
+        assertEquals(
+                "failed", r.output().get("detectorRuns").get(0).get("status").asString());
+        assertEquals(0, r.output().get("newIds").size());
     }
 }

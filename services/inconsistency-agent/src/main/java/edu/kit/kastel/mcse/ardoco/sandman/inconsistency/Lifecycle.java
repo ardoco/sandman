@@ -30,7 +30,7 @@ public final class Lifecycle {
             case OPEN, REOPENED -> EnumSet.of(DEFERRED, ACCEPTED, REJECTED, RESOLVED);
             case DEFERRED -> EnumSet.of(OPEN, ACCEPTED, REJECTED, RESOLVED);
             case ACCEPTED, REJECTED -> EnumSet.of(OPEN);
-            case RESOLVED -> EnumSet.noneOf(Status.class);
+            case RESOLVED -> EnumSet.of(OPEN);
         };
     }
 

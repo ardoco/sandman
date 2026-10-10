@@ -19,7 +19,7 @@ class LifecycleTest {
             DEFERRED, Set.of(OPEN, ACCEPTED, REJECTED, RESOLVED),
             ACCEPTED, Set.of(OPEN),
             REJECTED, Set.of(OPEN),
-            RESOLVED, Set.of());
+            RESOLVED, Set.of(OPEN));
     static final Map<Status, Set<Status>> SYSTEM = Map.of(
             OPEN, Set.of(RESOLVED),
             DEFERRED, Set.of(RESOLVED),

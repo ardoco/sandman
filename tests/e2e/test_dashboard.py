@@ -60,6 +60,15 @@ def compose_command() -> list[str]:
     ]
 
 
+def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise AssertionError(
+            f"{' '.join(cmd)} exited {result.returncode}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+        )
+    return result
+
+
 def password() -> str:
     if value := os.environ.get("SANDMAN_E2E_DASHBOARD_PASSWORD"):
         return value
@@ -165,37 +174,21 @@ def test_every_service_reports_working_or_idle_and_settles_to_idle(dashboard: ht
 
 def test_stopped_agent_is_shown_down_and_recovers(dashboard: httpx.Client) -> None:
     compose = compose_command()
-    subprocess.run([*compose, "stop", "tlr-agent"], check=True, cwd=ROOT, capture_output=True)
+    run([*compose, "stop", "tlr-agent"])
     try:
         wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "down", 30, "tlr-agent down")
         assert services(dashboard)["orchestrator"]["health"] == "up"
     finally:
-        subprocess.run(
-            [*compose, "start", "--wait", "--wait-timeout", "180", "tlr-agent"],
-            check=True,
-            cwd=ROOT,
-            capture_output=True,
-        )
+        run([*compose, "up", "-d", "--no-deps", "--wait", "--wait-timeout", "180", "tlr-agent"])
     wait_for(lambda: services(dashboard)["tlr-agent"]["health"] == "up", 60, "tlr-agent up again")
 
 
 def test_plugin_stubs_restart_becomes_healthy_again() -> None:
-    """`start --wait` only returns once the plugin-stubs healthcheck (extract 8000 and detect 8001) passes."""
+    """`up -d --no-deps --wait` only returns once the plugin-stubs healthcheck (extract 8000 and detect 8001) passes."""
     compose = compose_command()
-    subprocess.run([*compose, "stop", "plugin-stubs"], check=True, cwd=ROOT, capture_output=True)
-    subprocess.run(
-        [*compose, "start", "--wait", "--wait-timeout", "120", "plugin-stubs"],
-        check=True,
-        cwd=ROOT,
-        capture_output=True,
-    )
-    ps = subprocess.run(
-        [*compose, "ps", "--format", "{{.Health}}", "plugin-stubs"],
-        check=True,
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-    )
+    run([*compose, "stop", "plugin-stubs"])
+    run([*compose, "up", "-d", "--no-deps", "--wait", "--wait-timeout", "120", "plugin-stubs"])
+    ps = run([*compose, "ps", "--format", "{{.Health}}", "plugin-stubs"])
     assert ps.stdout.strip() == "healthy", ps.stdout
 
 

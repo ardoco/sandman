@@ -13,6 +13,8 @@
   <modules>
     <module>libs/java/agent-lib</module>
     <module>libs/java/agent-lib-a2a</module>
+    <module>services/tlr-agent/approach-spi</module>
+    <module>services/tlr-agent/approach-ardoco</module>
     <module>services/tlr-agent</module>
     <module>services/inconsistency-agent</module>
   </modules>
@@ -24,6 +26,8 @@
     <a2a-java.version>1.4.0.Final</a2a-java.version>
     <quarkus.platform.version>3.33.4</quarkus.platform.version>
     <neo4j-java-driver.version>6.3.0</neo4j-java-driver.version>
+    <ardoco.version>2.1.0</ardoco.version>
+    <archunit.version>1.4.1</archunit.version>
     <jnats.version>2.26.4</jnats.version>
     <json-schema-validator.version>3.0.8</json-schema-validator.version>
     <java-json-canonicalization.version>1.1</java-json-canonicalization.version>

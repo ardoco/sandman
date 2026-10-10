@@ -24,6 +24,21 @@
       <groupId>io.github.ardoco.tlr</groupId>
       <artifactId>pipeline-tlr</artifactId>
       <version>${ardoco.version}</version>
+      <exclusions>
+        <!-- Only the code extractors of model-provider use them (Magika file typing, JDT Java parsing); SWATTR reads PCM and UML. -->
+        <exclusion>
+          <groupId>io.github.ardoco</groupId>
+          <artifactId>magika</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.microsoft.onnxruntime</groupId>
+          <artifactId>onnxruntime</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jdt</groupId>
+          <artifactId>org.eclipse.jdt.core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

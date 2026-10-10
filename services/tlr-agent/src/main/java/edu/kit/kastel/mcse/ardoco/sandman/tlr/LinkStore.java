@@ -148,11 +148,15 @@ public final class LinkStore {
                 .consume());
     }
 
+    /** Version ids at the two ends of links that a whole-project run added or retired. */
+    public record Changed(Set<String> sources, Set<String> targets) {}
+
     /**
      * Final transaction of a whole-project run: deactivates the approach's active links between artifacts of the
-     * supported kind pairs that this run did not produce, activates this run's links.
+     * supported kind pairs that this run did not produce, activates this run's links. Returns the version ids at both
+     * ends of the retired and of the newly activated links.
      */
-    public void finishWholeProject(String runId, String projectId, String approach, Set<KindPair> pairs) {
+    public Changed finishWholeProject(String runId, String projectId, String approach, Set<KindPair> pairs) {
         Map<String, Object> params = Map.of(
                 "runId", runId,
                 "projectId", projectId,
@@ -164,20 +168,41 @@ public final class LinkStore {
                                 .toList(),
                 "now", now(),
                 "explicit", EXPLICIT_REFERENCE);
-        kg.writeTx(tx -> tx.run(
-                        "MATCH (r:Run {id: $runId}) "
-                                + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
-                                + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:HAS_VERSION]-(sa:Artifact), "
-                                + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:HAS_VERSION]-(ta:Artifact) "
-                                + "WHERE sa.kind + '>' + ta.kind IN $pairs "
-                                + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
-                                + "SET old.active = false "
-                                + "WITH count(*) AS superseded "
-                                + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
-                                + "WITH count(*) AS activated "
-                                + "MATCH (r:Run {id: $runId}) SET r.status = 'completed', r.endedAt = $now",
-                        params)
-                .consume());
+        String retired = "MATCH (r:Run {id: $runId}) "
+                + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
+                + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion)<-[:HAS_VERSION]-(sa:Artifact), "
+                + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion)<-[:HAS_VERSION]-(ta:Artifact) "
+                + "WHERE sa.kind + '>' + ta.kind IN $pairs "
+                + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit ";
+        return kg.writeTx(tx -> {
+            Set<String> sources = new java.util.TreeSet<>();
+            Set<String> targets = new java.util.TreeSet<>();
+            for (var row : tx.run(retired + "RETURN DISTINCT sv.id AS s, tv.id AS t", params)
+                    .list()) {
+                sources.add(row.get("s").asString());
+                targets.add(row.get("t").asString());
+            }
+            for (var row : tx.run(
+                            "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) WHERE x.active = false "
+                                    + "MATCH (x)-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), "
+                                    + "(x)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
+                                    + "RETURN DISTINCT sv.id AS s, tv.id AS t",
+                            params)
+                    .list()) {
+                sources.add(row.get("s").asString());
+                targets.add(row.get("t").asString());
+            }
+            tx.run(
+                            retired
+                                    + "SET old.active = false "
+                                    + "WITH count(*) AS superseded "
+                                    + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
+                                    + "WITH count(*) AS activated "
+                                    + "MATCH (r:Run {id: $runId}) SET r.status = 'completed', r.endedAt = $now",
+                            params)
+                    .consume();
+            return new Changed(sources, targets);
+        });
     }
 
     /** Startup: links of disabled approaches must not stay active. */

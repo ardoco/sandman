@@ -443,6 +443,16 @@ class RecoverTraceLinksTest {
         }
     }
 
+    private List<String> eventIds(int event, String member) {
+        return events.events
+                .get(event)
+                .data()
+                .get(member)
+                .valueStream()
+                .map(JsonNode::asString)
+                .toList();
+    }
+
     private List<String> activeWholeLinks() {
         return kg
                 .read(
@@ -463,12 +473,19 @@ class RecoverTraceLinksTest {
                         + "\"targetVersionIds\":[\"" + V_M1 + "\"],\"approaches\":[\"test-whole\"]}");
         assertEquals("TASK_STATE_COMPLETED", run(in).state());
         assertEquals(2, activeWholeLinks().size());
+        assertEquals(List.of(V_D1), eventIds(0, "sourceVersionIds"));
+        assertEquals(List.of(V_M1), eventIds(0, "targetVersionIds"));
 
         // a second model that the request does not mention: ignored subset, all current versions are used
         wholeArtifact("art_m2", "architecture-model", V_M2, true, List.of("Alpha|"));
         var done = run(in);
         assertEquals("TASK_STATE_COMPLETED", done.state(), String.valueOf(done.error()));
         assertEquals(3, activeWholeLinks().size());
+        assertEquals(List.of(V_D1), eventIds(1, "sourceVersionIds"));
+        assertEquals(List.of(V_M1, V_M2), eventIds(1, "targetVersionIds"));
+        contracts.validate(
+                "events.schema.json#/$defs/TracelinksUpdated",
+                events.events.get(1).data());
         assertEquals(
                 List.of(V_D1, V_M1, V_M2).stream().sorted().toList(),
                 kg
@@ -484,6 +501,8 @@ class RecoverTraceLinksTest {
         // stable
         wholeArtifact("art_m1", "architecture-model", V_M1B, true, List.of("Alpha|"));
         run(in);
+        assertEquals(List.of(V_D1), eventIds(2, "sourceVersionIds"));
+        assertEquals(List.of(V_M1, V_M1B), eventIds(2, "targetVersionIds"));
         var after = activeWholeLinks();
         assertEquals(
                 Stream.of(
@@ -500,6 +519,115 @@ class RecoverTraceLinksTest {
         kg.write("MATCH (:Artifact {id: 'art_m2'})-[c:CURRENT_VERSION]->() DELETE c", Map.of());
         run(in);
         assertTrue(activeWholeLinks().isEmpty());
+    }
+
+    private A2aClient.TaskSnapshot submit(JsonNode in) {
+        A2aClient client = new A2aClient(TestBeans.TOKENS.get("orchestrator"));
+        clients.add(client);
+        return client.submit(
+                url.toString(),
+                "recover-trace-links",
+                in,
+                null,
+                null,
+                UUID.randomUUID().toString());
+    }
+
+    private A2aClient.TaskSnapshot await(A2aClient.TaskSnapshot task) throws InterruptedException {
+        for (int i = 0; i < 1000 && !task.terminal(); i++) {
+            Thread.sleep(10);
+            task = new A2aClient(TestBeans.TOKENS.get("orchestrator")).get(url.toString(), task.taskId());
+        }
+        assertTrue(task.terminal(), "task did not finish: " + task);
+        return task;
+    }
+
+    private JsonNode wholeInput() {
+        return JsonMapper.shared()
+                .readTree("{\"projectId\":\"" + PROJECT + "\",\"sourceVersionIds\":[\"" + V_D1 + "\"],"
+                        + "\"targetVersionIds\":[\"" + V_M1 + "\"],\"approaches\":[\"test-whole\"]}");
+    }
+
+    record Gate(java.util.concurrent.CountDownLatch entered, java.util.concurrent.CountDownLatch release) {}
+
+    /** The first whole-project run stays in the approach until the gate is released. */
+    private Gate holdFirstWholeRun() {
+        var gate = new Gate(new java.util.concurrent.CountDownLatch(1), new java.util.concurrent.CountDownLatch(1));
+        var first = new java.util.concurrent.atomic.AtomicBoolean(true);
+        WholeProjectApproach.beforeRecover = () -> {
+            if (first.getAndSet(false)) {
+                gate.entered().countDown();
+                try {
+                    gate.release().await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+        return gate;
+    }
+
+    @Test
+    void overlappingWholeProjectRunsEndInTheStateOfTheNewestSnapshot() throws Exception {
+        wholeArtifact("art_doc", "architecture-doc", V_D1, true, List.of("s1|uses Alpha", "s2|uses Beta"));
+        wholeArtifact("art_m1", "architecture-model", V_M1, true, List.of("Alpha|", "Beta|"));
+        var gate = holdFirstWholeRun();
+        try {
+            var a = submit(wholeInput());
+            gate.entered().await(); // run A holds its snapshot (doc + m1) inside the approach
+            wholeArtifact("art_m2", "architecture-model", V_M2, true, List.of("Alpha|"));
+            var b = submit(wholeInput());
+            Thread.sleep(300);
+            gate.release().countDown();
+            assertEquals("TASK_STATE_COMPLETED", await(a).state());
+            assertEquals("TASK_STATE_COMPLETED", await(b).state());
+        } finally {
+            WholeProjectApproach.beforeRecover = null;
+        }
+        assertEquals(
+                Stream.of(
+                                Ids.stableId("el", V_D1, "s1") + ">" + Ids.stableId("el", V_M1, "Alpha"),
+                                Ids.stableId("el", V_D1, "s2") + ">" + Ids.stableId("el", V_M1, "Beta"),
+                                Ids.stableId("el", V_D1, "s1") + ">" + Ids.stableId("el", V_M2, "Alpha"))
+                        .sorted()
+                        .toList(),
+                activeWholeLinks());
+    }
+
+    @Test
+    void cancellingATaskWaitingForTheProjectLockEndsCanceledWithoutARun() throws Exception {
+        wholeArtifact("art_doc", "architecture-doc", V_D1, true, List.of("s1|uses Alpha"));
+        wholeArtifact("art_m1", "architecture-model", V_M1, true, List.of("Alpha|"));
+        var gate = holdFirstWholeRun();
+        try {
+            var a = submit(wholeInput());
+            gate.entered().await();
+            var b = submit(wholeInput());
+            Thread.sleep(300);
+            var client = new A2aClient(TestBeans.TOKENS.get("orchestrator"));
+            clients.add(client);
+            client.cancel(url.toString(), b.taskId());
+            assertEquals("TASK_STATE_CANCELED", await(b).state());
+            Thread.sleep(300);
+            gate.release().countDown();
+            assertEquals("TASK_STATE_COMPLETED", await(a).state());
+        } finally {
+            WholeProjectApproach.beforeRecover = null;
+        }
+        assertEquals(
+                1,
+                kg.read("MATCH (r:Run {tool: 'test-whole'}) RETURN r.id AS id", Map.of())
+                        .size());
+        assertEquals(1, events.events.size());
+    }
+
+    @Test
+    void parametersOutsideTheApproachAllowlistAreInvalidInput() throws Exception {
+        var done = run(
+                input(",\"approaches\":[\"ardoco\"],\"params\":{\"ardoco\":{\"additionalConfigs\":{\"a\":\"b\"}}}"));
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("INVALID_INPUT", done.error().get("code").asString());
+        assertTrue(done.error().get("message").asString().contains("additionalConfigs"));
     }
 
     @Test

@@ -7,6 +7,9 @@ import java.util.Set;
 /** Test-only whole-project approach: links a document element to a model element whose name its text contains. */
 public final class WholeProjectApproach implements TraceLinkApproach {
 
+    /** Test hook, called after the input snapshot was taken and before the links are computed. */
+    static volatile Runnable beforeRecover;
+
     @Override
     public String id() {
         return "test-whole";
@@ -29,6 +32,10 @@ public final class WholeProjectApproach implements TraceLinkApproach {
 
     @Override
     public List<CandidateLink> recover(TlrInput in, TlrContext ctx) {
+        Runnable hook = beforeRecover;
+        if (hook != null) {
+            hook.run();
+        }
         List<CandidateLink> links = new ArrayList<>();
         for (var s : in.sources()) {
             for (var t : in.targets()) {

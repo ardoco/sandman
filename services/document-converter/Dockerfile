@@ -1,5 +1,5 @@
-FROM python:3.13-slim-bookworm AS build
-COPY --from=ghcr.io/astral-sh/uv:0.12.5 /uv /uvx /bin/
+FROM python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641 AS build
+COPY --from=ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1 /uv /uvx /bin/
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY pyproject.toml uv.lock ./
@@ -13,7 +13,7 @@ RUN uv sync --frozen --no-dev --no-editable --package sandman-document-converter
 # so a build with missing or altered models fails.
 RUN SANDMAN_MODELS_DIR=/models .venv/bin/python -m sandman_document_converter.prefetch
 
-FROM python:3.13-slim-bookworm
+FROM python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
 RUN useradd --uid 10001 --create-home sandman && install -d -o sandman /artifacts
 WORKDIR /app
 COPY --from=build /app/.venv /app/.venv

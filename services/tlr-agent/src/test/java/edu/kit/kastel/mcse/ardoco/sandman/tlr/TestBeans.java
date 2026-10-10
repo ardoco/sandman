@@ -27,8 +27,15 @@ final class TestBeans {
             .withExposedPorts(7687)
             .waitingFor(Wait.forListeningPort());
 
+    static final java.nio.file.Path ARTIFACTS;
+
     static {
         MEMGRAPH.start();
+        try {
+            ARTIFACTS = java.nio.file.Files.createTempDirectory("tlr-artifacts-");
+        } catch (java.io.IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
     }
 
     @Produces
@@ -50,7 +57,7 @@ final class TestBeans {
                 TOKENS.get("tlr-agent"),
                 verify,
                 null,
-                null,
+                ARTIFACTS,
                 null,
                 null);
     }

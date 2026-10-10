@@ -1,5 +1,6 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr;
 
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -10,7 +11,6 @@ import java.util.stream.Collectors;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Approaches found via ServiceLoader and switched on in config/tlr/approaches.yaml. */
 public final class Approaches {
@@ -21,8 +21,8 @@ public final class Approaches {
     private final Map<String, Entry> enabled = new LinkedHashMap<>();
     private final Set<String> disabled;
 
-    public Approaches(Path file, Iterable<TraceLinkApproach> available) {
-        JsonNode config = new YAMLMapper().readTree(file).path("approaches");
+    public Approaches(Path file, Iterable<TraceLinkApproach> available, Contracts contracts) {
+        JsonNode config = contracts.loadConfig("tlr-approaches", file).path("approaches");
         for (TraceLinkApproach a : available) {
             JsonNode c = config.path(a.id());
             if (c.path("enabled").asBoolean(false)) {

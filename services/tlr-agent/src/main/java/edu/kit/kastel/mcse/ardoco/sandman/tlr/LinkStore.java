@@ -12,6 +12,8 @@ import java.util.Map;
 public final class LinkStore {
 
     static final int BATCH_SIZE = 5_000;
+    /** Links of the extraction-agent (R-006): never superseded, deactivated or pruned by the tlr-agent. */
+    static final String EXPLICIT_REFERENCE = "explicit-reference";
 
     private final KgClient kg;
 
@@ -92,14 +94,15 @@ public final class LinkStore {
                 "approach", approach,
                 "sourceVersionIds", sourceVersionIds,
                 "targetVersionIds", targetVersionIds,
-                "now", now());
+                "now", now(),
+                "explicit", EXPLICIT_REFERENCE);
         kg.writeTx(tx -> tx.run(
                         "MATCH (r:Run {id: $runId}) "
                                 + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
                                 + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), "
                                 + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
                                 + "WHERE sv.id IN $sourceVersionIds AND tv.id IN $targetVersionIds "
-                                + "AND NOT (r)-[:PRODUCED]->(old) "
+                                + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
                                 + "SET old.active = false "
                                 + "WITH count(*) AS superseded "
                                 + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
@@ -112,7 +115,8 @@ public final class LinkStore {
     /** Startup: links of disabled approaches must not stay active. */
     public void deactivate(java.util.Collection<String> approaches) {
         kg.write(
-                "MATCH (l:TraceLink {active: true}) WHERE l.approach IN $approaches SET l.active = false",
-                Map.of("approaches", List.copyOf(approaches)));
+                "MATCH (l:TraceLink {active: true}) WHERE l.approach IN $approaches AND l.approach <> $explicit "
+                        + "SET l.active = false",
+                Map.of("approaches", List.copyOf(approaches), "explicit", EXPLICIT_REFERENCE));
     }
 }

@@ -300,6 +300,16 @@ class RecoverTraceLinksTest {
     }
 
     @Test
+    void invalidApproachesConfigFailsAtStartup(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        var file = dir.resolve("approaches.yaml");
+        java.nio.file.Files.writeString(file, "approaches:\n  stub-name-match: { enabled: \"yes\" }\n");
+        var e = org.junit.jupiter.api.Assertions.assertThrows(
+                Settings.ConfigException.class, () -> new Approaches(file, List.of(), contracts));
+        assertTrue(e.getMessage().contains("invalid config " + file), e.getMessage());
+    }
+
+    @Test
     void startupDeactivatesLinksOfDisabledApproachesOnly() {
         kg.write(
                 "CREATE (:TraceLink {id: 'tl_a', approach: 'lissa', active: true}), "
@@ -309,6 +319,51 @@ class RecoverTraceLinksTest {
         beans.onStart(null, kg, settings, approaches);
         var active = activeLinks().stream().map(l -> l.get("id")).toList();
         assertEquals(List.of("tl_b", "tl_c"), active);
+    }
+
+    @Test
+    void explicitReferenceLinksSurviveCleanupAndRecovery() throws Exception {
+        kg.write(
+                "CREATE (:TraceLink {id: 'tl_explicit', approach: 'explicit-reference', active: true, projectId: $p})",
+                Map.of("p", PROJECT));
+        new LinkStore(kg).deactivate(List.of("explicit-reference", "lissa"));
+        assertEquals(
+                List.of("tl_explicit"),
+                activeLinks().stream().map(l -> l.get("id")).toList());
+        var task = run(input(""));
+        assertEquals("TASK_STATE_COMPLETED", task.state(), String.valueOf(task.error()));
+        new LinkStore(kg).finish("run_none", PROJECT, "explicit-reference", List.of(SRC_VERSION), List.of(TGT_VERSION));
+        assertTrue(activeLinks().stream().anyMatch(l -> "tl_explicit".equals(l.get("id"))));
+    }
+
+    @Test
+    void plannedReviewEndpointAnswers501AndActorFromNonForwarderIs403() throws Exception {
+        HttpClient http = HttpClient.newHttpClient();
+        URI uri = url.resolve("/v1/links/tl_" + "0".repeat(32) + "/review");
+        var body = HttpRequest.BodyPublishers.ofString("{\"status\":\"confirmed\"}");
+        var qs = http.send(
+                HttpRequest.newBuilder(uri)
+                        .header("Authorization", "Bearer " + TestBeans.TOKENS.get("query-service"))
+                        .header("X-Sandman-Actor", "user:alice")
+                        .POST(body)
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertEquals(501, qs.statusCode());
+        JsonNode problem = JsonMapper.shared().readTree(qs.body());
+        assertEquals(501, problem.get("status").asInt());
+        assertEquals("Not Implemented", problem.get("title").asString());
+        var orch = http.send(
+                HttpRequest.newBuilder(uri)
+                        .header("Authorization", "Bearer " + TestBeans.TOKENS.get("orchestrator"))
+                        .header("X-Sandman-Actor", "user:alice")
+                        .POST(body)
+                        .build(),
+                HttpResponse.BodyHandlers.discarding());
+        assertEquals(403, orch.statusCode());
+        assertEquals(
+                401,
+                http.send(HttpRequest.newBuilder(uri).POST(body).build(), HttpResponse.BodyHandlers.discarding())
+                        .statusCode());
     }
 
     @Test

@@ -48,12 +48,12 @@ public class Beans {
 
     @Produces
     @Singleton
-    Approaches approaches(Settings settings) {
+    Approaches approaches(Settings settings, Contracts contracts) {
         Path file = approachesFile.orElseGet(() -> (settings.configDir() != null
                         ? settings.configDir()
                         : settings.contractsDir().resolveSibling("config"))
                 .resolve("tlr/approaches.yaml"));
-        return new Approaches(file, ServiceLoader.load(TraceLinkApproach.class));
+        return new Approaches(file, ServiceLoader.load(TraceLinkApproach.class), contracts);
     }
 
     /** JetStream-backed sink; the connection opens on the first event. */

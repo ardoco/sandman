@@ -19,7 +19,8 @@ import tools.jackson.databind.JsonNode;
 /** Test wiring: settings for a Memgraph container and a recording event sink. */
 final class TestBeans {
 
-    static final Map<String, String> TOKENS = Map.of("orchestrator", "orch-token", "tlr-agent", "tlr-token");
+    static final Map<String, String> TOKENS =
+            Map.of("orchestrator", "orch-token", "tlr-agent", "tlr-token", "query-service", "qs-token");
 
     static final GenericContainer<?> MEMGRAPH = new GenericContainer<>("memgraph/memgraph:3.13.1")
             .withCommand("--telemetry-enabled=false")

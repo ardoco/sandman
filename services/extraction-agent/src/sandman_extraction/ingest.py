@@ -141,8 +141,8 @@ def read_archive(
 
 
 def manifest_of(archive: dict[str, bytes]) -> Manifest:
-    """Full-snapshot manifest of an archive uploaded without one: every file hashed, no kind rules."""
-    return Manifest(mode="full", files=[ManifestFile(path=p, sha256=sha256_hex(d)) for p, d in archive.items()])
+    """Partial manifest of an archive uploaded without one: every file hashed, no kind rules, no deletions."""
+    return Manifest(mode="partial", files=[ManifestFile(path=p, sha256=sha256_hex(d)) for p, d in archive.items()])
 
 
 async def rows(tx: AsyncManagedTransaction, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:

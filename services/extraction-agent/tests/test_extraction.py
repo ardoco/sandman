@@ -551,9 +551,29 @@ async def test_archive_only_upload_and_missing_parts(env: Any) -> None:
     files = env.mini()
     resp = await env.http.post(url, files={"archive": ("a", env.tar_gz(files), "application/octet-stream")})
     assert resp.status_code == 201, resp.text
-    assert resp.json()["mode"] == "full" and len(resp.json()["createdVersionIds"]) == len(files)
+    assert resp.json()["mode"] == "partial" and len(resp.json()["createdVersionIds"]) == len(files)
     assert "sourceRevision" not in resp.json()
     again = await env.http.post(url, files={"archive": ("a", env.tar_gz(files), "application/octet-stream")})
     assert again.status_code == 201 and again.json()["unchangedCount"] == len(files)
     hostile = await env.http.post(url, files={"archive": ("a", HOSTILE["tar hardlink"], "application/octet-stream")})
     assert hostile.status_code == 400
+
+
+async def test_archive_only_upload_is_partial_and_retires_nothing(env: Any) -> None:
+    await env.put_project()
+    url = f"/v1/projects/{env.project}/ingestions"
+    await created(env, {"a.txt": b"a1", "b.txt": b"b1"})
+
+    async def upload(files: dict[str, bytes]) -> dict[str, Any]:
+        resp = await env.http.post(url, files={"archive": ("a", env.tar_gz(files), "application/octet-stream")})
+        assert resp.status_code == 201, resp.text
+        return resp.json()
+
+    body = await upload({"b.txt": b"b2"})
+    assert body["mode"] == "partial" and body["deletedArtifactIds"] == []
+    assert body["createdVersionIds"] == [ver(env.project, "b.txt", b"b2")]
+    query = "MATCH (a:Artifact {projectId: $p}) RETURN a.path AS path, a.deletedAt AS d"
+    rows = await cypher(env, query, p=env.project)
+    assert {r["path"]: r["d"] for r in rows} == {"a.txt": None, "b.txt": None}
+    again = await upload({"b.txt": b"b2"})
+    assert again["unchangedCount"] == 1 and again["createdVersionIds"] == []

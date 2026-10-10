@@ -53,7 +53,6 @@ class Owners:
         out = {"authorization": f"Bearer {self._token}", **(headers or {})}
         if who.actor:
             out["x-sandman-actor"] = who.actor
-            out["x-sandman-roles"] = who.roles_header(project)
         client = self._client(owner)
         request = client.build_request(method, path, params=params, content=body, files=files, headers=out)
         return await client.send(request)

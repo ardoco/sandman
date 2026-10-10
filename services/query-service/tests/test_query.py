@@ -10,6 +10,9 @@ import yaml
 from conftest import Env, service_headers
 from helpers import validate, validate_shared
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
+from sandman_agent.contracts import ContractError, Contracts
+from sandman_query.auth import load_plugin_grants
+from sandman_query.query import Intents
 
 ANCHORED = "MATCH (n:Element {projectId: $projectId}) RETURN n.key AS key"
 INTENTS = yaml.safe_load((DEFAULT_CONTRACTS_DIR.parent / "config" / "query" / "intents.yaml").read_text())["intents"]
@@ -143,11 +146,12 @@ async def test_nl_modes_and_unknown_question(env: Env) -> None:
         json={"projectId": "alpha", "question": "open inconsistencies", "mode": "cypher-only"},
         headers=h,
     )
-    assert only.json()["columns"] == [] and only.json()["rows"] == [] and not env.reader.queries
+    assert only.json()["columns"] == [] and "rows" not in only.json() and not env.reader.queries
     no_exec = await env.http.post(
         "/v1/query/nl", json={"projectId": "alpha", "question": "open inconsistencies", "execute": False}, headers=h
     )
     assert no_exec.json()["rows"] == [] and not env.reader.queries
+    validate("/v1/query/nl", "post", 200, only.json())
     unknown = await env.http.post(
         "/v1/query/nl", json={"projectId": "alpha", "question": "why is the sky blue"}, headers=h
     )
@@ -161,7 +165,9 @@ async def test_nl_modes_and_unknown_question(env: Env) -> None:
 
 
 async def test_schema_is_the_kg_contract(env: Env) -> None:
-    env.user("alice")
+    env.user("alice", {"alpha": "viewer"})
+    env.user("nobody")
+    assert (await env.http.get("/v1/schema", headers=env.token("nobody"))).status_code == 403
     resp = await env.http.get("/v1/schema", headers=env.token("alice"))
     assert resp.json() == yaml.safe_load(Path(DEFAULT_CONTRACTS_DIR / "kg" / "schema.yaml").read_text())
     validate("/v1/schema", "get", 200, resp.json())
@@ -204,3 +210,18 @@ async def test_status_counts_in_flight_requests(env: Env) -> None:
     env.reader.gate.set()
     assert (await task).status_code == 200
     assert (await env.http.get("/v1/status", headers=service_headers("orchestrator"))).json()["state"] == "idle"
+
+
+def test_config_files_are_validated_against_their_schemas(tmp_path: Path) -> None:
+    contracts = Contracts(DEFAULT_CONTRACTS_DIR)
+    config = DEFAULT_CONTRACTS_DIR.parent / "config" / "query"
+    assert Intents(config / "intents.yaml", contracts).supported()
+    assert load_plugin_grants(config / "plugins.yaml", contracts)
+    contracts.load_config("query-examples", config / "examples.yaml")
+    bad = tmp_path / "intents.yaml"
+    bad.write_text("intents: [{id: Bad_Id, pattern: x, cypher: y}]\n")
+    with pytest.raises(ContractError):
+        Intents(bad, contracts)
+    bad.write_text("plugin-stubs: nope\n")
+    with pytest.raises(ContractError):
+        load_plugin_grants(bad, contracts)

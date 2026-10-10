@@ -1,0 +1,2 @@
+# Few-shot question -> Cypher pairs for the NL prompt (contracts/config/query-examples.schema.json); empty in the M0 stub.
+examples: []

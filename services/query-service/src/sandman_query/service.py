@@ -15,6 +15,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field
 from sandman_agent import Settings, StatusTracker, TokenVerifier
 from sandman_agent.auth import PLUGIN_PREFIX
+from sandman_agent.contracts import Contracts
 from starlette.exceptions import HTTPException
 
 from sandman_query import __version__
@@ -117,10 +118,11 @@ class Service:
         self.settings, self.store, self.reader, self.owners = settings, store, reader, owners
         self.cookie_secure = cookie_secure
         self.verifier = TokenVerifier(settings.service_verify)
+        contracts = Contracts(settings.contracts_dir)
         self.min_roles = load_min_roles(settings.contracts_dir)
-        self.grants = load_plugin_grants(config_dir / "query" / "plugins.yaml")
+        self.grants = load_plugin_grants(config_dir / "query" / "plugins.yaml", contracts)
         self.runner = Runner(reader, memory_limit)
-        self.intents = Intents(config_dir / "query" / "intents.yaml")
+        self.intents = Intents(config_dir / "query" / "intents.yaml", contracts)
         self.limiter = RateLimiter()
         self.tracker = StatusTracker("query-service", __version__)
 
@@ -220,8 +222,9 @@ class Service:
         resp: httpx.Response = await self.forward("inconsistency-agent", "GET", f"/v1/inconsistencies/{iid}", who, None)
         if resp.status_code == 404:
             raise HTTPException(404, "not found")
-        if resp.status_code == 200:
-            self.check(who, op, resp.json()["projectId"])
+        if resp.status_code != 200:
+            raise HTTPException(502, f"inconsistency-agent returned {resp.status_code}")
+        self.check(who, op, resp.json()["projectId"])
         return resp
 
     async def inconsistency_response(self, who: Principal, iid: str, op: str) -> Response:
@@ -229,8 +232,6 @@ class Service:
 
     async def transition(self, who: Principal, iid: str, body: bytes) -> Response:
         detail = await self.inconsistency(who, iid, "transitionInconsistency")
-        if detail.status_code != 200:
-            return relay(detail)
         project = detail.json()["projectId"]
         resp = await self.forward(
             "inconsistency-agent", "POST", f"/v1/inconsistencies/{iid}/transitions", who, project,

@@ -9,8 +9,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-import yaml
 from neo4j.exceptions import ClientError, Neo4jError
+from sandman_agent.contracts import Contracts
 from sandman_agent.kg import MemoryLimitError
 from starlette.exceptions import HTTPException
 
@@ -72,8 +72,8 @@ ARTIFACTS = "MATCH (a:Artifact {projectId: $projectId}) RETURN a.id AS id, a.pat
 class Intents:
     """Regex intents of the NL stub (config/query/intents.yaml) with fixed, anchored Cypher templates."""
 
-    def __init__(self, path: Path) -> None:
-        raw = yaml.safe_load(path.read_text(encoding="utf-8"))["intents"]
+    def __init__(self, path: Path, contracts: Contracts) -> None:
+        raw = contracts.load_config("query-intents", path)["intents"]
         self.items = [(i["id"], re.compile(i["pattern"], re.IGNORECASE), i["cypher"].strip()) for i in raw]
         for _, _, cypher in self.items:
             check(cypher)  # templates must pass the guard, scoped
@@ -152,7 +152,9 @@ class Runner:
             )
         _, cypher, extracted = found
         out: dict[str, Any] = {"columns": [], "rows": [], "truncated": False, "elapsedMs": 0}
-        if mode == "answer" and execute:
+        if mode == "cypher-only":
+            del out["rows"]
+        elif execute:
             out = await self.run(who, project, cypher, dict(extracted))
         return {**out, "cypher": cypher, "params": {"projectId": project, **extracted},
                 "attempts": [{"cypher": cypher}], "warnings": []}  # fmt: skip

@@ -170,7 +170,7 @@ def sent(env: Env, path_suffix: str) -> dict:  # type: ignore[type-arg]
     return next(c for c in reversed(env.owner.calls) if c["path"].endswith(path_suffix))
 
 
-async def test_owner_gets_actor_and_roles_only_from_the_query_service(env: Env) -> None:
+async def test_owner_gets_actor_only_from_the_query_service(env: Env) -> None:
     env.user("tina", {"alpha": "triager"})
     forged = {"x-sandman-actor": "user:root", "x-sandman-roles": "admin"}
     resp = await env.http.post(
@@ -182,7 +182,7 @@ async def test_owner_gets_actor_and_roles_only_from_the_query_service(env: Env) 
     validate("/v1/inconsistencies/{inconsistencyId}/transitions", "post", 200, resp.json())
     call = sent(env, "/transitions")
     assert call["headers"]["x-sandman-actor"] == "user:tina"
-    assert call["headers"]["x-sandman-roles"] == "triager"
+    assert "x-sandman-roles" not in call["headers"]
     assert call["headers"]["authorization"] == "Bearer qs-token"  # own service token, not the user's
     assert all("user:root" not in v for v in call["headers"].values())
     for c in env.owner.calls:  # also the detail lookup before the transition
@@ -211,6 +211,13 @@ async def test_inconsistency_of_unreadable_project_is_404_like_a_missing_one(env
     assert not any(c["method"] == "POST" for c in env.owner.calls)  # nothing was forwarded
 
 
+async def test_unexpected_owner_status_on_inconsistency_lookup_is_a_generic_502(env: Env) -> None:
+    env.user("tina", {"other": "viewer"})
+    env.owner.force_status = 403
+    resp = await env.http.get(f"/v1/inconsistencies/{INC_ID}", headers=env.token("tina"))
+    assert resp.status_code == 502 and "{}" not in resp.text and "projectId" not in resp.text
+
+
 async def test_owner_problems_are_passed_through(env: Env) -> None:
     env.user("tina", {"alpha": "triager"})
     env.owner.transition_status = 409
@@ -230,7 +237,7 @@ async def test_upload_is_streamed_with_original_multipart_body(env: Env) -> None
     call = sent(env, "/ingestions")
     assert call["headers"]["content-type"].startswith("multipart/form-data; boundary=")
     assert archive in call["body"] and call["headers"]["x-sandman-actor"] == "user:mia"
-    assert call["headers"]["x-sandman-roles"] == "maintainer"
+    assert "x-sandman-roles" not in call["headers"]
     bad = await env.http.post("/v1/projects/alpha/ingestions", json={}, headers=env.token("mia"))
     assert bad.status_code == 400
 

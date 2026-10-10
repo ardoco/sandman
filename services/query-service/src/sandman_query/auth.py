@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 import yaml
 from sandman_agent.auth import PLUGIN_PREFIX
+from sandman_agent.contracts import Contracts
 from starlette.exceptions import HTTPException
 
 LEVEL = {"authenticated": 0, "viewer": 1, "triager": 2, "maintainer": 3, "admin": 4}
@@ -26,9 +27,9 @@ def load_min_roles(contracts_dir: Path) -> dict[str, str]:
     }
 
 
-def load_plugin_grants(path: Path) -> dict[str, list[str] | str]:
-    """config/query/plugins.yaml: {plugin-id: [project, ...] | "*"}."""
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {} if path.exists() else {}
+def load_plugin_grants(path: Path, contracts: Contracts) -> dict[str, list[str] | str]:
+    """config/query/plugins.yaml: {plugin-id: [project, ...] | "*"}, validated against query-plugins.schema.json."""
+    return contracts.load_config("query-plugins", path) if path.exists() else {}  # type: ignore[no-any-return]
 
 
 @dataclass(frozen=True)
@@ -64,11 +65,6 @@ class Principal:
         )
         return min(base, LEVEL[self.token_max_role]) if self.token_max_role else base
 
-    def roles_header(self, project: str | None) -> str:
-        names = {v: k for k, v in LEVEL.items()}
-        roles = [names[self.level(project)]] if project and self.level(project) else []
-        return ",".join(roles + (["admin"] if self.admin else []))
-
 
 def authorize(p: Principal, min_roles: dict[str, str], op: str, project: str | None = None) -> None:
     """Raise 403 (not allowed) or 404 (project not readable) unless the caller may run operation `op`."""
@@ -80,7 +76,12 @@ def authorize(p: Principal, min_roles: dict[str, str], op: str, project: str | N
     if need == "admin":
         if not p.unrestricted_admin:
             raise HTTPException(403, "admin role required")
-    elif project is not None:
+    elif project is None:
+        if p.kind == "user" and LEVEL[need] >= LEVEL["viewer"]:
+            member = p.level(p.token_project) > 0 if p.token_project else p.admin or bool(p.memberships)
+            if not member:
+                raise HTTPException(403, f"role {need} required")
+    else:
         level = p.level(project)
         if level == 0:
             raise HTTPException(404, "not found")

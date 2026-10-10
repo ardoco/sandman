@@ -74,6 +74,7 @@ KINDS: dict[str, dict[str, Any]] = {
         "tok_admin_restricted": 404,
     },  # fmt: skip
 }
+PROJECTLESS = {"getInconsistency", "transitionInconsistency", "getWorkflow"}
 MULTIPART = {"files": {"manifest": (None, '{"mode":"full","files":[]}', "application/json")}}
 # operationId -> (kind, method, path, request kwargs, success statuses)
 OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
@@ -135,20 +136,30 @@ def headers_for(env: Env, caller: str) -> dict[str, str]:
     return env.token(caller)
 
 
-ROLE_OF_KIND = {"own": "authenticated", "list": "authenticated", "schema": "authenticated", "read": "viewer",
+ROLE_OF_KIND = {"own": "authenticated", "list": "authenticated", "schema": "viewer", "read": "viewer",
                 "cypher": "viewer"}  # fmt: skip
 
 
-def test_every_operation_is_covered() -> None:
+def _operations() -> list[tuple[str, str, str, dict[str, Any]]]:
+    return [(path, m, op["operationId"], op) for path, item in SPEC["paths"].items() for m, op in item.items()
+            if isinstance(op, dict) and "operationId" in op]  # fmt: skip
+
+
+async def test_every_operation_is_covered(env: Env) -> None:
+    ops = _operations()
+    out_of_scope = {op for *_, op, spec in ops if spec.get("x-sandman-status") == "out-of-scope-M0"}
     declared = {
-        op["operationId"]: op["x-sandman-min-role"]
-        for item in SPEC["paths"].values()
-        for op in item.values()
-        if isinstance(op, dict) and "x-sandman-min-role" in op
+        op: spec["x-sandman-min-role"]
+        for *_, op, spec in ops
+        if op not in out_of_scope and "x-sandman-min-role" in spec
     }
     assert set(declared) == set(OPS) | {"revokeToken", "createToken"}  # tested in test_api.py
     for op, (kind, *_rest) in OPS.items():
         assert declared[op] == ROLE_OF_KIND.get(kind, kind), op
+    routes = {(m.lower(), r.path) for r in env.app.routes for m in getattr(r, "methods", ())}  # type: ignore[attr-defined]
+    for path, method, op, _ in ops:  # R-007: out-of-scope operations stay unforwarded
+        if op in out_of_scope:
+            assert (method, path) not in routes, op
 
 
 @pytest.mark.parametrize("caller", CALLERS)
@@ -156,6 +167,8 @@ def test_every_operation_is_covered() -> None:
 async def test_matrix(env: Env, op: str, caller: str) -> None:
     kind, method, path, kwargs, success = OPS[op]
     expected = KINDS[kind][caller]
+    if caller == "tok_beta" and (kind == "schema" or op in PROJECTLESS):
+        expected = 403  # token scoped to beta, membership only in alpha: project-less operations are refused
     env.user("target", {"alpha": "viewer"})  # object of the admin operations
     resp = await env.http.request(method, path, headers=headers_for(env, caller), **kwargs)
     if expected == "ok":
@@ -173,3 +186,18 @@ async def test_matrix(env: Env, op: str, caller: str) -> None:
 def _matches(template: str, path: str) -> bool:
     a, b = template.strip("/").split("/"), path.split("?")[0].strip("/").split("/")
     return len(a) == len(b) and all(x == y or x.startswith("{") for x, y in zip(a, b, strict=True))
+
+
+def test_project_scoped_token_needs_membership_in_its_own_project_for_projectless_operations() -> None:
+    from sandman_query.auth import Principal, authorize
+    from starlette.exceptions import HTTPException
+
+    roles = {"list": "viewer"}
+    authorize(Principal("user", "u", memberships={"a": "viewer"}, token_project="a"), roles, "list")
+    for p in (
+        Principal("user", "u", memberships={"b": "viewer"}, token_project="a"),
+        Principal("user", "u", admin=False, token_project="a"),
+    ):
+        with pytest.raises(HTTPException) as e:
+            authorize(p, roles, "list")
+        assert e.value.status_code == 403

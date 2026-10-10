@@ -199,7 +199,7 @@ async def test_transition_form_posts_with_csrf_and_shows_conflicts(env: Env) -> 
     assert done.status_code == 303 and done.headers["location"] == f"/console/inconsistencies/{INC_ID}"
     sent = next(c for c in env.owner.calls if c["method"] == "POST")
     assert json.loads(sent["body"]) == {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended"}
-    assert sent["headers"]["x-sandman-actor"] == "user:tina" and sent["headers"]["x-sandman-roles"] == "triager"
+    assert sent["headers"]["x-sandman-actor"] == "user:tina" and "x-sandman-roles" not in sent["headers"]
     env.owner.transition_status = 409
     conflict = await post(env, path, csrf, **fields)
     assert conflict.status_code == 409 and "changed concurrently" in conflict.text

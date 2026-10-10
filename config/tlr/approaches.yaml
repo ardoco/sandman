@@ -1,4 +1,4 @@
 approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
   lissa: { enabled: false, params: { retrieval: { k: 10 }, model: chat-default, embed: embed-default } }
-  ardoco: { enabled: false, params: {} }
+  ardoco: { enabled: true, params: {} }

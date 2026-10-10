@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN inconsistency-agent triage API
-  version: 0.6.0
+  version: 0.6.1
   description: |
     Read and triage inconsistencies. Owner of Inconsistency and StatusChange nodes.
     Transitions require X-Sandman-Actor, accepted only from the query-service's service token (any other caller: 403, R-005).

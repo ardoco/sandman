@@ -21,6 +21,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +50,13 @@ public class RecoverTraceLinks implements Skill {
     @Inject
     Approaches approaches;
 
+    /**
+     * One lock per (project, approach) for whole-project runs: snapshot, run and finish must not interleave, or a
+     * stale snapshot retires the links of a newer run. ponytail: locks are never evicted (bounded by projects x
+     * approaches); lock is per JVM, so more than one tlr-agent replica needs a KG-side lease.
+     */
+    private final Map<String, ReentrantLock> wholeProjectLocks = new ConcurrentHashMap<>();
+
     @Override
     public String id() {
         return SKILL;
@@ -61,28 +73,110 @@ public class RecoverTraceLinks implements Skill {
         Set<KindPair> pairs = new LinkedHashSet<>();
         sourceIds.forEach(s -> targetIds.forEach(t -> pairs.add(new KindPair(kinds.get(s), kinds.get(t)))));
         List<Approaches.Entry> selected = select(input, pairs);
+        for (Approaches.Entry entry : selected) {
+            Set<String> allowed = entry.approach().paramKeys();
+            ObjectNode effective = Approaches.effective(
+                    entry.params(), input.path("params").path(entry.approach().id()));
+            if (allowed != null && !allowed.containsAll(effective.propertyNames())) {
+                throw new SkillException(
+                        "INVALID_INPUT",
+                        "approach " + entry.approach().id() + " accepts parameters " + new TreeSet<>(allowed) + ", got "
+                                + new TreeSet<>(effective.propertyNames()),
+                        false);
+            }
+        }
 
         LinkStore store = new LinkStore(kg);
-        TlrInput in =
-                new TlrInput(projectId, store.elements(projectId, sourceIds), store.elements(projectId, targetIds));
+        TlrInput pairwise = null;
         RunRecorder recorder =
                 new RunRecorder(kg, settings.serviceName(), System.getenv().getOrDefault("SANDMAN_VERSION", "dev"));
         String llmPolicy = selected.stream().anyMatch(e -> e.approach().usesLlm()) ? llmPolicy(projectId) : null;
         ArrayNode runs = JsonMapper.shared().createArrayNode();
+        Set<String> changedSources = new TreeSet<>();
+        Set<String> changedTargets = new TreeSet<>();
         for (Approaches.Entry entry : selected) {
             if (ctx.cancelled()) {
                 break;
             }
-            runs.add(runApproach(ctx, input, entry, in, sourceIds, targetIds, store, recorder, llmPolicy));
+            if (entry.approach().scopeMode() == ScopeMode.WHOLE_PROJECT) {
+                ReentrantLock lock = wholeProjectLocks.computeIfAbsent(
+                        projectId + '\0' + entry.approach().id(), k -> new ReentrantLock());
+                if (!lockUnlessCancelled(lock, ctx)) {
+                    break;
+                }
+                try {
+                    TlrInput in = wholeProject(projectId, entry.approach(), store);
+                    runs.add(runApproach(
+                            ctx,
+                            input,
+                            entry,
+                            in,
+                            sourceIds,
+                            targetIds,
+                            store,
+                            recorder,
+                            llmPolicy,
+                            changedSources,
+                            changedTargets));
+                } finally {
+                    lock.unlock();
+                }
+                continue;
+            }
+            if (pairwise == null) {
+                pairwise = new TlrInput(
+                        projectId,
+                        store.versions(
+                                projectId,
+                                Stream.concat(sourceIds.stream(), targetIds.stream())
+                                        .distinct()
+                                        .toList()),
+                        store.elements(projectId, sourceIds),
+                        store.elements(projectId, targetIds));
+            }
+            runs.add(runApproach(
+                    ctx,
+                    input,
+                    entry,
+                    pairwise,
+                    sourceIds,
+                    targetIds,
+                    store,
+                    recorder,
+                    llmPolicy,
+                    changedSources,
+                    changedTargets));
         }
         ObjectNode output = JsonMapper.shared().createObjectNode();
         output.set("runs", runs);
         ObjectNode event = JsonMapper.shared().createObjectNode();
         event.put("projectId", projectId);
-        event.set("sourceVersionIds", input.get("sourceVersionIds"));
-        event.set("targetVersionIds", input.get("targetVersionIds"));
+        event.set("sourceVersionIds", withChanged(sourceIds, changedSources));
+        event.set("targetVersionIds", withChanged(targetIds, changedTargets));
         event.set("runs", runs);
         return new SkillResult(output, "sandman.tracelinks.updated", event);
+    }
+
+    private static boolean lockUnlessCancelled(ReentrantLock lock, SkillContext ctx) {
+        try {
+            while (!lock.tryLock(100, TimeUnit.MILLISECONDS)) {
+                if (ctx.cancelled()) {
+                    return false;
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        return true;
+    }
+
+    /** The input ids, then the changed ids that are not among them. */
+    private static ArrayNode withChanged(List<String> input, Set<String> changed) {
+        ArrayNode out = JsonMapper.shared().createArrayNode();
+        new LinkedHashSet<>(input).forEach(out::add);
+        changed.stream().filter(c -> !input.contains(c)).forEach(out::add);
+        return out;
     }
 
     private ObjectNode runApproach(
@@ -94,7 +188,9 @@ public class RecoverTraceLinks implements Skill {
             List<String> targetIds,
             LinkStore store,
             RunRecorder recorder,
-            String llmPolicy) {
+            String llmPolicy,
+            Set<String> changedSources,
+            Set<String> changedTargets) {
         TraceLinkApproach approach = entry.approach();
         ObjectNode params =
                 Approaches.effective(entry.params(), input.path("params").path(approach.id()));
@@ -114,7 +210,7 @@ public class RecoverTraceLinks implements Skill {
                 null,
                 params.toString(),
                 configHash,
-                Stream.concat(sourceIds.stream(), targetIds.stream()).distinct().toList(),
+                in.versions().stream().map(TlrInput.Version::id).toList(),
                 ctx.workflowId(),
                 ctx.taskId(),
                 ctx.actor() != null ? ctx.actor() : "service:" + ctx.caller(),
@@ -143,9 +239,21 @@ public class RecoverTraceLinks implements Skill {
                 links.put(id, l);
             }
             store.writeInactive(runId, in.projectId(), approach, configHash, new ArrayList<>(links.values()));
-            store.finish(runId, in.projectId(), approach.id(), sourceIds, targetIds);
+            if (approach.scopeMode() == ScopeMode.WHOLE_PROJECT) {
+                LinkStore.Changed changed =
+                        store.finishWholeProject(runId, in.projectId(), approach.id(), approach.supports());
+                changedSources.addAll(changed.sources());
+                changedTargets.addAll(changed.targets());
+            } else {
+                store.finish(runId, in.projectId(), approach.id(), sourceIds, targetIds);
+            }
             run.put("status", "completed");
             run.put("linkCount", links.size());
+        } catch (CancellationException e) { // the A2A layer reports the task as canceled and drops this summary
+            LOG.info("approach {} cancelled", approach.id());
+            recorder.fail(runId, "cancelled"); // the KG Run status has no cancelled value
+            run.put("status", "cancelled");
+            run.put("linkCount", 0);
         } catch (RuntimeException e) { // isolates this approach; its links stay inactive
             LOG.error("approach {} failed", approach.id(), e);
             String error = e.getClass().getSimpleName() + ": " + e.getMessage();
@@ -155,6 +263,27 @@ public class RecoverTraceLinks implements Skill {
             run.put("error", error);
         }
         return run;
+    }
+
+    /** All current versions of the kinds the approach supports; the requested version subset is ignored (R-022). */
+    private static TlrInput wholeProject(String projectId, TraceLinkApproach approach, LinkStore store) {
+        Set<String> sourceKinds = new LinkedHashSet<>();
+        Set<String> targetKinds = new LinkedHashSet<>();
+        approach.supports().forEach(p -> {
+            sourceKinds.add(p.source());
+            targetKinds.add(p.target());
+        });
+        List<TlrInput.Version> sources = store.currentVersions(projectId, sourceKinds);
+        List<TlrInput.Version> targets = store.currentVersions(projectId, targetKinds);
+        List<TlrInput.Version> versions =
+                Stream.concat(sources.stream(), targets.stream()).distinct().toList();
+        return new TlrInput(
+                projectId,
+                versions,
+                store.elements(
+                        projectId, sources.stream().map(TlrInput.Version::id).toList()),
+                store.elements(
+                        projectId, targets.stream().map(TlrInput.Version::id).toList()));
     }
 
     private List<Approaches.Entry> select(JsonNode input, Set<KindPair> pairs) throws SkillException {

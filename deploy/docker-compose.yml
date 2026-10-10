@@ -23,6 +23,7 @@ x-agent-env: &agent-env
 
 x-depends-core: &depends-core
   memgraph: { condition: service_healthy }
+  kg-migrate: { condition: service_completed_successfully }
   nats: { condition: service_healthy }
   llm-replay: { condition: service_healthy }
 
@@ -52,6 +53,21 @@ services:
       retries: 6
       start_period: 20s
     restart: unless-stopped
+
+  kg-migrate:                                  # one-shot: applies contracts/kg/init.cypher (idempotent, R-029); agents wait for it
+    build: { context: .., dockerfile: services/extraction-agent/Dockerfile }
+    command: ["python", "-m", "sandman_agent.kg"]
+    environment:
+      SANDMAN_SERVICE_NAME: kg-migrate
+      SANDMAN_KG_URI: bolt://memgraph:7687
+      SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
+      SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
+    secrets: [memgraph_password]
+    networks: [internal]
+    mem_limit: 256m
+    depends_on:
+      memgraph: { condition: service_healthy }
+    restart: "no"
 
   nats:
     image: nats:2.15.0-alpine

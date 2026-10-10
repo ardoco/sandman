@@ -163,3 +163,21 @@ class RunRecorder:
             key=input_key, now=now(),
         )  # fmt: skip
         return int(rows[0]["deleted"]) if rows else 0
+
+
+async def _migrate() -> None:
+    from sandman_agent.config import Settings
+
+    settings = Settings.from_env()
+    settings.require("kg_uri")
+    kg = KgClient(settings.kg_uri or "", settings.kg_user, settings.kg_password)
+    try:
+        await kg.init_schema(settings.contracts_dir / "kg" / "init.cypher")
+    finally:
+        await kg.close()
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(_migrate())

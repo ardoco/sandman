@@ -1,7 +1,7 @@
 {
   "name": "<plugin-name>",
   "description": "Template for an extraction plugin service. Replace name, description, url and version.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "supportedInterfaces": [
     {
       "url": "http://<plugin-host>:<port>/a2a",

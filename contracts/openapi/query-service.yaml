@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN query-service API (user and agent entry point)
-  version: 0.6.0
+  version: 0.6.1
   description: |
     The only user-facing API. Authenticates users (session cookie or personal API token) and services
     (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor only; roles are checked here and never forwarded (ADR-0013).

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/tlr-approaches.schema.json",
   "title": "config/tlr/approaches.yaml",
-  "description": "Enabled TLR approaches and their default params. The configHash of a link id = sha256 of the JCS of one approach's effective params. Contract version 0.6.0.",
+  "description": "Enabled TLR approaches and their default params. The configHash of a link id = sha256 of the JCS of one approach's effective params. Contract version 0.6.1.",
   "type": "object",
   "required": [
     "approaches"

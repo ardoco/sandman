@@ -135,13 +135,18 @@ class RunRecorder:
         return run_id
 
     async def complete(
-        self, run_id: str, usage: Usage | None = None, status: str = "completed", resolved_model: str | None = None
+        self,
+        run_id: str,
+        usage: Usage | None = None,
+        status: str = "completed",
+        resolved_model: str | None = None,
+        mixed_models: bool = False,
     ) -> None:
-        """Mark a run completed (or partial) with token usage and the model the gateway resolved."""
+        """Mark a run completed (or partial) with token usage, the first resolved model and the mixed-models flag."""
         await self._kg.write(
             "MATCH (r:Run {id: $id}) SET r.status = $status, r.endedAt = $now, "
-            "r.inputTokens = $inp, r.outputTokens = $out, r.resolvedModel = $resolved",
-            id=run_id, status=status, now=now(), resolved=resolved_model,
+            "r.inputTokens = $inp, r.outputTokens = $out, r.resolvedModel = $resolved, r.mixedModels = $mixed",
+            id=run_id, status=status, now=now(), resolved=resolved_model, mixed=True if mixed_models else None,
             inp=usage.input_tokens if usage else None, out=usage.output_tokens if usage else None,
         )  # fmt: skip
 

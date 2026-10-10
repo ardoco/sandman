@@ -60,6 +60,13 @@ class RecordingKg:
         return []
 
 
+@pytest.mark.parametrize(("mixed", "stored"), [(True, True), (False, None)])
+async def test_run_complete_sets_mixed_models_only_when_true(mixed: bool, stored: bool | None) -> None:
+    kg = RecordingKg()
+    await RunRecorder(kg, "a", "0").complete("r", resolved_model="m1", mixed_models=mixed)  # type: ignore[arg-type]
+    assert (kg.params["resolved"], kg.params["mixed"]) == ("m1", stored)
+
+
 async def test_run_recorder_takes_replay_mode_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
     kg = RecordingKg()
     runs = RunRecorder(kg, "a", "0")  # type: ignore[arg-type]

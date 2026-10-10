@@ -6,7 +6,7 @@ import pytest
 from sandman_agent.llm import ChatMessage, ChatResponse, Usage
 from sandman_agent.testing import ScriptedLlmClient
 from sandman_extraction import enrich
-from sandman_extraction.enrich import EnrichConfig
+from sandman_extraction.enrich import EnrichConfig, Totals
 
 CFG = EnrichConfig(enabled=True)
 
@@ -23,7 +23,7 @@ async def test_valid_summary_sets_request_parameters() -> None:
     client = ScriptedLlmClient([reply(json.dumps({"summary": "Caches media."}))])
     answer = await ask(client)
     assert answer.data == {"summary": "Caches media."}
-    assert (answer.usage, answer.resolved_model) == (Usage(10, 5), "qwen3:1.7b")
+    assert (answer.usage, answer.resolved) == (Usage(10, 5), ("qwen3:1.7b",))
     req = client.requests[0]
     assert (req.model, req.temperature, req.seed, req.user) == ("chat-local", 0.0, 42, "run_x")
     assert req.response_schema is not None and req.response_schema["required"] == ["summary"]
@@ -53,6 +53,22 @@ async def test_retry_recovers() -> None:
     client = ScriptedLlmClient([reply("oops"), reply(json.dumps({"summary": "ok"}))])
     assert (await ask(client)).data == {"summary": "ok"}
     assert [r.seed for r in client.requests] == [42, 43]
+
+
+async def test_forced_fallback_records_both_models_first_wins() -> None:
+    fallback = ChatResponse(ChatMessage("assistant", "oops"), "stop", Usage(10, 5), "other-model")
+    client = ScriptedLlmClient([fallback, reply(json.dumps({"summary": "ok"}))])
+    answer = await ask(client)
+    totals = Totals()
+    totals.add(answer)
+    assert answer.resolved == ("other-model", "qwen3:1.7b")
+    assert (totals.resolved[0], len(set(totals.resolved)) > 1) == ("other-model", True)
+
+
+async def test_single_model_is_not_mixed() -> None:
+    totals = Totals()
+    totals.add(await ask(ScriptedLlmClient([reply("oops"), reply(json.dumps({"summary": "ok"}))])))
+    assert len(set(totals.resolved)) == 1
 
 
 async def test_truncated_output_is_invalid() -> None:

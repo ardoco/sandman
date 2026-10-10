@@ -118,7 +118,7 @@ class Answer:
 
     data: dict[str, Any] | None
     usage: Usage = Usage()
-    resolved_model: str | None = None
+    resolved: tuple[str, ...] = ()
 
 
 async def ask(
@@ -126,7 +126,7 @@ async def ask(
 ) -> Answer:
     """One structured call, retried once (next seed) on non-JSON, truncated or schema-invalid output."""
     validator = Draft202012Validator(schema)
-    total, resolved = Usage(), None
+    total, resolved = Usage(), []
     for attempt in range(ATTEMPTS):
         request = ChatRequest(
             model=route,
@@ -140,14 +140,14 @@ async def ask(
         )
         resp = await client.chat(request)
         total = Usage(total.input_tokens + resp.usage.input_tokens, total.output_tokens + resp.usage.output_tokens)
-        resolved = resolved or resp.resolved_model
+        resolved.append(resp.resolved_model)
         try:
             data = json.loads(resp.message.content)
         except ValueError:
             continue
         if resp.finish_reason != "length" and isinstance(data, dict) and validator.is_valid(data):
-            return Answer(data, total, resolved)
-    return Answer(None, total, resolved)
+            return Answer(data, total, tuple(resolved))
+    return Answer(None, total, tuple(resolved))
 
 
 @dataclass
@@ -170,8 +170,7 @@ class Totals:
         self.usage = Usage(
             self.usage.input_tokens + answer.usage.input_tokens, self.usage.output_tokens + answer.usage.output_tokens
         )
-        if answer.resolved_model:
-            self.resolved.append(answer.resolved_model)
+        self.resolved.extend(m for m in answer.resolved if m)
 
 
 def _concepts(pid: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -376,12 +375,10 @@ async def enrich(
         log.warning("LLM enrichment failed", extra={"fields": {"error": type(e).__name__}})
         await runs.fail(run_id, f"{type(e).__name__}: {e}")
         return [*warnings, f"LLM enrichment failed: {type(e).__name__}: {e}"]
-    if len(set(totals.resolved)) > 1:
-        log.warning(
-            "mixed resolved models", extra={"fields": {"event": "mixed_models", "models": sorted(set(totals.resolved))}}
-        )
     status = "partial" if totals.skipped else "completed"
-    await runs.complete(run_id, totals.usage, status, totals.resolved[0] if totals.resolved else None)
+    await runs.complete(
+        run_id, totals.usage, status, totals.resolved[0] if totals.resolved else None, len(set(totals.resolved)) > 1
+    )
     if totals.skipped:
         warnings.append(
             f"LLM enrichment skipped invalid responses for {len(totals.skipped)} calls, e.g. {totals.skipped[0]}"

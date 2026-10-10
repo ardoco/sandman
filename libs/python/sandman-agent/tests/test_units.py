@@ -272,3 +272,20 @@ def test_group_log_file_is_0660_under_umask_and_symlinks_are_refused(tmp_path: P
             _GroupLogHandler(tmp_path / "link.jsonl")
     finally:
         os.umask(old)
+
+
+def test_group_log_file_not_owned_by_process_is_opened_without_chmod(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import os
+
+    from sandman_agent.telemetry import _GroupLogHandler
+
+    def refuse_chmod(fd: int, mode: int) -> None:
+        raise PermissionError(1, "Operation not permitted")
+
+    monkeypatch.setattr(os, "geteuid", lambda: os.getuid() + 1)
+    monkeypatch.setattr(os, "fchmod", refuse_chmod)
+    handler = _GroupLogHandler(tmp_path / "shared.jsonl")
+    handler.close()
+    assert (tmp_path / "shared.jsonl").exists()

@@ -108,7 +108,8 @@ class JsonFormatter(logging.Formatter):
 
 def _open_group_only(path: str, flags: int) -> int:
     fd = os.open(path, flags | os.O_NOFOLLOW, 0o660)
-    os.fchmod(fd, 0o660)
+    if os.fstat(fd).st_uid == os.geteuid():
+        os.fchmod(fd, 0o660)
     return fd
 
 

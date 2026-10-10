@@ -17,7 +17,7 @@ Status: M0 (walking skeleton, plugin stubs) is done; M1 (real extractors, dashbo
 - `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`)
 - `tests/plugin-stubs`, `tests/e2e`, `tests/conformance`: plugin stubs, end-to-end and conformance tests
 - `deploy/`: Docker Compose stack, edge proxy, LLM gateway config, secret generation
-- Interactive component graph (generated, `make site`): <https://ardoco.github.io/sandman/>
+- Interactive component graph (generated, `make site`): <https://ardoco.de/sandman/>
 
 ## Quickstart
 

@@ -79,11 +79,17 @@ write dashboard_admin_password "$(rand)"
 write dashboard_session_secret "$(rand)"
 
 # Compose file secrets are bind mounts that keep host owner/mode (uid/gid/mode are ignored outside swarm). Containers run as
-# uid 10001 and get $GID via group_add, so the files must be group-readable: 0640, dir 2750, group $GID, never world-readable.
-# Host user not in the group (CI runner, macOS): chgrp as root in a throwaway container, like data/logs above.
-FIX_SECRETS='[ ! -L "$D" ] && ! find "$D" -type l | grep -q . && chgrp "$GID" "$D" && find "$D" -type f -exec chgrp "$GID" {} + && chmod 2750 "$D" && find "$D" -type f -exec chmod 640 {} +'
-if ! D=secrets GID="$GID" sh -c "$FIX_SECRETS" 2>/dev/null; then
-  docker compose -f docker-compose.yml run --rm --no-deps -u 0 -e GID="$GID" -e D=/d -e FIX_SECRETS="$FIX_SECRETS" -v "$(pwd)/secrets":/d --entrypoint sh edge-proxy -c \
-    'sh -c "$FIX_SECRETS"' || { echo "could not make secrets group-readable (symlink in secrets/ or no docker)" >&2; exit 1; }
+# uid 10001 and get $GID via group_add, so ONLY the files declared under top-level `secrets:` in the compose files are made
+# group-readable (0640, group $GID). Everything else (env_file sources, host-only files) is re-set to 0600 owner-only.
+# Dir 0750 group $GID for traversal, no setgid. Host user not in the group (CI runner, macOS): chgrp as root in a throwaway container.
+MOUNTED=$(sed -n 's|.*{ *file: *\./secrets/\([^ }]*\) *}.*|\1|p' docker-compose*.yml | tr '\n' ' ')
+[ -n "$MOUNTED" ] || { echo "no compose file secrets found" >&2; exit 1; }
+FIX_SECRETS='[ ! -L "$D" ] && ! find "$D" -type l | grep -q . && find "$D" -type f -exec chmod 600 {} + && chgrp "$GID" "$D" && chmod 0750 "$D" && chmod g-s "$D" && for f in $MOUNTED; do if [ -f "$D/$f" ]; then chgrp "$GID" "$D/$f" && chmod 640 "$D/$f" || exit 1; fi; done'
+if ! D=secrets GID="$GID" MOUNTED="$MOUNTED" sh -c "$FIX_SECRETS" 2>/dev/null; then
+  docker compose -f docker-compose.yml run --rm --no-deps -u 0 -e GID="$GID" -e D=/d -e MOUNTED="$MOUNTED" -e FIX_SECRETS="$FIX_SECRETS" -v "$(pwd)/secrets":/d --entrypoint sh edge-proxy -c \
+    'sh -c "$FIX_SECRETS"' || { echo "could not restrict secrets permissions (symlink in secrets/ or no docker)" >&2; exit 1; }
 fi
-echo "secrets group $GID, mode 0640"
+if command -v getent >/dev/null 2>&1 && g=$(getent group "$GID") && m=$(printf '%s' "${g##*:}" | tr ',' '\n' | grep -vx "$(id -un)" | grep .); then
+  echo "warning: group ${g%%:*} (GID $GID) has other members who can read the mounted secrets: $(echo $m | tr ' ' ',')" >&2
+fi
+echo "secrets: $(echo $MOUNTED | wc -w | tr -d ' ') mounted files group $GID mode 0640, all others 0600"

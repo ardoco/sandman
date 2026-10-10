@@ -69,5 +69,7 @@ def test_milestone_text_only_via_planned_field(data):
     bad["components"]["nats"]["details"] += " Planned for M1."
     assert any("nats.details" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, bad, ms))
     done = [{**m, "done": True} for m in ms]
-    assert any("already done" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, meta(), done))
+    assert any(
+        "already done" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, meta(), done)
+    )
     assert "Status:" in data["status"]

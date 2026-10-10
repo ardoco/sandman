@@ -128,10 +128,14 @@ def strings(node, path=""):
 
 
 def milestones() -> list[dict]:
-    """Milestones (id, name, goal) from the Stage 3 table; done = an M* git tag exists (none if tags are unavailable)."""
+    """Milestones (id, name, goal) from the Stage 3 table; done = M* git tag exists."""
     rows = re.findall(r"^\| \*\*(M\w+) ([^*]+)\*\* \| ([^|]+) \|", PLAN.read_text(), re.M)
     try:
-        tags = set(subprocess.run(["git", "tag", "--list", "M*"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split())
+        tags = set(
+            subprocess.run(
+                ["git", "tag", "--list", "M*"], cwd=ROOT, capture_output=True, text=True, check=True
+            ).stdout.split()
+        )
     except (OSError, subprocess.CalledProcessError):
         tags = set()
     return [{"id": i, "name": n.strip(), "goal": g.strip(), "done": i in tags} for i, n, g in rows]
@@ -140,7 +144,9 @@ def milestones() -> list[dict]:
 def status_line(ms: list[dict]) -> str:
     done = [f"{m['id']} {m['name']}" for m in ms if m["done"]]
     todo = [m for m in ms if not m["done"] and re.fullmatch(r"M\d", m["id"])]
-    text = "Status: " + (f"finished milestones: {', '.join(done)}. " if done else "milestone tags are not available in this build. ")
+    text = "Status: " + (
+        f"finished milestones: {', '.join(done)}. " if done else "milestone tags are not available in this build. "
+    )
     if todo:
         text += f"Next: {todo[0]['id']} {todo[0]['name']} ({todo[0]['goal']})."
         if len(todo) > 1:

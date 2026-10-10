@@ -132,8 +132,8 @@ poll: { initial: 30s, max: 2m }   # GetTask only detects failures; steps complet
 retry: { maxAttempts: 3, backoff: [30s, 2m, 10m] }
 tlr:
   kindPairs:                     # which pairs to link after changes; approaches per pair
-    - { source: requirements, target: code, approaches: [stub-name-match] }
-    - { source: architecture-doc, target: architecture-model, approaches: [stub-name-match] }
+    - { source: requirements, target: code }              # approaches optional: absent = all enabled approaches that support the pair
+    - { source: architecture-doc, target: architecture-model }   # a list per pair splits the merged TLR step of one change (steps merge only with equal approaches)
 ```
 
 ```yaml
@@ -155,7 +155,7 @@ explicitReferences:
 approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
   lissa: { enabled: false, params: { retrieval: { k: 10 }, model: chat-default, embed: embed-default } }
-  ardoco: { enabled: false, params: {} }
+  ardoco: { enabled: true, params: {} }       # whole-project (scopeMode); params.additionalConfigs: ArDoCo additional configs, default {}
 ```
 
 ```yaml

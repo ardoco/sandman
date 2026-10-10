@@ -27,6 +27,7 @@
     <quarkus.platform.version>3.33.4</quarkus.platform.version>
     <neo4j-java-driver.version>6.3.0</neo4j-java-driver.version>
     <ardoco.version>2.1.0</ardoco.version>
+    <corenlp.version>4.5.10</corenlp.version>
     <archunit.version>1.4.1</archunit.version>
     <jnats.version>2.26.4</jnats.version>
     <json-schema-validator.version>3.0.8</json-schema-validator.version>
@@ -105,6 +106,18 @@
         <groupId>tools.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-yaml</artifactId>
         <version>${jackson3.version}</version>
+      </dependency>
+      <!-- The version pipeline-tlr ${ardoco.version} declares; the models jar is read from the classpath, nothing is downloaded at run time. -->
+      <dependency>
+        <groupId>edu.stanford.nlp</groupId>
+        <artifactId>stanford-corenlp</artifactId>
+        <version>${corenlp.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>edu.stanford.nlp</groupId>
+        <artifactId>stanford-corenlp</artifactId>
+        <version>${corenlp.version}</version>
+        <classifier>models</classifier>
       </dependency>
     </dependencies>
   </dependencyManagement>

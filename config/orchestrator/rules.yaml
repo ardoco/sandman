@@ -6,5 +6,5 @@ poll: { initial: 30s, max: 2m }   # GetTask only detects failures; steps complet
 retry: { maxAttempts: 3, backoff: [30s, 2m, 10m] }
 tlr:
   kindPairs:                     # which pairs to link after changes; approaches per pair
-    - { source: requirements, target: code, approaches: [stub-name-match] }
-    - { source: architecture-doc, target: architecture-model, approaches: [stub-name-match] }
+    - { source: requirements, target: code }
+    - { source: architecture-doc, target: architecture-model }

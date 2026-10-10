@@ -89,7 +89,7 @@ public final class ArdocoApproach implements TraceLinkApproach {
                 continue;
             }
             for (TlrInput.Version model : models) {
-                ModelFormat format = FORMATS.get(model.format());
+                ModelFormat format = format(model);
                 if (format == null) {
                     ctx.log().warn("ardoco: model {} has unsupported format {}, skipped", model.path(), model.format());
                     continue;
@@ -102,6 +102,18 @@ public final class ArdocoApproach implements TraceLinkApproach {
             }
         }
         return new ArrayList<>(links.values());
+    }
+
+    /** Artifact format, else the file suffix like the extraction-agent's built-in dispatch (kind rules need no format). */
+    static ModelFormat format(TlrInput.Version model) {
+        if (model.format() != null) {
+            return FORMATS.get(model.format());
+        }
+        String path = model.path().toLowerCase(java.util.Locale.ROOT);
+        if (path.endsWith(".repository")) {
+            return ModelFormat.PCM;
+        }
+        return path.endsWith(".uml") || path.endsWith(".xmi") ? ModelFormat.UML : null;
     }
 
     private static List<TlrInput.Version> versions(TlrInput in, String kind) {

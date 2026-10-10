@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
  && useradd --uid 10001 sandman && install -d -o sandman /artifacts
 COPY --from=build /src/services/tlr-agent/target/quarkus-app /app
 COPY contracts /contracts
-ENV SANDMAN_CONTRACTS_DIR=/contracts SANDMAN_AGENT_CARD=/contracts/agent-cards/tlr-agent.json
+ENV SANDMAN_CONTRACTS_DIR=/contracts SANDMAN_AGENT_CARD=/contracts/agent-cards/tlr-agent.json LLM_CACHE_DIR=/tmp/ardoco-llm-cache
 USER sandman
 EXPOSE 8080
 CMD ["java", "-jar", "/app/quarkus-run.jar"]

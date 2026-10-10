@@ -118,6 +118,24 @@ class BenchmarkEquivalenceTest {
                 in.sources(),
                 in.targets());
         assertEquals(List.of(), new ArdocoApproach().recover(wrongFormat, ctx));
+
+        // no format on the artifact (kind rules without format): the suffix decides, as in the extraction-agent
+        var noFormat = new TlrInput(
+                in.projectId(),
+                in.versions().stream()
+                        .map(v -> "architecture-model".equals(v.kind())
+                                ? new TlrInput.Version(v.id(), v.artifactId(), v.path(), v.kind(), null, v.storageUri())
+                                : v)
+                        .toList(),
+                in.sources(),
+                in.targets());
+        assertEquals(new ArdocoApproach().recover(in, ctx), new ArdocoApproach().recover(noFormat, ctx));
+        assertEquals(
+                ModelFormat.UML,
+                ArdocoApproach.format(new TlrInput.Version("v", "a", "x/M.XMI", "architecture-model", null, null)));
+        assertEquals(
+                null,
+                ArdocoApproach.format(new TlrInput.Version("v", "a", "x/m.json", "architecture-model", null, null)));
     }
 
     private long standaloneSentences;

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** KG access for trace links (Stage 1 §4.4): inactive batches, one activating final transaction. */
 public final class LinkStore {
@@ -25,19 +26,53 @@ public final class LinkStore {
         this.kg = kg;
     }
 
+    /** The versions with artifact path, kind and format, ordered by id; versions of other projects are not returned. */
+    public List<TlrInput.Version> versions(String projectId, List<String> versionIds) {
+        return versionRows(
+                "MATCH (a:Artifact)-[:HAS_VERSION]->(v:ArtifactVersion) WHERE v.projectId = $p AND v.id IN $ids ",
+                Map.of("p", projectId, "ids", versionIds));
+    }
+
+    /** The current version of every artifact of the given kinds, ordered by id. */
+    public List<TlrInput.Version> currentVersions(String projectId, java.util.Collection<String> kinds) {
+        return versionRows(
+                "MATCH (a:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v:ArtifactVersion) WHERE a.kind IN $kinds ",
+                Map.of("p", projectId, "kinds", List.copyOf(kinds)));
+    }
+
+    private List<TlrInput.Version> versionRows(String match, Map<String, Object> params) {
+        return kg
+                .read(
+                        match + "RETURN v.id AS id, a.id AS artifactId, a.path AS path, a.kind AS kind, "
+                                + "a.format AS format, v.storageUri AS storageUri ORDER BY id",
+                        params)
+                .stream()
+                .map(r -> new TlrInput.Version(
+                        (String) r.get("id"),
+                        (String) r.get("artifactId"),
+                        (String) r.get("path"),
+                        (String) r.get("kind"),
+                        (String) r.get("format"),
+                        (String) r.get("storageUri")))
+                .toList();
+    }
+
     /** Elements of the versions with their artifact kind, ordered by key. */
     public List<TlrInput.Element> elements(String projectId, List<String> versionIds) {
         return kg
                 .read(
                         "MATCH (a:Artifact)-[:HAS_VERSION]->(v:ArtifactVersion)-[:HAS_ELEMENT]->(e:Element) "
                                 + "WHERE v.projectId = $p AND v.id IN $ids "
-                                + "RETURN e.id AS id, e.key AS key, labels(e) AS labels, e.kind AS kind, "
-                                + "e.name AS name, e.text AS text, a.kind AS artifactKind ORDER BY key",
+                                + "RETURN e.id AS id, v.id AS versionId, e.key AS key, labels(e) AS labels, "
+                                + "e.kind AS kind, e.name AS name, e.text AS text, e.sentenceIndex AS sentenceIndex, "
+                                + "a.kind AS artifactKind ORDER BY key",
                         Map.of("p", projectId, "ids", versionIds))
                 .stream()
                 .map(r -> new TlrInput.Element(
                         (String) r.get("id"),
+                        (String) r.get("versionId"),
                         (String) r.get("key"),
+                        ((String) r.get("key")).substring(((String) r.get("key")).indexOf('#') + 1),
                         ((List<?>) r.get("labels"))
                                 .stream()
                                         .map(String::valueOf)
@@ -47,6 +82,7 @@ public final class LinkStore {
                         (String) r.get("kind"),
                         (String) r.get("name"),
                         (String) r.get("text"),
+                        r.get("sentenceIndex") == null ? null : ((Number) r.get("sentenceIndex")).intValue(),
                         (String) r.get("artifactKind")))
                 .toList();
     }
@@ -102,6 +138,38 @@ public final class LinkStore {
                                 + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), "
                                 + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
                                 + "WHERE sv.id IN $sourceVersionIds AND tv.id IN $targetVersionIds "
+                                + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
+                                + "SET old.active = false "
+                                + "WITH count(*) AS superseded "
+                                + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
+                                + "WITH count(*) AS activated "
+                                + "MATCH (r:Run {id: $runId}) SET r.status = 'completed', r.endedAt = $now",
+                        params)
+                .consume());
+    }
+
+    /**
+     * Final transaction of a whole-project run: deactivates the approach's active links between artifacts of the
+     * supported kind pairs that this run did not produce, activates this run's links.
+     */
+    public void finishWholeProject(String runId, String projectId, String approach, Set<KindPair> pairs) {
+        Map<String, Object> params = Map.of(
+                "runId", runId,
+                "projectId", projectId,
+                "approach", approach,
+                "pairs",
+                        pairs.stream()
+                                .map(p -> p.source() + ">" + p.target())
+                                .sorted()
+                                .toList(),
+                "now", now(),
+                "explicit", EXPLICIT_REFERENCE);
+        kg.writeTx(tx -> tx.run(
+                        "MATCH (r:Run {id: $runId}) "
+                                + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
+                                + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:HAS_VERSION]-(sa:Artifact), "
+                                + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:HAS_VERSION]-(ta:Artifact) "
+                                + "WHERE sa.kind + '>' + ta.kind IN $pairs "
                                 + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
                                 + "SET old.active = false "
                                 + "WITH count(*) AS superseded "

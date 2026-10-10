@@ -1,5 +1,6 @@
 approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
+  test-whole: { enabled: true, params: {} }
   test-failing: { enabled: true, params: {} }
   lissa: { enabled: false, params: {} }
   ardoco: { enabled: false, params: {} }

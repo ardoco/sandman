@@ -84,6 +84,7 @@ public class ApproachesRoute {
                     .sorted(Comparator.comparing(KindPair::source).thenComparing(KindPair::target))
                     .forEach(p -> pairs.addObject().put("source", p.source()).put("target", p.target()));
             node.put("usesLlm", a.usesLlm());
+            node.put("scopeMode", a.scopeMode().wire());
         }
         return JsonMapper.shared().createObjectNode().set("approaches", list);
     }

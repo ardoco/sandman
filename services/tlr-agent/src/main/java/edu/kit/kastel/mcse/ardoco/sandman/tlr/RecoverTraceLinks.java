@@ -63,8 +63,7 @@ public class RecoverTraceLinks implements Skill {
         List<Approaches.Entry> selected = select(input, pairs);
 
         LinkStore store = new LinkStore(kg);
-        TlrInput in =
-                new TlrInput(projectId, store.elements(projectId, sourceIds), store.elements(projectId, targetIds));
+        TlrInput pairwise = null;
         RunRecorder recorder =
                 new RunRecorder(kg, settings.serviceName(), System.getenv().getOrDefault("SANDMAN_VERSION", "dev"));
         String llmPolicy = selected.stream().anyMatch(e -> e.approach().usesLlm()) ? llmPolicy(projectId) : null;
@@ -72,6 +71,23 @@ public class RecoverTraceLinks implements Skill {
         for (Approaches.Entry entry : selected) {
             if (ctx.cancelled()) {
                 break;
+            }
+            TlrInput in;
+            if (entry.approach().scopeMode() == ScopeMode.WHOLE_PROJECT) {
+                in = wholeProject(projectId, entry.approach(), store);
+            } else {
+                if (pairwise == null) {
+                    pairwise = new TlrInput(
+                            projectId,
+                            store.versions(
+                                    projectId,
+                                    Stream.concat(sourceIds.stream(), targetIds.stream())
+                                            .distinct()
+                                            .toList()),
+                            store.elements(projectId, sourceIds),
+                            store.elements(projectId, targetIds));
+                }
+                in = pairwise;
             }
             runs.add(runApproach(ctx, input, entry, in, sourceIds, targetIds, store, recorder, llmPolicy));
         }
@@ -114,7 +130,7 @@ public class RecoverTraceLinks implements Skill {
                 null,
                 params.toString(),
                 configHash,
-                Stream.concat(sourceIds.stream(), targetIds.stream()).distinct().toList(),
+                in.versions().stream().map(TlrInput.Version::id).toList(),
                 ctx.workflowId(),
                 ctx.taskId(),
                 ctx.actor() != null ? ctx.actor() : "service:" + ctx.caller(),
@@ -143,7 +159,11 @@ public class RecoverTraceLinks implements Skill {
                 links.put(id, l);
             }
             store.writeInactive(runId, in.projectId(), approach, configHash, new ArrayList<>(links.values()));
-            store.finish(runId, in.projectId(), approach.id(), sourceIds, targetIds);
+            if (approach.scopeMode() == ScopeMode.WHOLE_PROJECT) {
+                store.finishWholeProject(runId, in.projectId(), approach.id(), approach.supports());
+            } else {
+                store.finish(runId, in.projectId(), approach.id(), sourceIds, targetIds);
+            }
             run.put("status", "completed");
             run.put("linkCount", links.size());
         } catch (RuntimeException e) { // isolates this approach; its links stay inactive
@@ -155,6 +175,27 @@ public class RecoverTraceLinks implements Skill {
             run.put("error", error);
         }
         return run;
+    }
+
+    /** All current versions of the kinds the approach supports; the requested version subset is ignored (R-022). */
+    private static TlrInput wholeProject(String projectId, TraceLinkApproach approach, LinkStore store) {
+        Set<String> sourceKinds = new LinkedHashSet<>();
+        Set<String> targetKinds = new LinkedHashSet<>();
+        approach.supports().forEach(p -> {
+            sourceKinds.add(p.source());
+            targetKinds.add(p.target());
+        });
+        List<TlrInput.Version> sources = store.currentVersions(projectId, sourceKinds);
+        List<TlrInput.Version> targets = store.currentVersions(projectId, targetKinds);
+        List<TlrInput.Version> versions =
+                Stream.concat(sources.stream(), targets.stream()).distinct().toList();
+        return new TlrInput(
+                projectId,
+                versions,
+                store.elements(
+                        projectId, sources.stream().map(TlrInput.Version::id).toList()),
+                store.elements(
+                        projectId, targets.stream().map(TlrInput.Version::id).toList()));
     }
 
     private List<Approaches.Entry> select(JsonNode input, Set<KindPair> pairs) throws SkillException {

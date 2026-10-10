@@ -2,10 +2,25 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr;
 
 import java.util.List;
 
-/** Elements of the given source and target versions, each ordered by key. */
-public record TlrInput(String projectId, List<Element> sources, List<Element> targets) {
+/** Versions with their elements; sources and targets are each ordered by key. */
+public record TlrInput(String projectId, List<Version> versions, List<Element> sources, List<Element> targets) {
 
-    /** label = kind label (Requirement, CodeUnit, ...); artifactKind = kind of the owning artifact. */
+    /** An artifact version; format may be null, storageUri is artifact://project/sha256. */
+    public record Version(String id, String artifactId, String path, String kind, String format, String storageUri) {}
+
+    /**
+     * label = kind label (Requirement, CodeUnit, ...); artifactKind = kind of the owning artifact; localKey = key
+     * without the artifact id; sentenceIndex = 0-based position of a TextUnit sentence, else null.
+     */
     public record Element(
-            String id, String key, String label, String kind, String name, String text, String artifactKind) {}
+            String id,
+            String versionId,
+            String key,
+            String localKey,
+            String label,
+            String kind,
+            String name,
+            String text,
+            Integer sentenceIndex,
+            String artifactKind) {}
 }

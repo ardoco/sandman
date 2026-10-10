@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.a2aproject.sdk.spec.DataPart;
 import org.a2aproject.sdk.spec.Message;
 import org.junit.jupiter.api.AfterEach;
@@ -404,6 +405,103 @@ class RecoverTraceLinksTest {
         }
     }
 
+    static final String V_D1 = Ids.stableId("ver", "d1");
+    static final String V_M1 = Ids.stableId("ver", "m1");
+    static final String V_M1B = Ids.stableId("ver", "m1b");
+    static final String V_M2 = Ids.stableId("ver", "m2");
+
+    private void wholeArtifact(
+            String artifactId, String kind, String versionId, boolean current, List<String> elements) {
+        kg.write(
+                "MERGE (a:Artifact {id: $a}) SET a.projectId = $p, a.kind = $k, a.path = $a, a.format = 'x' "
+                        + "CREATE (a)-[:HAS_VERSION]->(v:ArtifactVersion {id: $v, projectId: $p, storageUri: 'artifact://mini/' + $v})",
+                Map.of("a", artifactId, "p", PROJECT, "k", kind, "v", versionId));
+        if (current) {
+            kg.write(
+                    "MATCH (a:Artifact {id: $a}) OPTIONAL MATCH (a)-[c:CURRENT_VERSION]->() DELETE c "
+                            + "WITH a MATCH (v:ArtifactVersion {id: $v}) CREATE (a)-[:CURRENT_VERSION]->(v)",
+                    Map.of("a", artifactId, "v", versionId));
+        }
+        for (String e : elements) { // "name|text"
+            String[] parts = e.split("\\|", -1);
+            kg.write(
+                    "MATCH (v:ArtifactVersion {id: $v}) CREATE (v)-[:HAS_ELEMENT]->(:Element {id: $id, projectId: $p, "
+                            + "key: $key, name: $name, text: $text, kind: 'x'})",
+                    Map.of(
+                            "v",
+                            versionId,
+                            "id",
+                            Ids.stableId("el", versionId, parts[0]),
+                            "p",
+                            PROJECT,
+                            "key",
+                            artifactId + "#" + parts[0],
+                            "name",
+                            parts[0],
+                            "text",
+                            parts[1]));
+        }
+    }
+
+    private List<String> activeWholeLinks() {
+        return kg
+                .read(
+                        "MATCH (l:TraceLink {approach: 'test-whole', active: true})-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element) "
+                                + "RETURN s.id + '>' + t.id AS pair ORDER BY pair",
+                        Map.of())
+                .stream()
+                .map(r -> (String) r.get("pair"))
+                .toList();
+    }
+
+    @Test
+    void wholeProjectApproachUsesAllCurrentVersionsAndRetiresOwnStaleLinks() throws Exception {
+        wholeArtifact("art_doc", "architecture-doc", V_D1, true, List.of("s1|uses Alpha", "s2|uses Beta"));
+        wholeArtifact("art_m1", "architecture-model", V_M1, true, List.of("Alpha|", "Beta|"));
+        JsonNode in = JsonMapper.shared()
+                .readTree("{\"projectId\":\"" + PROJECT + "\",\"sourceVersionIds\":[\"" + V_D1 + "\"],"
+                        + "\"targetVersionIds\":[\"" + V_M1 + "\"],\"approaches\":[\"test-whole\"]}");
+        assertEquals("TASK_STATE_COMPLETED", run(in).state());
+        assertEquals(2, activeWholeLinks().size());
+
+        // a second model that the request does not mention: ignored subset, all current versions are used
+        wholeArtifact("art_m2", "architecture-model", V_M2, true, List.of("Alpha|"));
+        var done = run(in);
+        assertEquals("TASK_STATE_COMPLETED", done.state(), String.valueOf(done.error()));
+        assertEquals(3, activeWholeLinks().size());
+        assertEquals(
+                List.of(V_D1, V_M1, V_M2).stream().sorted().toList(),
+                kg
+                        .read(
+                                "MATCH (r:Run {tool: 'test-whole', a2aTaskId: $t})-[:USED]->(v) RETURN v.id AS id ORDER BY id",
+                                Map.of("t", done.taskId()))
+                        .stream()
+                        .map(r -> (String) r.get("id"))
+                        .toList());
+        assertEquals(1, done.result().get("runs").size());
+
+        // new model version without Beta: its links and the links to the replaced version go; same input twice is
+        // stable
+        wholeArtifact("art_m1", "architecture-model", V_M1B, true, List.of("Alpha|"));
+        run(in);
+        var after = activeWholeLinks();
+        assertEquals(
+                Stream.of(
+                                Ids.stableId("el", V_D1, "s1") + ">" + Ids.stableId("el", V_M1B, "Alpha"),
+                                Ids.stableId("el", V_D1, "s1") + ">" + Ids.stableId("el", V_M2, "Alpha"))
+                        .sorted()
+                        .toList(),
+                after);
+        run(in);
+        assertEquals(after, activeWholeLinks());
+
+        // deleting the last model retires everything
+        kg.write("MATCH (:Artifact {id: 'art_m1'})-[c:CURRENT_VERSION]->() DELETE c", Map.of());
+        kg.write("MATCH (:Artifact {id: 'art_m2'})-[c:CURRENT_VERSION]->() DELETE c", Map.of());
+        run(in);
+        assertTrue(activeWholeLinks().isEmpty());
+    }
+
     @Test
     void approachesEndpointMatchesTheContract() throws Exception {
         HttpClient http = HttpClient.newHttpClient();
@@ -428,6 +526,16 @@ class RecoverTraceLinksTest {
         assertEquals("1", stub.get("version").asString());
         assertEquals(36, stub.get("kindPairs").size());
         assertFalse(stub.get("usesLlm").asBoolean());
+        assertEquals("pairwise", stub.get("scopeMode").asString());
+        assertEquals(
+                "whole-project",
+                body.get("approaches")
+                        .valueStream()
+                        .filter(a -> "test-whole".equals(a.get("id").asString()))
+                        .findFirst()
+                        .orElseThrow()
+                        .get("scopeMode")
+                        .asString());
         assertTrue(body.get("approaches")
                 .valueStream()
                 .noneMatch(a -> "lissa".equals(a.get("id").asString())));

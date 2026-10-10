@@ -18,4 +18,8 @@ public interface TraceLinkApproach {
     default boolean usesLlm() {
         return false;
     }
+
+    default ScopeMode scopeMode() {
+        return ScopeMode.PAIRWISE;
+    }
 }

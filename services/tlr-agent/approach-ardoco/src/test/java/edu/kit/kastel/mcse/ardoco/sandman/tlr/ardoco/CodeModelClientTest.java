@@ -159,14 +159,114 @@ class CodeModelClientTest {
     void identityIsPluginNameAndVersionAndAnUnreachableCardIsUnavailable() {
         assertEquals(
                 "code-extractor-ardoco@2.1.0+c1",
-                client(new Script(working()), Duration.ZERO).identity());
-        var broken = new CodeModelClient("http://plugin", Duration.ZERO, Duration.ZERO, new Script(working()) {
+                client(new Script(working()), Duration.ofSeconds(5)).identity());
+        var broken = new CodeModelClient("http://plugin", Duration.ofSeconds(5), Duration.ZERO, new Script(working()) {
             @Override
             public String identity(String url) {
                 throw new IllegalStateException("no route");
             }
         });
         assertThrows(ApproachUnavailableException.class, broken::identity);
+    }
+
+    /** A call that hangs until the test ends (or the client interrupts it). */
+    private static void hang() {
+        try {
+            Thread.sleep(60_000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("interrupted");
+        }
+    }
+
+    private static void assertEndsWithin(Duration limit, Runnable call, Class<? extends RuntimeException> expected) {
+        long start = System.nanoTime();
+        assertThrows(expected, call::run);
+        assertTrue(
+                System.nanoTime() - start < limit.toNanos(), "took " + (System.nanoTime() - start) / 1_000_000 + " ms");
+    }
+
+    @Test
+    void aHungSubmitEndsWithinTheTimeoutAsRetryable() {
+        var script = new Script(working()) {
+            @Override
+            public TaskSnapshot submit(String url, JsonNode input, String messageId) {
+                hang();
+                return null;
+            }
+        };
+        assertEndsWithin(
+                Duration.ofSeconds(5),
+                () -> client(script, Duration.ofMillis(200)).acm("p", FILES, () -> false),
+                ApproachUnavailableException.class);
+    }
+
+    @Test
+    void aHungGetEndsWithinTheTimeoutCancelsAndIsRetryable() {
+        var script = new Script(working()) {
+            @Override
+            public TaskSnapshot get(String url, String taskId) {
+                calls.add("get");
+                hang();
+                return null;
+            }
+        };
+        assertEndsWithin(
+                Duration.ofSeconds(5),
+                () -> client(script, Duration.ofMillis(300)).acm("p", FILES, () -> false),
+                ApproachUnavailableException.class);
+        assertEquals("cancel", script.calls.getLast());
+    }
+
+    @Test
+    void aHungCancelDoesNotDelayTheTimeoutFailureBeyondTheCancelLimit() {
+        var script = new Script(working()) {
+            @Override
+            public TaskSnapshot cancel(String url, String taskId) {
+                hang();
+                return null;
+            }
+        };
+        assertEndsWithin(
+                Duration.ofSeconds(5),
+                () -> client(script, Duration.ofMillis(100)).acm("p", FILES, () -> false),
+                ApproachUnavailableException.class);
+    }
+
+    @Test
+    void aHungAgentCardEndsWithinTheTimeoutAsRetryable() {
+        var script = new Script(working()) {
+            @Override
+            public String identity(String url) {
+                hang();
+                return null;
+            }
+        };
+        assertEndsWithin(
+                Duration.ofSeconds(5),
+                () -> client(script, Duration.ofMillis(200)).identity(),
+                ApproachUnavailableException.class);
+    }
+
+    @Test
+    void aResponseAboveTheCapIsNotRetryable() {
+        var script = new Script(working()) {
+            @Override
+            public TaskSnapshot submit(String url, JsonNode input, String messageId) {
+                throw new IllegalStateException(
+                        "wrapped", new RuntimeException(new CappedHttpClient.TooLargeException(1)));
+            }
+        };
+        var e = assertThrows(IllegalStateException.class, () -> acm(script));
+        assertTrue(e.getMessage().contains("32 MiB"), e.getMessage());
+    }
+
+    @Test
+    void anAcmAbove32MiBIsRejectedBeforeItIsWritten(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) {
+        var big = JsonMapper.shared().createObjectNode().put("x", "a".repeat((int) CodeModelClient.MAX_ACM_BYTES));
+        var e = assertThrows(IllegalStateException.class, () -> CodeModelClient.write(big, dir.resolve("acm")));
+        assertTrue(e.getMessage().contains("32 MiB"), e.getMessage());
+        assertTrue(!java.nio.file.Files.exists(dir.resolve("acm")));
     }
 
     @Test

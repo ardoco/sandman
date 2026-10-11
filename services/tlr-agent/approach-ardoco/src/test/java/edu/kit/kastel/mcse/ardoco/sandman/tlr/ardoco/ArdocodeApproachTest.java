@@ -126,7 +126,7 @@ class ArdocodeApproachTest {
 
     private static CodeModelClient plugin(java.util.function.Supplier<String> identity) {
         return new CodeModelClient(
-                "http://plugin", java.time.Duration.ZERO, java.time.Duration.ZERO, new CodeModelClient.Calls() {
+                "http://plugin", java.time.Duration.ofSeconds(5), java.time.Duration.ZERO, new CodeModelClient.Calls() {
                     @Override
                     public String identity(String url) {
                         return identity.get();

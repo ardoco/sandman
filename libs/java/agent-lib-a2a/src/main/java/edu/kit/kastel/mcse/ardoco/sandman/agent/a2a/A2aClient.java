@@ -14,6 +14,7 @@ import org.a2aproject.sdk.A2A;
 import org.a2aproject.sdk.client.Client;
 import org.a2aproject.sdk.client.TaskEvent;
 import org.a2aproject.sdk.client.config.ClientConfig;
+import org.a2aproject.sdk.client.http.A2AHttpClient;
 import org.a2aproject.sdk.client.transport.jsonrpc.JSONRPCTransport;
 import org.a2aproject.sdk.client.transport.jsonrpc.JSONRPCTransportConfig;
 import org.a2aproject.sdk.client.transport.spi.interceptors.ClientCallContext;
@@ -44,8 +45,15 @@ public final class A2aClient implements AutoCloseable {
 
     private final Map<String, String> headers;
     private final Map<String, Client> clients = new ConcurrentHashMap<>();
+    private final A2AHttpClient http;
 
     public A2aClient(String token) {
+        this(token, null);
+    }
+
+    /** http: the HTTP client for the Agent Card and the calls (for timeouts and size limits), null for the SDK default. */
+    public A2aClient(String token, A2AHttpClient http) {
+        this.http = http;
         // a2a-java rejects calls that do not list the card's required extension (W-2)
         headers = Map.of(
                 "Authorization", "Bearer " + token, "A2A-Extensions", SkillExecutor.EXTENSION, "A2A-Version", "1.0");
@@ -64,7 +72,7 @@ public final class A2aClient implements AutoCloseable {
 
     /** The agent's public card. */
     public AgentCard card(String agentUrl) {
-        return A2A.getAgentCard(agentUrl);
+        return http == null ? A2A.getAgentCard(agentUrl) : A2A.getAgentCard(http, agentUrl);
     }
 
     private Client client(String agentUrl) {
@@ -86,7 +94,9 @@ public final class A2aClient implements AutoCloseable {
                             .setStreaming(false)
                             .setPolling(true)
                             .build())
-                    .withTransport(JSONRPCTransport.class, new JSONRPCTransportConfig())
+                    .withTransport(
+                            JSONRPCTransport.class,
+                            http == null ? new JSONRPCTransportConfig() : new JSONRPCTransportConfig(http))
                     .build();
         });
     }

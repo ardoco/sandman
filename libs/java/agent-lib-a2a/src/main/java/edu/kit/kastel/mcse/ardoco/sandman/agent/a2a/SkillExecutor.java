@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
@@ -68,18 +69,58 @@ public class SkillExecutor implements AgentExecutor {
     Instance<EventSink> events;
 
     static final int VM_ERROR_EXIT_CODE = 70;
+    private static final AtomicBoolean DRAINING = new AtomicBoolean();
 
-    /** Ends the JVM after a virtual machine error; compose restarts the container. Replaced in tests. */
+    /** Ends the JVM once drained; compose restarts the container. Replaced in tests. */
     static volatile IntConsumer terminator = code -> {
-        try {
-            Thread.sleep(2000); // let the failed task state reach the caller
-            System.out.flush();
-            System.err.flush();
-        } catch (InterruptedException | RuntimeException | Error e) {
-            // halt regardless
-        }
+        System.out.flush();
+        System.err.flush();
         Runtime.getRuntime().halt(code);
     };
+
+    /** How long in-flight tasks may finish while draining (SANDMAN_DRAIN_TIMEOUT_SECONDS, default 120). */
+    static volatile long drainTimeoutMillis = drainTimeoutFromEnv();
+
+    private static long drainTimeoutFromEnv() {
+        String value = System.getenv("SANDMAN_DRAIN_TIMEOUT_SECONDS");
+        try {
+            return value == null || value.isBlank() ? 120_000 : Long.parseLong(value.strip()) * 1000;
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException("SANDMAN_DRAIN_TIMEOUT_SECONDS is not a number: " + value, e);
+        }
+    }
+
+    /** True from the first damaging error on: new tasks are refused and the health endpoints report down. */
+    static boolean draining() {
+        return DRAINING.get();
+    }
+
+    /** For tests. */
+    static void resetDraining() {
+        DRAINING.set(false);
+    }
+
+    private void drainAndExit() {
+        if (!DRAINING.compareAndSet(false, true)) {
+            return;
+        }
+        LOG.error("draining for at most {} ms, then exiting for a restart", drainTimeoutMillis);
+        Thread drain = new Thread(
+                () -> {
+                    long deadline = System.nanoTime() + drainTimeoutMillis * 1_000_000;
+                    try {
+                        while (status.activeTasks() > 0 && System.nanoTime() < deadline) {
+                            Thread.sleep(100);
+                        }
+                    } catch (InterruptedException e) {
+                        // exit now
+                    }
+                    terminator.accept(VM_ERROR_EXIT_CODE);
+                },
+                "drain-and-exit");
+        drain.setDaemon(true);
+        drain.start();
+    }
 
     private static final int MAX_SEEN = 1024;
     private static final JsonMapper CANONICAL = JsonMapper.builder()
@@ -121,6 +162,10 @@ public class SkillExecutor implements AgentExecutor {
     public void execute(RequestContext context, AgentEmitter emitter) {
         if (context.getTask() == null) {
             emitter.submit();
+        }
+        if (DRAINING.get()) {
+            end(emitter, new SkillException("DEPENDENCY_UNAVAILABLE", "service is restarting, retry later", true), false);
+            return;
         }
         Message message = context.getMessage();
         Map<String, Object> metadata = message.metadata() == null ? Map.of() : message.metadata();
@@ -220,17 +265,14 @@ public class SkillExecutor implements AgentExecutor {
             result = skill.run(ctx, input);
         } catch (SkillException e) {
             return end(emitter, done, e, false);
-        } catch (StackOverflowError e) { // input driven (deep nesting); the stack unwound, the JVM is usable
+        } catch (StackOverflowError e) { // input driven; the stack unwound, the JVM is usable
             LOG.error("skill {} overflowed the stack", skill.id());
             return end(
                     emitter,
                     done,
                     new SkillException("INVALID_INPUT", "input is too deeply nested to process", false),
                     false);
-        } catch (OutOfMemoryError e) { // input driven; the allocation failed and was released, so no halt
-            LOG.error("skill {} ran out of memory", skill.id());
-            return end(emitter, done, new SkillException("INTERNAL", "out of memory", false), false);
-        } catch (VirtualMachineError e) { // InternalError, UnknownError: not input driven, restart the container
+        } catch (VirtualMachineError e) { // OutOfMemoryError, InternalError, UnknownError: state may be damaged
             try {
                 LOG.error("skill {} hit a virtual machine error", skill.id(), e);
                 return end(
@@ -239,7 +281,18 @@ public class SkillExecutor implements AgentExecutor {
                         new SkillException("INTERNAL", e.getClass().getSimpleName() + ": " + e.getMessage(), false),
                         false);
             } finally {
-                terminator.accept(VM_ERROR_EXIT_CODE);
+                drainAndExit();
+            }
+        } catch (ExceptionInInitializerError | NoClassDefFoundError e) { // the class stays unusable until a restart
+            try {
+                LOG.error("skill {} hit a failed class initialization", skill.id(), e);
+                return end(
+                        emitter,
+                        done,
+                        new SkillException("INTERNAL", e.getClass().getSimpleName() + ": " + e.getMessage(), true),
+                        false);
+            } finally {
+                drainAndExit();
             }
         } catch (RuntimeException
                 | Error e) { // unexpected failures (also linkage errors) are reported as retryable INTERNAL

@@ -43,6 +43,10 @@ public final class StatusTracker {
         };
     }
 
+    public int activeTasks() {
+        return active.get();
+    }
+
     /** ServiceStatus JSON; details (service-specific) are omitted if null or empty. */
     public ObjectNode snapshot(JsonNode details) {
         int tasks = active.get();

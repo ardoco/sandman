@@ -85,6 +85,7 @@ final class TestAgent {
         volatile JsonNode output = OUTPUT;
         volatile Exception error;
         volatile Error fatal;
+        volatile String fatalFor;
         volatile CountDownLatch started;
         volatile CountDownLatch release;
 
@@ -96,7 +97,8 @@ final class TestAgent {
         @Override
         public SkillResult run(SkillContext ctx, JsonNode input) throws SkillException {
             seen.add(ctx);
-            if (release != null) {
+            boolean failing = fatal != null && (fatalFor == null || fatalFor.equals(ctx.messageId()));
+            if (release != null && !failing) {
                 started.countDown();
                 try {
                     while (!release.await(20, TimeUnit.MILLISECONDS) && !ctx.cancelled()) {
@@ -106,7 +108,7 @@ final class TestAgent {
                     Thread.currentThread().interrupt();
                 }
             }
-            if (fatal != null) {
+            if (failing) {
                 throw fatal;
             }
             if (error instanceof SkillException e) {

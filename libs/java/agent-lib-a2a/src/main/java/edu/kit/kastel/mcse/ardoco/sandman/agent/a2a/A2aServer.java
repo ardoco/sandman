@@ -139,8 +139,15 @@ public class A2aServer {
             }
         });
         // ponytail: liveness only; add dependency checks to /readyz when agents need them
-        router.get("/healthz").handler(rc -> json(rc, 200, "{\"status\":\"ok\"}"));
-        router.get("/readyz").handler(rc -> json(rc, 200, "{\"status\":\"ok\"}"));
+        Handler<RoutingContext> health = rc -> {
+            if (SkillExecutor.draining()) {
+                json(rc, 503, "{\"status\":\"draining\"}");
+            } else {
+                json(rc, 200, "{\"status\":\"ok\"}");
+            }
+        };
+        router.get("/healthz").handler(health);
+        router.get("/readyz").handler(health);
     }
 
     private static void json(RoutingContext rc, int code, String body) {

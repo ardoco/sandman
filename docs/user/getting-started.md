@@ -58,7 +58,54 @@ check-env: SELFHOSTED_LLM_KEY must not be empty when SELFHOSTED_LLM_URL is set
 check-env: <path>/deploy/secrets/gateway.env missing; run 'make secrets'
 ```
 
-## 3. Start the stack
+## 3. CoreNLP service (ArDoCo approach)
+
+The approach `ardoco` needs a service that splits text into sentences and words (Stanford CoreNLP).
+The tlr-agent does not run this tool itself.
+It sends the text to the container `corenlp-gateway`.
+The gateway forwards the text to one service.
+You choose the service with `SANDMAN_CORENLP_MODE`.
+
+| Mode | Service | What you must do |
+|---|---|---|
+| `remote` (default) | the KIT instance `https://vdl-ws.sdq.kastel.kit.edu` | write the user name and the password into `deploy/secrets/corenlp_credentials` |
+| `local` | the container `corenlp-provider` | nothing; `make secrets` generates the credentials |
+
+Fill in the KIT credentials as follows.
+
+1. Run `make secrets`. It creates `deploy/secrets/corenlp_credentials` with the placeholder `change-me:change-me`.
+2. Open the file `deploy/secrets/corenlp_credentials`.
+3. Replace the content with one line: `user:password`. Use the credentials that the KIT operator gave you.
+4. Save the file. Do not add a second line.
+5. Run `make up`.
+
+`make secrets` never overwrites the file. Only the container `corenlp-gateway` can read it.
+The agents get no KIT credentials. They get a separate token, which `make secrets` generates.
+
+To work without KIT credentials, use the local container.
+
+1. Create the file `deploy/.env` from `deploy/.env.example`, if it does not exist.
+2. Set `SANDMAN_CORENLP_MODE=local` in `deploy/.env`.
+3. Run `make up`. The command starts the container `corenlp-provider` (image of about 1.6 GB, limit 4 GB of memory).
+
+`make e2e` always uses the local container.
+No mode switches by itself: if the KIT instance is down in mode `remote`, the run of `ardoco` fails and the workflow step is retried.
+Change the mode by hand, then.
+
+`deploy/check-env.sh` runs before `make up`. In mode `remote`, it stops with one of these messages:
+
+```
+check-env: <path>/deploy/secrets/corenlp_credentials missing; run 'make secrets' and put user:password of the CoreNLP service into it
+check-env: <path>/deploy/secrets/corenlp_credentials must hold one line user:password (or set SANDMAN_CORENLP_MODE=local)
+check-env: <path>/deploy/secrets/corenlp_credentials still holds the placeholder; put the user:password of the CoreNLP service into it (or set SANDMAN_CORENLP_MODE=local)
+check-env: SANDMAN_CORENLP_MODE must be remote or local, got '<value>'
+check-env: SANDMAN_CORENLP_URL must start with https:// (credentials would leave this host in cleartext), or be exactly http://corenlp-provider:8080
+```
+
+If the log of the tlr-agent shows `CoreNLP credentials rejected`, the service refused the credentials or the token of the agent.
+Check `deploy/secrets/corenlp_credentials` first.
+
+## 4. Start the stack
 
 ```sh
 make up
@@ -78,7 +125,7 @@ Plugin stubs. The shipped configuration (`config/extraction/plugins.yaml`, `conf
 docker compose -f deploy/docker-compose.yml --profile stubs up -d --build
 ```
 
-## 4. First login
+## 5. First login
 
 Open `http://127.0.0.1:8080/console/login`.
 
@@ -89,7 +136,7 @@ The admin account is created only when the user database is empty, so changing t
 
 After the first login the console forces a password change: at least 12 characters, different from the current one. Changing the password signs you out; log in again with the new one. Failed logins are limited to 5 per user name or client address within 15 minutes (then HTTP 429). Console sessions last at most 12 hours and expire after 2 hours without activity.
 
-## 5. Create a token and a project
+## 6. Create a token and a project
 
 1. In the console open **Tokens**, enter a name, press **Create**, and copy the secret (`sdm_...`). It is shown once.
 2. Create a project. There is no console page for this; an admin token calls the API:

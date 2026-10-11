@@ -330,6 +330,7 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 [deploy/docker-compose.yml](../deploy/docker-compose.yml), [deploy/docker-compose.dev.yml](../deploy/docker-compose.dev.yml), [deploy/gateway/config.json](../deploy/gateway/config.json), [deploy/gen-secrets.sh](../deploy/gen-secrets.sh), [deploy/.env.example](../deploy/.env.example).
 
 - **Networks:** `internal` (`internal: true`, all SANDMAN services), `egress` (gateway incl. its admin port; reaches the remote Ollama), `edge` (only `edge-proxy`, a Caddy 2.11 reverse proxy publishing query-service `127.0.0.1:8080`, dashboard `127.0.0.1:8090` and Grafana `127.0.0.1:3001` from the internal network; the published services themselves have no egress — disabling IP masquerading does not block egress on Docker Desktop, spike T0.4 check 13).
+- **CoreNLP (T2.5):** `corenlp-gateway` (the pinned Caddy image of `edge-proxy`, config `deploy/corenlp-gateway/`) is the only way for agents to the Stanford CoreNLP provider service. Networks: `corenlp` (internal; gateway and `tlr-agent`), `egress`, `corenlp-local` (internal; gateway and the optional `corenlp-provider`, profile `corenlp-local`, image pinned by digest, `mem_limit` 4 GB). `SANDMAN_CORENLP_MODE` is `remote` (default; `SANDMAN_CORENLP_URL`, default `https://vdl-ws.sdq.kastel.kit.edu`, credentials `deploy/secrets/corenlp_credentials`) or `local`; `check-env.sh` fails on a placeholder, a missing or malformed credentials file in mode `remote`. Callers send HTTP Basic `<agent>:<corenlp_client_token_<agent>>` (Caddy `basic_auth`, constant-time bcrypt check); the gateway forwards three requests only and replaces the `Authorization` header with the credentials of the mode. Agents do not wait for the gateway. `make e2e` and CI use mode `local`.
 - **Startup order:** `memgraph`, `nats`, `llm-gateway` healthy → `llm-replay` → agents healthy (`/readyz`) → `orchestrator` → `query-service`.
 - **Healthchecks:** Memgraph via `mgconsole`; NATS `/healthz?js-enabled-only=true` (monitoring port enabled by `-m 8222`); Bifrost `/health`; Python services via `python -c urllib…/readyz`; Java via `curl /readyz`; otel-lgtm built-in.
 - **Secrets:** file secrets for all SANDMAN services; each service mounts only its own token (`svc_token_<name>`), the hash file `svc_tokens_verify`, its LLM keys and, for plugin callers, the plugin's inbound token. Two deliberate exceptions, because the images read credentials from environment variables only: `secrets/gateway.env` (provider keys, Bifrost encryption key, admin password, virtual key values `VK_*`) and `secrets/memgraph.env` (`MEMGRAPH_USER`, `MEMGRAPH_PASSWORD`). `gen-secrets.sh` creates matching values (each `llm_key_<component>[_local]` equals its `VK_*`; virtual keys carry Bifrost's required `sk-bf-` prefix; plugin token pairs for the names in `PLUGINS`).
@@ -343,7 +344,8 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 | tlr-agent | 5 GB | inconsistency-agent | 5 GB |
 | query-service | 1 GB | llm-gateway | 1 GB |
 | orchestrator, llm-replay, nats, plugin-stubs, dashboard | 0.5 GB each | otel-lgtm (obs) | 2 GB |
-| edge-proxy | 0.125 GB | | |
+| edge-proxy | 0.125 GB | corenlp-gateway | 0.125 GB |
+| corenlp-provider (profile corenlp-local) | 4 GB (measured peak about 1.6 GB) | | |
 | cadvisor (resources) | 0.25 GB | | |
 
   Total core ≈ 27 GB (incl. dashboard); Ollama runs on a remote server and is not sized here. Memgraph memory is monitored with `SHOW STORAGE INFO`.

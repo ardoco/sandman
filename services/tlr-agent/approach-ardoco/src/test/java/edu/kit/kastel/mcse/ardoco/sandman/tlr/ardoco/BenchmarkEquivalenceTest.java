@@ -114,6 +114,7 @@ class BenchmarkEquivalenceTest {
 
     @Test
     void oneAnnotationServesAllModelsOfADocumentVersion() throws Exception {
+        TextCache.clear(); // an earlier test may have annotated this text
         Case pcm = CASES.get(0);
         Case uml = CASES.get(1);
         Set<String> expected = standalone(pcm);

@@ -171,6 +171,19 @@ class HostileInputTest {
     }
 
     @Test
+    void aCallLeavesNoCustomerCodeInTheTempDirectory() throws Exception {
+        Path fixture = Fixtures.mappingFixture();
+        Fixtures.service(fixture).extract(Fixtures.extractInput(fixture, null));
+        Fixtures.service(fixture).codeModel(CodeModelSkillTest.codeModelInput(fixture));
+        try (Stream<Path> s = Files.list(Path.of(System.getProperty("java.io.tmpdir")))) {
+            List<String> leftovers = s.map(p -> p.getFileName().toString())
+                    .filter(n -> n.startsWith("code-extractor-") || n.startsWith("tmp_magika") || n.startsWith("acm-"))
+                    .toList();
+            assertEquals(List.of(), leftovers);
+        }
+    }
+
+    @Test
     void theSkillInputIsRejectedAsInvalidInputThroughTheService() throws Exception {
         ObjectNode input = Fixtures.extractInput(Fixtures.mappingFixture(), null);
         input.withArray("artifacts")

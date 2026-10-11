@@ -102,6 +102,7 @@ public class CodeService {
     private JsonNode withModel(List<Staging.Item> items, Body body) throws SkillException {
         Path store = settings.artifactStore();
         LOCK.lock();
+        purgeMagikaTemporaryFiles();
         try (Staging staging = Staging.stage(store, items, limits)) {
             IdentifierProvider.reset();
             var extractor = new AllLanguagesExtractor(
@@ -120,7 +121,22 @@ public class CodeService {
                     "code extraction failed: " + e.getClass().getSimpleName() + ": " + e.getMessage(),
                     false);
         } finally {
+            purgeMagikaTemporaryFiles();
             LOCK.unlock();
+        }
+    }
+
+    /**
+     * Magika writes one {@code tmp_magika*.tmp} file per classified file into java.io.tmpdir and never deletes it. They
+     * hold customer code and fill the temp filesystem, so every call removes them (calls run one at a time).
+     */
+    static void purgeMagikaTemporaryFiles() {
+        try (var files = Files.newDirectoryStream(Path.of(System.getProperty("java.io.tmpdir")), "tmp_magika*.tmp")) {
+            for (Path file : files) {
+                Files.deleteIfExists(file);
+            }
+        } catch (IOException e) {
+            LOG.warn("cannot remove Magika temporary files: {}", e.toString());
         }
     }
 }

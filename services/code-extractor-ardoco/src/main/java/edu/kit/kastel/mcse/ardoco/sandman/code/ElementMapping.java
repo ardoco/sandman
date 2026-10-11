@@ -209,7 +209,7 @@ final class ElementMapping {
             props.put("typeKind", type instanceof InterfaceUnit ? "interface" : "class");
             props.put("language", unit.getLanguage().name());
             out.add(e);
-            methods(artifact, info.localKey(), info.localKey(), own.get(type), out);
+            methods(artifact, info.localKey(), info.qualifiedName(), own.get(type), out);
         }
         List<ControlElement> loose = new ArrayList<>();
         for (CodeItem item : unit.getContent()) {
@@ -242,10 +242,13 @@ final class ElementMapping {
         }
     }
 
+    /** ArDoCo reports -1 for a line it could not determine (an end line at the end of a file without final newline). */
     private static void lines(ObjectNode e, int start, int end) {
-        if (start > 0 && end >= start) {
+        if (start > 0) {
             e.put("startLine", start);
-            e.put("endLine", end);
+            if (end >= start) {
+                e.put("endLine", end);
+            }
         }
     }
 

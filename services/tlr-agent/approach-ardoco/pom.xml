@@ -50,6 +50,14 @@
       <groupId>edu.stanford.nlp</groupId>
       <artifactId>stanford-corenlp</artifactId>
     </dependency>
+    <!-- Only for CorenlpParityTest (manual, -Dcorenlp.parity=true); the models never enter the image. -->
+    <dependency>
+      <groupId>edu.stanford.nlp</groupId>
+      <artifactId>stanford-corenlp</artifactId>
+      <version>${corenlp.version}</version>
+      <classifier>models</classifier>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers-junit-jupiter</artifactId>

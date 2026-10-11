@@ -220,7 +220,17 @@ public class SkillExecutor implements AgentExecutor {
             result = skill.run(ctx, input);
         } catch (SkillException e) {
             return end(emitter, done, e, false);
-        } catch (VirtualMachineError e) { // the JVM state is unreliable: fail the task, then restart the container
+        } catch (StackOverflowError e) { // input driven (deep nesting); the stack unwound, the JVM is usable
+            LOG.error("skill {} overflowed the stack", skill.id());
+            return end(
+                    emitter,
+                    done,
+                    new SkillException("INVALID_INPUT", "input is too deeply nested to process", false),
+                    false);
+        } catch (OutOfMemoryError e) { // input driven; the allocation failed and was released, so no halt
+            LOG.error("skill {} ran out of memory", skill.id());
+            return end(emitter, done, new SkillException("INTERNAL", "out of memory", false), false);
+        } catch (VirtualMachineError e) { // InternalError, UnknownError: not input driven, restart the container
             try {
                 LOG.error("skill {} hit a virtual machine error", skill.id(), e);
                 return end(

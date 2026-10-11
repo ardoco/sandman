@@ -246,7 +246,7 @@ class A2aServerTest {
     }
 
     @Test
-    void aVirtualMachineErrorFailsTheTaskNotRetryableAndEndsTheJvm() throws Exception {
+    void anInternalErrorFailsTheTaskNotRetryableAndEndsTheJvm() throws Exception {
         List<Integer> codes = new java.util.concurrent.CopyOnWriteArrayList<>();
         CountDownLatch halted = new CountDownLatch(1);
         var original = SkillExecutor.terminator;
@@ -256,13 +256,38 @@ class A2aServerTest {
         };
         try {
             A2aClient client = client(TOKENS.get("orchestrator"));
-            skill.fatal = new OutOfMemoryError("Java heap space");
+            skill.fatal = new InternalError("jit failure");
             var done = await(client, submit(client, null));
             assertEquals("TASK_STATE_FAILED", done.state());
             assertEquals("INTERNAL", done.error().get("code").asString());
             assertFalse(done.error().get("retryable").asBoolean());
             assertTrue(halted.await(10, TimeUnit.SECONDS));
             assertEquals(List.of(SkillExecutor.VM_ERROR_EXIT_CODE), codes);
+        } finally {
+            SkillExecutor.terminator = original;
+        }
+    }
+
+    @Test
+    void inputDrivenStackOverflowAndHeapExhaustionFailTheTaskWithoutHalting() throws Exception {
+        List<Integer> codes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        var original = SkillExecutor.terminator;
+        SkillExecutor.terminator = codes::add;
+        try {
+            A2aClient client = client(TOKENS.get("orchestrator"));
+            skill.fatal = new StackOverflowError();
+            var done = await(client, submit(client, null));
+            assertEquals("TASK_STATE_FAILED", done.state());
+            assertEquals("INVALID_INPUT", done.error().get("code").asString());
+            assertFalse(done.error().get("retryable").asBoolean());
+
+            skill.fatal = new OutOfMemoryError("Java heap space");
+            done = await(client, submit(client, null));
+            assertEquals("TASK_STATE_FAILED", done.state());
+            assertEquals("INTERNAL", done.error().get("code").asString());
+            assertFalse(done.error().get("retryable").asBoolean());
+            Thread.sleep(300);
+            assertEquals(List.of(), codes);
         } finally {
             SkillExecutor.terminator = original;
         }

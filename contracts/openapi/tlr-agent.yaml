@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN tlr-agent REST API
-  version: 0.6.1
+  version: 0.7.0
   description: |
     Catalog and health. Trace link recovery itself is an A2A skill (contracts/agent-cards/tlr-agent.json).
     Operations marked x-sandman-status: out-of-scope-M0 are not forwarded by the query-service in M0 (R-007);

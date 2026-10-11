@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/skills.schema.json",
   "title": "SANDMAN A2A skill inputs and outputs",
-  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.6.1.",
+  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.7.0.",
   "$defs": {
     "ExtractArtifactVersionsInput": {
       "type": "object",
@@ -623,6 +623,62 @@
             },
             "additionalProperties": false
           }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginCodeModelInput": {
+      "type": "object",
+      "description": "Input of plugin skill sandman.plugin.code-model (A2A, optional second skill of an extraction plugin). The plugin builds the project's code model from currentArtifacts (the whole current code of the project, read from storagePath on the read-only artifact-store mount) and returns it unchanged in the ACM format of ArDoCo.",
+      "required": [
+        "projectId",
+        "currentArtifacts"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        },
+        "currentArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "storagePath"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Project path of the file. Relative, no '..', no duplicates."
+              },
+              "storagePath": {
+                "type": "string",
+                "description": "Absolute path below /artifacts."
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PluginCodeModelOutput": {
+      "type": "object",
+      "description": "Output of plugin skill sandman.plugin.code-model.",
+      "required": [
+        "acm"
+      ],
+      "properties": {
+        "acm": {
+          "type": "object",
+          "description": "Code model as ArDoCo writes it (CodeExtractor.writeOutCodeModel, codeModel.acm: JSON of CodeModelDto). The consumer passes it to ArDoCo unchanged; the schema of the model belongs to ArDoCo."
         },
         "warnings": {
           "type": "array",

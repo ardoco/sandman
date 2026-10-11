@@ -1,0 +1,93 @@
+{
+  "name": "code-extractor-ardoco",
+  "description": "Code extraction plugin built on ArDoCo's code extractors (Eclipse JDT for Java, ShellExtractor, Magika file typing). Returns CodeUnit and TestCase elements and the ArDoCo code model (ACM). No egress, no LLM, never writes the KG.",
+  "version": "2.1.0+c1",
+  "supportedInterfaces": [
+    {
+      "url": "http://code-extractor-ardoco:8000/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false,
+    "extensions": [
+      {
+        "uri": "https://sandman.invalid/a2a/extensions/skill-invocation/v1",
+        "description": "Skill id in message.metadata['sandman.skill']; input = one data part; result = task artifact 'result' with one data part; errors in status message metadata 'sandman.error'.",
+        "required": true,
+        "params": {
+          "skills": {
+            "sandman.plugin.extract": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginExtractInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginExtractOutput"
+            },
+            "sandman.plugin.code-model": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginCodeModelInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PluginCodeModelOutput"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "securitySchemes": {
+    "bearer": {
+      "httpAuthSecurityScheme": {
+        "scheme": "Bearer",
+        "description": "Plugin inbound token (secret plugin_in_code-extractor-ardoco), presented by the calling SANDMAN agent"
+      }
+    }
+  },
+  "securityRequirements": [
+    {
+      "schemes": {
+        "bearer": {
+          "list": []
+        }
+      }
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "sandman.plugin.extract",
+      "name": "Extract (plugin)",
+      "description": "Returns CodeUnit/TestCase elements (files, types, methods) and DEPENDS_ON relations from ArDoCo's code extraction. Must not write to the KG.",
+      "tags": [
+        "extraction",
+        "plugin",
+        "code"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    },
+    {
+      "id": "sandman.plugin.code-model",
+      "name": "Code model (plugin)",
+      "description": "Returns the ArDoCo code model (ACM JSON) of the current code of a project, as ArDoCo builds it in DIRECTORY mode.",
+      "tags": [
+        "extraction",
+        "plugin",
+        "code"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ]
+}

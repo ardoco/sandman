@@ -205,7 +205,8 @@ public class SkillExecutor implements AgentExecutor {
             result = skill.run(ctx, input);
         } catch (SkillException e) {
             return end(emitter, done, e, false);
-        } catch (RuntimeException e) { // unexpected failures are reported as retryable INTERNAL
+        } catch (RuntimeException
+                | Error e) { // unexpected failures (also linkage errors) are reported as retryable INTERNAL
             LOG.error("skill {} failed", skill.id(), e);
             return end(
                     emitter,

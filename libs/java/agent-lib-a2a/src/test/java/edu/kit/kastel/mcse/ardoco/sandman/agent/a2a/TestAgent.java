@@ -84,6 +84,7 @@ final class TestAgent {
         final List<SkillContext> seen = new CopyOnWriteArrayList<>();
         volatile JsonNode output = OUTPUT;
         volatile Exception error;
+        volatile Error fatal;
         volatile CountDownLatch started;
         volatile CountDownLatch release;
 
@@ -104,6 +105,9 @@ final class TestAgent {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
+            }
+            if (fatal != null) {
+                throw fatal;
             }
             if (error instanceof SkillException e) {
                 throw e;

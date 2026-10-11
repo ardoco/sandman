@@ -60,6 +60,7 @@ class A2aServerTest {
         skill.seen.clear();
         skill.output = OUTPUT;
         skill.error = null;
+        skill.fatal = null;
         skill.started = null;
         skill.release = null;
         events.events.clear();
@@ -232,6 +233,16 @@ class A2aServerTest {
         var replayed = await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-perm"));
         assertEquals("BUDGET_EXCEEDED", replayed.error().get("code").asString());
         assertEquals(3, skill.seen.size());
+    }
+
+    @Test
+    void anErrorOfTheSkillFailsTheTaskInsteadOfLeavingItRunning() throws Exception {
+        A2aClient client = client(TOKENS.get("orchestrator"));
+        skill.fatal = new UnsatisfiedLinkError("libx.so: cannot open shared object file");
+        var done = await(client, submit(client, null));
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("INTERNAL", done.error().get("code").asString());
+        assertTrue(done.error().get("retryable").asBoolean());
     }
 
     @Test

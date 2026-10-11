@@ -202,14 +202,6 @@ public abstract class Classifier {
     protected abstract Classifier copyOf();
 
     /**
-     * Sets the prompt used for classification.
-     * This method is only intended for use by optimizers.
-     *
-     * @param prompt The prompt template to use for classification
-     */
-    public abstract void setClassificationPrompt(String prompt);
-
-    /**
      * Creates a list of classification tasks from source and target element stores.
      * Each task represents a pair of elements to be classified.
      *

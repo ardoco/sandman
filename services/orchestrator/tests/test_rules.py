@@ -1,7 +1,11 @@
 """Rule unit tests: events -> steps (Stage 1 §6)."""
 
+from pathlib import Path
+
 from fakes import Env, aid, event, ingestion, vid
-from sandman_orchestrator.rules import DETECT, EXTRACT, TLR, seconds
+from sandman_agent.config import DEFAULT_CONTRACTS_DIR
+from sandman_agent.contracts import Contracts
+from sandman_orchestrator.rules import DETECT, EXTRACT, TLR, Rules, Version, seconds, tlr_steps
 
 
 def pending(env: Env) -> list[dict]:
@@ -123,3 +127,12 @@ def test_invalid_rules_config_fails_at_startup(tmp_path, contracts) -> None:
     bad.write_text("maxConcurrentPerAgent: 0\n")
     with pytest.raises(ContractError, match="rules.yaml"):
         Rules.load(bad, contracts)
+
+
+def test_shipped_rules_link_a_changed_code_version_to_the_documents_without_an_approaches_list() -> None:
+    rules = Rules.load(Path(__file__).parents[3] / "config/orchestrator/rules.yaml", Contracts(DEFAULT_CONTRACTS_DIR))
+    pair = next(p for p in rules.kind_pairs if (p.source, p.target) == ("architecture-doc", "code"))
+    assert pair.approaches == ()
+    doc, code = Version("ver_doc", "art_doc", "architecture-doc"), Version("ver_code", "art_code", "code")
+    [step] = tlr_steps("p", [code], [doc, code], rules)
+    assert step.input == {"projectId": "p", "sourceVersionIds": ["ver_doc"], "targetVersionIds": ["ver_code"]}

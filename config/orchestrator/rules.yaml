@@ -8,3 +8,4 @@ tlr:
   kindPairs:                     # which pairs to link after changes; no approaches list: different lists on two pairs split one change into two steps and lose the stub's union links, so every enabled approach that supports a pair runs
     - { source: requirements, target: code }
     - { source: architecture-doc, target: architecture-model }
+    - { source: architecture-doc, target: code }   # T2.1b: approach ardocode; without the pair a change of code alone never starts it

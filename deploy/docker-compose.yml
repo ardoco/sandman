@@ -152,13 +152,13 @@ services:
     volumes:
       - ./corenlp-gateway/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./corenlp-gateway/entrypoint.sh:/entrypoint.sh:ro
-    secrets: [corenlp_credentials, corenlp_local_credentials]
-    networks: [internal, egress, corenlp-local]  # the only CoreNLP container with egress
+    secrets: [corenlp_credentials, corenlp_local_credentials, corenlp_client_token_tlr-agent, corenlp_client_token_inconsistency-agent]
+    networks: [corenlp, egress, corenlp-local]   # not on internal: plugins there cannot reach it; the only CoreNLP container with egress
     mem_limit: 128m
     depends_on:                                  # agents do not wait for this service, so an outage of the KIT instance does not block the start
       corenlp-provider: { condition: service_healthy, required: false }
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/stanfordnlp/health"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8081/stanfordnlp/health"]   # loopback listener, no caller token
       interval: 15s
       timeout: 5s
       retries: 5
@@ -219,14 +219,15 @@ services:
       QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
-      SANDMAN_CORENLP_URL: http://corenlp-gateway:8080   # no CoreNLP credentials in this container (T2.5)
+      SANDMAN_CORENLP_URL: http://corenlp-gateway:8080   # no KIT credentials in this container, only its own gateway token (T2.5)
+      SANDMAN_CORENLP_TOKEN_FILE: /run/secrets/corenlp_client_token_tlr-agent
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local]
-    networks: [internal]
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local, corenlp_client_token_tlr-agent]
+    networks: [internal, corenlp]               # corenlp: only to reach corenlp-gateway, no egress
     mem_limit: 5g
     depends_on: *depends-core
     healthcheck: &java-health
@@ -491,6 +492,8 @@ networks:
     internal: true          # gateway <-> ollama only
   corenlp-local:
     internal: true          # corenlp-gateway <-> corenlp-provider only
+  corenlp:
+    internal: true          # corenlp-gateway <-> its callers (tlr-agent, later inconsistency-agent) only
 
 volumes:
   memgraph-data: {}
@@ -531,3 +534,5 @@ secrets:
   gateway_admin_password: { file: ./secrets/gateway_admin_password }
   corenlp_credentials: { file: ./secrets/corenlp_credentials }              # remote mode, user:password; mounted only into corenlp-gateway
   corenlp_local_credentials: { file: ./secrets/corenlp_local_credentials }  # local mode, generated; corenlp-gateway and corenlp-provider
+  corenlp_client_token_tlr-agent: { file: ./secrets/corenlp_client_token_tlr-agent }                    # caller token: corenlp-gateway and tlr-agent
+  corenlp_client_token_inconsistency-agent: { file: ./secrets/corenlp_client_token_inconsistency-agent }  # corenlp-gateway; mounted into inconsistency-agent when T3.1 uses CoreNLP

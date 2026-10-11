@@ -76,6 +76,7 @@ echo "wrote   secrets/svc_tokens_verify.json"
 
 write corenlp_credentials "change-me:change-me"
 write corenlp_local_credentials "sandman:$(rand)"
+for c in tlr-agent inconsistency-agent; do write "corenlp_client_token_$c" "$(rand)"; done   # callers of corenlp-gateway, HTTP Basic user=agent name
 write admin_bootstrap_password "$(rand)"
 write e2e_admin_password "$(rand)"
 write session_secret "$(rand)"

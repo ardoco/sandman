@@ -2,6 +2,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
@@ -209,6 +210,40 @@ class RecoverTraceLinksTest {
                         .get("s"));
         assertEquals(1, events.events.size());
         assertEquals(2, events.events.get(0).data().get("runs").size());
+    }
+
+    @Test
+    void unavailableApproachFailsTheSkillRetryableAfterTheOthersWroteTheirLinks() throws Exception {
+        var done = run(input(",\"approaches\":[\"test-unavailable\",\"" + STUB + "\"]"));
+
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("DEPENDENCY_UNAVAILABLE", done.error().get("code").asString());
+        assertTrue(done.error().get("retryable").asBoolean());
+        assertTrue(done.error().get("message").asString().contains("test-unavailable: dependency down"));
+        assertEquals(1, activeLinks().size());
+        assertEquals(
+                "failed",
+                kg.read("MATCH (r:Run {tool: 'test-unavailable'}) RETURN r.status AS s", Map.of())
+                        .get(0)
+                        .get("s"));
+        assertEquals(
+                "completed",
+                kg.read("MATCH (r:Run {tool: $t}) RETURN r.status AS s", Map.of("t", STUB))
+                        .get(0)
+                        .get("s"));
+        assertEquals(0, events.events.size());
+    }
+
+    @Test
+    void environmentOfTheApproachEntersTheConfigHash() throws Exception {
+        run(input(",\"approaches\":[\"test-unavailable\"]"));
+        var hash = kg.read("MATCH (r:Run {tool: 'test-unavailable'}) RETURN r.configHash AS h", Map.of())
+                .get(0)
+                .get("h");
+        var params = JsonMapper.shared().createObjectNode();
+        assertNotEquals(Ids.sha256Hex(Jcs.canonicalize(params)), hash);
+        params.put("environment", "dependency=down");
+        assertEquals(Ids.sha256Hex(Jcs.canonicalize(params)), hash);
     }
 
     @Test

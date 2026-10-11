@@ -31,6 +31,13 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-tlr-approach-ardoco</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-opentelemetry</artifactId>
     </dependency>

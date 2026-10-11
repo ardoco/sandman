@@ -260,6 +260,8 @@ Component responsibilities in one line each (details in Section 5):
 | extraction/detector plugins | any | Plugged-in external systems (Q-5, Q-6, ADR-0012); return results, never write the KG; LLM calls only via the gateway with own keys | none |
 | `llm-replay` | Python | OpenAI-compatible record/replay proxy in front of the gateway (modes `live`, `record`, `replay`) | – |
 | `llm-gateway` | (off-the-shelf, Bifrost) | Unified LLM access, virtual keys, budgets, logging | – |
+| `corenlp-gateway` | (off-the-shelf, Caddy) | Only way to the Stanford CoreNLP provider service (T2.5): path allowlist (`POST /stanfordnlp`, `GET /stanfordnlp/health`, `GET /stanfordnlp/version`), caller authentication (HTTP Basic, one token per agent), replaces the credentials with those of the active mode (`remote`: KIT instance, `local`: `corenlp-provider`) | – |
+| `corenlp-provider` | (off-the-shelf, `ghcr.io/ardoco/stanfordcorenlp-provider-service`, profile `corenlp-local`) | Local CoreNLP service for mode `local`; reachable only by `corenlp-gateway` | – |
 | `memgraph` | (off-the-shelf) | Knowledge graph | – |
 | `nats` | (off-the-shelf) | Durable event log / bus | – |
 | `dashboard` | Python | System overview for admins: health and activity of all services, KG graph view, LLM statistics, operations and insight views (10.1, ADR-0016) | none (own SQLite for history samples) |
@@ -319,7 +321,9 @@ flowchart TB
 | Network | Type | Members | Purpose |
 |---|---|---|---|
 | `internal` | bridge, `internal: true` (no egress) | all services | service-to-service traffic; agents cannot reach the internet, which **enforces gateway-only LLM access**, including for libraries inside approaches |
-| `egress` | bridge | `llm-gateway` (also publishes its admin port) | outbound provider calls, incl. the remote self-hosted Ollama |
+| `egress` | bridge | `llm-gateway` (also publishes its admin port), `corenlp-gateway` | outbound provider calls, incl. the remote self-hosted Ollama and the KIT CoreNLP instance |
+| `corenlp` | bridge, `internal: true` | `corenlp-gateway`, `tlr-agent` (later `inconsistency-agent`) | the agents reach CoreNLP only here; the gateway is not on `internal`, so plugins cannot use it |
+| `corenlp-local` | bridge, `internal: true` | `corenlp-gateway`, `corenlp-provider` (profile `corenlp-local`) | gateway to local provider; the provider has no egress |
 | `edge` | bridge | `edge-proxy` only (Caddy reverse proxy) | publishes query-service (`127.0.0.1:8080`), dashboard (`127.0.0.1:8090`) and Grafana (`127.0.0.1:3001`), which stay on `internal` without egress (spike T0.4 check 13: disabling IP masquerading does not block egress on Docker Desktop); remote access via SSH tunnel, TLS can be added in the proxy |
 
 | Volume | Mounted by | Content |
@@ -339,6 +343,9 @@ flowchart TB
 | `gateway.env` (env file: provider keys, virtual key values, encryption key, admin password — Bifrost reads secrets from env vars only) | llm-gateway only |
 | `memgraph.env` (env file: `MEMGRAPH_USER`/`MEMGRAPH_PASSWORD`, read by the Memgraph binary) | memgraph only |
 | `gateway_admin_password` (copy of the admin password in `gateway.env`) | operator only, never mounted |
+| `corenlp_credentials` (one line `user:password` of the KIT instance, mode `remote`, placeholder `change-me:change-me` is rejected by `check-env.sh`) | corenlp-gateway only |
+| `corenlp_local_credentials` (generated `sandman:<random>`, mode `local`) | corenlp-gateway and corenlp-provider |
+| `corenlp_client_token_<agent>` (gateway caller token, HTTP Basic user = agent name) | corenlp-gateway and that agent |
 | `llm_key_<component>` and `llm_key_<component>_local` (gateway virtual keys; `_local` = self-hosted Ollama only) for extraction, tlr, inconsistency, query; `llm_key_orchestrator` | respective service |
 | `svc_token_<name>` (own bearer token of one service or plugin) | that service only |
 | `svc_tokens_verify` (JSON map caller → sha256 of its token) | all receivers (A2A, owner REST APIs, query API) |

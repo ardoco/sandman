@@ -1,0 +1,63 @@
+# corenlp-gateway: the only container that reaches the Stanford CoreNLP provider service (T2.5).
+# Callers (tlr-agent, inconsistency-agent) authenticate with HTTP Basic user=<agent name>, password=<corenlp_client_token_*>.
+# Caddy's basic_auth compares bcrypt hashes in constant time (entrypoint.sh hashes the tokens at start); every other
+# request gets 401. After that one upstream, fixed at start (CORENLP_UPSTREAM), receives three requests only; the rest
+# gets 404, so /h2, /swagger-ui, /v3/api-docs and /stanfordnlp/registration never reach it. The Authorization header of
+# the caller is replaced with the credentials of the active mode (CORENLP_BASIC, set by entrypoint.sh).
+{
+	admin off
+	auto_https off
+}
+
+(upstream) {
+	reverse_proxy {$CORENLP_UPSTREAM} {
+		header_up Host {upstream_hostport}
+		header_up Authorization "Basic {$CORENLP_BASIC}"
+		transport http {
+			dial_timeout 10s
+			response_header_timeout 300s
+		}
+	}
+}
+
+:8080 {
+	basic_auth {
+		tlr-agent {$CORENLP_HASH_TLR_AGENT}
+		inconsistency-agent {$CORENLP_HASH_INCONSISTENCY_AGENT}
+	}
+
+	@analyze {
+		method POST
+		path /stanfordnlp
+	}
+	@info {
+		method GET
+		path /stanfordnlp/health /stanfordnlp/version
+	}
+
+	handle @analyze {
+		import upstream
+	}
+	handle @info {
+		import upstream
+	}
+	handle {
+		respond "not found" 404
+	}
+}
+
+# Container healthcheck: loopback only, no caller token, health path only.
+http://127.0.0.1:8081 {
+	bind 127.0.0.1
+
+	@health {
+		method GET
+		path /stanfordnlp/health
+	}
+	handle @health {
+		import upstream
+	}
+	handle {
+		respond "not found" 404
+	}
+}

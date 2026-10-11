@@ -3,6 +3,8 @@
 # Afterwards put real provider keys into secrets/gateway.env (OPENAI_API_KEY, OPENROUTER_API_KEY)
 # For the local-only routes the default is the compose container (SELFHOSTED_LLM_URL=http://ollama:11434, profile local-llm, 'make models').
 # Remote instead: SELFHOSTED_LLM_URL=https://<open-webui-host>/ollama and SELFHOSTED_LLM_KEY=<Open WebUI API key>.
+# CoreNLP (T2.5): secrets/corenlp_credentials holds one line user:password for the KIT instance (mode remote); the placeholder
+# change-me:change-me is never overwritten and is rejected by check-env.sh. corenlp_local_credentials is generated (mode local).
 # Plugin services: add their names to PLUGINS (token pair per plugin, see ADR-0012); LLM-using plugins
 # additionally need virtual keys in gateway/config.json and gateway.env (docs/plugins.md).
 set -eu
@@ -72,6 +74,9 @@ done
 printf '%s}' "$VERIFY" > secrets/svc_tokens_verify.json   # regenerated on every run
 echo "wrote   secrets/svc_tokens_verify.json"
 
+write corenlp_credentials "change-me:change-me"
+write corenlp_local_credentials "sandman:$(rand)"
+for c in tlr-agent inconsistency-agent; do write "corenlp_client_token_$c" "$(rand)"; done   # callers of corenlp-gateway, HTTP Basic user=agent name
 write admin_bootstrap_password "$(rand)"
 write e2e_admin_password "$(rand)"
 write session_secret "$(rand)"

@@ -4,3 +4,4 @@ approaches:
   test-failing: { enabled: true, params: {} }
   lissa: { enabled: false, params: {} }
   ardoco: { enabled: true, params: {} }
+  test-unavailable: { enabled: true, params: {} }

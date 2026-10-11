@@ -39,7 +39,7 @@ flow:
       The trace link agent connects elements that belong together, for example a requirement and the
       code that implements it. It can host several approaches, for example the research approaches ArDoCo
       and LiSSA.
-    components: [tlr-agent, llm-replay, llm-gateway]
+    components: [tlr-agent, llm-replay, llm-gateway, corenlp-gateway, corenlp-provider]
   - title: Inconsistencies
     text: >-
       The inconsistency agent looks at elements and links and reports findings, for example a
@@ -127,6 +127,12 @@ zones:
     glyph: "◆"
     col: 2
     row: 1
+  nlp:
+    title: Language processing
+    blurb: Splits text into sentences and words for the ArDoCo approach
+    glyph: "¶"
+    col: 0
+    row: 2
   libs:
     title: Libraries
     blurb: Shared code used inside agents
@@ -263,6 +269,26 @@ components:
       Optional. Use it when project data must not leave your network. It is started with the compose profile
       local-llm, or you point the gateway at a remote server.
     flow: Receives calls from the gateway.
+  corenlp-gateway:
+    zone: nlp
+    title: Language processing gateway
+    summary: The only way out to the text analysis service of the ArDoCo approach.
+    details: >-
+      The ArDoCo approach needs a tool that splits documents into sentences and words (Stanford CoreNLP).
+      The trace link agent does not run this tool itself. It asks this gateway, and the gateway forwards three
+      kinds of requests to one fixed service: the KIT service or the local container. The gateway checks who asks,
+      holds the service password so agents never see it, and rejects every other address of the service.
+      You write the KIT password into one file before the first start (see the getting started guide).
+    flow: Receives text from the trace link agent and sends it to the text analysis service.
+  corenlp-provider:
+    zone: nlp
+    title: Local text analysis service (optional)
+    summary: Splits text into sentences and words on your own machine.
+    details: >-
+      Optional. Use it when the KIT service is not reachable or when you work without a password for it. It is
+      the open-source Stanford CoreNLP provider service of the ArDoCo project, started with the compose profile
+      corenlp-local. Only the gateway can reach it. It needs about 2 GB of memory, limited to 4 GB.
+    flow: Receives text from the gateway and returns sentences with word types and relations.
   nats:
     zone: infra
     title: Message bus

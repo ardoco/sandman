@@ -24,6 +24,14 @@ public interface TraceLinkApproach {
         return null;
     }
 
+    /**
+     * Identity of an external dependency whose answers change the links (for example the version of a provider
+     * service). It enters configHash, so other dependencies get other link ids. Must not throw. Null = none.
+     */
+    default String environment(TlrContext ctx) {
+        return null;
+    }
+
     default ScopeMode scopeMode() {
         return ScopeMode.PAIRWISE;
     }

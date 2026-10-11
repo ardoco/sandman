@@ -28,7 +28,7 @@ flow:
       The extraction agent turns every file into small, typed elements (a requirement, a document
       section, a model component, a code unit). Documents such as PDF or Word are first converted to
       text. Code is understood by plugins.
-    components: [extraction-agent, document-converter, plugin-stubs]
+    components: [extraction-agent, document-converter, code-extractor-ardoco]
   - title: Knowledge graph
     text: >-
       All extracted elements are stored in one graph database. Every later step reads from it and
@@ -218,6 +218,18 @@ components:
       The orchestrator follows fixed rules for this and starts the next step when the previous step reports that
       it is done. It also lets users run a step again and shows events that failed.
     flow: Listens to events on the message bus and sends tasks to the extraction, trace link and inconsistency agents.
+  code-extractor-ardoco:
+    zone: plugins
+    title: Code reader (ArDoCo)
+    summary: Reads the source code of your project and lists its files, classes and methods.
+    details: >-
+      This plugin uses the code readers of the ArDoCo research project. It understands Java files and shell
+      scripts. It tells the extraction agent which files, classes and methods exist and which file uses which
+      other file. Other file types only get a file entry. It works on a private copy of the uploaded files and
+      deletes the copy afterwards. It never changes your files, never writes to the knowledge graph and has no
+      internet access. It refuses a run with more than 20,000 files or more than 500 MB. It can also hand the
+      complete code model to later steps, so that ArDoCo sees exactly the code model it would build itself.
+    flow: Called only by the extraction agent; returns code elements and, on request, the ArDoCo code model.
   plugin-stubs:
     zone: plugins
     title: Demo plugins
@@ -226,7 +238,7 @@ components:
       Real plugins are separate systems written in any language, for example a code analyser. These stubs
       are small examples that prove the plugin contract works end to end and are used by the tests. Their
       results are demonstration data, not analysis results.
-    flow: Called by the extraction agent (extract files) and the inconsistency agent (detect problems).
+    flow: Called by the inconsistency agent (detect problems). In tests it can also answer the extraction agent.
   memgraph:
     zone: kg
     title: Graph database

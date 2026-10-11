@@ -119,7 +119,7 @@ curl http://127.0.0.1:8080/readyz
 docker compose -f deploy/docker-compose.yml ps
 ```
 
-Plugin stubs. The shipped configuration (`config/extraction/plugins.yaml`, `config/inconsistency/plugins.yaml`) routes code and test files to a `code-extractor` plugin and adds a `detect-stub` detector, both provided by the `plugin-stubs` container of the `stubs` profile. `make up` does not start that profile. Without it, those plugin calls fail: code and test files then get file-level elements only, and the affected runs end as `partial` or `failed` (the workflow itself still shows `SUCCEEDED`; see [workflows.md](workflows.md)). To run the full demo pipeline, including the mini example used in these pages, start with the profile:
+Plugins. The shipped configuration routes code and test files (`config/extraction/plugins.yaml`) to the `code-extractor` plugin. The container `code-extractor-ardoco` provides it and `make up` starts it. It reads Java and shell files with the code extractors of ArDoCo. If it is down, code and test files get file-level elements only and the run ends as `partial`. The shipped configuration also adds a `detect-stub` detector (`config/inconsistency/plugins.yaml`). The `plugin-stubs` container of the `stubs` profile provides it, and `make up` does not start that profile. Without it, the detector call fails and the affected run ends as `partial` or `failed` (the workflow itself still shows `SUCCEEDED`; see [workflows.md](workflows.md)). To run the full demo pipeline, including the mini example used in these pages, start with the profile:
 
 ```sh
 docker compose -f deploy/docker-compose.yml --profile stubs up -d --build

@@ -1,5 +1,5 @@
 approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
-  lissa: { enabled: false, params: { retrieval: { k: 10 }, model: chat-default, embed: embed-default } }
+  lissa: { enabled: true, params: { retrieval: { k: 20 }, classifier: simple, concurrency: 8 } }
   ardoco: { enabled: true, params: {} }
   ardocode: { enabled: true, params: {} }

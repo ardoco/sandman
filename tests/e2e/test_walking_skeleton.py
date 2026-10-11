@@ -232,7 +232,7 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
     ]
 
     requirements = stack.rows("MATCH (r:Requirement {projectId: $projectId}) RETURN r.name ORDER BY r.name")
-    assert [r[0] for r in requirements] == ["Cache media files", "Encrypt user passwords", "Upload audio files"]
+    assert [r[0] for r in requirements] == ["Cache media files", "Encrypt user passwords", "Print monthly invoices"]
     assert stack.rows("MATCH (c:CodeUnit {projectId: $projectId, name: 'MediaCache'}) RETURN c.name") == [
         ["MediaCache"]
     ]
@@ -253,14 +253,14 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
     assert ("stub-name-match", "REQ-1", "MediaCache") in by_approach
 
     open_now = stack.inconsistencies()
-    assert set(open_now) == {"Upload audio files", "Encrypt user passwords"}
+    assert set(open_now) == {"Print monthly invoices", "Encrypt user passwords"}
     assert {i["status"] for i in open_now.values()} == {"OPEN"}
     assert {i["type"] for i in open_now.values()} == {"untraced-requirement"}
-    req2, req3 = open_now["Upload audio files"], open_now["Encrypt user passwords"]
+    req2, req3 = open_now["Print monthly invoices"], open_now["Encrypt user passwords"]
 
     # one notification line per new inconsistency
     opened = {e["title"].rsplit(": ", 1)[1] for e in stack.notifications() if e["status"] == "OPEN"}
-    assert opened == {"Upload audio files", "Encrypt user passwords"}, opened
+    assert opened == {"Print monthly invoices", "Encrypt user passwords"}, opened
 
     # triage and authorization
     transition = {"to": "DEFERRED", "expectedStatus": "OPEN", "reason": "later"}

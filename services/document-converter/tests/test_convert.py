@@ -6,6 +6,7 @@ import os
 import sys
 from pathlib import Path
 
+import httpx
 import pytest
 from sandman_document_converter import convert as documents
 from sandman_document_converter.convert import ConversionError, Limits
@@ -148,6 +149,50 @@ def test_prefetch_verify_rejects_tampered_and_extra_files(tmp_path: Path) -> Non
     (tmp_path / "extra").write_bytes(b"y")
     with pytest.raises(SystemExit, match="differ from pinned"):
         prefetch.verify(tmp_path, good)
+
+
+def _status_error(status: int, headers: dict[str, str] | None = None) -> httpx.HTTPStatusError:
+    request = httpx.Request("GET", "https://huggingface.co/api/models")
+    return httpx.HTTPStatusError(
+        str(status), request=request, response=httpx.Response(status, headers=headers, request=request)
+    )
+
+
+def test_prefetch_retries_rate_limit_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    from sandman_document_converter import prefetch
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(prefetch.time, "sleep", sleeps.append)
+    calls = []
+
+    def flaky() -> str:
+        calls.append(1)
+        if len(calls) == 1:
+            raise _status_error(429, {"retry-after": "7"})
+        if len(calls) == 2:
+            raise _status_error(429)
+        return "ok"
+
+    assert prefetch.with_retry(flaky) == "ok"
+    assert len(calls) == 3
+    assert sleeps == [7, 10]
+
+
+def test_prefetch_does_not_retry_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
+    from sandman_document_converter import prefetch
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(prefetch.time, "sleep", sleeps.append)
+    calls = []
+
+    def missing() -> None:
+        calls.append(1)
+        raise _status_error(404)
+
+    with pytest.raises(httpx.HTTPStatusError):
+        prefetch.with_retry(missing)
+    assert len(calls) == 1
+    assert sleeps == []
 
 
 def test_limits_from_env() -> None:

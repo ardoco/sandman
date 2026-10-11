@@ -15,6 +15,7 @@
     <module>libs/java/agent-lib-a2a</module>
     <module>services/tlr-agent/approach-spi</module>
     <module>services/tlr-agent/approach-ardoco</module>
+    <module>services/tlr-agent/approach-lissa</module>
     <module>services/tlr-agent</module>
     <module>services/inconsistency-agent</module>
     <module>services/code-extractor-ardoco</module>

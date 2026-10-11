@@ -23,6 +23,8 @@ public final class FakeGateway implements AutoCloseable {
     public volatile Function<JsonNode, String> chatAnswer = body -> "yes";
     public volatile Function<JsonNode, float[]> embedAnswer = body -> new float[] {1f, 0f};
     public volatile int embedStatus = 200;
+    public volatile java.util.function.Predicate<JsonNode> embedFails = body -> true;
+    public volatile int chatStatus = 200;
     public volatile String embedErrorBody = "{}";
     private final HttpServer server;
 
@@ -39,7 +41,7 @@ public final class FakeGateway implements AutoCloseable {
             int status = 200;
             if (exchange.getRequestURI().getPath().endsWith("/embeddings")) {
                 embedBodies.add(body);
-                if (embedStatus != 200) {
+                if (embedStatus != 200 && embedFails.test(body)) {
                     status = embedStatus;
                     reply = embedErrorBody;
                 } else {
@@ -53,6 +55,13 @@ public final class FakeGateway implements AutoCloseable {
                 }
             } else {
                 chatBodies.add(body);
+                if (chatStatus != 200) {
+                    byte[] err = "{}".getBytes(StandardCharsets.UTF_8);
+                    exchange.sendResponseHeaders(chatStatus, err.length);
+                    exchange.getResponseBody().write(err);
+                    exchange.close();
+                    return;
+                }
                 String content = JsonMapper.shared().writeValueAsString(chatAnswer.apply(body));
                 reply = "{\"model\":\"gpt-1\",\"choices\":[{\"message\":{\"content\":" + content
                         + "},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":10,\"completion_tokens\":2}}";

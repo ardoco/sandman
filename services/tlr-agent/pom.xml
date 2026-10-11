@@ -79,6 +79,10 @@
                   <excludes combine.self="override">
                     <exclude>org.springframework.ai</exclude>
                     <exclude>org.bsc.langgraph4j</exclude>
+                    <!-- T2.6: code extraction (JDT, Magika, onnxruntime) lives in services/code-extractor-ardoco only. -->
+                    <exclude>org.eclipse.jdt</exclude>
+                    <exclude>com.microsoft.onnxruntime</exclude>
+                    <exclude>io.github.ardoco:magika</exclude>
                   </excludes>
                 </bannedDependencies>
               </rules>

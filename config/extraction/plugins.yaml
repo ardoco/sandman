@@ -2,9 +2,9 @@
 plugins:
   - id: code-extractor
     transport: a2a                        # a2a | http (extraction-agent implements a2a only until needed)
-    url: http://plugin-stubs:8000          # a2a: Agent Card at /.well-known/agent-card.json
-    skill: sandman.plugin.extract
-    tokenFile: /run/secrets/plugin_in_plugin-stubs   # inbound token of the plugin
+    url: http://code-extractor-ardoco:8000   # a2a: Agent Card at /.well-known/agent-card.json; ArDoCo code extraction (T2.6)
+    skill: sandman.plugin.extract           # tests/plugin-stubs (regex stub) answers the same skill
+    tokenFile: /run/secrets/plugin_in_code-extractor-ardoco   # inbound token of the plugin
     match: { kinds: [code, test] }        # or formats / globs
     timeout: 10m
 explicitReferences:

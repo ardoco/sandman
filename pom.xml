@@ -17,6 +17,7 @@
     <module>services/tlr-agent/approach-ardoco</module>
     <module>services/tlr-agent</module>
     <module>services/inconsistency-agent</module>
+    <module>services/code-extractor-ardoco</module>
   </modules>
 
   <properties>

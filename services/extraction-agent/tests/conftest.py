@@ -104,6 +104,7 @@ class FakePlugin:
     def __init__(self) -> None:
         self.fail = False
         self.extra = False  # adds one method element per class
+        self.silent = False  # like the ArDoCo plugin: class elements with line ranges, no explicitReferences
 
     async def run(self, ctx: SkillContext, input: dict[str, Any]) -> SkillResult:
         if self.fail:
@@ -116,12 +117,16 @@ class FakePlugin:
             elements.append({"path": a["path"], "localKey": a["path"], "label": label, "kind": "file",
                              "name": Path(a["path"]).name})  # fmt: skip
             for name in re.findall(r"class (\w+)", text):
-                elements.append({"path": a["path"], "localKey": name, "label": label, "kind": "type", "name": name,
-                                 "parentLocalKey": a["path"]})  # fmt: skip
+                element = {"path": a["path"], "localKey": name, "label": label, "kind": "type", "name": name,
+                           "parentLocalKey": a["path"]}  # fmt: skip
+                if self.silent:
+                    start = text.count("\n", 0, text.index(f"class {name}")) + 1
+                    element |= {"startLine": start, "endLine": text.count("\n") + 1}
+                elements.append(element)
                 if self.extra:
                     elements.append({"path": a["path"], "localKey": f"{name}#run()", "label": label,
                                      "kind": "method", "name": "run", "parentLocalKey": name})  # fmt: skip
-                for ref in re.findall(r"REQ-\d+", text):
+                for ref in [] if self.silent else re.findall(r"REQ-\d+", text):
                     refs.append({"source": {"path": a["path"], "localKey": name}, "referenceText": ref,
                                  "linkType": "verifies"})  # fmt: skip
         return SkillResult({"elements": elements, "relations": [], "explicitReferences": refs})

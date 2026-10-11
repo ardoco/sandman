@@ -35,14 +35,14 @@ The containers share an internal network without internet access. The `document-
 
 | Profile | Adds | Start |
 |---|---|---|
-| (default) | Memgraph, NATS, LLM gateway, replay proxy, extraction, document converter (PDF/DOCX), TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
-| `stubs` | `plugin-stubs`: stub code extractor and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
+| (default) | Memgraph, NATS, LLM gateway, replay proxy, extraction, document converter (PDF/DOCX), code extraction plugin (`code-extractor-ardoco`), TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
+| `stubs` | `plugin-stubs`: stub code extractor (not used by the shipped config) and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
 | `obs` | Grafana/OpenTelemetry backend on `:3001`; services export telemetry when `OTEL_SDK_DISABLED=false` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318` are set in the shell that runs compose | `... --profile obs up -d` |
 | `resources` | cAdvisor container metrics for the dashboard. **Security: grants root-equivalent access to the host through the Docker socket (read-only socket proxy plus host mounts); off by default, not for production.** | `... --profile resources up -d` |
 | `local-llm` | Ollama container (`ollama/ollama:0.35.1`, 4 GB, CPU-only, volume `ollama-models`) for `chat-local`/`embed-local`; needs `SELFHOSTED_LLM_URL=http://ollama:11434` (the default of `make secrets`) | `make models` (starts it and pulls the `ollama/*` models of `config/llm/models.yaml`) |
 | `dashboard` | system overview for admins | `... --profile dashboard up -d --build` |
 
-Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos and tests, not to a production setup; the shipped plugin entries in `config/` point to it (see below).
+Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos and tests, not to a production setup; the shipped detector entry in `config/inconsistency/plugins.yaml` points to it (see below).
 
 ## Dashboard
 
@@ -104,7 +104,8 @@ Backup is not implemented: `make backup` prints `not implemented (T5.3)` and exi
 | `403 password change required` with a token | the token's owner has not yet changed the initial password in the console |
 | `404 not found` for a project that exists | you have no role in it; ask an admin ([projects-and-access.md](projects-and-access.md)) |
 | `sandman ingest` returns `403` | role below `maintainer` |
-| workflow `SUCCEEDED` but code and test files have only file-level elements, runs are `partial` or `failed` | the plugin stubs are not running; start the `stubs` profile or adjust `config/extraction/plugins.yaml` and `config/inconsistency/plugins.yaml` |
+| workflow `SUCCEEDED` but code and test files have only file-level elements, runs are `partial` | `code-extractor-ardoco` is not healthy (`docker compose ps`, its log); the call can also fail with `INVALID_INPUT` when a call has more than `SANDMAN_CODE_MAX_FILES` files or `SANDMAN_CODE_MAX_BYTES` bytes |
+| the detect plugin run is `partial` or `failed` | the plugin stubs are not running; start the `stubs` profile or adjust `config/inconsistency/plugins.yaml` |
 | a changed file did not change its kind | kinds are fixed when an artifact is first ingested ([ingesting-artifacts.md](ingesting-artifacts.md)) |
 | a failed workflow does not restart on re-ingestion | unchanged snapshots start nothing; trigger a workflow manually ([workflows.md](workflows.md)) |
 | nothing explains a partial run | inspect `Run` nodes with the query in [ingesting-artifacts.md](ingesting-artifacts.md) and the extraction agent log |

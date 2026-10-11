@@ -60,6 +60,8 @@ class A2aServerTest {
         skill.seen.clear();
         skill.output = OUTPUT;
         skill.error = null;
+        skill.fatal = null;
+        skill.fatalFor = null;
         skill.started = null;
         skill.release = null;
         events.events.clear();
@@ -71,6 +73,8 @@ class A2aServerTest {
 
     @AfterEach
     void close() {
+        skill.fatal = null;
+        skill.fatalFor = null;
         clients.forEach(A2aClient::close);
     }
 
@@ -232,6 +236,122 @@ class A2aServerTest {
         var replayed = await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-perm"));
         assertEquals("BUDGET_EXCEEDED", replayed.error().get("code").asString());
         assertEquals(3, skill.seen.size());
+    }
+
+    @Test
+    void anErrorOfTheSkillFailsTheTaskInsteadOfLeavingItRunning() throws Exception {
+        A2aClient client = client(TOKENS.get("orchestrator"));
+        skill.fatal = new UnsatisfiedLinkError("libx.so: cannot open shared object file");
+        var done = await(client, submit(client, null));
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("INTERNAL", done.error().get("code").asString());
+        assertTrue(done.error().get("retryable").asBoolean());
+    }
+
+    private int healthStatus() throws Exception {
+        return HttpClient.newHttpClient()
+                .send(HttpRequest.newBuilder(url.resolve("/healthz")).build(), HttpResponse.BodyHandlers.discarding())
+                .statusCode();
+    }
+
+    @Test
+    void heapExhaustionFailsTheTaskThenDrainsAndExitsAfterInFlightTasksFinish() throws Exception {
+        List<Integer> codes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        CountDownLatch exited = new CountDownLatch(1);
+        var original = SkillExecutor.terminator;
+        SkillExecutor.terminator = code -> {
+            codes.add(code);
+            exited.countDown();
+        };
+        try {
+            A2aClient client = client(TOKENS.get("orchestrator"));
+            skill.started = new CountDownLatch(1);
+            skill.release = new CountDownLatch(1);
+            var inFlight = client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-inflight");
+            assertTrue(skill.started.await(5, TimeUnit.SECONDS));
+            assertEquals(200, healthStatus());
+
+            skill.fatalFor = "m-oom";
+            skill.fatal = new OutOfMemoryError("Java heap space");
+            var oom = await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-oom"));
+            assertEquals("TASK_STATE_FAILED", oom.state());
+            assertEquals("INTERNAL", oom.error().get("code").asString());
+            assertFalse(oom.error().get("retryable").asBoolean());
+
+            var late = await(client, client.submit(agent(), "recover-trace-links", INPUT, WF, null, "m-late"));
+            assertEquals("TASK_STATE_FAILED", late.state());
+            assertEquals("DEPENDENCY_UNAVAILABLE", late.error().get("code").asString());
+            assertTrue(late.error().get("retryable").asBoolean());
+            assertEquals(503, healthStatus());
+            assertFalse(exited.await(500, TimeUnit.MILLISECONDS));
+
+            skill.release.countDown();
+            assertEquals(OUTPUT, await(client, inFlight).result());
+            assertTrue(exited.await(10, TimeUnit.SECONDS));
+            assertEquals(List.of(SkillExecutor.VM_ERROR_EXIT_CODE), codes);
+        } finally {
+            SkillExecutor.terminator = original;
+            SkillExecutor.resetDraining();
+            skill.fatalFor = null;
+        }
+    }
+
+    @Test
+    void anInternalErrorAlsoDrainsAndExits() throws Exception {
+        CountDownLatch exited = new CountDownLatch(1);
+        var original = SkillExecutor.terminator;
+        SkillExecutor.terminator = code -> exited.countDown();
+        try {
+            A2aClient client = client(TOKENS.get("orchestrator"));
+            skill.fatal = new InternalError("jit failure");
+            var done = await(client, submit(client, null));
+            assertEquals("TASK_STATE_FAILED", done.state());
+            assertFalse(done.error().get("retryable").asBoolean());
+            assertTrue(exited.await(10, TimeUnit.SECONDS));
+        } finally {
+            SkillExecutor.terminator = original;
+            SkillExecutor.resetDraining();
+        }
+    }
+
+    @Test
+    void aFailedClassInitializationFailsRetryableAndDrains() throws Exception {
+        CountDownLatch exited = new CountDownLatch(1);
+        var original = SkillExecutor.terminator;
+        SkillExecutor.terminator = code -> exited.countDown();
+        try {
+            A2aClient client = client(TOKENS.get("orchestrator"));
+            skill.fatal = new NoClassDefFoundError("Could not initialize class X");
+            var done = await(client, submit(client, null));
+            assertEquals("INTERNAL", done.error().get("code").asString());
+            assertTrue(done.error().get("retryable").asBoolean());
+            assertTrue(exited.await(10, TimeUnit.SECONDS));
+        } finally {
+            SkillExecutor.terminator = original;
+            SkillExecutor.resetDraining();
+        }
+    }
+
+    @Test
+    void inputDrivenStackOverflowFailsTheTaskWithoutDraining() throws Exception {
+        var original = SkillExecutor.terminator;
+        List<Integer> codes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        SkillExecutor.terminator = codes::add;
+        try {
+            A2aClient client = client(TOKENS.get("orchestrator"));
+            skill.fatal = new StackOverflowError();
+            var done = await(client, submit(client, null));
+            assertEquals("TASK_STATE_FAILED", done.state());
+            assertEquals("INVALID_INPUT", done.error().get("code").asString());
+            assertFalse(done.error().get("retryable").asBoolean());
+            assertFalse(SkillExecutor.draining());
+            assertEquals(200, healthStatus());
+            Thread.sleep(300);
+            assertEquals(List.of(), codes);
+        } finally {
+            SkillExecutor.terminator = original;
+            SkillExecutor.resetDraining();
+        }
     }
 
     @Test

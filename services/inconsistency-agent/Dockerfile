@@ -4,6 +4,7 @@ COPY pom.xml .
 COPY libs/java libs/java
 COPY services/tlr-agent services/tlr-agent
 COPY services/inconsistency-agent services/inconsistency-agent
+COPY services/code-extractor-ardoco/pom.xml services/code-extractor-ardoco/pom.xml
 COPY contracts contracts
 RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl services/inconsistency-agent -am package -DskipTests
 

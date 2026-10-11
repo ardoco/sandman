@@ -258,6 +258,7 @@ Component responsibilities in one line each (details in Section 5):
 | `inconsistency-agent` | Java | Detectors (ArDoCo in-process, plugins), status lifecycle, triage API | `Inconsistency`, `StatusChange`, `Run` |
 | `query-service` | Python | NL/Cypher read access, console UI, export, users/roles | none in KG (user store in own SQLite) |
 | extraction/detector plugins | any | Plugged-in external systems (Q-5, Q-6, ADR-0012); return results, never write the KG; LLM calls only via the gateway with own keys | none |
+| `code-extractor-ardoco` | Java | Extraction plugin (T2.6, A2A `sandman.plugin.extract` and `sandman.plugin.code-model`) on ArDoCo's code extractors (Eclipse JDT, Magika, onnxruntime, only in this service). Processes uploaded code: no egress, read-only artifact mount, caps on files and bytes, no KG access | none |
 | `llm-replay` | Python | OpenAI-compatible record/replay proxy in front of the gateway (modes `live`, `record`, `replay`) | – |
 | `llm-gateway` | (off-the-shelf, Bifrost) | Unified LLM access, virtual keys, budgets, logging | – |
 | `corenlp-gateway` | (off-the-shelf, Caddy) | Only way to the Stanford CoreNLP provider service (T2.5): path allowlist (`POST /stanfordnlp`, `GET /stanfordnlp/health`, `GET /stanfordnlp/version`), caller authentication (HTTP Basic, one token per agent), replaces the credentials with those of the active mode (`remote`: KIT instance, `local`: `corenlp-provider`) | – |
@@ -320,7 +321,7 @@ flowchart TB
 
 | Network | Type | Members | Purpose |
 |---|---|---|---|
-| `internal` | bridge, `internal: true` (no egress) | all services | service-to-service traffic; agents cannot reach the internet, which **enforces gateway-only LLM access**, including for libraries inside approaches |
+| `internal` | bridge, `internal: true` (no egress) | all services, including `code-extractor-ardoco` | service-to-service traffic; agents cannot reach the internet, which **enforces gateway-only LLM access**, including for libraries inside approaches |
 | `egress` | bridge | `llm-gateway` (also publishes its admin port), `corenlp-gateway` | outbound provider calls, incl. the remote self-hosted Ollama and the KIT CoreNLP instance |
 | `corenlp` | bridge, `internal: true` | `corenlp-gateway`, `tlr-agent` (later `inconsistency-agent`) | the agents reach CoreNLP only here; the gateway is not on `internal`, so plugins cannot use it |
 | `corenlp-local` | bridge, `internal: true` | `corenlp-gateway`, `corenlp-provider` (profile `corenlp-local`) | gateway to local provider; the provider has no egress |
@@ -355,7 +356,7 @@ flowchart TB
 | `session_secret` (cookie signing) | query-service |
 | `dashboard_admin_password`, `dashboard_session_secret`; read access to `gateway_admin_password` and `memgraph_password` | dashboard (admin-only operator tool, ADR-0016) |
 
-Startup order via `depends_on: condition: service_healthy`: `memgraph`, `nats`, `llm-gateway` → `kg-migrate` (one-shot, applies `init.cypher` and writes `SchemaVersion`), `llm-replay` → agents → `orchestrator` → `query-service`. All services `restart: unless-stopped` and have a `mem_limit` (memory budget in Stage 2 §3.2). Profiles: `default` (core), `obs` (OpenTelemetry backend), `local-llm` (Ollama), `stubs` (plugin stubs); a `docker-compose.dev.yml` overlay publishes Bolt and NATS ports on localhost (Memgraph Lab is excluded as proprietary). Full Compose file: [deploy/docker-compose.yml](../deploy/docker-compose.yml) (Stage 2).
+Startup order via `depends_on: condition: service_healthy`: `memgraph`, `nats`, `llm-gateway` → `kg-migrate` (one-shot, applies `init.cypher` and writes `SchemaVersion`), `llm-replay` → agents → `orchestrator` → `query-service`. All services `restart: unless-stopped` and have a `mem_limit` (memory budget in Stage 2 §3.2). Profiles: `default` (core, including the code extraction plugin `code-extractor-ardoco`), `obs` (OpenTelemetry backend), `local-llm` (Ollama), `stubs` (plugin stubs for the detect demo and the contract tests); a `docker-compose.dev.yml` overlay publishes Bolt and NATS ports on localhost (Memgraph Lab is excluded as proprietary). Full Compose file: [deploy/docker-compose.yml](../deploy/docker-compose.yml) (Stage 2).
 
 ## 3. Communication design
 

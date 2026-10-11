@@ -1,11 +1,11 @@
 # SANDMAN – Stage 2: Contracts and Repository
 
-Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.6.1) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
+Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.7.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
 
 ## 0. Summary of key decisions
 
 1. **Contracts are files, not prose.** `contracts/` holds JSON Schemas (common types, events, skill I/O incl. plugin skills), A2A Agent Cards, OpenAPI 3.1 documents for every REST API, the KG schema contract and init script, and language-neutral conformance vectors. All files are validated in CI (Section 1.8); stubs and final implementations are tested against the same files.
-2. **One contract version (0.6.1) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`, 0.4.0 added planned operations, config schemas, lifecycle table, idempotency vectors and `Element.references`, 0.5.0 added `Run.mixedModels`, the `SchemaVersion` node and the optional manifest for archive-only uploads (a partial ingestion: no deletions), 0.6.0 added the optional approach `scopeMode` (R-022), 0.6.1 clarified that a whole-project `tracelinks.updated` event also lists the version ids whose links changed; the KG schema carries its own version, 0.4.0).
+2. **One contract version (0.7.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`, 0.4.0 added planned operations, config schemas, lifecycle table, idempotency vectors and `Element.references`, 0.5.0 added `Run.mixedModels`, the `SchemaVersion` node and the optional manifest for archive-only uploads (a partial ingestion: no deletions), 0.6.0 added the optional approach `scopeMode` (R-022), 0.6.1 clarified that a whole-project `tracelinks.updated` event also lists the version ids whose links changed, 0.7.0 added the optional plugin skill `sandman.plugin.code-model` (`PluginCodeModelInput`/`PluginCodeModelOutput`, T2.6); the KG schema carries its own version, 0.4.0).
 3. **Monorepo**: uv workspace (Python 3.13) and Maven multi-module build (Java 21, Quarkus for A2A servers) side by side; root-level contracts; one Compose file.
 4. **Docker:** multi-stage images with the repository root as build context (libraries and contracts are copied in); non-root runtime users; the ArDoCo inconsistency branch is built from a pinned commit inside the Java image build.
 5. **Reference Compose file** [deploy/docker-compose.yml](../deploy/docker-compose.yml) with three networks (internal without egress, egress, edge with only a reverse proxy), health-gated startup, per-service file secrets, memory limits, the `llm-replay` proxy, profiles `obs`, `local-llm`, `stubs`, and a dev overlay. Validated with `docker compose config`.
@@ -19,7 +19,7 @@ Status: revision 4 (Stage 4 review decisions and the system overview dashboard i
 |---|---|---|---|
 | [contracts/common.schema.json](../contracts/common.schema.json) | ids, enums, `Actor`, `ElementLocator`, cassette format (`llm-replay`), `SkillError`, skill-invocation metadata | both agent libraries, llm-replay | everyone |
 | [contracts/events.schema.json](../contracts/events.schema.json) | CloudEvents envelope + 5 event payloads | extraction-, tlr-, inconsistency-agent | orchestrator (+ future consumers) |
-| [contracts/skills.schema.json](../contracts/skills.schema.json) | input/output of all A2A skills incl. `sandman.plugin.extract`/`detect` and `Finding` | agents, plugins | orchestrator, extraction-/inconsistency-agent (plugin callers) |
+| [contracts/skills.schema.json](../contracts/skills.schema.json) | input/output of all A2A skills incl. `sandman.plugin.extract`/`code-model`/`detect` and `Finding` | agents, plugins | orchestrator, extraction-/inconsistency-agent (plugin callers) |
 | [contracts/agent-cards/*.json](../contracts/agent-cards/) | A2A 1.0 Agent Cards of the three agents (one skill each) + two plugin templates | agents/plugins serve them at `/.well-known/agent-card.json` | orchestrator, plugin callers, future planner |
 | [contracts/openapi/extraction-agent.yaml](../contracts/openapi/extraction-agent.yaml) | project registration, ingestion (check + upload) | extraction-agent | query-service |
 | [contracts/openapi/inconsistency-agent.yaml](../contracts/openapi/inconsistency-agent.yaml) | detector catalog, list/detail/transition of inconsistencies | inconsistency-agent | query-service |
@@ -34,7 +34,7 @@ Status: revision 4 (Stage 4 review decisions and the system overview dashboard i
 
 ### 1.2 Conventions
 
-- **Versioning:** contract version `0.6.1` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
+- **Versioning:** contract version `0.7.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
 - **Ids:** `stableId(prefix, parts…)` (deterministic, see vectors) for everything that must be idempotent; `run_`/`wf_` ids are random. Element keys `artifactId#localKey` are stable across versions.
 - **Errors:** REST → RFC 9457 problem details; A2A → task state `TASK_STATE_FAILED`/`TASK_STATE_REJECTED` with `SkillError` in status message metadata `sandman.error` (`code`, `message`, `retryable`).
 - **Auth headers:** `Authorization: Bearer <service token>` between services; each service holds only its own token, receivers verify against hashes. User identity only via `X-Sandman-Actor` from the query-service and via `sandman.actor` A2A metadata from the orchestrator (trusted forwarders). Owners reject these headers from other callers with 403. Owners call plugins with the plugin's inbound token.
@@ -141,9 +141,9 @@ tlr:
 plugins:
   - id: code-extractor
     transport: a2a                        # a2a | http (extraction-agent implements a2a only until needed)
-    url: http://plugin-stubs:8000          # a2a: Agent Card at /.well-known/agent-card.json; http: /manifest
+    url: http://code-extractor-ardoco:8000   # a2a: Agent Card at /.well-known/agent-card.json; http: /manifest (T2.6; tests/plugin-stubs answers the same skill)
     skill: sandman.plugin.extract
-    tokenFile: /run/secrets/plugin_in_plugin-stubs   # inbound token of the plugin
+    tokenFile: /run/secrets/plugin_in_code-extractor-ardoco   # inbound token of the plugin
     match: { kinds: [code, test] }        # or formats / globs
     timeout: 10m
 explicitReferences:
@@ -226,7 +226,7 @@ sandman/
 ├── tools/cli/                          `sandman` CLI (Python; ingest, workflows, export)
 ├── tests/
 │   ├── conformance/                    runners calling both libraries on contracts/conformance
-│   ├── plugin-stubs/                   Python stub service for both plugin skills
+│   ├── plugin-stubs/                   Python stub service for both plugin skills (contract tests, detect demo)
 │   └── e2e/                            walking skeleton + fixtures/mini/
 ├── config/                             default runtime configuration (mounted at /config)
 ├── deploy/                             docker-compose*.yml, gateway/config.json, gen-secrets.sh, .env.example
@@ -344,13 +344,14 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 | tlr-agent | 5 GB | inconsistency-agent | 5 GB |
 | query-service | 1 GB | llm-gateway | 1 GB |
 | orchestrator, llm-replay, nats, plugin-stubs, dashboard | 0.5 GB each | otel-lgtm (obs) | 2 GB |
+| code-extractor-ardoco | 4 GB (heap `-Xmx2560m`; measured peak 0.74 GB on TEAMMATES, 2447 files; `/tmp` tmpfs 320 MB, `noexec,nosuid,nodev`) | | |
 | edge-proxy | 0.125 GB | corenlp-gateway | 0.125 GB |
 | corenlp-provider (profile corenlp-local) | 4 GB (measured peak about 1.6 GB) | | |
 | cadvisor (resources) | 0.25 GB | | |
 
   Total core ≈ 27 GB (incl. dashboard); Ollama runs on a remote server and is not sized here. Memgraph memory is monitored with `SHOW STORAGE INFO`.
 - **Dashboard** (ADR-0016): port `127.0.0.1:8090` via `edge-proxy`, network `internal` only, depends only on Memgraph and NATS (not on the services it monitors), secrets `svc_token_dashboard`, `dashboard_admin_password`, `dashboard_session_secret`, `memgraph_password`, `gateway_admin_password`; volume `dashboard-data`. cAdvisor runs in the opt-in profile `resources` with read-only host mounts (V-37).
-- **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the walking skeleton.
+- **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the detect demo and the contract tests. The default profile starts `code-extractor-ardoco` (T2.6): network `internal` only, `artifact-store` read-only, root file system read-only, no capabilities, only the secret `plugin_in_code-extractor-ardoco`, caps `SANDMAN_CODE_MAX_FILES`, `SANDMAN_CODE_MAX_BYTES` and `SANDMAN_CODE_MAX_FILE_BYTES`, `mem_limit` 4 GB with `-Xmx2560m`. The extraction-agent starts without it and falls back to file-level elements (`partial`).
 
 ### 3.3 Local development workflow
 
@@ -414,6 +415,8 @@ General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards 
 
 ### 4.6 Plugin stubs (`tests/plugin-stubs`, profile `stubs`)
 
+Since T2.6 the code extraction plugin of the shipped configuration is `services/code-extractor-ardoco` (ArDoCo's code extractors, see [plugins.md](plugins.md)); the stub below remains for the contract tests and the detect demo.
+
 | Skill | Stub behavior |
 |---|---|
 | `sandman.plugin.extract` (A2A, port 8000) | For each code/test file: one `CodeUnit`/`TestCase` per `class <Name>` match (regex), `parentLocalKey` = file; `DEPENDS_ON` for `import` lines resolving to known classes; explicit references for `REQ-\d+` in comments. |
@@ -443,7 +446,7 @@ Scenario (`tests/e2e/test_walking_skeleton.py`, against `docker compose --profil
 1. Admin logs in (bootstrap password), creates project `mini` (`llmPolicy=local-only`), users `alice` (maintainer), `bob` (triager) and `carol` (viewer); alice creates a project token.
 2. CLI with alice's token: `sandman ingest --project mini --mode full --revision s1 tests/e2e/fixtures/mini/s1` → `ingestion.completed` with 6 created versions.
 3. Wait for the workflow (`GET /v1/projects/mini/workflows`) to reach `SUCCEEDED` with steps extract → tlr → detect.
-4. Assert KG via raw Cypher (admin): `Requirement` REQ-1..3; `CodeUnit` `MediaCache` from the plugin stub (`Run.tool = plugin-stubs@…`); explicit link REQ-1 → `MediaCacheTest` (`approach = explicit-reference`); name-match link REQ-1 (`cache`) → `MediaCache`.
+4. Assert KG via raw Cypher (admin): `Requirement` REQ-1..3; `CodeUnit` `MediaCache` from the code extraction plugin (`Run.tool = code-extractor`; `code-extractor-ardoco` since T2.6, the regex stub before); explicit link REQ-1 → `MediaCacheTest` (`approach = explicit-reference`); name-match link REQ-1 (`cache`) → `MediaCache`.
 5. Assert inconsistencies: `untraced-requirement` for REQ-2 (I-a) and REQ-3 (I-b), both `OPEN`; a `notification` log line exists for each.
 6. bob transitions I-b to `DEFERRED` with reason; `inconsistency.status.changed` is published; the same transition attempted by carol (viewer) fails with 403, and a stale `expectedStatus` fails with 409. Read isolation: carol's raw Cypher on `mini` anchored with `{projectId: $projectId}` succeeds; an unanchored query (`MATCH (r:Requirement) RETURN r`) fails with 422; a query for another project fails with 403.
 7. CLI: ingest snapshot 2 (`--mode full --revision s2`) → 1 created version, `docs/old-notes.md` marked deleted. Re-sending the same snapshot changes nothing (new `Ingestion` with empty lists, no event).

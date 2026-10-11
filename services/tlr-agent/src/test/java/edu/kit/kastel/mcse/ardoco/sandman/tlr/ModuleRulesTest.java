@@ -10,7 +10,10 @@ import edu.kit.kastel.mcse.ardoco.rulefixture.LangChain4jOutsideArdocoPackage;
 import edu.kit.kastel.mcse.ardoco.rulefixture.StanfordPipelineOutsideProvider;
 import org.junit.jupiter.api.Test;
 
-/** R-030: LangChain4j only inside the ArDoCo approach package. T2.5: no in-process CoreNLP pipeline and no models. */
+/**
+ * R-030: LangChain4j only inside the ArDoCo approach package. T2.5: no in-process CoreNLP pipeline and no models. T2.6: no
+ * code extraction libraries (JDT, Magika, onnxruntime).
+ */
 class ModuleRulesTest {
 
     private static final ArchRule LANGCHAIN4J_ONLY_IN_ARDOCO_PACKAGE = ArchRuleDefinition.noClasses()
@@ -26,6 +29,44 @@ class ModuleRulesTest {
             .should()
             .dependOnClassesThat()
             .resideInAnyPackage("edu.stanford.nlp.pipeline..");
+
+    private static ArchRule noDependencyOn(String... packages) {
+        return ArchRuleDefinition.noClasses()
+                .that()
+                .resideInAPackage("edu.kit.kastel.mcse.ardoco.sandman..")
+                .should()
+                .dependOnClassesThat()
+                .resideInAnyPackage(packages);
+    }
+
+    @Test
+    void noClassOfSandmanUsesCodeExtractionLibraries() {
+        var classes = new ClassFileImporter().importPackages("edu.kit.kastel.mcse.ardoco.sandman");
+        noDependencyOn("org.eclipse.jdt..", "ai.onnxruntime..", "edu.kit.kastel.mcse.ardoco.magika..")
+                .check(classes);
+    }
+
+    @Test
+    void codeExtractionRuleFailsOnAViolation() {
+        var classes = new ClassFileImporter().importClasses(StanfordPipelineOutsideProvider.class);
+        assertThrows(
+                AssertionError.class,
+                () -> ArchRuleDefinition.noClasses()
+                        .that()
+                        .resideInAPackage("..rulefixture..")
+                        .should()
+                        .dependOnClassesThat()
+                        .resideInAnyPackage("edu.stanford.nlp.pipeline..", "org.eclipse.jdt..")
+                        .check(classes));
+    }
+
+    @Test
+    void codeExtractionLibrariesAreNotOnTheRuntimeClasspath() {
+        var loader = getClass().getClassLoader();
+        assertNull(loader.getResource("org/eclipse/jdt/core/dom/ASTParser.class"));
+        assertNull(loader.getResource("ai/onnxruntime/OrtEnvironment.class"));
+        assertNull(loader.getResource("edu/kit/kastel/mcse/ardoco/magika/FileTypePredictor.class"));
+    }
 
     @Test
     void noClassOfSandmanUsesTheCoreNlpPipeline() {

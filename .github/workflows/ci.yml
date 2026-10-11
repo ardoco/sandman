@@ -49,6 +49,7 @@ jobs:
               - 'libs/java/**'
               - 'services/tlr-agent/**'
               - 'services/inconsistency-agent/**'
+              - 'services/code-extractor-ardoco/**'
               - 'pom.xml'
               - '.github/workflows/**'
             compose:

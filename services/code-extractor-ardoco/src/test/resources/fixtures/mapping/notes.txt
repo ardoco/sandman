@@ -1,0 +1,2 @@
+This is a plain text file. It is part of the project but contains no code that ArDoCo can extract.
+It only exists to check that such a file gets a file element and a warning.

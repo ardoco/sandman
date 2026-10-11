@@ -21,7 +21,7 @@ fi
 umask 077
 
 SERVICES="orchestrator extraction-agent tlr-agent inconsistency-agent query-service dashboard"
-PLUGINS="plugin-stubs"
+PLUGINS="plugin-stubs code-extractor-ardoco"
 LLM_COMPONENTS="extraction tlr inconsistency query"   # get a cloud key and a local-only key
 
 rand() { openssl rand -hex 24; }

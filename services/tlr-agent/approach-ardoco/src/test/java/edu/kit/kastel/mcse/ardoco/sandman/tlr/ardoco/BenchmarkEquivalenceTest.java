@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.eclipse.collections.api.factory.SortedMaps;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -209,43 +208,6 @@ class BenchmarkEquivalenceTest {
 
     // --- ardocode (T2.1b): SAD to code over the code model of the plugin
 
-    /** ACM written by {@code mvn -Pbenchmark verify} in services/code-extractor-ardoco. */
-    static Path acm(String name) {
-        Path file = Path.of(System.getProperty("user.home"), ".cache", "sandman", "benchmark-code", name + ".acm");
-        Assumptions.assumeTrue(
-                Files.isRegularFile(file),
-                "code model " + file + " is missing: run mvn -Pbenchmark verify in services/code-extractor-ardoco");
-        return file;
-    }
-
-    /**
-     * Compilation units of an ACM: encoded ArDoCo path (as in the CSV of the runner) -> project path. Read from the
-     * JSON: ArDoCo's CodeExtractor needs Magika, which this module does not have.
-     */
-    static Map<String, String> compilationUnits(Path acm) {
-        Map<String, String> paths = new java.util.TreeMap<>();
-        JsonMapper.shared()
-                .readTree(readString(acm))
-                .at("/codeItemRepository/repository")
-                .forEach(item -> {
-                    if ("CodeCompilationUnit".equals(item.get("type").asString())) {
-                        var parts = new ArrayList<String>();
-                        item.get("pathElements").forEach(e -> parts.add(e.asString()));
-                        String extension = item.get("extension").asString("");
-                        parts.add(item.get("name").asString() + (extension.isEmpty() ? "" : "." + extension));
-                        String encoded = String.join("/", parts);
-                        int name = encoded.lastIndexOf('/') + 1;
-                        paths.put(
-                                encoded,
-                                "JAVA".equals(item.get("language").asString())
-                                        ? ArdocodeApproach.decode(encoded)
-                                        : ArdocodeApproach.decode(encoded.substring(0, name))
-                                                + encoded.substring(name));
-                    }
-                });
-        return paths;
-    }
-
     /** The plugin's answer is the ACM: a fake of the A2A calls. */
     static CodeModelClient fakePlugin(Path acm, int[] calls) {
         JsonNode node = JsonMapper.shared().readTree(readString(acm));
@@ -367,9 +329,9 @@ class BenchmarkEquivalenceTest {
             {"teastore", "teastore.txt", "teastore-code-model-noimage"},
             {"mediastore", "mediastore.txt", "mediastore-code-model"}
         }) {
-            Path acm = acm(spec[2]);
+            Path acm = CodeModels.acm(spec[2]);
             Case c = new Case(spec[0], spec[1], "-", "-", true);
-            Map<String, String> paths = compilationUnits(acm);
+            Map<String, String> paths = CodeModels.compilationUnits(acm);
             Set<String> standalone = standaloneArdocode(c, acm, paths);
             TlrInput in = ardocodeInput(c, paths.values());
             long lines =
@@ -403,9 +365,9 @@ class BenchmarkEquivalenceTest {
 
     @Test
     void twoRunsOnTheSameInputGiveTheSameLinks() throws Exception {
-        Path acm = acm("mediastore-code-model");
+        Path acm = CodeModels.acm("mediastore-code-model");
         Case c = new Case("mediastore", "mediastore.txt", "-", "-", true);
-        TlrInput in = ardocodeInput(c, compilationUnits(acm).values());
+        TlrInput in = ardocodeInput(c, CodeModels.compilationUnits(acm).values());
         var ctx = new TlrContext(
                 null,
                 store,
@@ -421,9 +383,9 @@ class BenchmarkEquivalenceTest {
     @Test
     void ardocoAndArdocodeAnnotateADocumentVersionOnce() throws Exception {
         TextCache.clear();
-        Path acm = acm("mediastore-code-model");
+        Path acm = CodeModels.acm("mediastore-code-model");
         Case c = new Case("mediastore", "mediastore.txt", "pcm/ms.repository", "pcm-repository", true);
-        Map<String, String> paths = compilationUnits(acm);
+        Map<String, String> paths = CodeModels.compilationUnits(acm);
         TlrInput code = ardocodeInput(c, paths.values());
         TlrInput model = input(c);
         var versions = new ArrayList<>(model.versions());

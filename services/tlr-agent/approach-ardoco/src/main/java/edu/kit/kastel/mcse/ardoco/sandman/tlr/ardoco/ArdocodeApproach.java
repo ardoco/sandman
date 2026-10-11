@@ -117,8 +117,8 @@ public final class ArdocodeApproach implements TraceLinkApproach {
             provider = "provider=unavailable";
         }
         String plugin;
-        try {
-            plugin = codeModel().identity();
+        try (CodeModelClient client = codeModel()) {
+            plugin = client.identity();
         } catch (RuntimeException e) {
             plugin = "unavailable";
         }
@@ -191,7 +191,15 @@ public final class ArdocodeApproach implements TraceLinkApproach {
                         v.path(), ctx.artifacts().pathFor(v.storageUri()).toString()))
                 .toList();
         long start = System.nanoTime();
-        var acm = codeModel().acm(in.projectId(), request, ctx.cancelled());
+        CodeModelClient plugin = codeModel();
+        tools.jackson.databind.JsonNode acm;
+        try {
+            acm = plugin.acm(in.projectId(), request, ctx.cancelled());
+        } finally {
+            if (codeModel == null) {
+                plugin.close(); // created from the environment for this call
+            }
+        }
         Path file = dir.resolve("codeModel.acm");
         String sha = CodeModelClient.write(acm, file);
         ctx.log()

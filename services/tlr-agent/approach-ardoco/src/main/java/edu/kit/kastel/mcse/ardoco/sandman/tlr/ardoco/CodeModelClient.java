@@ -22,7 +22,7 @@ import tools.jackson.databind.node.ObjectNode;
  * cancels it when the run is cancelled or the timeout passes. The token is the tlr-agent's own inbound token of the
  * plugin; it is read from a file and never logged.
  */
-class CodeModelClient {
+class CodeModelClient implements AutoCloseable {
 
     static final String SKILL = "sandman.plugin.code-model";
     static final String DEFAULT_URL = "http://code-extractor-ardoco:8000";
@@ -40,6 +40,8 @@ class CodeModelClient {
         A2aClient.TaskSnapshot get(String url, String taskId);
 
         A2aClient.TaskSnapshot cancel(String url, String taskId);
+
+        default void close() {}
     }
 
     private final String url;
@@ -156,6 +158,11 @@ class CodeModelClient {
         }
     }
 
+    @Override
+    public void close() {
+        calls.close();
+    }
+
     /** Writes the ACM as the plugin returned it and returns the sha256 of the bytes. */
     static String write(JsonNode acm, Path file) {
         try {
@@ -210,6 +217,13 @@ class CodeModelClient {
         @Override
         public A2aClient.TaskSnapshot cancel(String url, String taskId) {
             return client().cancel(url, taskId);
+        }
+
+        @Override
+        public synchronized void close() {
+            if (client != null) {
+                client.close();
+            }
         }
     }
 }

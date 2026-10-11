@@ -259,6 +259,10 @@ public final class ArdocodeApproach implements TraceLinkApproach {
      * {@code ModelProviderInformant} does (Jackson, then {@code IdentifierProvider.reset}) and adds the same steps as
      * {@code Ardocode.definePipeline} for ArDoCo 2.1.0. The benchmark test compares it with the real runner.
      */
+    // ponytail: copy of Ardocode.definePipeline for ArDoCo 2.1.0; an ArDoCo update can change the real pipeline without
+    // a compile error here. Guard: VersionTest fails when VERSION does not start with the pom's ardoco.version, and the
+    // benchmark test compares this runner with the real one. Upgrade path: use Ardocode itself once it loads without
+    // Magika.
     private static final class SadCodeRunner extends ArdocoRunner {
 
         SadCodeRunner() {

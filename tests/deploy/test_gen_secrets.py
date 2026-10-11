@@ -67,3 +67,14 @@ def test_symlink_in_secrets_refused(tmp_path):
     env = {"PATH": os.environ["PATH"], "SANDMAN_LOG_GID": str(os.getgid())}
     r = subprocess.run(["sh", str(script)], capture_output=True, env=env)
     assert r.returncode != 0
+
+
+def test_corenlp_credentials(tmp_path):
+    secrets = run(tmp_path)
+    assert (secrets / "corenlp_credentials").read_text() == "change-me:change-me"
+    user, password = (secrets / "corenlp_local_credentials").read_text().split(":")
+    assert user == "sandman" and len(password) == 48
+    (secrets / "corenlp_credentials").write_text("kit:real")
+    run(tmp_path)
+    assert (secrets / "corenlp_credentials").read_text() == "kit:real"
+    assert {"corenlp_credentials", "corenlp_local_credentials"} <= mounted_names()

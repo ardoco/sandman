@@ -1,6 +1,6 @@
 # SANDMAN reference deployment (single server).
 #   cd deploy && ./gen-secrets.sh && docker compose up -d --build
-# Profiles: (default) core system · dashboard: system overview (M1) · obs: OpenTelemetry backend · local-llm: Ollama container for chat-local/embed-local (`make models` pulls the models) · stubs: plugin stubs for the walking skeleton
+# Profiles: (default) core system · dashboard: system overview (M1) · obs: OpenTelemetry backend · corenlp-local: CoreNLP provider container (SANDMAN_CORENLP_MODE=local) · local-llm: Ollama container for chat-local/embed-local (`make models` pulls the models) · stubs: plugin stubs for the walking skeleton
 #           resources: cAdvisor for the dashboard; grants root-equivalent host access via the Docker socket, opt-in, not for production
 # Dev ports (Bolt, NATS monitoring): docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 # Memory limits assume a 32 GB host (A-7); initial values, tuned in T5.4.
@@ -135,6 +135,36 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  corenlp-gateway:                             # the only way to the CoreNLP provider service (T2.5), as llm-gateway is for LLMs
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    environment:
+      SANDMAN_CORENLP_MODE: ${SANDMAN_CORENLP_MODE:-remote}   # remote: KIT instance with corenlp_credentials | local: profile corenlp-local
+      SANDMAN_CORENLP_URL: ${SANDMAN_CORENLP_URL:-https://vdl-ws.sdq.kastel.kit.edu}
+      XDG_CONFIG_HOME: /tmp
+      XDG_DATA_HOME: /tmp
+    user: "10001:10001"
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]    # secrets are 0640 group $SANDMAN_LOG_GID (deploy/gen-secrets.sh)
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]                  # file capability of the caddy binary: exec fails under cap_drop without it, and with no-new-privileges
+    volumes:
+      - ./corenlp-gateway/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./corenlp-gateway/entrypoint.sh:/entrypoint.sh:ro
+    secrets: [corenlp_credentials, corenlp_local_credentials]
+    networks: [internal, egress, corenlp-local]  # the only CoreNLP container with egress
+    mem_limit: 128m
+    depends_on:                                  # agents do not wait for this service, so an outage of the KIT instance does not block the start
+      corenlp-provider: { condition: service_healthy, required: false }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/stanfordnlp/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
   # ---------------------------------------------------------------- agents and services
   extraction-agent:
     build: { context: .., dockerfile: services/extraction-agent/Dockerfile }
@@ -189,6 +219,7 @@ services:
       QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+      SANDMAN_CORENLP_URL: http://corenlp-gateway:8080   # no CoreNLP credentials in this container (T2.5)
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
@@ -401,6 +432,25 @@ services:
     mem_limit: 2g
     restart: unless-stopped
 
+  corenlp-provider:                            # mode local: Stanford CoreNLP provider service (MIT; CoreNLP GPL-3.0-or-later), reachable only by corenlp-gateway
+    profiles: [corenlp-local]
+    image: ghcr.io/ardoco/stanfordcorenlp-provider-service:1.0.0@sha256:0c6f2aa3ae28b16dd067cfd1397f887ad7c05345b47f08ae01a9aebf7dcd1a85   # interim: no eolonly (U-1) yet
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    environment:
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+    volumes:
+      - ./corenlp-provider/entrypoint.sh:/entrypoint.sh:ro
+    secrets: [corenlp_local_credentials]
+    networks: [corenlp-local]                    # internal: no egress
+    mem_limit: 4g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u \"$$(cat /run/secrets/corenlp_local_credentials)\" http://127.0.0.1:8080/stanfordnlp/health"]   # health needs Basic in 1.0.0
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
   ollama:
     profiles: [local-llm]
     image: ollama/ollama@sha256:292ee7945dfc3d5840a181f3ab86fedb1e66703e02c8af98b50f4da56b7e278c   # 0.35.1
@@ -439,6 +489,8 @@ networks:
   edge: {}                  # only edge-proxy; services behind it have no egress (internal network)
   llm-local:
     internal: true          # gateway <-> ollama only
+  corenlp-local:
+    internal: true          # corenlp-gateway <-> corenlp-provider only
 
 volumes:
   memgraph-data: {}
@@ -477,3 +529,5 @@ secrets:
   dashboard_admin_password: { file: ./secrets/dashboard_admin_password }
   dashboard_session_secret: { file: ./secrets/dashboard_session_secret }
   gateway_admin_password: { file: ./secrets/gateway_admin_password }
+  corenlp_credentials: { file: ./secrets/corenlp_credentials }              # remote mode, user:password; mounted only into corenlp-gateway
+  corenlp_local_credentials: { file: ./secrets/corenlp_local_credentials }  # local mode, generated; corenlp-gateway and corenlp-provider

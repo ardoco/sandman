@@ -1,6 +1,11 @@
 # Developer entry points. Python: uv only; Java: Maven only.
-COMPOSE     := docker compose -f deploy/docker-compose.yml
-COMPOSE_DEV := $(COMPOSE) -f deploy/docker-compose.dev.yml
+# CoreNLP mode (T2.5): remote (KIT instance, deploy/secrets/corenlp_credentials) or local (container, profile corenlp-local).
+# Command line > environment > deploy/.env > remote. e2e, replay-twice and record-cassettes use local unless the command line says otherwise (no credentials in CI).
+SANDMAN_CORENLP_MODE ?= $(or $(shell sed -n 's/^SANDMAN_CORENLP_MODE=//p' deploy/.env 2>/dev/null | tail -n 1),remote)
+export SANDMAN_CORENLP_MODE
+e2e replay-twice record-cassettes: SANDMAN_CORENLP_MODE = local
+COMPOSE     = docker compose -f deploy/docker-compose.yml $(if $(filter local,$(SANDMAN_CORENLP_MODE)),--profile corenlp-local)
+COMPOSE_DEV = $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
 .PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup site
@@ -52,8 +57,8 @@ contracts:
 
 REPLAY_ENV  := SANDMAN_LOG_FILE=/logs/sandman.jsonl SANDMAN_LLM_RECORDS_HOST_DIR=$(CURDIR)/tests/cassettes SANDMAN_EXPERIMENT=walking-skeleton
 DETERMINISM := uv run pytest tests/e2e/test_replay_determinism.py -q
-STACK_UP    := $(COMPOSE_DEV) --profile stubs --profile dashboard up -d --build --wait --wait-timeout 300
-STACK_DOWN  := $(COMPOSE_DEV) --profile stubs --profile dashboard down -v
+STACK_UP    = $(COMPOSE_DEV) --profile stubs --profile dashboard up -d --build --wait --wait-timeout 300
+STACK_DOWN  = $(COMPOSE_DEV) --profile stubs --profile dashboard down -v
 
 e2e: secrets        ## walking skeleton, dashboard and replay determinism: stack in strict replay mode from tests/cassettes
 	deploy/check-env.sh

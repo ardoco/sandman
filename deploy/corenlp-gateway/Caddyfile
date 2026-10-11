@@ -1,0 +1,40 @@
+# corenlp-gateway: the only container that reaches the Stanford CoreNLP provider service (T2.5).
+# One upstream, fixed at start (CORENLP_UPSTREAM). Three requests are forwarded; every other request gets 404, so /h2,
+# /swagger-ui, /v3/api-docs and /stanfordnlp/registration never reach the upstream. The Authorization header of the
+# caller is replaced with the credentials of the active mode (CORENLP_BASIC, set by entrypoint.sh).
+{
+	admin off
+	auto_https off
+}
+
+(upstream) {
+	reverse_proxy {$CORENLP_UPSTREAM} {
+		header_up Host {upstream_hostport}
+		header_up Authorization "Basic {$CORENLP_BASIC}"
+		transport http {
+			dial_timeout 10s
+			response_header_timeout 300s
+		}
+	}
+}
+
+:8080 {
+	@analyze {
+		method POST
+		path /stanfordnlp
+	}
+	@info {
+		method GET
+		path /stanfordnlp/health /stanfordnlp/version
+	}
+
+	handle @analyze {
+		import upstream
+	}
+	handle @info {
+		import upstream
+	}
+	handle {
+		respond "not found" 404
+	}
+}

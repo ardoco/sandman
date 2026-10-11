@@ -120,20 +120,22 @@ jobs:
           cp -R deploy "$tmp/deploy"
           cd "$tmp/deploy"
           ./gen-secrets.sh > /dev/null
-          for profiles in "" "--profile stubs --profile obs" "--profile dashboard --profile resources"; do
+          for profiles in "" "--profile stubs --profile obs" "--profile dashboard --profile resources" "--profile corenlp-local"; do
             docker compose $profiles config -q
           done
           docker compose -f docker-compose.yml -f docker-compose.dev.yml config -q
       - name: build images, start the stack, wait for health
+        env:
+          SANDMAN_CORENLP_MODE: local   # no CoreNLP credentials in CI
         run: |
           deploy/gen-secrets.sh > /dev/null
           deploy/check-env.sh
-          docker compose -f deploy/docker-compose.yml --profile stubs up -d --build --wait --wait-timeout 300
+          docker compose -f deploy/docker-compose.yml --profile stubs --profile corenlp-local up -d --build --wait --wait-timeout 300
       - name: logs
         if: failure()
-        run: docker compose -f deploy/docker-compose.yml --profile stubs logs --no-color --tail 200
+        run: docker compose -f deploy/docker-compose.yml --profile stubs --profile corenlp-local logs --no-color --tail 200
       - if: always()
-        run: docker compose -f deploy/docker-compose.yml --profile stubs down -v
+        run: docker compose -f deploy/docker-compose.yml --profile stubs --profile corenlp-local down -v
 
   e2e:
     needs: changes
@@ -150,6 +152,6 @@ jobs:
         run: make e2e
       - name: logs
         if: failure()
-        run: docker compose -f deploy/docker-compose.yml --profile stubs logs --no-color --tail 300
+        run: docker compose -f deploy/docker-compose.yml --profile stubs --profile corenlp-local logs --no-color --tail 300
       - if: always()
-        run: docker compose -f deploy/docker-compose.yml --profile stubs down -v
+        run: docker compose -f deploy/docker-compose.yml --profile stubs --profile corenlp-local down -v

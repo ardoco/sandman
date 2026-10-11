@@ -344,14 +344,14 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 | tlr-agent | 5 GB | inconsistency-agent | 5 GB |
 | query-service | 1 GB | llm-gateway | 1 GB |
 | orchestrator, llm-replay, nats, plugin-stubs, dashboard | 0.5 GB each | otel-lgtm (obs) | 2 GB |
-| code-extractor-ardoco | 3 GB (measured peak 0.96 GB on TEAMMATES, 2447 files; `/tmp` tmpfs 768 MB) | | |
+| code-extractor-ardoco | 4 GB (heap `-Xmx2560m`; measured peak 0.74 GB on TEAMMATES, 2447 files; `/tmp` tmpfs 320 MB, `noexec,nosuid,nodev`) | | |
 | edge-proxy | 0.125 GB | corenlp-gateway | 0.125 GB |
 | corenlp-provider (profile corenlp-local) | 4 GB (measured peak about 1.6 GB) | | |
 | cadvisor (resources) | 0.25 GB | | |
 
   Total core ≈ 27 GB (incl. dashboard); Ollama runs on a remote server and is not sized here. Memgraph memory is monitored with `SHOW STORAGE INFO`.
 - **Dashboard** (ADR-0016): port `127.0.0.1:8090` via `edge-proxy`, network `internal` only, depends only on Memgraph and NATS (not on the services it monitors), secrets `svc_token_dashboard`, `dashboard_admin_password`, `dashboard_session_secret`, `memgraph_password`, `gateway_admin_password`; volume `dashboard-data`. cAdvisor runs in the opt-in profile `resources` with read-only host mounts (V-37).
-- **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the detect demo and the contract tests. The default profile starts `code-extractor-ardoco` (T2.6): network `internal` only, `artifact-store` read-only, root file system read-only, no capabilities, only the secret `plugin_in_code-extractor-ardoco`, caps `SANDMAN_CODE_MAX_FILES` and `SANDMAN_CODE_MAX_BYTES`, `mem_limit` 3 GB with `MaxRAMPercentage=75`. The extraction-agent starts without it and falls back to file-level elements (`partial`).
+- **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the detect demo and the contract tests. The default profile starts `code-extractor-ardoco` (T2.6): network `internal` only, `artifact-store` read-only, root file system read-only, no capabilities, only the secret `plugin_in_code-extractor-ardoco`, caps `SANDMAN_CODE_MAX_FILES`, `SANDMAN_CODE_MAX_BYTES` and `SANDMAN_CODE_MAX_FILE_BYTES`, `mem_limit` 4 GB with `-Xmx2560m`. The extraction-agent starts without it and falls back to file-level elements (`partial`).
 
 ### 3.3 Local development workflow
 

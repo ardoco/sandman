@@ -227,7 +227,7 @@ components:
       scripts. It tells the extraction agent which files, classes and methods exist and which file uses which
       other file. Other file types only get a file entry. It works on a private copy of the uploaded files and
       deletes the copy afterwards. It never changes your files, never writes to the knowledge graph and has no
-      internet access. It refuses a run with more than 20,000 files or more than 500 MB. It can also hand the
+      internet access. It refuses a run with more than 20,000 files or more than 64 MB. It can also hand the
       complete code model to later steps, so that ArDoCo sees exactly the code model it would build itself.
     flow: Called only by the extraction agent; returns code elements and, on request, the ArDoCo code model.
   plugin-stubs:

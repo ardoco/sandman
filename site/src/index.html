@@ -14,20 +14,20 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
 header,main,footer{padding:0 16px;max-width:1440px;margin:0 auto}
-header{text-align:center}
-h1{font-size:1.6rem;line-height:1.25;margin:20px auto 8px;max-width:48rem}
-.eyebrow{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:20px}
-.intro p{max-width:60rem;margin:0 auto 8px;font-size:1.05rem}
-.tour{margin:14px 0 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
-.tour .step{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:16px;padding:3px 12px;cursor:pointer}
+header{--w:60rem}
+h1{font-size:1.6rem;line-height:1.25;margin:20px auto 8px;max-width:var(--w)}
+.eyebrow{max-width:var(--w);margin-left:auto;margin-right:auto;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:20px}
+.intro p{max-width:var(--w);margin:0 auto 8px;font-size:1.05rem;text-align:left}
+.tour{max-width:var(--w);margin:14px auto 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:6px}
+.tour .step{font:inherit;font-size:.85rem;text-align:center;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:16px;padding:3px 12px;cursor:pointer}
 .tour .step[aria-current=step]{background:var(--accent);border-color:var(--accent);color:#fff}
-.tour .sep{color:var(--muted)}
+.tour .sep{display:none}
 .tour .always{border-style:dashed}
-.tour .nav{font:inherit;font-size:.85rem;border:1px solid var(--line);background:none;color:var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer}
+.tour .nav{text-align:center;font:inherit;font-size:.85rem;border:1px solid var(--line);background:none;color:var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer}
 .tour .nav:disabled{opacity:.4;cursor:default}
-#tourtext{min-height:3.2em;max-width:60rem;margin:6px auto 4px;padding:10px 16px;border:1px solid var(--line);border-top:3px solid var(--accent);background:var(--card);border-radius:6px;color:var(--fg);font-size:1.05rem}
+#tourtext{min-height:3.2em;max-width:var(--w);margin:6px auto 4px;text-align:left;padding:10px 16px;border:1px solid var(--line);border-top:3px solid var(--accent);background:var(--card);border-radius:6px;color:var(--fg);font-size:1.05rem}
 #tourtext b{color:var(--fg)}
-.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
+.legend{display:flex;flex-wrap:wrap;max-width:var(--w);margin-left:auto;margin-right:auto;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
 .legend svg{vertical-align:middle;margin-right:4px}
 main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:24px}
 @media (min-width:1000px){main{grid-template-columns:minmax(0,1fr) 320px}aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}

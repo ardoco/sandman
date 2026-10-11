@@ -5,7 +5,7 @@ import java.util.Map;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
-/** Base URL, virtual key and gateway models for a project's LLM policy (models.yaml); configures LangChain4j in adapters. */
+/** Base URL, virtual key and gateway models for a project's LLM policy (models.yaml); used by {@link LlmClient}. */
 public record LlmAccess(String baseUrl, String apiKey, Map<String, String> routes, boolean localOnly) {
 
     public static final String LOCAL_ONLY = "local-only";

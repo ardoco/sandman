@@ -80,6 +80,46 @@ class IntegrationTest {
     }
 
     @Test
+    void runRecordsModelUsageAndPromptIds() {
+        try (KgClient kg = kg()) {
+            var runs = new RunRecorder(kg, "test-agent", "0");
+            var info = new RunRecorder.RunInfo(
+                    "mini",
+                    "s",
+                    "t",
+                    "0",
+                    "k-usage",
+                    "chat-default",
+                    null,
+                    null,
+                    List.of(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of("lissa-simple@12345678"));
+            String ok = runs.start(info);
+            runs.complete(ok, "completed", 10L, 2L, "a-model", true);
+            String bad = runs.start(info);
+            runs.fail(bad, "boom", 5L, 1L, "b-model", false);
+            var rows = kg.read(
+                    "MATCH (r:Run) WHERE r.id IN [$a, $b] RETURN r.id AS id, r.resolvedModel AS m, "
+                            + "r.mixedModels AS mixed, r.promptIds AS p, r.inputTokens AS i, r.outputTokens AS o, "
+                            + "r.model AS model",
+                    Map.of("a", ok, "b", bad));
+            var byId = rows.stream().collect(Collectors.toMap(r -> (String) r.get("id"), r -> r));
+            assertEquals("a-model", byId.get(ok).get("m"));
+            assertEquals(true, byId.get(ok).get("mixed"));
+            assertEquals(List.of("lissa-simple@12345678"), byId.get(ok).get("p"));
+            assertEquals(10L, byId.get(ok).get("i"));
+            assertEquals("chat-default", byId.get(ok).get("model"));
+            assertEquals("b-model", byId.get(bad).get("m"));
+            assertEquals(null, byId.get(bad).get("mixed"));
+            assertEquals(1L, byId.get(bad).get("o"));
+        }
+    }
+
+    @Test
     void initSchemaIsIdempotentAndMemoryLimitIsNotRetried() {
         try (KgClient kg = kg()) {
             var initFile = Settings.defaultContractsDir().resolve("kg/init.cypher");

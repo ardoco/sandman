@@ -180,13 +180,13 @@ services:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_plugin-stubs,
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_code-extractor-ardoco,
               llm_key_extraction, llm_key_extraction_local]
     networks: [internal]
     mem_limit: 2g                                # large ingests hold archive and files in memory
-    depends_on:                                  # not on the converter: documents fall back to file-level elements
+    depends_on:                                  # not on the converter or the code plugin: they fall back to file-level elements
       <<: *depends-core
-      plugin-stubs: { condition: service_healthy, required: false }   # only with profile stubs
+      code-extractor-ardoco: { condition: service_healthy, required: false }
     healthcheck: *py-health
     restart: unless-stopped
 
@@ -232,6 +232,35 @@ services:
     depends_on: *depends-core
     healthcheck: &java-health
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/readyz"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 40s
+    restart: unless-stopped
+
+  code-extractor-ardoco:                       # code elements from ArDoCo's code extractors (T2.6); extraction plugin, called by the extraction-agent only
+    build: { context: .., dockerfile: services/code-extractor-ardoco/Dockerfile }
+    environment:
+      SANDMAN_SERVICE_NAME: code-extractor-ardoco
+      SANDMAN_PLUGIN_INBOUND_TOKEN_FILE: /run/secrets/plugin_in_code-extractor-ardoco   # owner -> plugin; no service token: the plugin makes no outbound call
+      SANDMAN_ARTIFACT_STORE: /artifacts
+      SANDMAN_CODE_MAX_FILES: ${SANDMAN_CODE_MAX_FILES:-20000}      # per call; above: INVALID_INPUT
+      SANDMAN_CODE_MAX_BYTES: ${SANDMAN_CODE_MAX_BYTES:-524288000}  # 500 MB
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of secrets (deploy/gen-secrets.sh)
+    volumes:
+      - artifact-store:/artifacts:ro
+    tmpfs:
+      - /tmp:size=768m,mode=1777                 # staged copy of the call's files, deleted after each call
+    secrets: [plugin_in_code-extractor-ardoco]
+    networks: [internal]                         # no egress, no published port
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 3g
+    pids_limit: 512
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]
       interval: 15s
       timeout: 5s
       retries: 8
@@ -518,6 +547,7 @@ secrets:
   svc_token_plugin-stubs: { file: ./secrets/svc_token_plugin-stubs }
   svc_token_dashboard: { file: ./secrets/svc_token_dashboard }
   plugin_in_plugin-stubs: { file: ./secrets/plugin_in_plugin-stubs }
+  plugin_in_code-extractor-ardoco: { file: ./secrets/plugin_in_code-extractor-ardoco }
   llm_key_orchestrator: { file: ./secrets/llm_key_orchestrator }
   llm_key_extraction: { file: ./secrets/llm_key_extraction }
   llm_key_extraction_local: { file: ./secrets/llm_key_extraction_local }

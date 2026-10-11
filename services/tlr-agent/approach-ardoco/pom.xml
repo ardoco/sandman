@@ -82,6 +82,12 @@
             <goals>
               <goal>test-jar</goal>
             </goals>
+            <configuration>
+              <excludes>
+                <!-- stand-in for Magika in this module's tests only; the tlr-agent must not see it (ModuleRulesTest) -->
+                <exclude>edu/kit/kastel/mcse/ardoco/magika/**</exclude>
+              </excludes>
+            </configuration>
           </execution>
         </executions>
       </plugin>

@@ -1,19 +1,34 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import edu.kit.kastel.mcse.ardoco.core.api.PreprocessingData;
+import edu.kit.kastel.mcse.ardoco.core.api.models.CodeModel;
+import edu.kit.kastel.mcse.ardoco.core.api.models.CodeModelWithCompilationUnitsAndPackages;
+import edu.kit.kastel.mcse.ardoco.core.api.models.Metamodel;
+import edu.kit.kastel.mcse.ardoco.core.api.models.ModelStates;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeCompilationUnit;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.ProgrammingLanguage;
 import edu.kit.kastel.mcse.ardoco.core.api.output.ArdocoResult;
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
+import edu.kit.kastel.mcse.ardoco.core.common.IdentifierProvider;
+import edu.kit.kastel.mcse.ardoco.core.common.JsonHandling;
+import edu.kit.kastel.mcse.ardoco.core.common.util.CommonUtilities;
 import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
+import edu.kit.kastel.mcse.ardoco.core.data.DataRepository;
+import edu.kit.kastel.mcse.ardoco.core.execution.Ardoco;
+import edu.kit.kastel.mcse.ardoco.core.execution.runner.ArdocoRunner;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.KindPair;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.ScopeMode;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TraceLinkApproach;
-import edu.kit.kastel.mcse.ardoco.tlr.execution.Ardocode;
-import edu.kit.kastel.mcse.ardoco.tlr.models.agents.CodeConfiguration;
+import edu.kit.kastel.mcse.ardoco.tlr.codetraceability.SadCodeTraceabilityLinkRecovery;
+import edu.kit.kastel.mcse.ardoco.tlr.connectiongenerator.ConnectionGenerator;
+import edu.kit.kastel.mcse.ardoco.tlr.recommendationgenerator.RecommendationGenerator;
+import edu.kit.kastel.mcse.ardoco.tlr.text.providers.TextPreprocessingAgent;
+import edu.kit.kastel.mcse.ardoco.tlr.textextraction.TextExtraction;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URLDecoder;
@@ -204,12 +219,8 @@ public final class ArdocodeApproach implements TraceLinkApproach {
         try {
             long start = System.nanoTime();
             ArdocoRuns.resetHeapPeak();
-            var runner = new Ardocode("sandman");
-            runner.setUp(
-                    textFile.toFile(),
-                    new CodeConfiguration(acmFile.toFile(), CodeConfiguration.CodeConfigurationType.ACM_FILE),
-                    SortedMaps.immutable.empty(),
-                    run.resolve("out").toFile());
+            var runner = new SadCodeRunner();
+            runner.setUp(textFile.toFile(), acmFile.toFile());
             DataRepositoryHelper.putPreprocessingData(
                     runner.getArdoco().getDataRepository(), new PreprocessingData(annotated));
             var repository = runner.runWithoutSaving();
@@ -233,6 +244,45 @@ public final class ArdocodeApproach implements TraceLinkApproach {
             return links;
         } finally {
             ArdocoRuns.LOCK.unlock();
+        }
+    }
+
+    /**
+     * ArDoCo's {@code Ardocode} runner without its model provider step. The runner reads the ACM with
+     * {@code CodeExtractor.readInCodeModel}, and the class initializer of {@code CodeExtractor} loads Magika and
+     * onnxruntime, which this module does not have (T2.1b deviation). This reads the ACM like
+     * {@code ModelProviderInformant} does (Jackson, then {@code IdentifierProvider.reset}) and adds the same steps as
+     * {@code Ardocode.definePipeline} for ArDoCo 2.1.0. The benchmark test compares it with the real runner.
+     */
+    private static final class SadCodeRunner extends ArdocoRunner {
+
+        SadCodeRunner() {
+            super("sandman");
+        }
+
+        void setUp(File textFile, File acm) throws IOException {
+            Ardoco ardoco = getArdoco();
+            DataRepository repository = ardoco.getDataRepository();
+            String text = CommonUtilities.readInputText(textFile);
+            if (text.isBlank()) {
+                throw new IllegalArgumentException("Cannot deal with empty input text");
+            }
+            DataRepositoryHelper.putInputText(repository, text);
+            var mapper = JsonHandling.createObjectMapper();
+            mapper.registerModule(new Jdk8Module());
+            CodeModel model =
+                    new CodeModelWithCompilationUnitsAndPackages(mapper.readValue(acm, CodeModel.CodeModelDto.class));
+            var states = new ModelStates();
+            states.addModel(Metamodel.CODE_WITH_COMPILATION_UNITS_AND_PACKAGES, model);
+            repository.addData(ModelStates.ID, states);
+            IdentifierProvider.reset();
+            var configs = SortedMaps.immutable.<String, String>empty();
+            ardoco.addPipelineStep(TextPreprocessingAgent.get(configs, repository));
+            ardoco.addPipelineStep(TextExtraction.get(configs, repository));
+            ardoco.addPipelineStep(RecommendationGenerator.get(configs, repository));
+            ardoco.addPipelineStep(ConnectionGenerator.get(configs, repository));
+            ardoco.addPipelineStep(SadCodeTraceabilityLinkRecovery.get(configs, repository));
+            isSetUp = true;
         }
     }
 

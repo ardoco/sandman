@@ -27,6 +27,10 @@ public final class CorenlpProvider {
 
     /** The image reference of deploy/docker-compose.yml, so that tests and deployment cannot drift apart. */
     static String image() throws IOException {
+        String override = System.getProperty("corenlp.image"); // optional: a local build of a newer service
+        if (override != null) {
+            return override;
+        }
         for (Path dir : new Path[] {Path.of("../../../deploy"), Path.of("../../deploy")}) {
             Path compose = dir.resolve("docker-compose.yml");
             if (Files.exists(compose)) {

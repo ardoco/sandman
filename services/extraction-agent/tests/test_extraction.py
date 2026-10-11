@@ -242,6 +242,70 @@ def test_match_references_with_a_file_element_without_lines() -> None:
     assert match_references(b"REQ-1", [], [r"REQ-\d"]) == []
 
 
+def _match_references_linear(content: bytes, elements: list[dict[str, Any]], patterns: list[str], link_type: str):
+    """The previous linear-scan implementation, kept as the reference for the sweep."""
+    import re
+
+    text = content.decode("utf-8", errors="replace")
+    total = text.count("\n") + 1
+    ranged = [e for e in elements if e.get("startLine")]
+
+    def span(e: dict[str, Any]) -> tuple[int, int]:
+        return e.get("startLine") or 1, e.get("endLine") or total
+
+    refs = []
+    for pattern in patterns:
+        for m in re.finditer(pattern, text):
+            line = text.count("\n", 0, m.start()) + 1
+            around = [e for e in elements if span(e)[0] <= line <= span(e)[1]]
+            source = min(around, key=lambda e: (span(e)[1] - span(e)[0], e not in ranged)) if around else elements[0]
+            if source not in ranged:
+                following = [e for e in ranged if e["startLine"] > line]
+                if following:
+                    source = min(following, key=lambda e: (e["startLine"], -span(e)[1]))
+            refs.append({"source": source["localKey"], "text": m[0], "linkType": link_type})
+    return refs
+
+
+def test_match_references_sweep_equals_the_linear_scan() -> None:
+    import random
+
+    rng = random.Random(7)
+    for _ in range(300):
+        lines = rng.randint(1, 60)
+        text = "\n".join(f"x REQ-{rng.randint(1, 3)}" if rng.random() < 0.3 else "x" for _ in range(lines))
+        elements = [{"localKey": "file"}] if rng.random() < 0.7 else []
+        for i in range(rng.randint(1, 8)):
+            start = rng.randint(1, lines)
+            el: dict[str, Any] = {"localKey": f"e{i}", "startLine": start}
+            if rng.random() < 0.8:
+                el["endLine"] = rng.randint(start, lines)
+            elements.append(el)
+        rng.shuffle(elements)
+        patterns = [r"REQ-\d", r"REQ-[12]"]
+        assert match_references(text.encode(), elements, patterns, "x") == _match_references_linear(
+            text.encode(), elements, patterns, "x"
+        )
+
+
+async def test_pattern_matching_runs_off_the_loop_and_times_out() -> None:
+    import time
+
+    from sandman_extraction.extract import match_references_off_loop
+
+    els = [{"localKey": "f", "startLine": 1, "endLine": 1}]
+
+    def slow() -> bytes:
+        time.sleep(0.5)
+        return b"REQ-1"
+
+    started = time.monotonic()
+    assert await match_references_off_loop("a.java", slow, els, [r"REQ-\d"], "implements", 0.05) == []
+    assert time.monotonic() - started < 0.4  # the loop was not blocked until the worker ended
+    refs = await match_references_off_loop("a.java", lambda: b"REQ-1", els, [r"REQ-\d"], "implements", 5)
+    assert [r["source"] for r in refs] == ["f"]
+
+
 async def test_plugin_failure_falls_back(env: Any) -> None:
     env.plugin.fail = True
     files, result = await extract_mini(env)

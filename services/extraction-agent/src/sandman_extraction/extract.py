@@ -4,7 +4,10 @@ import asyncio
 import json
 import logging
 import re
+from bisect import bisect_left, bisect_right
 from collections import defaultdict
+from collections.abc import Callable
+from heapq import heappop, heappush
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, LiteralString
 
@@ -62,24 +65,54 @@ def match_references(
     if not elements:
         return []
     text = content.decode("utf-8", errors="replace")
-    total = text.count("\n") + 1
-    ranged = [e for e in elements if e.get("startLine")]
+    newlines = [m.start() for m in re.finditer("\n", text)]
+    total = len(newlines) + 1
+    spans = [(e.get("startLine") or 1, e.get("endLine") or total) for e in elements]
+    is_ranged = [bool(e.get("startLine")) for e in elements]
+    ranged = sorted((i for i in range(len(elements)) if is_ranged[i]), key=lambda i: (spans[i][0], -spans[i][1], i))
+    ranged_starts = [spans[i][0] for i in ranged]
 
-    def span(e: dict[str, Any]) -> tuple[int, int]:
-        return e.get("startLine") or 1, e.get("endLine") or total
+    found = [(bisect_left(newlines, m.start()) + 1, m[0]) for pattern in patterns for m in re.finditer(pattern, text)]
+    source_of: dict[int, int] = {}  # match line -> element index, one sweep over the sorted matched lines
+    by_start = sorted(range(len(elements)), key=lambda i: spans[i][0])
+    open_spans: list[tuple[int, bool, int]] = []  # heap of (length, not ranged, index): innermost first
+    pos = 0
+    for line in sorted({line for line, _ in found}):
+        while pos < len(by_start) and spans[by_start[pos]][0] <= line:
+            i = by_start[pos]
+            heappush(open_spans, (spans[i][1] - spans[i][0], not is_ranged[i], i))
+            pos += 1
+        while open_spans and spans[open_spans[0][2]][1] < line:
+            heappop(open_spans)
+        source = open_spans[0][2] if open_spans else 0
+        if not is_ranged[source] and (k := bisect_right(ranged_starts, line)) < len(ranged):
+            source = ranged[k]  # a match only the file element contains: the next element with lines
+        source_of[line] = source
+    return [{"source": elements[source_of[line]]["localKey"], "text": t, "linkType": link_type} for line, t in found]
 
-    refs = []
-    for pattern in patterns:
-        for m in re.finditer(pattern, text):
-            line = text.count("\n", 0, m.start()) + 1
-            around = [e for e in elements if span(e)[0] <= line <= span(e)[1]]
-            source = min(around, key=lambda e: (span(e)[1] - span(e)[0], e not in ranged)) if around else elements[0]
-            if source not in ranged:
-                following = [e for e in ranged if e["startLine"] > line]
-                if following:
-                    source = min(following, key=lambda e: (e["startLine"], -span(e)[1]))
-            refs.append({"source": source["localKey"], "text": m[0], "linkType": link_type})
-    return refs
+
+async def match_references_off_loop(
+    path: str, load: Callable[[], bytes], elements: list[dict[str, Any]], patterns: list[str], link_type: str,
+    timeout: float,
+) -> list[dict[str, Any]]:  # fmt: skip
+    """Reads the file and matches the patterns in a worker thread; after `timeout` seconds the file gets no references.
+
+    ponytail: a thread cannot be stopped; a timed-out pattern runs on until it ends, a process pool would kill it."""
+
+    def work() -> list[dict[str, Any]]:
+        return match_references(load(), elements, patterns, link_type)
+
+    try:
+        return await asyncio.wait_for(asyncio.to_thread(work), timeout)
+    except TimeoutError:
+        log.warning("explicit-reference patterns timed out, skipped", extra={"fields": {"path": path}})
+        return []
+
+
+def read_stored(svc: "Service", uri: str) -> bytes:
+    """The stored blob, read up to the entry cap that the upload already enforced."""
+    with svc.store.open(uri) as f:
+        return f.read(svc.max_entry_bytes)
 
 
 def plugin_for(plugins: list[dict[str, Any]], path: str, kind: str, fmt: str | None) -> dict[str, Any] | None:
@@ -169,6 +202,7 @@ class ExtractSkill:
         svc = self.service
         patterns = svc.config.get("explicitReferences", {}).get("patterns", [])
         builtin_config = svc.config.get("builtin", {})
+        pattern_timeout = float(svc.config.get("explicitReferences", {}).get("timeoutSeconds", 30))
         elements: dict[str, list[dict[str, Any]]] = {}  # version id -> elements
         refs: dict[str, list[dict[str, Any]]] = defaultdict(list)
         relations: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -210,7 +244,9 @@ class ExtractSkill:
                 status = "partial"
                 content = b"" if document else content
                 elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
-            refs[v["id"]] = match_references(content, elements[v["id"]], patterns)
+            refs[v["id"]] = await match_references_off_loop(
+                v["path"], lambda: content, elements[v["id"]], patterns, "relates", pattern_timeout
+            )
             if document:  # line numbers refer to the Markdown rendering, not to the PDF/DOCX
                 builtin.drop_lines(elements[v["id"]])
             producer[v["id"]] = run_id
@@ -275,11 +311,13 @@ class ExtractSkill:
             for r in out["relations"]:
                 if r["source"]["path"] in vid_of:
                     relations[vid_of[r["source"]["path"]]].append(r)
-            for v in versions:  # a plugin that returns no references for a file gets the configured patterns applied
+            for v in versions:  # user decision: REQ-n references must survive plugin output
                 if not refs[v["id"]]:
                     link_type = {"code": "implements", "test": "verifies"}.get(v["kind"], "relates")
-                    content = svc.store.open(v["uri"]).read()
-                    refs[v["id"]] = match_references(content, elements[v["id"]], patterns, link_type)
+                    refs[v["id"]] = await match_references_off_loop(
+                        v["path"], lambda v=v: read_stored(svc, v["uri"]), elements[v["id"]], patterns, link_type,
+                        pattern_timeout,
+                    )  # fmt: skip
 
         meta = {v["id"]: v for vs in plugins.values() for v in vs}
         element_count = 0

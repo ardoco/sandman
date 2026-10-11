@@ -5,6 +5,7 @@ import edu.kit.kastel.mcse.ardoco.core.api.models.Metamodel;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItemRepository;
 import edu.kit.kastel.mcse.ardoco.core.common.IdentifierProvider;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Settings;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.SkillContext;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.SkillException;
 import edu.kit.kastel.mcse.ardoco.tlr.models.connectors.generators.code.AllLanguagesExtractor;
 import io.quarkus.runtime.StartupEvent;
@@ -46,8 +47,15 @@ public class CodeService {
             Limits.number(System.getenv(), "SANDMAN_CODE_LOCK_TIMEOUT_SECONDS", 300, 86_400) * 1000;
 
     void onStart(@Observes StartupEvent event) {
-        settings.require("pluginInboundToken", "artifactStore");
+        settings.require("pluginInboundTokens", "artifactStore");
         LOG.info("code-extractor-ardoco ready, limits {}", limits);
+    }
+
+    /** Each skill has one caller; the token already identified it (one inbound token per caller). */
+    static void requireCaller(SkillContext ctx, String expected) throws SkillException {
+        if (!expected.equals(ctx.caller())) {
+            throw new SkillException("FORBIDDEN", "this skill is only for the " + expected, false);
+        }
     }
 
     /** For tests. */

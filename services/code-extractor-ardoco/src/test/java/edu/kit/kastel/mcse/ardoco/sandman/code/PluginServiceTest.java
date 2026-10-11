@@ -81,9 +81,27 @@ class PluginServiceTest {
     }
 
     @Test
+    void theTokenOfOneCallerDoesNotPassForTheOther() throws Exception {
+        ObjectNode extract = Fixtures.extractInput(Fixtures.mappingFixture(), null);
+        JsonNode codeModel = CodeModelSkillTest.codeModelInput(Fixtures.mappingFixture());
+        var tlrExtract = call(Fixtures.TLR_TOKEN, "sandman.plugin.extract", extract);
+        var extractionCodeModel = call(Fixtures.EXTRACTION_TOKEN, "sandman.plugin.code-model", codeModel);
+        for (var task : java.util.List.of(tlrExtract, extractionCodeModel)) {
+            assertEquals("TASK_STATE_FAILED", task.state());
+            assertEquals("FORBIDDEN", task.error().get("code").asString());
+            assertFalse(task.error().get("retryable").asBoolean());
+        }
+        assertThrows(
+                Exception.class,
+                () -> call(Fixtures.EXTRACTION_TOKEN + Fixtures.TLR_TOKEN, "sandman.plugin.code-model", codeModel));
+    }
+
+    @Test
     void extractReturnsContractValidElements() throws Exception {
-        var task =
-                call("inbound-token", "sandman.plugin.extract", Fixtures.extractInput(Fixtures.mappingFixture(), null));
+        var task = call(
+                Fixtures.EXTRACTION_TOKEN,
+                "sandman.plugin.extract",
+                Fixtures.extractInput(Fixtures.mappingFixture(), null));
         assertEquals("TASK_STATE_COMPLETED", task.state());
         Fixtures.validateExtract(task.result());
         assertTrue(task.result().get("elements").size() > 20);
@@ -92,7 +110,7 @@ class PluginServiceTest {
     @Test
     void codeModelReturnsTheAcm() throws Exception {
         var task = call(
-                "inbound-token",
+                Fixtures.TLR_TOKEN,
                 "sandman.plugin.code-model",
                 CodeModelSkillTest.codeModelInput(Fixtures.mappingFixture()));
         assertEquals("TASK_STATE_COMPLETED", task.state());
@@ -104,7 +122,7 @@ class PluginServiceTest {
     void aStoragePathOutsideTheStoreFailsAsNotRetryableInvalidInput() throws Exception {
         ObjectNode input = Fixtures.extractInput(Fixtures.mappingFixture(), null);
         ((ObjectNode) input.get("artifacts").get(0)).put("storagePath", "/etc/passwd");
-        var task = call("inbound-token", "sandman.plugin.extract", input);
+        var task = call(Fixtures.EXTRACTION_TOKEN, "sandman.plugin.extract", input);
         assertEquals("TASK_STATE_FAILED", task.state());
         assertEquals("INVALID_INPUT", task.error().get("code").asString());
         assertFalse(task.error().get("retryable").asBoolean());

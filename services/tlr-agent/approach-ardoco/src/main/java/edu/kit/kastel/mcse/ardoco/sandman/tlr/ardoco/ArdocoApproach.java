@@ -30,9 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Stream;
 import org.eclipse.collections.api.factory.SortedMaps;
 
 /**
@@ -48,9 +45,6 @@ public final class ArdocoApproach implements TraceLinkApproach {
 
     private static final Map<String, ModelFormat> FORMATS =
             Map.of("pcm-repository", ModelFormat.PCM, "uml", ModelFormat.UML);
-    /** ArDoCo keeps JVM-wide singletons (ConfigManager, SimilarityUtils): one run at a time. */
-    private static final ReentrantLock LOCK = new ReentrantLock();
-
     private final CorenlpClient client;
 
     /** ServiceLoader entry: settings from the environment, read when the first run needs them. */
@@ -92,14 +86,15 @@ public final class ArdocoApproach implements TraceLinkApproach {
         return Set.of();
     }
 
-    /** The provider's /version answer and the eolonly mode enter configHash: other providers, other link ids. */
+    /** The provider's /version answer and the eolonly mode enter configHash: other providers, other link ids. A provider that is down throws ApproachUnavailableException. */
+    @Override
+    public void callFinished() {
+        TextCache.clear();
+    }
+
     @Override
     public String environment(TlrContext ctx) {
-        try {
-            return client().provider(ctx.cancelled()).identity();
-        } catch (RuntimeException e) {
-            return "provider=unavailable";
-        }
+        return client().provider(ctx.cancelled()).identity();
     }
 
     @Override
@@ -138,14 +133,7 @@ public final class ArdocoApproach implements TraceLinkApproach {
                         provider = corenlp.provider(ctx.cancelled());
                         ctx.log().info("ardoco: CoreNLP {}", provider.identity());
                     }
-                    long start = System.nanoTime();
-                    annotated = corenlp.annotate(SentenceRendering.lines(sentences), provider, ctx.cancelled());
-                    ctx.log()
-                            .info(
-                                    "ardoco: annotated document version {} ({} sentences) in {} ms",
-                                    doc.id(),
-                                    sentences.size(),
-                                    (System.nanoTime() - start) / 1_000_000);
+                    annotated = TextCache.annotate(corenlp, provider, SentenceRendering.lines(sentences), ctx);
                 }
                 runPair(in, ctx, sentences, annotated, modelElements, model, format)
                         .forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));
@@ -186,7 +174,7 @@ public final class ArdocoApproach implements TraceLinkApproach {
             throw new IllegalStateException("no artifact store configured, cannot read " + model.path());
         }
         Path dir = null;
-        acquire(ctx);
+        ArdocoRuns.acquire(ctx);
         try {
             dir = Files.createTempDirectory("ardoco-");
             Path modelFile = dir.resolve(Path.of(model.path()).getFileName().toString());
@@ -243,35 +231,10 @@ public final class ArdocoApproach implements TraceLinkApproach {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            LOCK.unlock();
+            ArdocoRuns.LOCK.unlock();
             if (dir != null) {
-                delete(dir, ctx);
+                ArdocoRuns.delete(dir, ctx);
             }
-        }
-    }
-
-    private static void acquire(TlrContext ctx) {
-        try {
-            while (!LOCK.tryLock(100, TimeUnit.MILLISECONDS)) {
-                if (ctx.cancelled().getAsBoolean()) {
-                    throw new CancellationException("cancelled");
-                }
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new CancellationException("interrupted");
-        }
-    }
-
-    private static void delete(Path dir, TlrContext ctx) {
-        try (Stream<Path> files = Files.walk(dir)) {
-            files.sorted(Comparator.reverseOrder()).forEach(p -> {
-                if (!p.toFile().delete()) {
-                    ctx.log().warn("ardoco: could not delete {}", p);
-                }
-            });
-        } catch (IOException e) {
-            ctx.log().warn("ardoco: could not clean up temp dir {}", dir, e);
         }
     }
 }

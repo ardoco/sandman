@@ -181,6 +181,14 @@
                     <exclude>org.bsc.langgraph4j</exclude>
                   </excludes>
                 </bannedDependencies>
+                <!-- ArDoCo's parent pom lists a snapshot repository; a snapshot of ArDoCo or anything else must fail the build. -->
+                <requireReleaseDeps>
+                  <message>No snapshot dependencies: ArDoCo must resolve to the release from Maven Central.</message>
+                  <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+                  <excludes>
+                    <exclude>io.github.ardoco:sandman-*</exclude>
+                  </excludes>
+                </requireReleaseDeps>
               </rules>
             </configuration>
           </execution>

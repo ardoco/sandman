@@ -95,60 +95,70 @@ public class RecoverTraceLinks implements Skill {
         Set<String> changedSources = new TreeSet<>();
         Set<String> changedTargets = new TreeSet<>();
         List<String> unavailable = new ArrayList<>();
-        for (Approaches.Entry entry : selected) {
-            if (ctx.cancelled()) {
-                break;
-            }
-            if (entry.approach().scopeMode() == ScopeMode.WHOLE_PROJECT) {
-                ReentrantLock lock = wholeProjectLocks.computeIfAbsent(
-                        projectId + '\0' + entry.approach().id(), k -> new ReentrantLock());
-                if (!lockUnlessCancelled(lock, ctx)) {
+        try {
+            for (Approaches.Entry entry : selected) {
+                if (ctx.cancelled()) {
                     break;
                 }
-                try {
-                    TlrInput in = wholeProject(projectId, entry.approach(), store);
-                    runs.add(runApproach(
-                            ctx,
-                            input,
-                            entry,
-                            in,
-                            sourceIds,
-                            targetIds,
-                            store,
-                            recorder,
-                            llmPolicy,
-                            changedSources,
-                            changedTargets,
-                            unavailable));
-                } finally {
-                    lock.unlock();
+                if (entry.approach().scopeMode() == ScopeMode.WHOLE_PROJECT) {
+                    ReentrantLock lock = wholeProjectLocks.computeIfAbsent(
+                            projectId + '\0' + entry.approach().id(), k -> new ReentrantLock());
+                    if (!lockUnlessCancelled(lock, ctx)) {
+                        break;
+                    }
+                    try {
+                        TlrInput in = wholeProject(projectId, entry.approach(), store);
+                        ObjectNode run = runApproach(
+                                ctx,
+                                input,
+                                entry,
+                                in,
+                                sourceIds,
+                                targetIds,
+                                store,
+                                recorder,
+                                llmPolicy,
+                                changedSources,
+                                changedTargets,
+                                unavailable);
+                        if (run != null) {
+                            runs.add(run);
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                    continue;
                 }
-                continue;
+                if (pairwise == null) {
+                    pairwise = new TlrInput(
+                            projectId,
+                            store.versions(
+                                    projectId,
+                                    Stream.concat(sourceIds.stream(), targetIds.stream())
+                                            .distinct()
+                                            .toList()),
+                            store.elements(projectId, sourceIds),
+                            store.elements(projectId, targetIds));
+                }
+                ObjectNode run = runApproach(
+                        ctx,
+                        input,
+                        entry,
+                        pairwise,
+                        sourceIds,
+                        targetIds,
+                        store,
+                        recorder,
+                        llmPolicy,
+                        changedSources,
+                        changedTargets,
+                        unavailable);
+                if (run != null) {
+                    runs.add(run);
+                }
             }
-            if (pairwise == null) {
-                pairwise = new TlrInput(
-                        projectId,
-                        store.versions(
-                                projectId,
-                                Stream.concat(sourceIds.stream(), targetIds.stream())
-                                        .distinct()
-                                        .toList()),
-                        store.elements(projectId, sourceIds),
-                        store.elements(projectId, targetIds));
-            }
-            runs.add(runApproach(
-                    ctx,
-                    input,
-                    entry,
-                    pairwise,
-                    sourceIds,
-                    targetIds,
-                    store,
-                    recorder,
-                    llmPolicy,
-                    changedSources,
-                    changedTargets,
-                    unavailable));
+        } finally {
+            selected.forEach(e -> e.approach().callFinished());
         }
         if (!unavailable.isEmpty()) { // the other approaches are finished and their links written
             throw new SkillException("DEPENDENCY_UNAVAILABLE", String.join("; ", unavailable), true);
@@ -185,6 +195,7 @@ public class RecoverTraceLinks implements Skill {
         return out;
     }
 
+    /** The Run summary; null if the approach's environment is unavailable or the task was cancelled before the Run started. */
     private ObjectNode runApproach(
             SkillContext ctx,
             JsonNode input,
@@ -202,8 +213,18 @@ public class RecoverTraceLinks implements Skill {
         ObjectNode params =
                 Approaches.effective(entry.params(), input.path("params").path(approach.id()));
         ObjectNode hashed = params.deepCopy();
-        String environment = approach.environment(
-                new TlrContext(null, null, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params));
+        String environment;
+        try {
+            environment = approach.environment(
+                    new TlrContext(null, null, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params));
+        } catch (CancellationException e) {
+            LOG.info("approach {} cancelled", approach.id());
+            return null;
+        } catch (ApproachUnavailableException e) { // no environment, no configHash, so no Run
+            LOG.error("approach {} unavailable", approach.id(), e);
+            unavailable.add(approach.id() + ": " + e.getMessage());
+            return null;
+        }
         if (environment != null) {
             hashed.put("environment", environment);
         }

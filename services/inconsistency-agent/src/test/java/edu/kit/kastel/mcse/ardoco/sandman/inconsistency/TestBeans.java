@@ -41,6 +41,7 @@ final class TestBeans {
                 "own-token",
                 verify,
                 null,
+                Map.of(),
                 null,
                 null,
                 null);

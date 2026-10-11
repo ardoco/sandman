@@ -1,6 +1,7 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.kit.kastel.mcse.ardoco.core.api.PreprocessingData;
@@ -10,15 +11,20 @@ import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.A2aClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
+import edu.kit.kastel.mcse.ardoco.tlr.execution.Ardocode;
 import edu.kit.kastel.mcse.ardoco.tlr.execution.Swattr;
 import edu.kit.kastel.mcse.ardoco.tlr.models.agents.ArchitectureConfiguration;
+import edu.kit.kastel.mcse.ardoco.tlr.models.agents.CodeConfiguration;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,6 +114,7 @@ class BenchmarkEquivalenceTest {
 
     @Test
     void oneAnnotationServesAllModelsOfADocumentVersion() throws Exception {
+        TextCache.clear(); // an earlier test may have annotated this text
         Case pcm = CASES.get(0);
         Case uml = CASES.get(1);
         Set<String> expected = standalone(pcm);
@@ -198,6 +205,276 @@ class BenchmarkEquivalenceTest {
         assertEquals(
                 null,
                 ArdocoApproach.format(new TlrInput.Version("v", "a", "x/m.json", "architecture-model", null, null)));
+    }
+
+    // --- ardocode (T2.1b): SAD to code over the code model of the plugin
+
+    /** The plugin's answer is the ACM: a fake of the A2A calls. */
+    static CodeModelClient fakePlugin(Path acm, int[] calls) {
+        JsonNode node = JsonMapper.shared().readTree(readString(acm));
+        return new CodeModelClient(
+                "http://plugin",
+                java.time.Duration.ofSeconds(5),
+                java.time.Duration.ofMillis(1),
+                new CodeModelClient.Calls() {
+                    @Override
+                    public String identity(String url) {
+                        return "code-extractor-ardoco@test";
+                    }
+
+                    @Override
+                    public A2aClient.TaskSnapshot submit(String url, JsonNode input, String messageId) {
+                        calls[0]++;
+                        return new A2aClient.TaskSnapshot(
+                                "t",
+                                "TASK_STATE_COMPLETED",
+                                JsonMapper.shared().createObjectNode().set("acm", node),
+                                null);
+                    }
+
+                    @Override
+                    public A2aClient.TaskSnapshot get(String url, String taskId) {
+                        throw new IllegalStateException();
+                    }
+
+                    @Override
+                    public A2aClient.TaskSnapshot cancel(String url, String taskId) {
+                        throw new IllegalStateException();
+                    }
+                });
+    }
+
+    private static String readString(Path file) {
+        try {
+            return Files.readString(file);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
+    /** Standalone Ardocode on the raw text and the ACM; its SAD-code CSV as (1-based sentence, project path). */
+    private Set<String> standaloneArdocode(Case c, Path acm, Map<String, String> paths) throws IOException {
+        Path out = Files.createDirectories(tmp.resolve("ardocode-" + c.project() + "-" + acm.getFileName()));
+        Path text = FIXTURES.resolve(c.project()).resolve(c.text());
+        var annotated =
+                CorenlpClient.convert(CorenlpClient.fromEnv().request(Files.readString(text), false, () -> false));
+        standaloneSentences = annotated.getSentences().size();
+        var runner = new Ardocode("bench");
+        runner.setUp(
+                text.toFile(),
+                new CodeConfiguration(acm.toFile(), CodeConfiguration.CodeConfigurationType.ACM_FILE),
+                SortedMaps.immutable.empty(),
+                out.toFile());
+        DataRepositoryHelper.putPreprocessingData(
+                runner.getArdoco().getDataRepository(), new PreprocessingData(annotated));
+        runner.run();
+        Path csv;
+        try (var files = Files.list(out)) {
+            csv = files.filter(f -> f.getFileName().toString().matches("sadCodeTlr_.*\\.csv"))
+                    .findFirst()
+                    .orElseThrow(() -> new AssertionError("no SAD-code CSV in " + out + ": "
+                            + java.util.Arrays.toString(out.toFile().list())));
+        }
+        Set<String> links = new TreeSet<>();
+        for (String line : readString(csv).split("\n")) {
+            if (line.isBlank() || !Character.isDigit(line.charAt(0))) { // header: modelElementID,codeId
+                continue;
+            }
+            assertTrue(line.matches("\\d+,.+"), "CSV line " + line);
+            int comma = line.indexOf(',');
+            String encoded = line.substring(comma + 1).strip();
+            String path = paths.get(encoded);
+            assertTrue(path != null, "CSV path " + encoded + " is not a compilation unit of the ACM");
+            links.add(line.substring(0, comma).strip() + " " + path);
+        }
+        return links;
+    }
+
+    /** The KG view: sentences of the golden, one code version and one file element per compilation unit. */
+    private TlrInput ardocodeInput(Case c, Collection<String> paths) throws IOException {
+        store = new ArtifactStore(tmp.resolve("store"));
+        var versions = new ArrayList<TlrInput.Version>();
+        String docVersion = Ids.stableId("ver", c.project(), "doc");
+        versions.add(new TlrInput.Version(
+                docVersion, Ids.stableId("art", c.project(), "doc"), c.text(), "architecture-doc", "markdown", null));
+        var targets = new ArrayList<TlrInput.Element>();
+        String uri =
+                store.put(c.project(), "x".getBytes(StandardCharsets.UTF_8)).uri();
+        for (String path : paths) {
+            String version = Ids.stableId("ver", c.project(), path);
+            versions.add(
+                    new TlrInput.Version(version, Ids.stableId("art", c.project(), path), path, "code", null, uri));
+            targets.add(new TlrInput.Element(
+                    Ids.stableId("el", version, path),
+                    version,
+                    "art#" + path,
+                    path,
+                    "CodeUnit",
+                    "file",
+                    path,
+                    null,
+                    null,
+                    "code"));
+        }
+        return new TlrInput(
+                c.project(),
+                versions,
+                elements(GOLDEN.resolve(c.project()).resolve(c.text() + ".json"), versions.get(0), "architecture-doc"),
+                targets);
+    }
+
+    @Test
+    void ardocodeEqualsStandaloneRunnerOnTheSameCodeModel() throws Exception {
+        for (String[] spec : new String[][] {
+            {"teastore", "teastore.txt", "teastore-code-model"},
+            {"teastore", "teastore.txt", "teastore-code-model-noimage"},
+            {"mediastore", "mediastore.txt", "mediastore-code-model"}
+        }) {
+            Path acm = CodeModels.acm(spec[2]);
+            Case c = new Case(spec[0], spec[1], "-", "-", true);
+            Map<String, String> paths = CodeModels.compilationUnits(acm);
+            Set<String> standalone = standaloneArdocode(c, acm, paths);
+            TlrInput in = ardocodeInput(c, paths.values());
+            long lines =
+                    in.sources().stream().filter(e -> e.sentenceIndex() != null).count();
+            assertEquals(lines, standaloneSentences, spec[2] + ": the raw text splits like the rendering");
+            int[] calls = {0};
+            long start = System.nanoTime();
+            var ctx = new TlrContext(
+                    null,
+                    store,
+                    () -> false,
+                    LoggerFactory.getLogger(ArdocodeApproach.class),
+                    JsonMapper.shared().createObjectNode());
+            List<CandidateLink> links =
+                    new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, calls)).recover(in, ctx);
+            Map<String, Integer> sentence = new java.util.HashMap<>();
+            in.sources().forEach(e -> sentence.put(e.id(), e.sentenceIndex() == null ? -1 : e.sentenceIndex() + 1));
+            Map<String, String> file = new java.util.HashMap<>();
+            in.targets().forEach(e -> file.put(e.id(), e.localKey()));
+            Set<String> adapter = new TreeSet<>();
+            links.forEach(l -> adapter.add(sentence.get(l.sourceId()) + " " + file.get(l.targetId())));
+            System.out.printf(
+                    "BENCHMARK ardocode %s: %d files, %d sentences, %d links, adapter %d ms%n",
+                    spec[2], paths.size(), lines, adapter.size(), (System.nanoTime() - start) / 1_000_000);
+            assertEquals(1, calls[0], "the ACM is fetched once per call");
+            assertEquals(links.size(), adapter.size(), "one link per (sentence, file)");
+            assertFalse(adapter.isEmpty(), spec[2]);
+            assertEquals(standalone, adapter, spec[2]);
+        }
+    }
+
+    @Test
+    void twoRunsOnTheSameInputGiveTheSameLinks() throws Exception {
+        Path acm = CodeModels.acm("mediastore-code-model");
+        Case c = new Case("mediastore", "mediastore.txt", "-", "-", true);
+        TlrInput in = ardocodeInput(c, CodeModels.compilationUnits(acm).values());
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocodeApproach.class),
+                JsonMapper.shared().createObjectNode());
+        var first = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        var second = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(first, second);
+        assertFalse(first.isEmpty());
+    }
+
+    /** ArDoCo's Text fills lazy caches while a run reads it: a run on a cached answer must equal a run on a fresh one. */
+    @Test
+    void twoRunsFromOneCacheEntryGiveTheLinksOfTwoRunsFromFreshAnnotations() throws Exception {
+        Path acm = CodeModels.acm("mediastore-code-model");
+        Case c = new Case("mediastore", "mediastore.txt", "pcm/ms.repository", "pcm-repository", true);
+        TlrInput code = ardocodeInput(c, CodeModels.compilationUnits(acm).values());
+        TlrInput model = input(c);
+        var versions = new ArrayList<>(model.versions());
+        versions.addAll(code.versions().subList(1, code.versions().size()));
+        var targets = new ArrayList<>(model.targets());
+        targets.addAll(code.targets());
+        var both = new TlrInput(c.project(), versions, model.sources(), targets);
+        int[] requests = {0};
+        var counting =
+                new CorenlpClient(
+                        java.net.URI.create(CorenlpProvider.start()),
+                        java.time.Duration.ofSeconds(300),
+                        CorenlpClient.Eolonly.AUTO,
+                        CorenlpClient.BACKOFF,
+                        CorenlpClient.fromEnv().authorization()) {
+                    @Override
+                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                        requests[0]++;
+                        return super.request(text, eolonly, cancelled);
+                    }
+                };
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocoApproach.class),
+                JsonMapper.shared().createObjectNode());
+        List<List<CandidateLink>> fresh = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            TextCache.clear();
+            fresh.add(new ArdocoApproach(counting).recover(both, ctx));
+            TextCache.clear();
+            fresh.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
+        }
+        assertEquals(fresh.get(0), fresh.get(2));
+        assertEquals(fresh.get(1), fresh.get(3));
+        assertFalse(fresh.get(0).isEmpty());
+        assertFalse(fresh.get(1).isEmpty());
+
+        TextCache.clear();
+        requests[0] = 0;
+        List<List<CandidateLink>> cached = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            cached.add(new ArdocoApproach(counting).recover(both, ctx));
+            cached.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
+        }
+        assertEquals(1, requests[0], "all four runs share one cache entry");
+        assertEquals(fresh.subList(0, 2), cached.subList(0, 2));
+        assertEquals(fresh.subList(0, 2), cached.subList(2, 4));
+    }
+
+    @Test
+    void ardocoAndArdocodeAnnotateADocumentVersionOnce() throws Exception {
+        TextCache.clear();
+        Path acm = CodeModels.acm("mediastore-code-model");
+        Case c = new Case("mediastore", "mediastore.txt", "pcm/ms.repository", "pcm-repository", true);
+        Map<String, String> paths = CodeModels.compilationUnits(acm);
+        TlrInput code = ardocodeInput(c, paths.values());
+        TlrInput model = input(c);
+        var versions = new ArrayList<>(model.versions());
+        versions.addAll(code.versions().subList(1, code.versions().size()));
+        var targets = new ArrayList<>(model.targets());
+        targets.addAll(code.targets());
+        var both = new TlrInput(c.project(), versions, model.sources(), targets);
+        int[] requests = {0};
+        var counting =
+                new CorenlpClient(
+                        java.net.URI.create(CorenlpProvider.start()),
+                        java.time.Duration.ofSeconds(300),
+                        CorenlpClient.Eolonly.AUTO,
+                        CorenlpClient.BACKOFF,
+                        CorenlpClient.fromEnv().authorization()) {
+                    @Override
+                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                        requests[0]++;
+                        return super.request(text, eolonly, cancelled);
+                    }
+                };
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocoApproach.class),
+                JsonMapper.shared().createObjectNode());
+        assertFalse(new ArdocoApproach(counting).recover(both, ctx).isEmpty());
+        assertFalse(new ArdocodeApproach(counting, fakePlugin(acm, new int[1]))
+                .recover(both, ctx)
+                .isEmpty());
+        assertEquals(1, requests[0], "one annotation request for both approaches");
     }
 
     private long standaloneSentences;

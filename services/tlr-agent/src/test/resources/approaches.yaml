@@ -5,3 +5,5 @@ approaches:
   lissa: { enabled: false, params: {} }
   ardoco: { enabled: true, params: {} }
   test-unavailable: { enabled: true, params: {} }
+  test-environment-down: { enabled: true, params: {} }
+  ardocode: { enabled: true, params: {} }

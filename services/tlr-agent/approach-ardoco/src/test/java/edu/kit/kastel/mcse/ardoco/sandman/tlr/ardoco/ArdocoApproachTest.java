@@ -89,12 +89,14 @@ class ArdocoApproachTest {
     }
 
     @Test
-    void unreachableProviderIsARetryableFailureAndTheIdentityIsMarked() throws Exception {
+    void unreachableProviderIsARetryableFailureForRecoverAndEnvironment() throws Exception {
         var approach = new ArdocoApproach(deadClient());
         assertThrows(
                 edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException.class,
                 () -> approach.recover(input("abc"), ctx(() -> false)));
-        assertEquals("provider=unavailable", approach.environment(ctx(() -> false)));
+        assertThrows(
+                edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException.class,
+                () -> approach.environment(ctx(() -> false)));
     }
 
     @Test

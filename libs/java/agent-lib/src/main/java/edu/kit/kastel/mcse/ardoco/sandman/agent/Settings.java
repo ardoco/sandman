@@ -5,6 +5,7 @@ import java.lang.reflect.RecordComponent;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,6 +30,7 @@ public record Settings(
         String serviceToken,
         Map<String, String> serviceVerify, // caller -> sha256(token)
         String pluginInboundToken,
+        Map<String, String> pluginInboundTokens, // caller -> token (plugins with one token per caller)
         Path artifactStore,
         Path configDir,
         Path logFile) {
@@ -79,9 +81,36 @@ public record Settings(
                 secret(env, "SANDMAN_SERVICE_TOKEN"),
                 verify,
                 secret(env, "SANDMAN_PLUGIN_INBOUND_TOKEN"),
+                callerTokens(env),
                 path(env, "SANDMAN_ARTIFACT_STORE"),
                 path(env, "SANDMAN_CONFIG_DIR"),
                 path(env, "SANDMAN_LOG_FILE"));
+    }
+
+    /**
+     * SANDMAN_PLUGIN_INBOUND_TOKEN_FILES = {@code caller=file,caller=file}: one inbound token per caller. Empty or
+     * duplicate callers, or two callers with the same token, are a ConfigException (the token must identify the caller).
+     */
+    static Map<String, String> callerTokens(Map<String, String> env) {
+        String spec = plain(env, "SANDMAN_PLUGIN_INBOUND_TOKEN_FILES");
+        Map<String, String> tokens = new LinkedHashMap<>();
+        if (spec == null) {
+            return Map.of();
+        }
+        for (String entry : spec.split(",")) {
+            int eq = entry.indexOf('=');
+            String caller = eq < 0 ? "" : entry.substring(0, eq).strip();
+            String file = eq < 0 ? "" : entry.substring(eq + 1).strip();
+            if (caller.isEmpty() || file.isEmpty() || tokens.containsKey(caller)) {
+                throw new ConfigException("invalid SANDMAN_PLUGIN_INBOUND_TOKEN_FILES entry '" + caller + "'");
+            }
+            String token = secret(Map.of("T_FILE", file), "T");
+            if (token.isEmpty() || tokens.containsValue(token)) {
+                throw new ConfigException("empty or shared inbound token for caller '" + caller + "'");
+            }
+            tokens.put(caller, token);
+        }
+        return Map.copyOf(tokens);
     }
 
     /** SANDMAN_LLM_MODE (live|record|replay, default live); anything else is a ConfigException. */

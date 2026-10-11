@@ -156,6 +156,7 @@ approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
   lissa: { enabled: false, params: { retrieval: { k: 10 }, model: chat-default, embed: embed-default } }
   ardoco: { enabled: true, params: {} }       # whole-project (scopeMode); params.additionalConfigs: ArDoCo additional configs, default {}
+  ardocode: { enabled: true, params: {} }     # whole-project, SAD to code (T2.1b): the ACM comes from the plugin skill sandman.plugin.code-model; no parameters
 ```
 
 ```yaml
@@ -183,6 +184,8 @@ plugins:
 | `SANDMAN_NATS_URL` | event bus |
 | `SANDMAN_SERVICE_TOKEN_FILE`, `SANDMAN_SERVICE_VERIFY_FILE` | own token; `{callerName: sha256(token)}` for verifying callers |
 | `SANDMAN_PLUGIN_INBOUND_TOKEN_FILE` | plugins only: token owners present when calling the plugin |
+| `SANDMAN_PLUGIN_INBOUND_TOKEN_FILES` | plugins with several callers: `caller=file,caller=file`, one token per caller (`extraction-agent`, `tlr-agent` for `code-extractor-ardoco`); the token names the caller; equal tokens or a duplicate caller stop the start |
+| `SANDMAN_CODE_MODEL_URL` (default `http://code-extractor-ardoco:8000`), `SANDMAN_CODE_MODEL_TOKEN_FILE`, `SANDMAN_CODE_MODEL_TIMEOUT` (default `10m`) | tlr-agent only: plugin skill `sandman.plugin.code-model` for approach `ardocode` |
 | `SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE`, `SANDMAN_SESSION_SECRET_FILE`, `SANDMAN_TARGETS` (`name=url,…` of services with `/v1/status`), `SANDMAN_NATS_MONITOR_URL`, `SANDMAN_GATEWAY_URL`, `SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE`, `SANDMAN_CADVISOR_URL` (optional), `SANDMAN_STATE_DB` | dashboard only |
 | `SANDMAN_ARTIFACT_STORE`, `SANDMAN_CONFIG_DIR`, `SANDMAN_LOG_FILE` | paths |
 | `OTEL_*` | standard OpenTelemetry SDK variables |
@@ -351,7 +354,7 @@ The tlr-agent image is analogous (ArDoCo stage only if it needs unreleased modul
 
   Total core ≈ 27 GB (incl. dashboard); Ollama runs on a remote server and is not sized here. Memgraph memory is monitored with `SHOW STORAGE INFO`.
 - **Dashboard** (ADR-0016): port `127.0.0.1:8090` via `edge-proxy`, network `internal` only, depends only on Memgraph and NATS (not on the services it monitors), secrets `svc_token_dashboard`, `dashboard_admin_password`, `dashboard_session_secret`, `memgraph_password`, `gateway_admin_password`; volume `dashboard-data`. cAdvisor runs in the opt-in profile `resources` with read-only host mounts (V-37).
-- **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the detect demo and the contract tests. The default profile starts `code-extractor-ardoco` (T2.6): network `internal` only, `artifact-store` read-only, root file system read-only, no capabilities, only the secret `plugin_in_code-extractor-ardoco`, caps `SANDMAN_CODE_MAX_FILES`, `SANDMAN_CODE_MAX_BYTES` and `SANDMAN_CODE_MAX_FILE_BYTES`, `mem_limit` 4 GB with `-Xmx2560m`. The extraction-agent starts without it and falls back to file-level elements (`partial`).
+- **Plugins:** real plugin services are added via `docker-compose.override.yml` (template comment in the base file); the `stubs` profile starts `plugin-stubs` for the detect demo and the contract tests. The default profile starts `code-extractor-ardoco` (T2.6): network `internal` only, `artifact-store` read-only, root file system read-only, no capabilities, only the secrets `plugin_in_code-extractor-ardoco` (caller `extraction-agent`) and `plugin_in_code-extractor-ardoco_tlr` (caller `tlr-agent`; the tlr-agent mounts only the second one), caps `SANDMAN_CODE_MAX_FILES`, `SANDMAN_CODE_MAX_BYTES` and `SANDMAN_CODE_MAX_FILE_BYTES`, `mem_limit` 4 GB with `-Xmx2560m`. The extraction-agent starts without it and falls back to file-level elements (`partial`).
 
 ### 3.3 Local development workflow
 

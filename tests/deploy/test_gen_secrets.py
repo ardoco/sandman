@@ -35,6 +35,13 @@ def test_only_mounted_secrets_group_readable(tmp_path):
         assert f.stat().st_gid == os.getgid(), f
 
 
+def test_code_plugin_has_one_distinct_inbound_token_per_caller(tmp_path):
+    secrets = run(tmp_path)
+    own = (secrets / "plugin_in_code-extractor-ardoco").read_text()
+    tlr = (secrets / "plugin_in_code-extractor-ardoco_tlr").read_text()
+    assert own and tlr and own != tlr
+
+
 def test_non_mounted_reset_to_owner_only(tmp_path):
     secrets = run(tmp_path)
     (secrets / "gateway.env").chmod(0o644)

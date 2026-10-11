@@ -97,6 +97,37 @@ class CodeModelEquivalenceTest {
         assertEquals(written(dir), JSON.writeValueAsString(first.get("acm")), "ACM of the skill, byte for byte");
     }
 
+    /**
+     * Writes the {@code code-model} ACM of TeaStore (all files, and without the image service) and MediaStore to the
+     * cache, where the tests of the tlr-agent (approach ardocode, T2.1b) read them. The plugin builds them as the
+     * skill does for the whole current code, and the size is the one the A2A result carries.
+     */
+    @Test
+    void writesTheCodeModelsForTheTlrAgentTests() throws Exception {
+        Files.createDirectories(BenchmarkCode.writtenAcm("x").getParent());
+        for (String[] spec : new String[][] {
+            {"teastore", "teastore-code-model", ""},
+            {"teastore", "teastore-code-model-noimage", "services/tools.descartes.teastore.image/"},
+            {"mediastore", "mediastore-code-model", ""}
+        }) {
+            Path dir = BenchmarkCode.unpack(spec[0], tmp.resolve(spec[1]));
+            ObjectNode request = JSON.createObjectNode();
+            request.put("projectId", spec[0]);
+            var current = request.putArray("currentArtifacts");
+            for (String p : regularFiles(dir)) {
+                if (spec[2].isEmpty() || !p.startsWith(spec[2])) {
+                    current.addObject()
+                            .put("path", p)
+                            .put("storagePath", dir.resolve(p).toString());
+                }
+            }
+            JsonNode acm = Fixtures.service(dir).codeModel(request).get("acm");
+            byte[] bytes = JSON.writeValueAsBytes(acm);
+            Files.write(BenchmarkCode.writtenAcm(spec[1]), bytes);
+            System.out.printf("BENCHMARK %s: %d files sent, ACM %d bytes%n", spec[1], current.size(), bytes.length);
+        }
+    }
+
     private void compare(String name) throws Exception {
         Path dir = BenchmarkCode.unpack(name, tmp.resolve(name));
         List<String> files = regularFiles(dir);
@@ -343,12 +374,22 @@ class CodeModelEquivalenceTest {
         }
     }
 
+    /** The files of a call: regular files below the per-file cap (the archives and jars of TeaStore are above it). */
     private static List<String> regularFiles(Path dir) throws IOException {
         try (Stream<Path> s = Files.walk(dir)) {
-            return s.filter(p -> Files.isRegularFile(p, java.nio.file.LinkOption.NOFOLLOW_LINKS))
+            return s.filter(p -> Files.isRegularFile(p, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+                            && size(p) <= Limits.DEFAULT_FILE_BYTES)
                     .map(p -> dir.relativize(p).toString().replace('\\', '/'))
                     .sorted()
                     .toList();
+        }
+    }
+
+    private static long size(Path p) {
+        try {
+            return Files.size(p);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
         }
     }
 

@@ -64,6 +64,7 @@ fi
 # Each service/plugin gets only its own outbound token; receivers verify against hashes.
 for s in $SERVICES $PLUGINS; do write "svc_token_$s" "$(rand)"; done
 for p in $PLUGINS; do write "plugin_in_$p" "$(rand)"; done   # owner -> plugin calls
+write "plugin_in_code-extractor-ardoco_tlr" "$(rand)"   # second caller of code-extractor-ardoco: the tlr-agent has its own inbound token (T2.1b)
 VERIFY="{"
 SEP=""
 for s in $SERVICES $PLUGINS; do

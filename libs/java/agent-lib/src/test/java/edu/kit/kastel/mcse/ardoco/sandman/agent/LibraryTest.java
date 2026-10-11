@@ -41,6 +41,27 @@ class LibraryTest {
     }
 
     @Test
+    void pluginInboundTokensAreReadPerCaller(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("a"), "tok-a\n");
+        Files.writeString(tmp.resolve("b"), "tok-b");
+        Files.writeString(tmp.resolve("a2"), "tok-a");
+        String files = "extraction-agent=" + tmp.resolve("a") + ",tlr-agent=" + tmp.resolve("b");
+        Map<String, String> tokens = Settings.callerTokens(Map.of("SANDMAN_PLUGIN_INBOUND_TOKEN_FILES", files));
+        assertEquals(Map.of("extraction-agent", "tok-a", "tlr-agent", "tok-b"), tokens);
+        assertEquals(Map.of(), Settings.callerTokens(Map.of()));
+        for (String bad : List.of(
+                "x=" + tmp.resolve("a") + ",y=" + tmp.resolve("a2"), // same token for two callers
+                "x=" + tmp.resolve("a") + ",x=" + tmp.resolve("b"), // duplicate caller
+                "=" + tmp.resolve("a"),
+                "x")) {
+            assertThrows(
+                    Settings.ConfigException.class,
+                    () -> Settings.callerTokens(Map.of("SANDMAN_PLUGIN_INBOUND_TOKEN_FILES", bad)),
+                    bad);
+        }
+    }
+
+    @Test
     void llmModeReadsEnvAndRejectsUnknown() {
         assertEquals("live", Settings.llmMode(Map.of()));
         assertEquals("live", Settings.llmMode(Map.of("SANDMAN_LLM_MODE", "")));

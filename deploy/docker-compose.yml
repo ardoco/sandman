@@ -221,12 +221,15 @@ services:
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
       SANDMAN_CORENLP_URL: http://corenlp-gateway:8080   # no KIT credentials in this container, only its own gateway token (T2.5)
       SANDMAN_CORENLP_TOKEN_FILE: /run/secrets/corenlp_client_token_tlr-agent
+      SANDMAN_CODE_MODEL_URL: http://code-extractor-ardoco:8000      # ArDoCo code model for approach ardocode (T2.1b)
+      SANDMAN_CODE_MODEL_TOKEN_FILE: /run/secrets/plugin_in_code-extractor-ardoco_tlr   # the tlr-agent's own token, not the extraction-agent's
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local, corenlp_client_token_tlr-agent]
+    secrets: [memgraph_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local, corenlp_client_token_tlr-agent,
+              plugin_in_code-extractor-ardoco_tlr]
     networks: [internal, corenlp]               # corenlp: only to reach corenlp-gateway, no egress
     mem_limit: 5g
     depends_on: *depends-core
@@ -242,7 +245,8 @@ services:
     build: { context: .., dockerfile: services/code-extractor-ardoco/Dockerfile }
     environment:
       SANDMAN_SERVICE_NAME: code-extractor-ardoco
-      SANDMAN_PLUGIN_INBOUND_TOKEN_FILE: /run/secrets/plugin_in_code-extractor-ardoco   # owner -> plugin; no service token: the plugin makes no outbound call
+      # one inbound token per caller (caller=file); the plugin knows who calls. No service token: the plugin makes no outbound call
+      SANDMAN_PLUGIN_INBOUND_TOKEN_FILES: extraction-agent=/run/secrets/plugin_in_code-extractor-ardoco,tlr-agent=/run/secrets/plugin_in_code-extractor-ardoco_tlr
       SANDMAN_ARTIFACT_STORE: /artifacts
       SANDMAN_CODE_MAX_FILES: ${SANDMAN_CODE_MAX_FILES:-20000}      # per call; above: INVALID_INPUT
       SANDMAN_CODE_MAX_BYTES: ${SANDMAN_CODE_MAX_BYTES:-67108864}   # 64 MB per call; above: INVALID_INPUT
@@ -256,7 +260,7 @@ services:
       - artifact-store:/artifacts:ro
     tmpfs:
       - /tmp:size=320m,mode=1777,noexec,nosuid,nodev   # staged copy and Magika copies (2 x max bytes), deleted after each call
-    secrets: [plugin_in_code-extractor-ardoco]
+    secrets: [plugin_in_code-extractor-ardoco, plugin_in_code-extractor-ardoco_tlr]
     networks: [internal]                         # no egress, no published port
     read_only: true
     cap_drop: [ALL]
@@ -551,7 +555,8 @@ secrets:
   svc_token_plugin-stubs: { file: ./secrets/svc_token_plugin-stubs }
   svc_token_dashboard: { file: ./secrets/svc_token_dashboard }
   plugin_in_plugin-stubs: { file: ./secrets/plugin_in_plugin-stubs }
-  plugin_in_code-extractor-ardoco: { file: ./secrets/plugin_in_code-extractor-ardoco }
+  plugin_in_code-extractor-ardoco: { file: ./secrets/plugin_in_code-extractor-ardoco }          # caller extraction-agent
+  plugin_in_code-extractor-ardoco_tlr: { file: ./secrets/plugin_in_code-extractor-ardoco_tlr }  # caller tlr-agent
   llm_key_orchestrator: { file: ./secrets/llm_key_orchestrator }
   llm_key_extraction: { file: ./secrets/llm_key_extraction }
   llm_key_extraction_local: { file: ./secrets/llm_key_extraction_local }

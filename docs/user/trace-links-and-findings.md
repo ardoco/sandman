@@ -12,8 +12,10 @@ There is no links page in the console. Read links through [Ask and Cypher](query
 |---|---|---|
 | `explicit-reference` | extraction agent | a requirement id mentioned in a file links the requirement to the element containing the mention; confidence 1.0; `relates` for built-in extraction ([ingesting-artifacts.md](ingesting-artifacts.md)) |
 | `stub-name-match` | TLR agent | links two elements whose names share a word of at least 4 letters (camelCase and punctuation split, lower-cased); `relates`, confidence 0.5, rationale `shared tokens: ...`. It exists to exercise the pipeline and is not a quality approach |
+| `ardoco` | TLR agent | ArDoCo links the sentences of an architecture document to the components of an architecture model (PCM or UML); `documents`, confidence 1.0 |
+| `ardocode` | TLR agent | ArDoCo links the sentences of an architecture document to the source files of the project; `documents`, confidence 1.0. ArDoCo links a sentence to a package or directory too. The approach then links the sentence to every file in it. It needs the container `code-extractor-ardoco` |
 
-`lissa` and `ardoco` appear in `config/tlr/approaches.yaml` but are disabled. In the mini example, REQ-1 gets a `stub-name-match` link to the `MediaCache` code unit and component (shared words "cache" and "media") and an `explicit-reference` link to `MediaCacheTest` (type `verifies`, supplied by the stub code extractor); REQ-2 and REQ-3 get none. Because the link-recovery steps of the configured kind pairs are merged while they wait, links between other kind combinations can appear too, for example a requirement to a model component.
+`lissa` appears in `config/tlr/approaches.yaml` but is disabled. In the mini example, REQ-1 gets a `stub-name-match` link to the `MediaCache` code unit and component (shared words "cache" and "media") and an `explicit-reference` link to `MediaCacheTest` (type `verifies`, supplied by the stub code extractor); REQ-2 and REQ-3 get none. Because the link-recovery steps of the configured kind pairs are merged while they wait, links between other kind combinations can appear too, for example a requirement to a model component.
 
 Status values are `candidate`, `confirmed` and `rejected`. Every link is `candidate` today; neither the console nor the API can confirm or reject a link yet. Exports leave out `rejected` links unless asked.
 

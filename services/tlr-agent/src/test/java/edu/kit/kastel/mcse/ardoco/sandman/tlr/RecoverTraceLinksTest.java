@@ -192,7 +192,9 @@ class RecoverTraceLinksTest {
 
     @Test
     void defaultSelectionRunsAllEnabledApproachesAndIsolatesFailures() throws Exception {
+        int finished = FailingApproach.FINISHED.get();
         var done = run(input(""));
+        assertEquals(finished + 1, FailingApproach.FINISHED.get(), "callFinished once per skill call");
 
         assertEquals("TASK_STATE_COMPLETED", done.state(), String.valueOf(done.error()));
         contracts.validate("skills.schema.json#/$defs/RecoverTraceLinksOutput", done.result());
@@ -232,6 +234,21 @@ class RecoverTraceLinksTest {
                         .get(0)
                         .get("s"));
         assertEquals(0, events.events.size());
+    }
+
+    @Test
+    void unavailableEnvironmentFailsTheSkillRetryableWithoutARunOrAHash() throws Exception {
+        var done = run(input(",\"approaches\":[\"test-environment-down\",\"" + STUB + "\"]"));
+
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("DEPENDENCY_UNAVAILABLE", done.error().get("code").asString());
+        assertTrue(done.error().get("retryable").asBoolean());
+        assertTrue(done.error().get("message").asString().contains("test-environment-down: environment down"));
+        assertEquals(
+                0,
+                kg.read("MATCH (r:Run {tool: 'test-environment-down'}) RETURN r.status AS s", Map.of())
+                        .size());
+        assertEquals(1, activeLinks().size());
     }
 
     @Test

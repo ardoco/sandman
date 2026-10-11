@@ -7,6 +7,7 @@ import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodePackage;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.ControlElement;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.Datatype;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.InterfaceUnit;
+import edu.kit.kastel.mcse.ardoco.core.api.models.code.ProgrammingLanguage;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -74,8 +75,17 @@ final class ElementMapping {
         }
     }
 
+    /**
+     * ArDoCo 2.1.0 builds Java paths from {@code URI.relativize} (all of it percent-encoded, {@code %} as {@code %25})
+     * but shell paths from encoded directories and the raw file name, so a shell file name is not decoded.
+     */
     private static String pathOf(CodeCompilationUnit unit) {
-        return decode(unit.getPath());
+        String path = unit.getPath();
+        if (unit.getLanguage() == ProgrammingLanguage.JAVA) {
+            return decode(path);
+        }
+        int name = path.lastIndexOf('/') + 1;
+        return decode(path.substring(0, name)) + path.substring(name);
     }
 
     private void index(CodeModel model) {
@@ -138,6 +148,7 @@ final class ElementMapping {
         for (Datatype type : typesOf(unit)) {
             String qn = qualified.get(type);
             int n = seen.merge(qn, 1, Integer::sum);
+            // ponytail: positional ~n for duplicate qualified names; ArDoCo 2.1.0 offers nothing to tell them apart
             String key = n >= 2 ? qn + "~" + n : qn;
             keys.put(type, key);
             Datatype parent = type.getParentDatatype();
@@ -232,6 +243,8 @@ final class ElementMapping {
         Map<String, Integer> seen = new HashMap<>();
         for (ControlElement method : sorted) {
             int n = seen.merge(method.getName(), 1, Integer::sum);
+            // ponytail: ArDoCo 2.1.0 ControlElement has no parameter types, so the overload suffix is positional (~n);
+            // inserting an earlier overload renames the keys of later ones. Use parameter types once ArDoCo exposes them.
             String key = ownerKey + "#" + method.getName() + (n >= 2 ? "~" + n : "");
             ObjectNode e =
                     element(artifact, key, "test".equals(artifact.kind()) ? "test-method" : "method", method.getName());

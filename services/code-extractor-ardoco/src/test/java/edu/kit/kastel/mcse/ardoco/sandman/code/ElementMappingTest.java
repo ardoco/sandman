@@ -235,4 +235,39 @@ class ElementMappingTest {
         assertEquals("üni/Ünï.java", ElementMapping.decode("%C3%BCni/%C3%9Cn%C3%AF.java"));
         assertEquals("a+b/100%.java", ElementMapping.decode("a+b/100%25.java"));
     }
+
+    /**
+     * ArDoCo builds Java paths from {@code URI.relativize} (the whole path percent-encoded, {@code %} as {@code %25}),
+     * but shell paths from an encoded directory part and the raw file name.
+     */
+    @Test
+    void fileNamesWithPercentSignsKeepTheirPathForJavaAndShell(@TempDir Path tmp) throws Exception {
+        Path fixture = Fixtures.mappingFixture();
+        Files.createDirectories(tmp.resolve("100% dir/a b"));
+        Map<String, String> sources = Map.of(
+                "100% dir/a b/Name%20X.java", "NoPackage.java",
+                "100% dir/a b/100%.java", "NoPackage.java",
+                "100% dir/a b/run%20it.sh", "scripts/build.sh",
+                "100% dir/a b/100%.sh", "scripts/build.sh");
+        for (var e : sources.entrySet()) {
+            Files.copy(fixture.resolve(e.getValue()), tmp.resolve(e.getKey()));
+        }
+        JsonNode out = Fixtures.validateExtract(Fixtures.service(tmp).extract(Fixtures.extractInput(tmp, null)));
+        Map<String, String> languages = new LinkedHashMap<>();
+        for (JsonNode e : out.get("elements")) {
+            if ("file".equals(e.get("kind").asString())) {
+                assertTrue(e.has("properties"), "recognized: " + e.get("path").asString());
+                languages.put(
+                        e.get("path").asString(),
+                        e.get("properties").get("language").asString());
+            }
+        }
+        assertEquals(
+                Map.of(
+                        "100% dir/a b/Name%20X.java", "JAVA",
+                        "100% dir/a b/100%.java", "JAVA",
+                        "100% dir/a b/run%20it.sh", "SHELL",
+                        "100% dir/a b/100%.sh", "SHELL"),
+                languages);
+    }
 }

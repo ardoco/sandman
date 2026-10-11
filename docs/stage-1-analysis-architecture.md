@@ -254,11 +254,11 @@ Component responsibilities in one line each (details in Section 5):
 |---|---|---|---|
 | `orchestrator` | Python | Consumes events, applies rules, issues A2A tasks, tracks workflows | none (correlation via `Run.workflowId`) |
 | `extraction-agent` | Python | Artifact intake, built-in extractors, calls extraction plugins, writes their results | `Project`, `Artifact`, `ArtifactVersion`, `Element`, `Concept`, structural relations, explicit `TraceLink`s, `Run` |
-| `tlr-agent` | Java | Pluggable TLR approaches (ArDoCo, LiSSA in-process) | `TraceLink`, `Run` |
+| `tlr-agent` | Java | Pluggable TLR approaches (ArDoCo SAD to model `ardoco` and SAD to code `ardocode` with the code model of `code-extractor-ardoco`, LiSSA in-process) | `TraceLink`, `Run` |
 | `inconsistency-agent` | Java | Detectors (ArDoCo in-process, plugins), status lifecycle, triage API | `Inconsistency`, `StatusChange`, `Run` |
 | `query-service` | Python | NL/Cypher read access, console UI, export, users/roles | none in KG (user store in own SQLite) |
 | extraction/detector plugins | any | Plugged-in external systems (Q-5, Q-6, ADR-0012); return results, never write the KG; LLM calls only via the gateway with own keys | none |
-| `code-extractor-ardoco` | Java | Extraction plugin (T2.6, A2A `sandman.plugin.extract` and `sandman.plugin.code-model`) on ArDoCo's code extractors (Eclipse JDT, Magika, onnxruntime, only in this service). Processes uploaded code: no egress, read-only artifact mount, caps on files and bytes, no KG access | none |
+| `code-extractor-ardoco` | Java | Extraction plugin (T2.6, A2A `sandman.plugin.extract` for the extraction-agent and `sandman.plugin.code-model` for the tlr-agent, one inbound token per caller) on ArDoCo's code extractors (Eclipse JDT, Magika, onnxruntime, only in this service). Processes uploaded code: no egress, read-only artifact mount, caps on files and bytes, no KG access | none |
 | `llm-replay` | Python | OpenAI-compatible record/replay proxy in front of the gateway (modes `live`, `record`, `replay`) | – |
 | `llm-gateway` | (off-the-shelf, Bifrost) | Unified LLM access, virtual keys, budgets, logging | – |
 | `corenlp-gateway` | (off-the-shelf, Caddy) | Only way to the Stanford CoreNLP provider service (T2.5): path allowlist (`POST /stanfordnlp`, `GET /stanfordnlp/health`, `GET /stanfordnlp/version`), caller authentication (HTTP Basic, one token per agent), replaces the credentials with those of the active mode (`remote`: KIT instance, `local`: `corenlp-provider`) | – |
@@ -350,7 +350,7 @@ flowchart TB
 | `llm_key_<component>` and `llm_key_<component>_local` (gateway virtual keys; `_local` = self-hosted Ollama only) for extraction, tlr, inconsistency, query; `llm_key_orchestrator` | respective service |
 | `svc_token_<name>` (own bearer token of one service or plugin) | that service only |
 | `svc_tokens_verify` (JSON map caller → sha256 of its token) | all receivers (A2A, owner REST APIs, query API) |
-| `plugin_in_<plugin>` (token owners present when calling the plugin) | the plugin and its calling owner |
+| `plugin_in_<plugin>` (token owners present when calling the plugin; a plugin with two calling owners has one token per owner, `plugin_in_code-extractor-ardoco` for the extraction-agent and `plugin_in_code-extractor-ardoco_tlr` for the tlr-agent) | the plugin and that calling owner |
 | `memgraph_password` | memgraph and all KG clients |
 | `admin_bootstrap_password` (first admin account) | query-service |
 | `session_secret` (cookie signing) | query-service |

@@ -194,8 +194,9 @@ components:
     details: >-
       Trace link recovery (TLR) connects artifacts of different kinds automatically, so nobody has to maintain
       the links by hand. The agent runs one or more approaches and stores each result as a trace link with
-      confidence and origin. Today only a simple name matching demo approach is active. The real approaches
-      ArDoCo and LiSSA follow.
+      confidence and origin. Today a simple name matching demo approach and two ArDoCo approaches are active:
+      ArDoCo links architecture documents to architecture models and to source code. The research approach
+      LiSSA follows.
     planned: M2
     flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
   inconsistency-agent:
@@ -228,8 +229,8 @@ components:
       other file. Other file types only get a file entry. It works on a private copy of the uploaded files and
       deletes the copy afterwards. It never changes your files, never writes to the knowledge graph and has no
       internet access. It refuses a run with more than 20,000 files or more than 64 MB. It can also hand the
-      complete code model to later steps, so that ArDoCo sees exactly the code model it would build itself.
-    flow: Called only by the extraction agent; returns code elements and, on request, the ArDoCo code model.
+      complete code model to the trace link agent, so that ArDoCo sees exactly the code model it would build itself.
+    flow: Called by the extraction agent for code elements and by the trace link agent for the ArDoCo code model. Each caller has its own access token.
   plugin-stubs:
     zone: plugins
     title: Demo plugins

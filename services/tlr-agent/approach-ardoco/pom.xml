@@ -38,7 +38,17 @@
           <groupId>org.eclipse.jdt</groupId>
           <artifactId>org.eclipse.jdt.core</artifactId>
         </exclusion>
+        <!-- Removes the code jar and the models jar (464 MB): CoreNLP annotates in the provider service (T2.5). -->
+        <exclusion>
+          <groupId>edu.stanford.nlp</groupId>
+          <artifactId>stanford-corenlp</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+    <!-- The code jar again, without the models: ArDoCo's text classes (CoreNLP-based TextImpl and others) still link against it. -->
+    <dependency>
+      <groupId>edu.stanford.nlp</groupId>
+      <artifactId>stanford-corenlp</artifactId>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
@@ -53,6 +63,7 @@
         <!-- CorenlpProvider (Testcontainers) is shared with the tlr-agent tests. -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.1</version>
         <executions>
           <execution>
             <goals>

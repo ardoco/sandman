@@ -74,4 +74,31 @@ class ArdocoApproachTest {
     void acceptsNoParameters() {
         assertEquals(java.util.Set.of(), new ArdocoApproach().paramKeys());
     }
+
+    private static CorenlpClient deadClient() throws java.io.IOException {
+        int port;
+        try (var socket = new java.net.ServerSocket(0)) {
+            port = socket.getLocalPort();
+        }
+        return new CorenlpClient(
+                java.net.URI.create("http://127.0.0.1:" + port),
+                java.time.Duration.ofSeconds(2),
+                CorenlpClient.Eolonly.AUTO,
+                List.of(java.time.Duration.ZERO, java.time.Duration.ZERO),
+                null);
+    }
+
+    @Test
+    void unreachableProviderIsARetryableFailureAndTheIdentityIsMarked() throws Exception {
+        var approach = new ArdocoApproach(deadClient());
+        assertThrows(
+                edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException.class,
+                () -> approach.recover(input("abc"), ctx(() -> false)));
+        assertEquals("provider=unavailable", approach.environment(ctx(() -> false)));
+    }
+
+    @Test
+    void versionIncreasedForTheProviderChange() {
+        assertEquals("2.1.0+a2", ArdocoApproach.VERSION);
+    }
 }

@@ -94,6 +94,7 @@ public class RecoverTraceLinks implements Skill {
         ArrayNode runs = JsonMapper.shared().createArrayNode();
         Set<String> changedSources = new TreeSet<>();
         Set<String> changedTargets = new TreeSet<>();
+        List<String> unavailable = new ArrayList<>();
         for (Approaches.Entry entry : selected) {
             if (ctx.cancelled()) {
                 break;
@@ -117,7 +118,8 @@ public class RecoverTraceLinks implements Skill {
                             recorder,
                             llmPolicy,
                             changedSources,
-                            changedTargets));
+                            changedTargets,
+                            unavailable));
                 } finally {
                     lock.unlock();
                 }
@@ -145,7 +147,11 @@ public class RecoverTraceLinks implements Skill {
                     recorder,
                     llmPolicy,
                     changedSources,
-                    changedTargets));
+                    changedTargets,
+                    unavailable));
+        }
+        if (!unavailable.isEmpty()) { // the other approaches are finished and their links written
+            throw new SkillException("DEPENDENCY_UNAVAILABLE", String.join("; ", unavailable), true);
         }
         ObjectNode output = JsonMapper.shared().createObjectNode();
         output.set("runs", runs);
@@ -190,11 +196,18 @@ public class RecoverTraceLinks implements Skill {
             RunRecorder recorder,
             String llmPolicy,
             Set<String> changedSources,
-            Set<String> changedTargets) {
+            Set<String> changedTargets,
+            List<String> unavailable) {
         TraceLinkApproach approach = entry.approach();
         ObjectNode params =
                 Approaches.effective(entry.params(), input.path("params").path(approach.id()));
-        String configHash = Ids.sha256Hex(Jcs.canonicalize(params));
+        ObjectNode hashed = params.deepCopy();
+        String environment = approach.environment(
+                new TlrContext(null, null, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params));
+        if (environment != null) {
+            hashed.put("environment", environment);
+        }
+        String configHash = Ids.sha256Hex(Jcs.canonicalize(hashed));
         ObjectNode keyed = JsonMapper.shared().createObjectNode();
         keyed.set("input", input);
         keyed.put("tool", approach.id());
@@ -254,6 +267,14 @@ public class RecoverTraceLinks implements Skill {
             recorder.fail(runId, "cancelled"); // the KG Run status has no cancelled value
             run.put("status", "cancelled");
             run.put("linkCount", 0);
+        } catch (ApproachUnavailableException e) { // the skill fails retryable after the other approaches
+            LOG.error("approach {} unavailable", approach.id(), e);
+            String error = e.getClass().getSimpleName() + ": " + e.getMessage();
+            recorder.fail(runId, error);
+            unavailable.add(approach.id() + ": " + e.getMessage());
+            run.put("status", "failed");
+            run.put("linkCount", 0);
+            run.put("error", error);
         } catch (RuntimeException e) { // isolates this approach; its links stay inactive
             LOG.error("approach {} failed", approach.id(), e);
             String error = e.getClass().getSimpleName() + ": " + e.getMessage();

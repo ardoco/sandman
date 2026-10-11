@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 import edu.kit.kastel.mcse.ardoco.core.api.PreprocessingData;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelFormat;
 import edu.kit.kastel.mcse.ardoco.core.api.output.ArdocoResult;
+import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.KindPair;
@@ -12,9 +13,6 @@ import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TraceLinkApproach;
 import edu.kit.kastel.mcse.ardoco.tlr.execution.Swattr;
 import edu.kit.kastel.mcse.ardoco.tlr.models.agents.ArchitectureConfiguration;
-import edu.kit.kastel.mcse.ardoco.tlr.text.providers.informants.corenlp.TextImpl;
-import edu.stanford.nlp.pipeline.CoreDocument;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -29,7 +27,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
@@ -40,20 +37,34 @@ import org.eclipse.collections.api.factory.SortedMaps;
 
 /**
  * ArDoCo SWATTR (SAD to SAM) over all current architecture documents and models (T2.1). The sentences come from the KG,
- * one per line, and are annotated with ssplit.eolonly, so ArDoCo sentence n is rendered line n.
+ * one per line. The annotation comes from the CoreNLP provider service through the corenlp-gateway (T2.5), checked so
+ * that ArDoCo sentence n is rendered line n.
  */
 public final class ArdocoApproach implements TraceLinkApproach {
 
     public static final String ID = "ardoco";
     /** Raise the +aN suffix when the mapping of ArDoCo results to links changes. */
-    public static final String VERSION = "2.1.0+a1";
+    public static final String VERSION = "2.1.0+a2";
 
     private static final Map<String, ModelFormat> FORMATS =
             Map.of("pcm-repository", ModelFormat.PCM, "uml", ModelFormat.UML);
     /** ArDoCo keeps JVM-wide singletons (ConfigManager, SimilarityUtils): one run at a time. */
     private static final ReentrantLock LOCK = new ReentrantLock();
 
-    private static StanfordCoreNLP nlp;
+    private final CorenlpClient client;
+
+    /** ServiceLoader entry: settings from the environment, read when the first run needs them. */
+    public ArdocoApproach() {
+        this(null);
+    }
+
+    ArdocoApproach(CorenlpClient client) {
+        this.client = client;
+    }
+
+    private CorenlpClient client() {
+        return client != null ? client : CorenlpClient.fromEnv();
+    }
 
     @Override
     public String id() {
@@ -81,20 +92,30 @@ public final class ArdocoApproach implements TraceLinkApproach {
         return Set.of();
     }
 
+    /** The provider's /version answer and the eolonly mode enter configHash: other providers, other link ids. */
+    @Override
+    public String environment(TlrContext ctx) {
+        try {
+            return client().provider(ctx.cancelled()).identity();
+        } catch (RuntimeException e) {
+            return "provider=unavailable";
+        }
+    }
+
     @Override
     public List<CandidateLink> recover(TlrInput in, TlrContext ctx) {
         List<TlrInput.Version> docs = versions(in, "architecture-doc");
         List<TlrInput.Version> models = versions(in, "architecture-model");
         Map<String, CandidateLink> links = new LinkedHashMap<>();
-        // ponytail: every doc x model pair re-annotates the document and re-runs the whole pipeline; cost is
-        // docs x models CoreNLP runs per call. Upgrade: cache the annotated text per document version and reuse it
-        // for all models.
+        CorenlpClient corenlp = client();
+        CorenlpClient.Provider provider = null;
         for (TlrInput.Version doc : docs) {
             List<TlrInput.Element> sentences = SentenceRendering.sentences(in.sources(), doc.id());
             if (sentences.isEmpty()) {
                 ctx.log().warn("ardoco: document version {} has no sentences, skipped", doc.id());
                 continue;
             }
+            Text annotated = null;
             for (TlrInput.Version model : models) {
                 ModelFormat format = format(model);
                 if (format == null) {
@@ -104,7 +125,29 @@ public final class ArdocoApproach implements TraceLinkApproach {
                 if (ctx.cancelled().getAsBoolean()) {
                     throw new CancellationException("cancelled");
                 }
-                runPair(in, ctx, sentences, model, format)
+                Map<String, TlrInput.Element> modelElements = new LinkedHashMap<>();
+                for (TlrInput.Element t : in.targets()) {
+                    if (model.id().equals(t.versionId()) && modelElements.put(t.localKey(), t) != null) {
+                        throw new IllegalStateException(
+                                "model " + model.path() + " has two elements with local key " + t.localKey());
+                    }
+                }
+                if (annotated == null) {
+                    SentenceRendering.assertHashes(sentences);
+                    if (provider == null) {
+                        provider = corenlp.provider(ctx.cancelled());
+                        ctx.log().info("ardoco: CoreNLP {}", provider.identity());
+                    }
+                    long start = System.nanoTime();
+                    annotated = corenlp.annotate(SentenceRendering.lines(sentences), provider, ctx.cancelled());
+                    ctx.log()
+                            .info(
+                                    "ardoco: annotated document version {} ({} sentences) in {} ms",
+                                    doc.id(),
+                                    sentences.size(),
+                                    (System.nanoTime() - start) / 1_000_000);
+                }
+                runPair(in, ctx, sentences, annotated, modelElements, model, format)
                         .forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));
             }
         }
@@ -131,17 +174,14 @@ public final class ArdocoApproach implements TraceLinkApproach {
     }
 
     private List<CandidateLink> runPair(
-            TlrInput in, TlrContext ctx, List<TlrInput.Element> sentences, TlrInput.Version model, ModelFormat format) {
+            TlrInput in,
+            TlrContext ctx,
+            List<TlrInput.Element> sentences,
+            Text annotated,
+            Map<String, TlrInput.Element> modelElements,
+            TlrInput.Version model,
+            ModelFormat format) {
         List<String> lines = SentenceRendering.lines(sentences);
-        SentenceRendering.assertHashes(sentences);
-        Map<String, TlrInput.Element> modelElements = new LinkedHashMap<>();
-        for (TlrInput.Element t : in.targets()) {
-            if (model.id().equals(t.versionId()) && modelElements.put(t.localKey(), t) != null) {
-                throw new IllegalStateException(
-                        "model " + model.path() + " has two elements with local key " + t.localKey());
-            }
-        }
-
         if (ctx.artifacts() == null) {
             throw new IllegalStateException("no artifact store configured, cannot read " + model.path());
         }
@@ -161,12 +201,6 @@ public final class ArdocoApproach implements TraceLinkApproach {
                     .toList();
             heap.forEach(MemoryPoolMXBean::resetPeakUsage);
 
-            CoreDocument annotated = new CoreDocument(text);
-            nlp().annotate(annotated);
-            if (annotated.sentences().size() != lines.size()) {
-                throw new IllegalStateException("annotation produced "
-                        + annotated.sentences().size() + " sentences for " + lines.size() + " lines");
-            }
             var runner = new Swattr("sandman");
             runner.setUp(
                     textFile.toFile(),
@@ -174,7 +208,7 @@ public final class ArdocoApproach implements TraceLinkApproach {
                     SortedMaps.immutable.empty(),
                     dir.resolve("out").toFile());
             DataRepositoryHelper.putPreprocessingData(
-                    runner.getArdoco().getDataRepository(), new PreprocessingData(new TextImpl(annotated)));
+                    runner.getArdoco().getDataRepository(), new PreprocessingData(annotated));
             var repository = runner.runWithoutSaving();
             if (repository == null) {
                 throw new IllegalStateException("ArDoCo run did not start");
@@ -227,20 +261,6 @@ public final class ArdocoApproach implements TraceLinkApproach {
             Thread.currentThread().interrupt();
             throw new CancellationException("interrupted");
         }
-    }
-
-    /** Same annotators and properties as ArDoCo's TextProcessorLocal, plus ssplit.eolonly. */
-    private static synchronized StanfordCoreNLP nlp() {
-        if (nlp == null) {
-            Properties props = new Properties();
-            props.setProperty("annotators", "tokenize,ssplit,pos,parse,depparse,lemma");
-            props.put("parse", "EnhancedPlusPlusDependenciesAnnotation");
-            props.put("depparse", "EnhancedPlusPlusDependenciesAnnotation");
-            props.put("coref.algorithm", "fastneural");
-            props.setProperty("ssplit.eolonly", "true");
-            nlp = new StanfordCoreNLP(props);
-        }
-        return nlp;
     }
 
     private static void delete(Path dir, TlrContext ctx) {

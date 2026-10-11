@@ -3,7 +3,11 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import edu.kit.kastel.mcse.ardoco.core.api.PreprocessingData;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelFormat;
+import edu.kit.kastel.mcse.ardoco.core.api.output.ArdocoResult;
+import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
+import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
@@ -20,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.eclipse.collections.api.factory.SortedMaps;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
@@ -27,9 +33,11 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * M2 exit: the adapter (KG rendering, injected sentence split) yields the link set of the standalone ArDoCo runner on
- * the raw benchmark text, as (1-based sentence, model id) pairs. Projects whose raw text CoreNLP splits into more
- * sentences than lines are reported as excluded, except the required cases.
+ * M2 exit: the adapter (KG rendering, sentence split checked against the lines) yields the link set of the standalone
+ * ArDoCo runner on the raw benchmark text, as (1-based sentence, model id) pairs. Both sides take their annotation from
+ * the CoreNLP provider service (container of the compose profile corenlp-local); the standalone side sends the raw text
+ * without eolonly and converts the answer like ArDoCo's TextProcessorService. Projects whose raw text CoreNLP splits
+ * into more sentences than lines are reported as excluded, except the required cases.
  */
 class BenchmarkEquivalenceTest {
 
@@ -56,6 +64,16 @@ class BenchmarkEquivalenceTest {
 
     @TempDir
     Path tmp;
+
+    @BeforeAll
+    static void startProvider() throws Exception {
+        CorenlpProvider.start();
+    }
+
+    @AfterAll
+    static void reportMemory() throws Exception {
+        System.out.println("BENCHMARK provider peak memory " + CorenlpProvider.peakMemoryMiB() + " MiB");
+    }
 
     @Test
     void adapterEqualsStandaloneRunner() throws Exception {
@@ -86,6 +104,50 @@ class BenchmarkEquivalenceTest {
             }
         }
         excluded.forEach(e -> System.out.println("BENCHMARK EXCLUDED " + e));
+    }
+
+    @Test
+    void oneAnnotationServesAllModelsOfADocumentVersion() throws Exception {
+        Case pcm = CASES.get(0);
+        Case uml = CASES.get(1);
+        Set<String> expected = standalone(pcm);
+        expected.addAll(standalone(uml));
+        TlrInput a = input(pcm);
+        TlrInput b = input(uml);
+        var versions = new ArrayList<>(a.versions());
+        versions.add(b.versions().get(1));
+        var targets = new ArrayList<>(a.targets());
+        targets.addAll(b.targets());
+        var both = new TlrInput(a.projectId(), versions, a.sources(), targets);
+        int[] requests = {0};
+        var counting =
+                new CorenlpClient(
+                        java.net.URI.create(CorenlpProvider.start()),
+                        java.time.Duration.ofSeconds(300),
+                        CorenlpClient.Eolonly.AUTO,
+                        CorenlpClient.BACKOFF,
+                        CorenlpClient.fromEnv().authorization()) {
+                    @Override
+                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                        requests[0]++;
+                        return super.request(text, eolonly, cancelled);
+                    }
+                };
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocoApproach.class),
+                JsonMapper.shared().createObjectNode());
+        List<CandidateLink> links = new ArdocoApproach(counting).recover(both, ctx);
+        assertEquals(1, requests[0], "one annotation request for one document version and two models");
+        Map<String, Integer> sentence = new java.util.HashMap<>();
+        both.sources().forEach(e -> sentence.put(e.id(), e.sentenceIndex() == null ? -1 : e.sentenceIndex() + 1));
+        Map<String, String> model = new java.util.HashMap<>();
+        both.targets().forEach(e -> model.put(e.id(), e.localKey()));
+        Set<String> actual = new TreeSet<>();
+        links.forEach(l -> actual.add(sentence.get(l.sourceId()) + " " + model.get(l.targetId())));
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -140,27 +202,28 @@ class BenchmarkEquivalenceTest {
 
     private long standaloneSentences;
 
-    /** Swattr on the raw text file, links parsed from sadSamTlr_<name>.csv ("modelElementID,sentence", 1-based). */
+    /** Swattr on the raw text with the provider's annotation of the raw text (no eolonly), as (1-based sentence, id). */
     private Set<String> standalone(Case c) throws IOException {
         Path out = Files.createDirectories(
                 tmp.resolve("standalone-" + c.project() + "-" + c.model().replace('/', '_')));
+        Path text = FIXTURES.resolve(c.project()).resolve(c.text());
+        var annotated =
+                CorenlpClient.convert(CorenlpClient.fromEnv().request(Files.readString(text), false, () -> false));
+        standaloneSentences = annotated.getSentences().size();
         var runner = new Swattr("bench");
         runner.setUp(
-                FIXTURES.resolve(c.project()).resolve(c.text()).toFile(),
+                text.toFile(),
                 new ArchitectureConfiguration(
                         FIXTURES.resolve(c.project()).resolve(c.model()).toFile(), format(c.format())),
                 SortedMaps.immutable.empty(),
                 out.toFile());
-        var result = runner.run();
-        standaloneSentences = result.getText().getSentences().size();
-        Path csv = out.resolve("sadSamTlr_bench.csv");
+        DataRepositoryHelper.putPreprocessingData(
+                runner.getArdoco().getDataRepository(), new PreprocessingData(annotated));
+        var result = new ArdocoResult(runner.runWithoutSaving());
         Set<String> links = new TreeSet<>();
-        if (Files.exists(csv)) {
-            Files.readAllLines(csv).stream().skip(1).filter(l -> !l.isBlank()).forEach(l -> {
-                String[] p = l.split(",");
-                links.add(p[1].trim() + " " + p[0].trim());
-            });
-        }
+        result.getArchitectureTraceLinks()
+                .forEach(tl -> links.add((tl.getFirstEndpoint().getSentence().getSentenceNumber() + 1) + " "
+                        + tl.getSecondEndpoint().getId()));
         return links;
     }
 

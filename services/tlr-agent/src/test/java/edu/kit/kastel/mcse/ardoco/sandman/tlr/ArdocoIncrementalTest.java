@@ -8,6 +8,7 @@ import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.KgClient;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.A2aClient;
+import edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.CorenlpProvider;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -46,6 +48,11 @@ class ArdocoIncrementalTest {
 
     @TestHTTPResource("/")
     URI url;
+
+    @BeforeAll
+    static void startProvider() throws Exception {
+        CorenlpProvider.start();
+    }
 
     @Inject
     KgClient kg;
@@ -254,7 +261,7 @@ class ArdocoIncrementalTest {
         var first = kg.read(
                 "MATCH (r:Run {tool: 'ardoco', a2aTaskId: $t}) RETURN r.configHash AS hash, r.toolVersion AS v",
                 Map.of("t", done.taskId()));
-        assertEquals("2.1.0+a1", first.get(0).get("v"));
+        assertEquals("2.1.0+a2", first.get(0).get("v"));
         // determinism: the same input again gives the same ids and configHash
         var again = run(merged);
         assertEquals(incremental, activeIds());

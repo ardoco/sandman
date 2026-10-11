@@ -42,7 +42,8 @@ public class CodeService {
     Settings settings;
 
     private Limits limits = Limits.fromEnv(System.getenv());
-    private long lockTimeoutMillis = Limits.number(System.getenv(), "SANDMAN_CODE_LOCK_TIMEOUT_SECONDS", 300, 86_400) * 1000;
+    private long lockTimeoutMillis =
+            Limits.number(System.getenv(), "SANDMAN_CODE_LOCK_TIMEOUT_SECONDS", 300, 86_400) * 1000;
 
     void onStart(@Observes StartupEvent event) {
         settings.require("pluginInboundToken", "artifactStore");
@@ -110,7 +111,8 @@ public class CodeService {
         Path store = settings.artifactStore();
         try {
             if (!LOCK.tryLock(lockTimeoutMillis, TimeUnit.MILLISECONDS)) {
-                throw new SkillException("DEPENDENCY_UNAVAILABLE", "another code extraction is running, retry later", true);
+                throw new SkillException(
+                        "DEPENDENCY_UNAVAILABLE", "another code extraction is running, retry later", true);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

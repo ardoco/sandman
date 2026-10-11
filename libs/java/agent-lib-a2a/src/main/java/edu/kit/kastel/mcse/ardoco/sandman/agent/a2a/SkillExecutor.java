@@ -164,7 +164,10 @@ public class SkillExecutor implements AgentExecutor {
             emitter.submit();
         }
         if (DRAINING.get()) {
-            end(emitter, new SkillException("DEPENDENCY_UNAVAILABLE", "service is restarting, retry later", true), false);
+            end(
+                    emitter,
+                    new SkillException("DEPENDENCY_UNAVAILABLE", "service is restarting, retry later", true),
+                    false);
             return;
         }
         Message message = context.getMessage();

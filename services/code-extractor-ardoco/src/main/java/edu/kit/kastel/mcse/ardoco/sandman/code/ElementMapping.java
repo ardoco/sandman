@@ -244,7 +244,8 @@ final class ElementMapping {
         for (ControlElement method : sorted) {
             int n = seen.merge(method.getName(), 1, Integer::sum);
             // ponytail: ArDoCo 2.1.0 ControlElement has no parameter types, so the overload suffix is positional (~n);
-            // inserting an earlier overload renames the keys of later ones. Use parameter types once ArDoCo exposes them.
+            // inserting an earlier overload renames the keys of later ones. Use parameter types once ArDoCo exposes
+            // them.
             String key = ownerKey + "#" + method.getName() + (n >= 2 ? "~" + n : "");
             ObjectNode e =
                     element(artifact, key, "test".equals(artifact.kind()) ? "test-method" : "method", method.getName());

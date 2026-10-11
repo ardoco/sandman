@@ -128,8 +128,7 @@ class HostileInputTest {
         Path target = tmp.resolve("copy.bin");
         byte[] data = new byte[200_000];
         SkillException e = assertThrows(
-                SkillException.class,
-                () -> Staging.copyAtMost(new java.io.ByteArrayInputStream(data), target, 70_000));
+                SkillException.class, () -> Staging.copyAtMost(new java.io.ByteArrayInputStream(data), target, 70_000));
         assertEquals("INVALID_INPUT", e.code());
         assertTrue(Files.size(target) <= 70_000);
     }
@@ -232,8 +231,8 @@ class HostileInputTest {
         while (!CodeService.LOCK.isLocked()) {
             Thread.sleep(5);
         }
-        SkillException busy = assertThrows(
-                SkillException.class, () -> service.extract(Fixtures.extractInput(fixture, null)));
+        SkillException busy =
+                assertThrows(SkillException.class, () -> service.extract(Fixtures.extractInput(fixture, null)));
         assertEquals("DEPENDENCY_UNAVAILABLE", busy.code());
         assertTrue(busy.retryable());
         holder.interrupt();

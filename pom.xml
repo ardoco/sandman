@@ -174,7 +174,8 @@
                   <version>[21,)</version>
                 </requireJavaVersion>
                 <!-- No agent frameworks (NFR-3). LangChain4j is allowed later only inside the
-                     ArDoCo/LiSSA adapter modules, via an explicit exception there. -->
+                     ArDoCo adapter modules (T3.1), via an explicit exception there. The LiSSA module
+                     (T2.2) uses the Sandman LlmClient and needs no exception. -->
                 <bannedDependencies>
                   <excludes>
                     <exclude>dev.langchain4j</exclude>

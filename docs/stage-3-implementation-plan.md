@@ -114,7 +114,7 @@ Rough calendar (one developer), **re-baselined after the review decisions (D-10 
 | Order | Replace | Rationale | Risk reduction |
 |---|---|---|---|
 | 1 | Extraction (M1) | Every other component consumes elements. Sentence and model-id fidelity decides whether ArDoCo results can be mapped. Mostly deterministic, so low LLM risk. | Golden files per format; stub fallback stays; LLM enrichment optional per run |
-| 2 | TLR: ArDoCo, then LiSSA (M2) | Inconsistency detection uses TLR information (Q-18), so real links must exist first. ArDoCo is deterministic, which makes it a cheap correctness baseline before the LLM-based LiSSA. | Reproduction per §3.3 (ArDoCo exact, LiSSA live with Δ and CI) before any new experiment; per-approach failure isolation |
+| 2 | TLR: ArDoCo, then LiSSA (M2; LiSSA adapted in T2.2, done) | Inconsistency detection uses TLR information (Q-18), so real links must exist first. ArDoCo is deterministic, which makes it a cheap correctness baseline before the LLM-based LiSSA. | Reproduction per §3.3 (ArDoCo exact, LiSSA live with Δ and CI) before any new experiment; per-approach failure isolation |
 | 3 | ArDoCo inconsistency detection (M3) | Builds on M2 links; highest mapping uncertainty (V-16/V-17), de-risked early by spike T0.12; the lifecycle already exists, so real findings exercise it at once | Equivalence test against the standalone runner; `stub-untraced` remains for comparison; adapter isolated behind the detector SPI |
 | 4 | NL-to-Cypher (M4) | Needs a stable schema and realistic data from M1–M3 to build a meaningful evaluation set | Stub intents remain as fallback; security suite runs with validation on and off |
 | 5 | Orchestrator planner (M6, optional) | The rule engine already covers automatic flows | Feature flag, approval gate |
@@ -141,7 +141,7 @@ General rules:
 ### 3.2 LLM-dependent behavior
 
 1. **Unit:** `ScriptedLlmClient` (Python) with hand-written responses, including malformed JSON, schema violations and refusals. Assert handling, not model quality.
-2. **Record/replay:** small fixture projects are recorded once per prompt version through `llm-replay` (cassettes under `tests/cassettes/<name>/`, mounted as `/llm-records` with `SANDMAN_EXPERIMENT=<name>` in CI; reviewed for secrets and confidential content); this also covers LangChain4j calls of LiSSA/ArDoCo. CI runs strict replay, so a missing cassette fails the test. Changing a prompt requires re-recording, which makes prompt changes visible in review.
+2. **Record/replay:** small fixture projects are recorded once per prompt version through `llm-replay` (cassettes under `tests/cassettes/<name>/`, mounted as `/llm-records` with `SANDMAN_EXPERIMENT=<name>` in CI; reviewed for secrets and confidential content); this covers the Java `LlmClient` calls of LiSSA (T2.2) and LangChain4j calls of ArDoCo. CI runs strict replay, so a missing cassette fails the test. Changing a prompt requires re-recording, which makes prompt changes visible in review.
 3. **Live canary:** nightly, a small budget-capped run through the gateway on one fixture. It detects provider/API drift and is reported only, never blocking.
 4. **Evaluation runs:** separate from CI. Experiment manifests on benchmark data, recorded (Section 3.3).
 
@@ -240,7 +240,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-26 | Whether GitHub-hosted runners can build the Java images with the ArDoCo stage in acceptable time (cache `~/.m2`). |
 | V-27 | **Answered (T0.12):** no built-in input; workaround via a custom pipeline step after `ConnectionGenerator`; exact semantics need an upstream extension (sentence-level links read by both detectors). |
 | V-28 | A maintained openCypher parser usable from Python (e.g. the openCypher ANTLR grammar with `antlr4-python3-runtime`) that parses the allowlisted subset incl. pattern comprehensions and existential subqueries (T0.9). |
-| V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming. **ArDoCo answered (T0.12):** non-streaming `ChatModel`, but configured only by process-wide env/`.env` (`OLLAMA_GENERIC`, `OLLAMA_TOKEN`, `OLLAMA_HOST`); per-project keys need an upstream change accepting a `ChatModel`. LiSSA still open (T2.2). |
+| V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming. **ArDoCo answered (T0.12):** non-streaming `ChatModel`, but configured only by process-wide env/`.env` (`OLLAMA_GENERIC`, `OLLAMA_TOKEN`, `OLLAMA_HOST`); per-project keys need an upstream change accepting a `ChatModel`. **LiSSA answered (T2.2):** the approach is adapted, so it needs no LangChain4j. It calls the gateway through the Java `LlmClient` with the project's base URL and key, non-streaming. |
 | V-30 | Memgraph `--memory-limit` unit (MiB) and behavior when reached (query abort vs. process kill) (T0.4). |
 | V-31 | **Answered (T0.4):** disabling IP masquerading does not block egress on Docker Desktop; replaced by `edge-proxy` in front of internal-only services (verified: published port works, internal service has no egress). |
 | V-32 | OpenRouter account-level privacy setting excluding providers that train on prompts; whether Bifrost can pass provider preferences (`data_collection: deny`) (T0.4). |

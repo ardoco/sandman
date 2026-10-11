@@ -195,9 +195,11 @@ components:
     details: >-
       Trace link recovery (TLR) connects artifacts of different kinds automatically, so nobody has to maintain
       the links by hand. The agent runs one or more approaches and stores each result as a trace link with
-      confidence and origin. Today a simple name matching demo approach and two ArDoCo approaches are active:
-      ArDoCo links architecture documents to architecture models and to source code. The research approach
-      LiSSA follows.
+      confidence and origin. Today a simple name matching demo approach, two ArDoCo approaches and the research
+      approach LiSSA are active. ArDoCo links architecture documents to architecture models and to source code.
+      LiSSA links requirements to source code. It ranks the code files for each requirement by embedding
+      similarity and asks a language model to confirm each candidate pair. All model calls go through the
+      gateway, so they are budgeted and recorded.
     planned: M2
     flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
   inconsistency-agent:

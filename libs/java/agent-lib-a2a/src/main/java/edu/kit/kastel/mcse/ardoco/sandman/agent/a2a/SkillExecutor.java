@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import org.a2aproject.sdk.server.agentexecution.AgentExecutor;
 import org.a2aproject.sdk.server.agentexecution.RequestContext;
@@ -65,6 +66,20 @@ public class SkillExecutor implements AgentExecutor {
 
     @Inject
     Instance<EventSink> events;
+
+    static final int VM_ERROR_EXIT_CODE = 70;
+
+    /** Ends the JVM after a virtual machine error; compose restarts the container. Replaced in tests. */
+    static volatile IntConsumer terminator = code -> {
+        try {
+            Thread.sleep(2000); // let the failed task state reach the caller
+            System.out.flush();
+            System.err.flush();
+        } catch (InterruptedException | RuntimeException | Error e) {
+            // halt regardless
+        }
+        Runtime.getRuntime().halt(code);
+    };
 
     private static final int MAX_SEEN = 1024;
     private static final JsonMapper CANONICAL = JsonMapper.builder()
@@ -205,6 +220,17 @@ public class SkillExecutor implements AgentExecutor {
             result = skill.run(ctx, input);
         } catch (SkillException e) {
             return end(emitter, done, e, false);
+        } catch (VirtualMachineError e) { // the JVM state is unreliable: fail the task, then restart the container
+            try {
+                LOG.error("skill {} hit a virtual machine error", skill.id(), e);
+                return end(
+                        emitter,
+                        done,
+                        new SkillException("INTERNAL", e.getClass().getSimpleName() + ": " + e.getMessage(), false),
+                        false);
+            } finally {
+                terminator.accept(VM_ERROR_EXIT_CODE);
+            }
         } catch (RuntimeException
                 | Error e) { // unexpected failures (also linkage errors) are reported as retryable INTERNAL
             LOG.error("skill {} failed", skill.id(), e);

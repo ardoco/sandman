@@ -246,6 +246,29 @@ class A2aServerTest {
     }
 
     @Test
+    void aVirtualMachineErrorFailsTheTaskNotRetryableAndEndsTheJvm() throws Exception {
+        List<Integer> codes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        CountDownLatch halted = new CountDownLatch(1);
+        var original = SkillExecutor.terminator;
+        SkillExecutor.terminator = code -> {
+            codes.add(code);
+            halted.countDown();
+        };
+        try {
+            A2aClient client = client(TOKENS.get("orchestrator"));
+            skill.fatal = new OutOfMemoryError("Java heap space");
+            var done = await(client, submit(client, null));
+            assertEquals("TASK_STATE_FAILED", done.state());
+            assertEquals("INTERNAL", done.error().get("code").asString());
+            assertFalse(done.error().get("retryable").asBoolean());
+            assertTrue(halted.await(10, TimeUnit.SECONDS));
+            assertEquals(List.of(SkillExecutor.VM_ERROR_EXIT_CODE), codes);
+        } finally {
+            SkillExecutor.terminator = original;
+        }
+    }
+
+    @Test
     void invalidOutputFailsWithoutEvent() throws Exception {
         skill.output = JsonMapper.shared().readTree("{\"runs\":\"nope\"}");
         A2aClient client = client(TOKENS.get("orchestrator"));

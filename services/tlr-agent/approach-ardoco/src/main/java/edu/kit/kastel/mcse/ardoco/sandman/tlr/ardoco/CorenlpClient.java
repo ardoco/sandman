@@ -68,7 +68,7 @@ class CorenlpClient {
     }
 
     /** Environment variable, else JVM system property of the same name (tests start their own provider). */
-    private static String setting(String name, String fallback) {
+    static String setting(String name, String fallback) {
         String v = System.getenv(name);
         if (v == null || v.isBlank()) {
             v = System.getProperty(name);

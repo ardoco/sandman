@@ -111,6 +111,29 @@ class HostileInputTest {
     }
 
     @Test
+    void rejectsAHardLinkToAFileOutsideTheStore() throws IOException {
+        Files.createLink(store.resolve("hard.txt"), outside.resolve("secret.txt"));
+        rejected(List.of(item("x.txt", store.resolve("hard.txt").toString())));
+    }
+
+    @Test
+    void copyStopsBeforeWritingPastTheBudget() throws IOException {
+        Path target = tmp.resolve("copy.bin");
+        byte[] data = new byte[200_000];
+        SkillException e = assertThrows(
+                SkillException.class,
+                () -> Staging.copyAtMost(new java.io.ByteArrayInputStream(data), target, 70_000));
+        assertEquals("INVALID_INPUT", e.code());
+        assertTrue(Files.size(target) <= 70_000);
+    }
+
+    @Test
+    void copyReturnsTheCopiedSize() throws Exception {
+        Path target = tmp.resolve("copy.bin");
+        assertEquals(5, Staging.copyAtMost(new java.io.ByteArrayInputStream(new byte[5]), target, 5));
+    }
+
+    @Test
     void rejectsDirectoriesAndMissingFiles() {
         rejected(List.of(item("x.txt", store.resolve("sub").toString())));
         rejected(List.of(item("x.txt", store.resolve("missing.txt").toString())));
@@ -216,6 +239,11 @@ class HostileInputTest {
                 IllegalArgumentException.class, () -> Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "0")));
         assertThrows(
                 IllegalArgumentException.class, () -> Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_BYTES", "x")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "2147483648")));
+        assertThrows(
+                IllegalArgumentException.class, () -> Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_BYTES", "-5")));
     }
 
     private static long stagingDirs() throws IOException {

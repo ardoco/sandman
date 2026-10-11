@@ -10,19 +10,19 @@ record Limits(int maxFiles, long maxBytes) {
 
     static Limits fromEnv(Map<String, String> env) {
         return new Limits(
-                (int) number(env, "SANDMAN_CODE_MAX_FILES", DEFAULT_FILES),
-                number(env, "SANDMAN_CODE_MAX_BYTES", DEFAULT_BYTES));
+                (int) number(env, "SANDMAN_CODE_MAX_FILES", DEFAULT_FILES, Integer.MAX_VALUE),
+                number(env, "SANDMAN_CODE_MAX_BYTES", DEFAULT_BYTES, Long.MAX_VALUE));
     }
 
-    private static long number(Map<String, String> env, String name, long fallback) {
+    private static long number(Map<String, String> env, String name, long fallback, long max) {
         String value = env.get(name);
         if (value == null || value.isBlank()) {
             return fallback;
         }
         try {
             long parsed = Long.parseLong(value.strip());
-            if (parsed < 1) {
-                throw new IllegalArgumentException(name + " must be positive: " + value);
+            if (parsed < 1 || parsed > max) {
+                throw new IllegalArgumentException(name + " must be between 1 and " + max + ": " + value);
             }
             return parsed;
         } catch (NumberFormatException e) {

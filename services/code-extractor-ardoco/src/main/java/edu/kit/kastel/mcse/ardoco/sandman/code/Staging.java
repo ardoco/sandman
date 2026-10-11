@@ -3,13 +3,13 @@ package edu.kit.kastel.mcse.ardoco.sandman.code;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.SkillException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -116,11 +116,18 @@ final class Staging implements AutoCloseable {
         }
     }
 
-    private static long copyAtMost(InputStream in, Path target, long remaining) throws IOException, SkillException {
-        Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-        long size = Files.size(target);
-        if (size > remaining) {
-            throw invalid("too many bytes: file grew while staging");
+    /** Copies at most {@code remaining} bytes; fails before writing the first byte past the budget. */
+    static long copyAtMost(InputStream in, Path target, long remaining) throws IOException, SkillException {
+        long size = 0;
+        byte[] buffer = new byte[64 * 1024];
+        try (OutputStream out = Files.newOutputStream(target)) {
+            for (int n; (n = in.read(buffer)) >= 0; ) {
+                if (n > remaining - size) {
+                    throw invalid("too many bytes: file grew while staging");
+                }
+                out.write(buffer, 0, n);
+                size += n;
+            }
         }
         return size;
     }
@@ -164,7 +171,19 @@ final class Staging implements AutoCloseable {
         if (!Files.isRegularFile(current, LinkOption.NOFOLLOW_LINKS)) {
             throw invalid("storagePath is not a regular file: " + printable(storagePath));
         }
+        if (linkCount(current) > 1) {
+            throw invalid("storagePath is a hard link: " + printable(storagePath));
+        }
         return current;
+    }
+
+    /** Hard links could alias a file outside the store; platforms without unix attributes report 1. */
+    private static int linkCount(Path file) {
+        try {
+            return (Integer) Files.getAttribute(file, "unix:nlink", LinkOption.NOFOLLOW_LINKS);
+        } catch (UnsupportedOperationException | IllegalArgumentException | IOException e) {
+            return 1;
+        }
     }
 
     private static String printable(String text) {

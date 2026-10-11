@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +36,13 @@ import tools.jackson.databind.node.ObjectNode;
 public class CodeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(CodeService.class);
-    private static final ReentrantLock LOCK = new ReentrantLock();
+    static final ReentrantLock LOCK = new ReentrantLock();
 
     @Inject
     Settings settings;
 
     private Limits limits = Limits.fromEnv(System.getenv());
+    private long lockTimeoutMillis = Limits.number(System.getenv(), "SANDMAN_CODE_LOCK_TIMEOUT_SECONDS", 300, 86_400) * 1000;
 
     void onStart(@Observes StartupEvent event) {
         settings.require("pluginInboundToken", "artifactStore");
@@ -50,6 +52,11 @@ public class CodeService {
     /** For tests. */
     void limits(Limits limits) {
         this.limits = limits;
+    }
+
+    /** For tests. */
+    void lockTimeoutMillis(long millis) {
+        this.lockTimeoutMillis = millis;
     }
 
     /** {@code PluginExtractOutput} of a {@code PluginExtractInput}. */
@@ -101,19 +108,25 @@ public class CodeService {
 
     private JsonNode withModel(List<Staging.Item> items, Body body) throws SkillException {
         Path store = settings.artifactStore();
-        LOCK.lock();
-        purgeMagikaTemporaryFiles();
-        try (Staging staging = Staging.stage(store, items, limits)) {
-            IdentifierProvider.reset();
-            var extractor = new AllLanguagesExtractor(
-                    new CodeItemRepository(),
-                    staging.root().toString(),
-                    Metamodel.CODE_WITH_COMPILATION_UNITS_AND_PACKAGES);
-            CodeModel model = extractor.extractModel();
-            return body.apply(model, extractor);
-        } catch (OutOfMemoryError e) {
-            LOG.error("out of memory while extracting {} files", items.size());
-            throw new SkillException("INTERNAL", "out of memory while extracting code", true);
+        try {
+            if (!LOCK.tryLock(lockTimeoutMillis, TimeUnit.MILLISECONDS)) {
+                throw new SkillException("DEPENDENCY_UNAVAILABLE", "another code extraction is running, retry later", true);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new SkillException("INTERNAL", "interrupted while waiting for another code extraction", true);
+        }
+        try {
+            purgeMagikaTemporaryFiles();
+            try (Staging staging = Staging.stage(store, items, limits)) {
+                IdentifierProvider.reset();
+                var extractor = new AllLanguagesExtractor(
+                        new CodeItemRepository(),
+                        staging.root().toString(),
+                        Metamodel.CODE_WITH_COMPILATION_UNITS_AND_PACKAGES);
+                CodeModel model = extractor.extractModel();
+                return body.apply(model, extractor);
+            }
         } catch (RuntimeException e) {
             LOG.error("ArDoCo code extraction failed", e);
             throw new SkillException(

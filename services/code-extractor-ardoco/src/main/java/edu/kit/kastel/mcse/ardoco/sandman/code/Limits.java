@@ -2,7 +2,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.code;
 
 import java.util.Map;
 
-/** Per-call caps on the staged files (SANDMAN_CODE_MAX_FILES, SANDMAN_CODE_MAX_BYTES). */
+/** Per-call caps on the staged files (SANDMAN_CODE_MAX_FILES, SANDMAN_CODE_MAX_BYTES). The helper parses any positive env number. */
 record Limits(int maxFiles, long maxBytes) {
 
     static final int DEFAULT_FILES = 20_000;
@@ -14,7 +14,7 @@ record Limits(int maxFiles, long maxBytes) {
                 number(env, "SANDMAN_CODE_MAX_BYTES", DEFAULT_BYTES, Long.MAX_VALUE));
     }
 
-    private static long number(Map<String, String> env, String name, long fallback, long max) {
+    static long number(Map<String, String> env, String name, long fallback, long max) {
         String value = env.get(name);
         if (value == null || value.isBlank()) {
             return fallback;

@@ -207,6 +207,54 @@ class HostileInputTest {
     }
 
     @Test
+    void aBusyExtractorAnswersRetryableAfterTheLockTimeoutAndStaysUsable() throws Exception {
+        Path fixture = Fixtures.mappingFixture();
+        CodeService service = Fixtures.service(fixture);
+        service.lockTimeoutMillis(50);
+        Thread holder = new Thread(() -> {
+            CodeService.LOCK.lock();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ignored) {
+                // released below
+            } finally {
+                CodeService.LOCK.unlock();
+            }
+        });
+        holder.start();
+        while (!CodeService.LOCK.isLocked()) {
+            Thread.sleep(5);
+        }
+        SkillException busy = assertThrows(
+                SkillException.class, () -> service.extract(Fixtures.extractInput(fixture, null)));
+        assertEquals("DEPENDENCY_UNAVAILABLE", busy.code());
+        assertTrue(busy.retryable());
+        holder.interrupt();
+        holder.join();
+        service.lockTimeoutMillis(10_000);
+        service.extract(Fixtures.extractInput(fixture, null));
+        assertFalse(CodeService.LOCK.isLocked());
+    }
+
+    @Test
+    void magikaCopiesTheWholeContentIntoTheTempDirectoryAndThePurgeRemovesIt() throws Exception {
+        CodeService.purgeMagikaTemporaryFiles();
+        byte[] content = "echo hello\n".repeat(50_000).getBytes();
+        new edu.kit.kastel.mcse.ardoco.magika.FileTypePredictor().predictBytes(content);
+        Path tmpdir = Path.of(System.getProperty("java.io.tmpdir"));
+        try (var files = Files.newDirectoryStream(tmpdir, "tmp_magika*.tmp")) {
+            var copies = new java.util.ArrayList<Path>();
+            files.forEach(copies::add);
+            assertEquals(1, copies.size());
+            assertEquals(content.length, Files.size(copies.get(0)));
+        }
+        CodeService.purgeMagikaTemporaryFiles();
+        try (var files = Files.newDirectoryStream(tmpdir, "tmp_magika*.tmp")) {
+            assertFalse(files.iterator().hasNext());
+        }
+    }
+
+    @Test
     void theSkillInputIsRejectedAsInvalidInputThroughTheService() throws Exception {
         ObjectNode input = Fixtures.extractInput(Fixtures.mappingFixture(), null);
         input.withArray("artifacts")

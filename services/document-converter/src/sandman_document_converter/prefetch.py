@@ -15,12 +15,19 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
+from collections.abc import Callable
+from functools import partial
 from pathlib import Path
+
+import httpx
 
 from sandman_document_converter.worker import MODELS_ENV, models_dir
 
 SELFCHECK = Path(__file__).with_name("selfcheck.pdf")
 EXPECTED = "prefetch self-check"
+ATTEMPTS = 5
+MAX_WAIT = 120
 HERON = "docling-project/docling-layout-heron"
 TABLEFORMER = "docling-project/docling-models"
 # repo id -> (commit, allow_patterns, {file relative to the repo folder: sha256})
@@ -69,12 +76,28 @@ def verify(folder: Path, expected: dict[str, str]) -> None:
             raise SystemExit(f"{folder}/{name}: sha256 {actual} differs from pinned {digest}")
 
 
+def with_retry[T](call: Callable[[], T]) -> T:
+    """Retry `call` on HTTP 429, 5xx and connection errors with exponential backoff, honouring Retry-After."""
+    for attempt in range(ATTEMPTS):
+        try:
+            return call()
+        except Exception as exc:
+            response = getattr(exc, "response", None)
+            status = getattr(response, "status_code", 0)
+            transient = status == 429 or status >= 500 or isinstance(exc, (httpx.TransportError, ConnectionError))
+            if attempt == ATTEMPTS - 1 or not transient:
+                raise
+            retry_after = response.headers.get("retry-after", "") if response is not None else ""
+            time.sleep(min(int(retry_after), MAX_WAIT) if retry_after.isdigit() else min(5 * 2**attempt, MAX_WAIT))
+    raise AssertionError("unreachable")
+
+
 def download(target: Path) -> None:
     from huggingface_hub import snapshot_download
 
     for repo, (commit, patterns, files) in PINS.items():
         folder = target / repo.replace("/", "--")  # the layout docling reads from artifacts_path
-        snapshot_download(repo_id=repo, revision=commit, allow_patterns=patterns, local_dir=folder)
+        with_retry(partial(snapshot_download, repo_id=repo, revision=commit, allow_patterns=patterns, local_dir=folder))
         verify(folder, files)
 
 

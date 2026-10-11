@@ -93,13 +93,16 @@ class ArdocodePluginDownTest {
             assertEquals("TASK_STATE_FAILED", task.state(), String.valueOf(task));
             assertEquals("DEPENDENCY_UNAVAILABLE", task.error().get("code").asString());
             assertTrue(task.error().get("retryable").asBoolean());
+            assertTrue(
+                    task.error().get("message").asString().contains("ardocode:"),
+                    task.error().toString());
         } finally {
             client.close();
         }
         var runs = kg.read("MATCH (r:Run) RETURN r.tool AS tool, r.status AS status", Map.of());
         var status = new java.util.HashMap<String, Object>();
         runs.forEach(r -> status.put((String) r.get("tool"), r.get("status")));
-        assertEquals("failed", status.get("ardocode"), String.valueOf(runs));
+        assertFalse(status.containsKey("ardocode"), "no Run without an environment (configHash): " + runs);
         assertEquals("completed", status.get("stub-name-match"), String.valueOf(runs));
         assertEquals(
                 0L,

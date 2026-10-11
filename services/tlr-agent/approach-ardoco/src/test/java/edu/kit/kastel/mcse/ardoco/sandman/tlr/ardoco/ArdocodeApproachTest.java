@@ -124,19 +124,12 @@ class ArdocodeApproachTest {
                 List.of(), approach.recover(new TlrInput("p", List.of(code), List.of(), List.of(file("A.java"))), ctx));
     }
 
-    @Test
-    void environmentNamesTheProviderAndThePluginAndNeverThrows() {
-        var ctx = new TlrContext(
-                null,
-                null,
-                () -> false,
-                LoggerFactory.getLogger(ArdocodeApproachTest.class),
-                JsonMapper.shared().createObjectNode());
-        var down = new CodeModelClient(
+    private static CodeModelClient plugin(java.util.function.Supplier<String> identity) {
+        return new CodeModelClient(
                 "http://plugin", java.time.Duration.ZERO, java.time.Duration.ZERO, new CodeModelClient.Calls() {
                     @Override
                     public String identity(String url) {
-                        return "code-extractor-ardoco@2.1.0+c1";
+                        return identity.get();
                     }
 
                     @Override
@@ -157,14 +150,64 @@ class ArdocodeApproachTest {
                         throw new IllegalStateException();
                     }
                 });
-        var deadCorenlp = new CorenlpClient(
+    }
+
+    private static CorenlpClient corenlp(java.util.function.Supplier<CorenlpClient.Provider> provider) {
+        return new CorenlpClient(
                 java.net.URI.create("http://127.0.0.1:1"),
                 java.time.Duration.ofSeconds(1),
                 CorenlpClient.Eolonly.AUTO,
                 List.of(),
-                null);
+                null) {
+            @Override
+            Provider provider(java.util.function.BooleanSupplier cancelled) {
+                return provider.get();
+            }
+        };
+    }
+
+    private static TlrContext envCtx() {
+        return new TlrContext(
+                null,
+                null,
+                () -> false,
+                LoggerFactory.getLogger(ArdocodeApproachTest.class),
+                JsonMapper.shared().createObjectNode());
+    }
+
+    @Test
+    void environmentNamesTheProviderAndThePlugin() {
+        var approach = new ArdocodeApproach(
+                corenlp(() -> new CorenlpClient.Provider(true, "v1")), plugin(() -> "code-extractor-ardoco@2.1.0+c1"));
         assertEquals(
-                "provider=unavailable;codeModel=code-extractor-ardoco@2.1.0+c1",
-                new ArdocodeApproach(deadCorenlp, down).environment(ctx));
+                "provider=v1;eolonly=true;codeModel=code-extractor-ardoco@2.1.0+c1", approach.environment(envCtx()));
+    }
+
+    @Test
+    void environmentOfADownProviderOrPluginIsUnavailableNotAPlaceholder() {
+        var providerDown = new ArdocodeApproach(
+                corenlp(() -> {
+                    throw new edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException("down", null);
+                }),
+                plugin(() -> "p@1"));
+        assertThrows(
+                edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException.class,
+                () -> providerDown.environment(envCtx()));
+        var pluginDown = new ArdocodeApproach(corenlp(() -> new CorenlpClient.Provider(true, "v1")), plugin(() -> {
+            throw new IllegalStateException("refused");
+        }));
+        assertThrows(
+                edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException.class,
+                () -> pluginDown.environment(envCtx()));
+    }
+
+    @Test
+    void environmentLetsACancellationPass() {
+        var approach = new ArdocodeApproach(
+                corenlp(() -> {
+                    throw new java.util.concurrent.CancellationException("cancelled");
+                }),
+                plugin(() -> "p@1"));
+        assertThrows(java.util.concurrent.CancellationException.class, () -> approach.environment(envCtx()));
     }
 }

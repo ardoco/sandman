@@ -26,7 +26,9 @@ public interface TraceLinkApproach {
 
     /**
      * Identity of an external dependency whose answers change the links (for example the version of a provider
-     * service). It enters configHash, so other dependencies get other link ids. Must not throw. Null = none.
+     * service). It enters configHash, so other dependencies get other link ids. Never return a placeholder for a dependency
+     * that is down: throw {@link ApproachUnavailableException} (the skill then records no Run for this approach and
+     * fails retryable). Null = none.
      */
     default String environment(TlrContext ctx) {
         return null;

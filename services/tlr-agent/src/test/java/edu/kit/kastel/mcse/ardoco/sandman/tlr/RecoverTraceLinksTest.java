@@ -235,6 +235,21 @@ class RecoverTraceLinksTest {
     }
 
     @Test
+    void unavailableEnvironmentFailsTheSkillRetryableWithoutARunOrAHash() throws Exception {
+        var done = run(input(",\"approaches\":[\"test-environment-down\",\"" + STUB + "\"]"));
+
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("DEPENDENCY_UNAVAILABLE", done.error().get("code").asString());
+        assertTrue(done.error().get("retryable").asBoolean());
+        assertTrue(done.error().get("message").asString().contains("test-environment-down: environment down"));
+        assertEquals(
+                0,
+                kg.read("MATCH (r:Run {tool: 'test-environment-down'}) RETURN r.status AS s", Map.of())
+                        .size());
+        assertEquals(1, activeLinks().size());
+    }
+
+    @Test
     void environmentOfTheApproachEntersTheConfigHash() throws Exception {
         run(input(",\"approaches\":[\"test-unavailable\"]"));
         var hash = kg.read("MATCH (r:Run {tool: 'test-unavailable'}) RETURN r.configHash AS h", Map.of())

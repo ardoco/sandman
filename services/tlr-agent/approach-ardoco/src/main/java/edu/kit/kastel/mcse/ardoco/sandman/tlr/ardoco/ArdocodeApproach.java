@@ -106,23 +106,15 @@ public final class ArdocodeApproach implements TraceLinkApproach {
 
     /**
      * The CoreNLP provider and the plugin (name and version) enter configHash. The ACM does not: it is a function of
-     * the current code versions (the Run's USED) and the plugin version.
+     * the current code versions (the Run's USED) and the plugin version. A dependency that is down throws
+     * ApproachUnavailableException, so an outage never changes configHash.
      */
     @Override
     public String environment(TlrContext ctx) {
-        String provider;
-        try {
-            provider = corenlp().provider(ctx.cancelled()).identity();
-        } catch (RuntimeException e) {
-            provider = "provider=unavailable";
-        }
-        String plugin;
+        String provider = corenlp().provider(ctx.cancelled()).identity();
         try (CodeModelClient client = codeModel()) {
-            plugin = client.identity();
-        } catch (RuntimeException e) {
-            plugin = "unavailable";
+            return provider + ";codeModel=" + client.identity();
         }
-        return provider + ";codeModel=" + plugin;
     }
 
     @Override

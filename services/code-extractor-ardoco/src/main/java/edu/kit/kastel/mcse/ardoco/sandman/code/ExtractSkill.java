@@ -22,6 +22,7 @@ public class ExtractSkill implements Skill {
 
     @Override
     public SkillResult run(SkillContext ctx, JsonNode input) throws SkillException {
+        CodeService.requireCaller(ctx, "extraction-agent");
         return SkillResult.of(service.extract(input));
     }
 }

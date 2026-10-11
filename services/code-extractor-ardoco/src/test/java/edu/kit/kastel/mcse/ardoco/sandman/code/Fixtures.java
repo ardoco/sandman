@@ -19,6 +19,9 @@ final class Fixtures {
 
     static final Contracts CONTRACTS = new Contracts(Settings.defaultContractsDir());
 
+    static final String EXTRACTION_TOKEN = "extraction-token";
+    static final String TLR_TOKEN = "tlr-token";
+
     private Fixtures() {}
 
     static Path mappingFixture() {
@@ -44,7 +47,8 @@ final class Fixtures {
                 null,
                 null,
                 Map.of(),
-                "inbound-token",
+                null,
+                Map.of("extraction-agent", EXTRACTION_TOKEN, "tlr-agent", TLR_TOKEN),
                 store,
                 null,
                 null);

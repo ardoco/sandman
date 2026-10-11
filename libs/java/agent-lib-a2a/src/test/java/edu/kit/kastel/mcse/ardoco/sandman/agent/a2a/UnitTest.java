@@ -21,6 +21,18 @@ class UnitTest {
     }
 
     @Test
+    void pluginModeWithOneTokenPerCallerNamesTheCaller() {
+        ServiceAuth none = new ServiceAuth(Map.of(), null);
+        Map<String, String> tokens = Map.of("extraction-agent", "tok-a", "tlr-agent", "tok-b");
+        assertEquals("extraction-agent", A2aServer.caller(none, null, tokens, "Bearer tok-a"));
+        assertEquals("tlr-agent", A2aServer.caller(none, null, tokens, "bearer tok-b"));
+        assertNull(A2aServer.caller(none, null, tokens, "Bearer tok-c"));
+        assertNull(A2aServer.caller(none, null, tokens, "Bearer tok-"));
+        assertNull(A2aServer.caller(none, null, tokens, "Bearer "));
+        assertNull(A2aServer.caller(none, null, tokens, null));
+    }
+
+    @Test
     void agentModeRejectsPluginCallers() {
         ServiceAuth auth =
                 new ServiceAuth(Map.of("orchestrator", Ids.sha256Hex("o"), "plugin:x", Ids.sha256Hex("p")), null);

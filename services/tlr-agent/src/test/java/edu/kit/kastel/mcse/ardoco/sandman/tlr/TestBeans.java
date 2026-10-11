@@ -57,6 +57,7 @@ final class TestBeans {
                 TOKENS.get("tlr-agent"),
                 verify,
                 null,
+                Map.of(),
                 ARTIFACTS,
                 null,
                 null);

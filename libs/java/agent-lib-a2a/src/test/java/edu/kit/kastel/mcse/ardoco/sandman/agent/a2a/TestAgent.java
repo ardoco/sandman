@@ -46,6 +46,7 @@ final class TestAgent {
                 TOKENS.get("tlr-agent"),
                 verify,
                 null,
+                Map.of(),
                 null,
                 null,
                 null);

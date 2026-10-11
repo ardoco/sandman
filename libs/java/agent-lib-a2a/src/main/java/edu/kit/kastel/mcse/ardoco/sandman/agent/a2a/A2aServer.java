@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.agent.a2a;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ServiceAuth;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Settings;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.StatusTracker;
@@ -97,21 +98,45 @@ public class A2aServer {
 
     /** Accepted caller of an Authorization header, or null. */
     public String authenticate(String authorization) {
-        return caller(auth, settings.pluginInboundToken(), authorization);
+        return caller(auth, settings.pluginInboundToken(), settings.pluginInboundTokens(), authorization);
     }
 
-    /** Plugins check their inbound token (caller "owner"); agents verify service tokens, plugin callers rejected. */
+    /** Plugin with one inbound token: caller "owner". */
     static String caller(ServiceAuth auth, String inboundToken, String authorization) {
-        if (inboundToken != null) {
+        return caller(auth, inboundToken, Map.of(), authorization);
+    }
+
+    /**
+     * Plugins check their inbound token (caller "owner") or the token of each named caller (caller = its name); agents
+     * verify service tokens, plugin callers rejected. Every token is compared in constant time, none is skipped.
+     */
+    static String caller(
+            ServiceAuth auth, String inboundToken, Map<String, String> callerTokens, String authorization) {
+        if (inboundToken != null || !callerTokens.isEmpty()) {
             String token = authorization != null && authorization.regionMatches(true, 0, "bearer ", 0, 7)
                     ? authorization.substring(7).strip()
                     : "";
-            return !token.isEmpty() && MessageDigest.isEqual(token.getBytes(UTF_8), inboundToken.getBytes(UTF_8))
-                    ? "owner"
-                    : null;
+            if (token.isEmpty()) {
+                return null;
+            }
+            byte[] presented = Ids.sha256Hex(token).getBytes(UTF_8);
+            String found = null;
+            if (inboundToken != null && matches(presented, inboundToken)) {
+                found = "owner";
+            }
+            for (Map.Entry<String, String> e : callerTokens.entrySet()) {
+                if (matches(presented, e.getValue())) {
+                    found = e.getKey();
+                }
+            }
+            return found;
         }
         String caller = auth.callerFromHeader(authorization);
         return caller == null || caller.startsWith(ServiceAuth.PLUGIN_PREFIX) ? null : caller;
+    }
+
+    private static boolean matches(byte[] presentedDigest, String token) {
+        return MessageDigest.isEqual(presentedDigest, Ids.sha256Hex(token).getBytes(UTF_8));
     }
 
     /** a2a-java serves JSON-RPC at POST / only (W-1): guard both paths, reroute the card's path to /. */

@@ -192,7 +192,9 @@ class RecoverTraceLinksTest {
 
     @Test
     void defaultSelectionRunsAllEnabledApproachesAndIsolatesFailures() throws Exception {
+        int finished = FailingApproach.FINISHED.get();
         var done = run(input(""));
+        assertEquals(finished + 1, FailingApproach.FINISHED.get(), "callFinished once per skill call");
 
         assertEquals("TASK_STATE_COMPLETED", done.state(), String.valueOf(done.error()));
         contracts.validate("skills.schema.json#/$defs/RecoverTraceLinksOutput", done.result());

@@ -88,6 +88,11 @@ public final class ArdocoApproach implements TraceLinkApproach {
 
     /** The provider's /version answer and the eolonly mode enter configHash: other providers, other link ids. A provider that is down throws ApproachUnavailableException. */
     @Override
+    public void callFinished() {
+        TextCache.clear();
+    }
+
+    @Override
     public String environment(TlrContext ctx) {
         return client().provider(ctx.cancelled()).identity();
     }

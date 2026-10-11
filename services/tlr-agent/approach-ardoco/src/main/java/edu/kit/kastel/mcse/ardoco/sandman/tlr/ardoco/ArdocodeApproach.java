@@ -110,6 +110,11 @@ public final class ArdocodeApproach implements TraceLinkApproach {
      * ApproachUnavailableException, so an outage never changes configHash.
      */
     @Override
+    public void callFinished() {
+        TextCache.clear();
+    }
+
+    @Override
     public String environment(TlrContext ctx) {
         String provider = corenlp().provider(ctx.cancelled()).identity();
         try (CodeModelClient client = codeModel()) {

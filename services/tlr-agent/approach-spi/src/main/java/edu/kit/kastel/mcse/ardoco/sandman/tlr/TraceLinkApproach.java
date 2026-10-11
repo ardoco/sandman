@@ -34,6 +34,12 @@ public interface TraceLinkApproach {
         return null;
     }
 
+    /**
+     * Called once when a skill call has run all its selected approaches (also after a failure or cancellation), so an
+     * approach can drop caches that its approaches share within one call. Must not throw.
+     */
+    default void callFinished() {}
+
     default ScopeMode scopeMode() {
         return ScopeMode.PAIRWISE;
     }

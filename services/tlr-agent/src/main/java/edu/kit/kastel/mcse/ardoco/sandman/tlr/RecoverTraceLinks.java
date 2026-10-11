@@ -95,66 +95,70 @@ public class RecoverTraceLinks implements Skill {
         Set<String> changedSources = new TreeSet<>();
         Set<String> changedTargets = new TreeSet<>();
         List<String> unavailable = new ArrayList<>();
-        for (Approaches.Entry entry : selected) {
-            if (ctx.cancelled()) {
-                break;
-            }
-            if (entry.approach().scopeMode() == ScopeMode.WHOLE_PROJECT) {
-                ReentrantLock lock = wholeProjectLocks.computeIfAbsent(
-                        projectId + '\0' + entry.approach().id(), k -> new ReentrantLock());
-                if (!lockUnlessCancelled(lock, ctx)) {
+        try {
+            for (Approaches.Entry entry : selected) {
+                if (ctx.cancelled()) {
                     break;
                 }
-                try {
-                    TlrInput in = wholeProject(projectId, entry.approach(), store);
-                    ObjectNode run = runApproach(
-                            ctx,
-                            input,
-                            entry,
-                            in,
-                            sourceIds,
-                            targetIds,
-                            store,
-                            recorder,
-                            llmPolicy,
-                            changedSources,
-                            changedTargets,
-                            unavailable);
-                    if (run != null) {
-                        runs.add(run);
+                if (entry.approach().scopeMode() == ScopeMode.WHOLE_PROJECT) {
+                    ReentrantLock lock = wholeProjectLocks.computeIfAbsent(
+                            projectId + '\0' + entry.approach().id(), k -> new ReentrantLock());
+                    if (!lockUnlessCancelled(lock, ctx)) {
+                        break;
                     }
-                } finally {
-                    lock.unlock();
+                    try {
+                        TlrInput in = wholeProject(projectId, entry.approach(), store);
+                        ObjectNode run = runApproach(
+                                ctx,
+                                input,
+                                entry,
+                                in,
+                                sourceIds,
+                                targetIds,
+                                store,
+                                recorder,
+                                llmPolicy,
+                                changedSources,
+                                changedTargets,
+                                unavailable);
+                        if (run != null) {
+                            runs.add(run);
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                    continue;
                 }
-                continue;
+                if (pairwise == null) {
+                    pairwise = new TlrInput(
+                            projectId,
+                            store.versions(
+                                    projectId,
+                                    Stream.concat(sourceIds.stream(), targetIds.stream())
+                                            .distinct()
+                                            .toList()),
+                            store.elements(projectId, sourceIds),
+                            store.elements(projectId, targetIds));
+                }
+                ObjectNode run = runApproach(
+                        ctx,
+                        input,
+                        entry,
+                        pairwise,
+                        sourceIds,
+                        targetIds,
+                        store,
+                        recorder,
+                        llmPolicy,
+                        changedSources,
+                        changedTargets,
+                        unavailable);
+                if (run != null) {
+                    runs.add(run);
+                }
             }
-            if (pairwise == null) {
-                pairwise = new TlrInput(
-                        projectId,
-                        store.versions(
-                                projectId,
-                                Stream.concat(sourceIds.stream(), targetIds.stream())
-                                        .distinct()
-                                        .toList()),
-                        store.elements(projectId, sourceIds),
-                        store.elements(projectId, targetIds));
-            }
-            ObjectNode run = runApproach(
-                    ctx,
-                    input,
-                    entry,
-                    pairwise,
-                    sourceIds,
-                    targetIds,
-                    store,
-                    recorder,
-                    llmPolicy,
-                    changedSources,
-                    changedTargets,
-                    unavailable);
-            if (run != null) {
-                runs.add(run);
-            }
+        } finally {
+            selected.forEach(e -> e.approach().callFinished());
         }
         if (!unavailable.isEmpty()) { // the other approaches are finished and their links written
             throw new SkillException("DEPENDENCY_UNAVAILABLE", String.join("; ", unavailable), true);

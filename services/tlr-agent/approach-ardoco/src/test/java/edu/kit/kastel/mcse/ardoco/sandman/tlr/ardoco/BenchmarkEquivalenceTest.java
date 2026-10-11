@@ -381,6 +381,62 @@ class BenchmarkEquivalenceTest {
         assertFalse(first.isEmpty());
     }
 
+    /** ArDoCo's Text fills lazy caches while a run reads it: a run on a cached answer must equal a run on a fresh one. */
+    @Test
+    void twoRunsFromOneCacheEntryGiveTheLinksOfTwoRunsFromFreshAnnotations() throws Exception {
+        Path acm = CodeModels.acm("mediastore-code-model");
+        Case c = new Case("mediastore", "mediastore.txt", "pcm/ms.repository", "pcm-repository", true);
+        TlrInput code = ardocodeInput(c, CodeModels.compilationUnits(acm).values());
+        TlrInput model = input(c);
+        var versions = new ArrayList<>(model.versions());
+        versions.addAll(code.versions().subList(1, code.versions().size()));
+        var targets = new ArrayList<>(model.targets());
+        targets.addAll(code.targets());
+        var both = new TlrInput(c.project(), versions, model.sources(), targets);
+        int[] requests = {0};
+        var counting =
+                new CorenlpClient(
+                        java.net.URI.create(CorenlpProvider.start()),
+                        java.time.Duration.ofSeconds(300),
+                        CorenlpClient.Eolonly.AUTO,
+                        CorenlpClient.BACKOFF,
+                        CorenlpClient.fromEnv().authorization()) {
+                    @Override
+                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                        requests[0]++;
+                        return super.request(text, eolonly, cancelled);
+                    }
+                };
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocoApproach.class),
+                JsonMapper.shared().createObjectNode());
+        List<List<CandidateLink>> fresh = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            TextCache.clear();
+            fresh.add(new ArdocoApproach(counting).recover(both, ctx));
+            TextCache.clear();
+            fresh.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
+        }
+        assertEquals(fresh.get(0), fresh.get(2));
+        assertEquals(fresh.get(1), fresh.get(3));
+        assertFalse(fresh.get(0).isEmpty());
+        assertFalse(fresh.get(1).isEmpty());
+
+        TextCache.clear();
+        requests[0] = 0;
+        List<List<CandidateLink>> cached = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            cached.add(new ArdocoApproach(counting).recover(both, ctx));
+            cached.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
+        }
+        assertEquals(1, requests[0], "all four runs share one cache entry");
+        assertEquals(fresh.subList(0, 2), cached.subList(0, 2));
+        assertEquals(fresh.subList(0, 2), cached.subList(2, 4));
+    }
+
     @Test
     void ardocoAndArdocodeAnnotateADocumentVersionOnce() throws Exception {
         TextCache.clear();

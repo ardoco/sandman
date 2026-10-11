@@ -149,10 +149,15 @@ class CorenlpClient {
      * else (interim, service without U-1) by a blank line, where CoreNLP's default newlineIsSentenceBreak=two splits.
      */
     Text annotate(List<String> lines, Provider provider, BooleanSupplier cancelled) {
+        return convert(annotateDto(lines, provider, cancelled));
+    }
+
+    /** The checked service answer; {@link TextCache} keeps it and builds a new Text from it for every run. */
+    TextDto annotateDto(List<String> lines, Provider provider, BooleanSupplier cancelled) {
         String text = String.join(provider.eolonly() ? "\n" : "\n\n", lines) + "\n";
         TextDto dto = request(text, provider.eolonly(), cancelled);
         check(lines, dto);
-        return convert(dto);
+        return dto;
     }
 
     /** One POST /stanfordnlp: the service answer for the text as is (the equivalence test sends raw texts). */

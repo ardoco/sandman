@@ -52,16 +52,33 @@ ELEMENT_QUERIES = {label: _element_query(label) for label in LABELS}
 RELATION_QUERIES = {rel: _relation_query(rel) for rel in RELATIONS}
 
 
-def match_references(content: bytes, elements: list[dict[str, Any]], patterns: list[str]) -> list[dict[str, Any]]:
-    """Regex matches as references from the innermost element containing the match line."""
+def match_references(
+    content: bytes, elements: list[dict[str, Any]], patterns: list[str], link_type: str = "relates"
+) -> list[dict[str, Any]]:
+    """Regex matches as references from the innermost element containing the match line.
+
+    An element without line numbers (a plugin's file element) spans the whole file. A match that only that element
+    contains, such as a comment above a class, belongs to the next element with line numbers, if there is one."""
+    if not elements:
+        return []
     text = content.decode("utf-8", errors="replace")
+    total = text.count("\n") + 1
+    ranged = [e for e in elements if e.get("startLine")]
+
+    def span(e: dict[str, Any]) -> tuple[int, int]:
+        return e.get("startLine") or 1, e.get("endLine") or total
+
     refs = []
     for pattern in patterns:
         for m in re.finditer(pattern, text):
             line = text.count("\n", 0, m.start()) + 1
-            around = [e for e in elements if e["startLine"] <= line <= e["endLine"]]
-            source = min(around, key=lambda e: e["endLine"] - e["startLine"]) if around else elements[0]
-            refs.append({"source": source["localKey"], "text": m[0], "linkType": "relates"})
+            around = [e for e in elements if span(e)[0] <= line <= span(e)[1]]
+            source = min(around, key=lambda e: (span(e)[1] - span(e)[0], e not in ranged)) if around else elements[0]
+            if source not in ranged:
+                following = [e for e in ranged if e["startLine"] > line]
+                if following:
+                    source = min(following, key=lambda e: (e["startLine"], -span(e)[1]))
+            refs.append({"source": source["localKey"], "text": m[0], "linkType": link_type})
     return refs
 
 
@@ -258,6 +275,11 @@ class ExtractSkill:
             for r in out["relations"]:
                 if r["source"]["path"] in vid_of:
                     relations[vid_of[r["source"]["path"]]].append(r)
+            for v in versions:  # a plugin that returns no references for a file gets the configured patterns applied
+                if not refs[v["id"]]:
+                    link_type = {"code": "implements", "test": "verifies"}.get(v["kind"], "relates")
+                    content = svc.store.open(v["uri"]).read()
+                    refs[v["id"]] = match_references(content, elements[v["id"]], patterns, link_type)
 
         meta = {v["id"]: v for vs in plugins.values() for v in vs}
         element_count = 0

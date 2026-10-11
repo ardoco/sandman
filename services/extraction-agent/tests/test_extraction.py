@@ -15,7 +15,7 @@ import pytest
 from sandman_agent import Contracts, PublishError, stable_id
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_extraction import ingest
-from sandman_extraction.extract import APPROACH, APPROACH_VERSION
+from sandman_extraction.extract import APPROACH, APPROACH_VERSION, match_references
 from starlette.exceptions import HTTPException
 
 REQ = "requirements/requirements.md"
@@ -211,6 +211,35 @@ async def test_extract_mini(env: Any) -> None:
     assert link[0]["id"] == stable_id("tl", "explicit-reference", "0", cfg, reqs[0]["id"], el_test)
     done = await env.events("sandman.extraction.completed")
     assert len(done) == 1 and done[0]["data"]["elementCount"] == result["elementCount"]
+
+
+async def test_plugin_without_references_gets_the_configured_patterns_applied(env: Any) -> None:
+    env.plugin.silent = True
+    files, result = await extract_mini(env)
+    assert result["status"] == "completed"
+    req1 = stable_id("el", ver(env.project, REQ, files[REQ]), "REQ-1")
+    rows = await cypher(
+        env,
+        "MATCH (:Requirement {id: $r})<-[:SOURCE]-(l:TraceLink)-[:TARGET]->(t:Element) "
+        "WHERE l.approach = 'explicit-reference' RETURN t.kind AS kind, t.name AS name, l.linkType AS lt",
+        r=req1,
+    )
+    assert rows == [{"kind": "type", "name": "MediaCacheTest", "lt": "verifies"}]  # the comment sits above the class
+
+
+def test_match_references_with_a_file_element_without_lines() -> None:
+    file = {"localKey": "f.java"}
+    outer = {"localKey": "Outer", "startLine": 10, "endLine": 30}
+    inner = {"localKey": "Outer.Inner", "startLine": 20, "endLine": 25}
+    text = "// REQ-1\n" + "\n" * 11 + "REQ-2\n" + "\n" * 7 + "REQ-3\n" + "\n" * 10 + "REQ-4\n"
+    refs = match_references(text.encode(), [file, outer, inner], [r"REQ-\d"], "implements")
+    assert [(r["text"], r["source"], r["linkType"]) for r in refs] == [
+        ("REQ-1", "Outer", "implements"),  # leading comment: next element with lines
+        ("REQ-2", "Outer", "implements"),
+        ("REQ-3", "Outer.Inner", "implements"),
+        ("REQ-4", "f.java", "implements"),  # after the last element: the file
+    ]
+    assert match_references(b"REQ-1", [], [r"REQ-\d"]) == []
 
 
 async def test_plugin_failure_falls_back(env: Any) -> None:

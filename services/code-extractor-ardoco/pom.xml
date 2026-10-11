@@ -83,8 +83,8 @@
       <properties>
         <surefire.groups>benchmark</surefire.groups>
         <surefire.excludedGroups>none</surefire.excludedGroups>
-        <!-- the heap of the container: mem_limit 3g, MaxRAMPercentage=75 -->
-        <surefire.argLine>-Xmx2304m</surefire.argLine>
+        <!-- the heap of the container (deploy/docker-compose.yml: -Xmx2560m) -->
+        <surefire.argLine>-Xmx2560m</surefire.argLine>
       </properties>
     </profile>
   </profiles>

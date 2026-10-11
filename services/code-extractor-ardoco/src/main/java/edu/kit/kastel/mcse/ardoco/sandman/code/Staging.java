@@ -70,7 +70,12 @@ final class Staging implements AutoCloseable {
         for (Item item : unique.values()) {
             Path source = storedFile(lexical, real, item.storagePath());
             try {
-                total += Files.size(source);
+                long size = Files.size(source);
+                if (size > limits.maxFileBytes()) {
+                    throw invalid("file too large: " + printable(item.path()) + " has more than "
+                            + limits.maxFileBytes() + " bytes");
+                }
+                total += size;
             } catch (IOException e) {
                 throw invalid("cannot read " + item.storagePath() + ": "
                         + e.getClass().getSimpleName());
@@ -98,7 +103,7 @@ final class Staging implements AutoCloseable {
                 try {
                     Files.createDirectories(target.getParent());
                     try (InputStream in = Files.newInputStream(sources.get(i++), LinkOption.NOFOLLOW_LINKS)) {
-                        copied += copyAtMost(in, target, limits.maxBytes() - copied);
+                        copied += copyAtMost(in, target, Math.min(limits.maxFileBytes(), limits.maxBytes() - copied));
                     }
                 } catch (java.nio.file.FileAlreadyExistsException
                         | java.nio.file.NotDirectoryException

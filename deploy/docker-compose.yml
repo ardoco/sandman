@@ -245,19 +245,23 @@ services:
       SANDMAN_PLUGIN_INBOUND_TOKEN_FILE: /run/secrets/plugin_in_code-extractor-ardoco   # owner -> plugin; no service token: the plugin makes no outbound call
       SANDMAN_ARTIFACT_STORE: /artifacts
       SANDMAN_CODE_MAX_FILES: ${SANDMAN_CODE_MAX_FILES:-20000}      # per call; above: INVALID_INPUT
-      SANDMAN_CODE_MAX_BYTES: ${SANDMAN_CODE_MAX_BYTES:-524288000}  # 500 MB
-      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+      SANDMAN_CODE_MAX_BYTES: ${SANDMAN_CODE_MAX_BYTES:-67108864}   # 64 MB per call; above: INVALID_INPUT
+      SANDMAN_CODE_MAX_FILE_BYTES: ${SANDMAN_CODE_MAX_FILE_BYTES:-4194304}  # 4 MB per file
+      # Worst case (MaxCapInputTest, docs/tasks/T2.6): 64 MB of dense Java needs a heap between 1.5 and 2.0 GB (ArDoCo
+      # keeps every AST), so -Xmx2560m is not exhausted within the caps. mem_limit 4g = heap 2.5g + metaspace 0.25g +
+      # threads, code cache and onnx native ~0.6g + /tmp tmpfs at most 0.3g (staged copy and Magika copies of 64 MB).
+      JAVA_TOOL_OPTIONS: -Xmx2560m -XX:MaxMetaspaceSize=256m
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of secrets (deploy/gen-secrets.sh)
     volumes:
       - artifact-store:/artifacts:ro
     tmpfs:
-      - /tmp:size=768m,mode=1777                 # staged copy of the call's files, deleted after each call
+      - /tmp:size=320m,mode=1777,noexec,nosuid,nodev   # staged copy and Magika copies (2 x max bytes), deleted after each call
     secrets: [plugin_in_code-extractor-ardoco]
     networks: [internal]                         # no egress, no published port
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
-    mem_limit: 3g
+    mem_limit: 4g
     pids_limit: 512
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/healthz"]

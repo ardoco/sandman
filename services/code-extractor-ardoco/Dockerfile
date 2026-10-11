@@ -9,7 +9,8 @@ COPY services/inconsistency-agent/pom.xml services/inconsistency-agent/pom.xml
 COPY services/code-extractor-ardoco services/code-extractor-ardoco
 COPY contracts contracts
 RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl services/code-extractor-ardoco -am package -DskipTests
-# onnxruntime would unpack its native library to java.io.tmpdir at run time; /tmp is a noexec tmpfs, so ship it unpacked.
+# onnxruntime would unpack its native library to java.io.tmpdir at run time; compose mounts /tmp noexec (tmpfs), where
+# dlopen fails, so ship it unpacked and point -Donnxruntime.native.path at it.
 RUN mkdir /onnx-unpack /opt/onnxruntime && cd /onnx-unpack \
  && jar xf /src/services/code-extractor-ardoco/target/quarkus-app/lib/main/com.microsoft.onnxruntime.onnxruntime-*.jar \
  && case "$(uname -m)" in x86_64) dir=linux-x64 ;; aarch64) dir=linux-aarch64 ;; *) exit 1 ;; esac \

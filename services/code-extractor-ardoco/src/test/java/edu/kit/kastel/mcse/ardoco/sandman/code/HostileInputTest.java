@@ -117,6 +117,13 @@ class HostileInputTest {
     }
 
     @Test
+    void rejectsAFileOverThePerFileCap() {
+        SkillException e =
+                rejected(List.of(item("big.txt", store.resolve("a.txt").toString())), new Limits(10, 1_000_000, 5));
+        assertTrue(e.getMessage().contains("file too large"));
+    }
+
+    @Test
     void copyStopsBeforeWritingPastTheBudget() throws IOException {
         Path target = tmp.resolve("copy.bin");
         byte[] data = new byte[200_000];
@@ -282,7 +289,7 @@ class HostileInputTest {
     void limitsReadTheEnvironment() {
         Limits limits = Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "7", "SANDMAN_CODE_MAX_BYTES", "99"));
         assertEquals(new Limits(7, 99), limits);
-        assertEquals(new Limits(20_000, 500L * 1024 * 1024), Limits.fromEnv(java.util.Map.of()));
+        assertEquals(new Limits(20_000, 64L * 1024 * 1024), Limits.fromEnv(java.util.Map.of()));
         assertThrows(
                 IllegalArgumentException.class, () -> Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "0")));
         assertThrows(

@@ -21,7 +21,7 @@ def test_artifacts_read_only_and_root_filesystem_read_only() -> None:
     assert SERVICE["read_only"] is True
     assert SERVICE["cap_drop"] == ["ALL"]
     assert "no-new-privileges:true" in SERVICE["security_opt"]
-    assert all("noexec" not in t and ",exec" not in t for t in SERVICE["tmpfs"])
+    assert len(SERVICE["tmpfs"]) == 1 and {"noexec", "nosuid", "nodev"} <= set(SERVICE["tmpfs"][0].split(","))
 
 
 def test_only_the_inbound_token_is_mounted() -> None:

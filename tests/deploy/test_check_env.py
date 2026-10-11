@@ -5,10 +5,16 @@ from pathlib import Path
 SCRIPT = Path(__file__).parents[2] / "deploy" / "check-env.sh"
 
 
+PLUGIN_TOKENS = ["plugin_in_plugin-stubs", "plugin_in_code-extractor-ardoco", "plugin_in_code-extractor-ardoco_tlr"]
+
+
 def run(
     tmp_path: Path, env: str | None, environ: dict[str, str] | None = None, corenlp: str | None = "kit:secret"
 ) -> int:
     (tmp_path / "secrets").mkdir(exist_ok=True)
+    for name in PLUGIN_TOKENS:
+        if not (tmp_path / "secrets" / name).exists():
+            (tmp_path / "secrets" / name).write_text("token")
     shutil.copy(SCRIPT, tmp_path / "check-env.sh")
     if corenlp is not None:
         (tmp_path / "secrets" / "corenlp_credentials").write_text(corenlp)
@@ -16,6 +22,12 @@ def run(
         (tmp_path / "secrets" / "gateway.env").write_text(env)
     return subprocess.run(
         ["sh", str(tmp_path / "check-env.sh")], capture_output=True, env={"PATH": "/usr/bin:/bin", **(environ or {})}
+    ).returncode
+
+
+def run_without_creating(tmp_path: Path, env: str) -> int:
+    return subprocess.run(
+        ["sh", str(tmp_path / "check-env.sh")], capture_output=True, env={"PATH": "/usr/bin:/bin"}
     ).returncode
 
 
@@ -98,3 +110,27 @@ def test_corenlp_url_must_be_https_or_the_compose_provider(tmp_path):
 def test_corenlp_mode_read_from_dotenv(tmp_path):
     (tmp_path / ".env").write_text("SANDMAN_CORENLP_MODE=local\n")
     assert run(tmp_path, "SELFHOSTED_LLM_URL=\n", corenlp="change-me:change-me") == 0
+
+
+def test_every_mounted_plugin_token_file_is_required(tmp_path):
+    ok = "SELFHOSTED_LLM_URL=\n"
+    assert run(tmp_path, ok) == 0
+    for name in PLUGIN_TOKENS:
+        token = tmp_path / "secrets" / name
+        token.unlink()
+        assert run_without_creating(tmp_path, ok) == 1, name
+        token.write_text("")
+        assert run_without_creating(tmp_path, ok) == 1, name + " (empty)"
+        token.write_text("token")
+
+
+def test_missing_tlr_plugin_token_hints_to_rerun_gen_secrets(tmp_path):
+    ok = "SELFHOSTED_LLM_URL=\n"
+    run(tmp_path, ok)
+    (tmp_path / "secrets" / "plugin_in_code-extractor-ardoco_tlr").unlink()
+    r = subprocess.run(
+        ["sh", str(tmp_path / "check-env.sh")], capture_output=True, env={"PATH": "/usr/bin:/bin"}, text=True
+    )
+    assert r.returncode == 1
+    assert "plugin_in_code-extractor-ardoco_tlr" in r.stderr
+    assert "make secrets" in r.stderr

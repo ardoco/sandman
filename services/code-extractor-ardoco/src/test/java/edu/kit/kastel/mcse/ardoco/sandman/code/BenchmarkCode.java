@@ -27,6 +27,11 @@ final class BenchmarkCode {
 
     private BenchmarkCode() {}
 
+    /** File of a code model that the benchmark profile wrote for the tests of the tlr-agent (T2.1b). */
+    static Path writtenAcm(String name) {
+        return CACHE.resolve(name + ".acm");
+    }
+
     static Map<String, Entry> entries() throws IOException {
         Map<String, Entry> entries = new LinkedHashMap<>();
         try (InputStream in = BenchmarkCode.class.getResourceAsStream("/benchmark-code.txt")) {

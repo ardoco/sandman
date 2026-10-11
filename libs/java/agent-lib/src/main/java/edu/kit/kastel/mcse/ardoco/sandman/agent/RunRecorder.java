@@ -22,11 +22,56 @@ public final class RunRecorder {
             String workflowId,
             String taskId,
             String triggeredBy,
-            String replayMode) {
+            String replayMode,
+            List<String> promptIds) {
+
+        public RunInfo(
+                String projectId,
+                String skill,
+                String tool,
+                String toolVersion,
+                String inputKey,
+                String model,
+                String params,
+                String configHash,
+                List<String> usedVersionIds,
+                String workflowId,
+                String taskId,
+                String triggeredBy,
+                String replayMode) {
+            this(
+                    projectId,
+                    skill,
+                    tool,
+                    toolVersion,
+                    inputKey,
+                    model,
+                    params,
+                    configHash,
+                    usedVersionIds,
+                    workflowId,
+                    taskId,
+                    triggeredBy,
+                    replayMode,
+                    null);
+        }
 
         public static RunInfo of(String projectId, String skill, String tool, String toolVersion, String inputKey) {
             return new RunInfo(
-                    projectId, skill, tool, toolVersion, inputKey, null, null, null, List.of(), null, null, null, null);
+                    projectId,
+                    skill,
+                    tool,
+                    toolVersion,
+                    inputKey,
+                    null,
+                    null,
+                    null,
+                    List.of(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
         }
     }
 
@@ -53,6 +98,7 @@ public final class RunRecorder {
         props.put("toolVersion", run.toolVersion());
         props.put("inputKey", run.inputKey());
         props.put("model", run.model());
+        props.put("promptIds", run.promptIds() == null || run.promptIds().isEmpty() ? null : run.promptIds());
         props.put("params", run.params());
         props.put("configHash", run.configHash());
         props.put("workflowId", run.workflowId());
@@ -87,10 +133,56 @@ public final class RunRecorder {
                 params);
     }
 
+    /** Marks a run completed (or partial) with token usage, the smallest response model and the mixed-models flag. */
+    public void complete(
+            String runId,
+            String status,
+            Long inputTokens,
+            Long outputTokens,
+            String resolvedModel,
+            boolean mixedModels) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", runId);
+        params.put("status", status);
+        params.put("now", Event.now());
+        params.put("inp", inputTokens);
+        params.put("out", outputTokens);
+        params.put("resolved", resolvedModel);
+        params.put("mixed", mixedModels ? Boolean.TRUE : null);
+        kg.write(
+                "MATCH (r:Run {id: $id}) SET r.status = $status, r.endedAt = $now, "
+                        + "r.inputTokens = $inp, r.outputTokens = $out, r.resolvedModel = $resolved, "
+                        + "r.mixedModels = $mixed",
+                params);
+    }
+
     public void fail(String runId, String error) {
         kg.write(
                 "MATCH (r:Run {id: $id}) SET r.status = 'failed', r.error = $error, r.endedAt = $now",
                 Map.of("id", runId, "error", error, "now", Event.now()));
+    }
+
+    /** Marks a run failed and records the usage of its calls so far. */
+    public void fail(
+            String runId,
+            String error,
+            Long inputTokens,
+            Long outputTokens,
+            String resolvedModel,
+            boolean mixedModels) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", runId);
+        params.put("error", error);
+        params.put("now", Event.now());
+        params.put("inp", inputTokens);
+        params.put("out", outputTokens);
+        params.put("resolved", resolvedModel);
+        params.put("mixed", mixedModels ? Boolean.TRUE : null);
+        kg.write(
+                "MATCH (r:Run {id: $id}) SET r.status = 'failed', r.error = $error, r.endedAt = $now, "
+                        + "r.inputTokens = $inp, r.outputTokens = $out, r.resolvedModel = $resolved, "
+                        + "r.mixedModels = $mixed",
+                params);
     }
 
     /** Deletes facts created by non-completed runs with this input key; marks those runs failed. */

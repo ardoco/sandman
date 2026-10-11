@@ -237,6 +237,58 @@ class RecoverTraceLinksTest {
     }
 
     @Test
+    void llmApproachRunRecordsModelUsageAndPromptIds() throws Exception {
+        TestBeans.llmStatus = 200;
+        var done = run(input(",\"approaches\":[\"test-llm\"]"));
+
+        assertEquals("TASK_STATE_COMPLETED", done.state());
+        var run = kg.read(
+                        "MATCH (r:Run {tool: 'test-llm'}) RETURN r.status AS s, r.model AS m, r.resolvedModel AS rm, "
+                                + "r.inputTokens AS i, r.outputTokens AS o, r.promptIds AS p",
+                        Map.of())
+                .get(0);
+        assertEquals("completed", run.get("s"));
+        assertEquals("chat-default", run.get("m"));
+        assertEquals("gpt-test-1", run.get("rm"));
+        assertEquals(10L, run.get("i"));
+        assertEquals(2L, run.get("o"));
+        assertEquals(List.of("test-llm@abcd1234"), run.get("p"));
+    }
+
+    @Test
+    void exhaustedBudgetFailsTheRunAndTheSkillAfterTheOthersFinished() throws Exception {
+        TestBeans.llmStatus = 402;
+        try {
+            var done = run(input(",\"approaches\":[\"test-llm\",\"" + STUB + "\"]"));
+
+            assertEquals("TASK_STATE_FAILED", done.state());
+            assertEquals("BUDGET_EXCEEDED", done.error().get("code").asString());
+            assertFalse(done.error().get("retryable").asBoolean());
+            assertEquals(1, activeLinks().size());
+            var run = kg.read("MATCH (r:Run {tool: 'test-llm'}) RETURN r.status AS s, r.error AS e", Map.of())
+                    .get(0);
+            assertEquals("failed", run.get("s"));
+            assertTrue(run.get("e").toString().startsWith("BUDGET_EXCEEDED"));
+        } finally {
+            TestBeans.llmStatus = 200;
+        }
+    }
+
+    @Test
+    void localOnlyProjectWithoutLocalKeyIsInvalidInputWithoutARun() throws Exception {
+        kg.write("MATCH (p:Project {id: $p}) SET p.llmPolicy = 'local-only'", Map.of("p", PROJECT));
+        var done = run(input(",\"approaches\":[\"test-llm\",\"" + STUB + "\"]"));
+
+        assertEquals("TASK_STATE_FAILED", done.state());
+        assertEquals("INVALID_INPUT", done.error().get("code").asString());
+        assertEquals(
+                0,
+                kg.read("MATCH (r:Run {tool: 'test-llm'}) RETURN r.status AS s", Map.of())
+                        .size());
+        assertEquals(1, activeLinks().size());
+    }
+
+    @Test
     void unavailableEnvironmentFailsTheSkillRetryableWithoutARunOrAHash() throws Exception {
         var done = run(input(",\"approaches\":[\"test-environment-down\",\"" + STUB + "\"]"));
 

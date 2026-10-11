@@ -2,3 +2,4 @@ edu.kit.kastel.mcse.ardoco.sandman.tlr.FailingApproach
 edu.kit.kastel.mcse.ardoco.sandman.tlr.WholeProjectApproach
 edu.kit.kastel.mcse.ardoco.sandman.tlr.UnavailableApproach
 edu.kit.kastel.mcse.ardoco.sandman.tlr.EnvironmentDownApproach
+edu.kit.kastel.mcse.ardoco.sandman.tlr.LlmTestApproach

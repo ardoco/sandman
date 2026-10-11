@@ -7,3 +7,4 @@ approaches:
   test-unavailable: { enabled: true, params: {} }
   test-environment-down: { enabled: true, params: {} }
   ardocode: { enabled: true, params: {} }
+  test-llm: { enabled: true, params: {} }

@@ -14,18 +14,20 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
 header,main,footer{padding:0 16px;max-width:1440px;margin:0 auto}
-h1{font-size:1.6rem;line-height:1.25;margin:20px 0 8px;max-width:48rem}
+header{text-align:center}
+h1{font-size:1.6rem;line-height:1.25;margin:20px auto 8px;max-width:48rem}
 .eyebrow{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:20px}
-.intro p{max-width:60rem;margin:0 0 8px}
-.tour{margin:14px 0 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.intro p{max-width:60rem;margin:0 auto 8px;font-size:1.05rem}
+.tour{margin:14px 0 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center}
 .tour .step{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:16px;padding:3px 12px;cursor:pointer}
 .tour .step[aria-current=step]{background:var(--accent);border-color:var(--accent);color:#fff}
 .tour .sep{color:var(--muted)}
+.tour .always{border-style:dashed}
 .tour .nav{font:inherit;font-size:.85rem;border:1px solid var(--line);background:none;color:var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer}
 .tour .nav:disabled{opacity:.4;cursor:default}
-#tourtext{min-height:3.2em;max-width:60rem;margin:6px 0 4px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--card);border-radius:0 6px 6px 0;color:var(--muted)}
+#tourtext{min-height:3.2em;max-width:60rem;margin:6px auto 4px;padding:10px 16px;border:1px solid var(--line);border-top:3px solid var(--accent);background:var(--card);border-radius:6px;color:var(--fg);font-size:1.05rem}
 #tourtext b{color:var(--fg)}
-.legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
 .legend svg{vertical-align:middle;margin-right:4px}
 main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:24px}
 @media (min-width:1000px){main{grid-template-columns:minmax(0,1fr) 320px}aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
@@ -85,7 +87,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <h1 id="h1">SANDMAN</h1>
 <div class="intro" id="intro"></div>
 <div class="tour" id="tour" role="group" aria-label="Follow the data"></div>
-<div id="tourtext" aria-live="polite">Pick a step to follow the data through the system, or click a component to learn what it does.</div>
+<div id="tourtext" aria-live="polite">Pick a step to follow the data from upload to results, or click a component to learn what it does.</div>
 <div class="legend" aria-label="Legend">
 <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6"/><path d="M33 5l-7-4v8z" fill="var(--edge)"/></svg>needs / starts after</span>
 <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="5 3"/><path d="M33 5l-7-4v8z" fill="var(--edge)"/></svg>calls over the network</span>
@@ -226,10 +228,10 @@ function clearSel() {
 function setTour(i) {
   tour = i;
   document.querySelectorAll("#tour .step").forEach((b, k) => { if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
-  $("prev").disabled = i == null || i === 0; $("next").disabled = i === data.flow.length - 1;
-  const t = $("tourtext");
+  $("prev").disabled = i == null || i === 0; $("next").disabled = i != null && (i >= data.flow.filter(f => !f.always).length - 1);
+  const t = $("tourtext"), steps = data.flow.filter(f => !f.always).length;
   if (i == null) t.textContent = "Pick a step to follow the data through the system, or click a component to learn what it does.";
-  else { const s = data.flow[i]; t.replaceChildren(h("b", {}, `Step ${i + 1} of ${data.flow.length}: ${s.title}. `), document.createTextNode(s.text)); }
+  else { const s = data.flow[i]; t.replaceChildren(h("b", {}, s.always ? `Runs throughout: ${s.title}. ` : `Step ${i + 1} of ${steps}: ${s.title}. `), document.createTextNode(s.text)); }
   mark();
 }
 
@@ -239,7 +241,7 @@ function init() {
   $("intro").append(h("p", { class: "status" }, data.status));
   const tr = $("tour");
   tr.append(Object.assign(h("button", { class: "nav", id: "prev" }, "← Previous"), { onclick: () => setTour(Math.max(0, (tour ?? 1) - 1)) }));
-  data.flow.forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, "→")); tr.append(Object.assign(h("button", { class: "step" }, `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });
+  data.flow.forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, s.always ? "|" : "→")); tr.append(Object.assign(h("button", { class: s.always ? "step always" : "step" }, s.always ? s.title : `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });
   tr.append(Object.assign(h("button", { class: "nav", id: "next" }, "Next →"), { onclick: () => setTour(tour == null ? 0 : tour + 1) }));
   setTour(null);
   data.glossary.forEach(g => { const d = h("div"); d.append(h("dt", {}, g.term), h("dd", {}, g.text)); $("gloss").append(d); });

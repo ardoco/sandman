@@ -46,16 +46,17 @@ flow:
       requirement that nothing traces to. Findings have a status that people change while they
       review them.
     components: [inconsistency-agent, plugin-stubs]
-  - title: Coordination
-    text: >-
-      The orchestrator listens to the event bus and starts each next step when the previous one is
-      done. It also lets users restart a workflow by hand.
-    components: [orchestrator, nats]
-  - title: Query, console and dashboard
+  - title: Results
     text: >-
       You read results in the console, the REST API or an export, and you can ask questions about
       the graph. Administrators get a system overview dashboard.
     components: [query-service, dashboard]
+  - title: Coordination
+    always: true
+    text: >-
+      The orchestrator listens to the event bus and starts each step above when the previous one is
+      done, from upload to results. It also lets users restart a workflow by hand.
+    components: [orchestrator, nats]
 
 glossary:
   - term: Knowledge graph

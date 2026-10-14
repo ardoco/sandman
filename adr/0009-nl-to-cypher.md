@@ -81,3 +81,4 @@ Security tests: write/admin queries are rejected by validation and, with validat
   * results are post-checked: every returned node or relationship map with a `projectId` must carry the requested project;
   * user queries run with a per-query memory limit and a timeout ≤ 10 s; read transaction and `EXPLAIN` stay.
   * Unscoped queries only for global `admin`. Confidential projects will get separate deployments in the future (ADR-0013).
+* 2026-10-14, ADR-0018: the pipeline above becomes the `cypher` strategy of several. GraphRAG (E) and graph exploration (C) are planned as strategies `graphrag` and `explore`, with automatic selection. The scope guard and read transaction apply to all of them.

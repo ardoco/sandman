@@ -862,10 +862,10 @@ Common to all agents: built on the shared agent library (Section 9); stateless a
 | Tools | Cypher validator, KG read session, LLM client. |
 | State | SQLite user store (`query-data` volume): users, password hashes (Argon2id), project memberships with roles, API token hashes. Few-shot examples and schema contract are files in the image. |
 | Failure modes | LLM fails → NL endpoint 503, Cypher endpoint unaffected; invalid generated Cypher after repairs → 422 with the attempts. |
-| LLM usage | NL→Cypher generation and answer summarization; everything else deterministic. |
+| LLM usage | Strategy classification (`auto`), NL→Cypher generation, tool loop of `explore`, query embeddings for `graphrag`, answer summarization; everything else deterministic. |
 | Language | **Python**: LLM prompting/evaluation iteration, FastAPI + Jinja2 for the console. |
 | Stub | Cypher endpoint fully working (validation + read-only); NL endpoint maps a fixed set of question patterns (regex) to canned Cypher templates; console list/detail/transition pages; login with users/roles (needed from M0 because owners rely on the forwarded actor). |
-| Final | LLM NL-to-Cypher with validation/repair (Section 7), evaluation set. |
+| Final | Query strategies `cypher` (LLM NL-to-Cypher with validation/repair), `graphrag`, `explore` and automatic selection (Section 7, ADR-0018), evaluation set. |
 
 The A2A exposure of the query service is deliberately omitted: it is a synchronous read API, and agents call it through REST. If an LLM-based agent later needs to discover it, an Agent Card with skill `answer-question` can wrap the same endpoint.
 
@@ -902,7 +902,7 @@ Planner (final, optional): input = user request + Agent Cards (skills, schemas) 
 
 ## 7. Query Service design
 
-**Approach: schema-grounded single-shot generation with validation and bounded repair** (→ ADR-0009).
+**Approach: several query strategies behind one endpoint, selectable by the user or chosen automatically** (→ ADR-0018). The `cypher` strategy is schema-grounded single-shot generation with validation and bounded repair (→ ADR-0009).
 
 API (users and agents use the same endpoints; agents and plugins authenticate with their service or plugin token, users with session cookie or personal API token). Authorization (ADR-0013):
 
@@ -916,14 +916,25 @@ API (users and agents use the same endpoints; agents and plugins authenticate wi
 | Endpoint | Request | Response |
 |---|---|---|
 | `POST /v1/query/cypher` | `{projectId?, cypher, params?, limit? (≤1000, default 200), timeoutMs? (≤30000)}` | `{columns[], rows[][], truncated, elapsedMs}` |
-| `POST /v1/query/nl` | `{projectId, question, mode: "answer" \| "cypher-only", execute?: true}` | `{answer?, cypher, params, columns[], rows[][], truncated, attempts[{cypher, error}], warnings[], model, resolvedModel}` |
+| `POST /v1/query/nl` | `{projectId, question, strategy?: "auto" \| "cypher" \| "graphrag" \| "explore" (default auto), mode: "answer" \| "cypher-only", execute?: true}` | `{answer?, strategy, classification?, evidence[], steps[], cypher?, params?, columns[], rows[][], truncated, attempts[{cypher, error}], warnings[], model, resolvedModel}` |
 | `GET /v1/schema` | – | schema contract (labels, relationship types, properties with descriptions and allowed values, schema version) |
 | `GET /v1/projects/{p}/export/tracelinks?format=csv\|json&approach=&minConfidence=` | – | benchmark-friendly link list (source key, target key, approach, confidence) |
 | `GET /v1/projects/{p}/export/inconsistencies?format=csv\|json` | – | inconsistencies with status and history |
 
 Rows contain only JSON-serializable values; nodes/relationships are returned as maps of their properties plus `_labels`/`_type` (no internal Memgraph ids, which are not stable).
 
-NL-to-Cypher pipeline:
+Query strategies (ADR-0018):
+
+| Strategy | Mechanism | Fits |
+|---|---|---|
+| `cypher` | pipeline below | counts, filters, lists, structural gaps |
+| `graphrag` | vector search over element text (filtered by `projectId`), then bounded expansion by fixed parameterized Cypher templates (neighbours, trace links, containing section/component), answer synthesis over the retrieved subgraph | fuzzy content questions |
+| `explore` | bounded tool loop (max steps, token and time budget) with tools `get_schema`, `find_elements`, `neighbors`, `run_cypher`; every call passes the scope guard | multi-hop, "how is X connected to Y" |
+| `auto` | one structured-output call `{strategy, confidence, reason}`; confidence below the threshold → `cypher`; only enabled strategies are offered | default |
+
+All strategies share the scope guard, read transaction, memory limit, result post-check and citation rule (cite only keys in rows or `evidence`). The response names the resolved strategy; the console lets the user switch and re-run. `config/query/strategies.yaml` enables strategies and sets budgets; disabled strategies answer 501. `graphrag` needs element embeddings written by the extraction-agent (additive KG schema change, vector index in `init.cypher`, V-43).
+
+`cypher` pipeline:
 1. **Schema grounding:** prompt contains the schema contract `contracts/kg/schema.yaml` (labels, relationship types with endpoint labels, properties, enumerations, short descriptions). At startup the service compares it with `SHOW SCHEMA INFO` (Memgraph flag `--schema-info-enabled=true`) and logs drift. Memgraph-specific dialect notes (e.g., no pattern expressions in `size()`) are part of the system prompt.
 2. **Few-shot examples:** curated question→Cypher pairs in `config/query/examples.yaml`; top-k (k=5) selected by embedding similarity. The same file, split into dev/test, is the evaluation set.
 3. **Generation:** structured output `{cypher, params, explanation}` validated against a JSON Schema. `projectId` is always bound by the service as parameter `$projectId`.
@@ -935,9 +946,9 @@ NL-to-Cypher pipeline:
 6. **Repair:** on validation/execution error, the error message is fed back once or twice (max 2 repairs); all attempts are returned.
 7. **Answer synthesis** (`mode=answer`): the LLM receives question + rows (truncated to a token budget) and must cite element keys/ids; empty result → explicit "no matching data" answer. The answer LLM has no tools, so injected instructions in artifact text cannot trigger actions.
 
-Considered options (details in ADR-0009): intent templates only (no generation) — robust but too narrow; single-shot with validation/repair — chosen; agentic multi-query loop with schema/query tools — kept as extension if evaluation shows multi-hop failures; fine-tuned text2cypher model — needs training data in our schema and a serving GPU; GraphRAG/vector retrieval over element text — complementary for "fuzzy" questions, later (Memgraph vector index is available in Community).
+Considered options (details in ADR-0009, ADR-0018): intent templates only (no generation) — robust but too narrow; single-shot with validation/repair — strategy `cypher`; agentic multi-query loop with schema/query tools — strategy `explore`; GraphRAG/vector retrieval over element text — strategy `graphrag` for "fuzzy" questions (Memgraph vector index is available in Community); fine-tuned text2cypher model — needs training data in our schema and a serving GPU. A single strategy for all questions was rejected: the question types differ.
 
-Stub: regex intent matching for ~5 canned questions ("untraced requirements", "links of X", "open inconsistencies", …) mapped to fixed Cypher templates; Cypher endpoint complete.
+Stub: `strategy` is accepted; `auto` and `cypher` use regex intent matching for ~5 canned questions ("untraced requirements", "links of X", "open inconsistencies", …) mapped to fixed Cypher templates; `graphrag` and `explore` answer 501; Cypher endpoint complete.
 
 ## 8. LLM gateway exploration
 

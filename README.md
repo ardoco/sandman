@@ -3,21 +3,26 @@ Agent-based system for Software Architecture kNowledge Description and MANagemen
 
 SANDMAN ingests a project snapshot (requirements, documentation, architecture models, code), lets plugin agents extract knowledge into a graph (Memgraph), derive trace links and detect inconsistencies, and exposes the results through a query service with a web console and an API. Agents talk A2A over NATS; LLM calls go through a gateway.
 
-Status: M0 (walking skeleton, plugin stubs) is done; M1 (real extractors, dashboard) is in preparation. Plan: [docs/stage-3-implementation-plan.md](docs/stage-3-implementation-plan.md). Plugin authors: [docs/plugins.md](docs/plugins.md). Using a running system (operators, project users): [docs/user/](docs/user/README.md).
+Plan: [docs/stage-3-implementation-plan.md](docs/stage-3-implementation-plan.md). Plugin authors: [docs/plugins.md](docs/plugins.md). Operators and project users: [docs/user/](docs/user/README.md). Component graph (generated with `make site`): <https://ardoco.de/sandman/>.
+
+## Status
+
+The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the ArDoCo and LiSSA trace link approaches, the ArDoCo code extraction plugin, the system dashboard, and record/replay of LLM calls for reproducible runs. Natural language queries currently answer a fixed set of question patterns. The query strategies `graphrag`, `explore` and automatic selection are planned ([ADR-0018](adr/0018-query-strategies.md)). `make backup` is not implemented.
 
 ## Components
 
 - `services/extraction-agent` (Python): information extraction agent
 - `services/document-converter` (Python): PDF/DOCX to Markdown with Docling, called by the extraction agent
+- `services/code-extractor-ardoco` (Java): ArDoCo code extraction plugin
 - `services/tlr-agent`, `services/inconsistency-agent` (Java, Quarkus): traceability link recovery and inconsistency detection agents
 - `services/orchestrator` (Python): rule-based orchestrator
 - `services/query-service` (Python): API and console
+- `services/dashboard` (Python): admin system overview
 - `services/llm-replay` (Python): OpenAI-compatible record/replay proxy
 - `libs/python/sandman-agent`, `libs/java/agent-lib` (+ `agent-lib-a2a`): agent libraries
 - `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`)
 - `tests/plugin-stubs`, `tests/e2e`, `tests/conformance`: plugin stubs, end-to-end and conformance tests
-- `deploy/`: Docker Compose stack, edge proxy, LLM gateway config, secret generation
-- Interactive component graph (generated, `make site`): <https://ardoco.de/sandman/>
+- `deploy/`: Docker Compose stack, edge proxy, LLM gateway config, CoreNLP gateway and provider, secret generation
 
 ## Quickstart
 
@@ -35,9 +40,9 @@ uv run sandman workflows --project demo
 uv run sandman export --project demo tracelinks
 ```
 
-`make e2e` runs the walking skeleton against the stack with plugin stubs (`--profile stubs`; first build about 6 min). It changes the bootstrap admin password to the one in `deploy/secrets/e2e_admin_password`.
+`make e2e` runs the walking skeleton with plugin stubs, dashboard and replay determinism tests against the stack in replay mode (first build about 6 min). It changes the bootstrap admin password to the one in `deploy/secrets/e2e_admin_password`.
 
-Optional compose profiles: `stubs`, `dashboard` (system overview on :8090, image arrives with T1.9 in M1), `obs` (Grafana on :3001), `resources` (cAdvisor), `local-llm` (Ollama container for the `local-only` routes; `make models` pulls the models).
+Optional compose profiles: `stubs`, `dashboard` (system overview on :8090), `obs` (Grafana on :3001), `resources` (cAdvisor), `local-llm` (Ollama container for the `local-only` routes; `make models` pulls the models).
 
 Self-hosted models (`chat-local`, `embed-local`, `local-only` policy) are served either by the local Ollama container (default: `SELFHOSTED_LLM_URL=http://ollama:11434`, profile `local-llm`, `make models`) or by a remote Open WebUI/Ollama (`SELFHOSTED_LLM_URL=https://<host>/ollama`, `SELFHOSTED_LLM_KEY=<Open WebUI API key>`), both set in `deploy/secrets/gateway.env` (ADR-0004). `make up`/`infra`/`e2e` run `deploy/check-env.sh` and refuse any other non-`https://` URL or an empty key.
 
@@ -62,8 +67,8 @@ Integration tests need Docker running. On Docker Desktop, Python Testcontainers 
 | `make lint` | Framework guard, `ruff check`, `ruff format --check`, `mypy libs/python` |
 | `make guard` | Fails if Python code under `libs/` or `services/` imports an agent framework |
 | `make contracts` | Validates `contracts/` (schemas, conformance vectors, Agent Cards, OpenAPI, KG schema) |
-| `make images` | Builds all M0 images |
-| `make e2e` | Walking skeleton: stack with `stubs` profile, then `SANDMAN_E2E=1 uv run pytest tests/e2e` |
-| `make backup` | Placeholder (T5.3), exits 1 |
+| `make images` | Builds all images of the `stubs` profile |
+| `make e2e` | Walking skeleton, dashboard and replay determinism tests against the stack with plugin stubs |
+| `make backup` | Not implemented, exits 1 |
 
 Design: [docs/](docs/) (stage 1–3, task specs), decisions: [adr/](adr/README.md), review: [docs/stage-4-review.md](docs/stage-4-review.md).

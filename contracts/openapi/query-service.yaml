@@ -509,6 +509,10 @@ paths:
               properties:
                 projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
                 question: { type: string, minLength: 3, maxLength: 2000 }
+                strategy:
+                  description: How the question is answered. auto classifies the question first (ADR-0018). Strategies that are not implemented or not enabled answer 501 with the NotImplemented problem body.
+                  enum: [auto, cypher, graphrag, explore]
+                  default: auto
                 mode: { enum: [answer, cypher-only], default: answer }
                 execute: { type: boolean, default: true }
               additionalProperties: false
@@ -521,10 +525,41 @@ paths:
                 allOf:
                   - $ref: "#/components/schemas/QueryResultColumns"
                   - type: object
-                    description: rows are present unless mode is cypher-only (the Cypher is then returned without execution).
-                    required: [cypher, attempts, warnings]
+                    description: rows are present unless mode is cypher-only (the Cypher is then returned without execution). cypher and params are present only for strategy cypher and for Cypher run by explore.
+                    required: [strategy, attempts, warnings]
                     properties:
                       answer: { type: string }
+                      strategy:
+                        description: Strategy that produced the answer (the resolved one when the request said auto).
+                        enum: [cypher, graphrag, explore]
+                      classification:
+                        description: Present when the request said auto.
+                        type: object
+                        required: [strategy, confidence]
+                        properties:
+                          strategy: { enum: [cypher, graphrag, explore] }
+                          confidence: { type: number, minimum: 0, maximum: 1 }
+                          reason: { type: string }
+                      evidence:
+                        description: Elements and paths the answer is based on (graphrag, explore). Answers may cite only keys present here or in the rows.
+                        type: array
+                        items:
+                          type: object
+                          required: [key]
+                          properties:
+                            key: { type: string }
+                            score: { type: number }
+                            path: { type: array, items: { type: string } }
+                      steps:
+                        description: Tool calls of the explore strategy, in order.
+                        type: array
+                        items:
+                          type: object
+                          required: [tool]
+                          properties:
+                            tool: { type: string }
+                            input: { type: object }
+                            error: { type: string }
                       cypher: { type: string }
                       params: { type: object }
                       attempts:

@@ -40,6 +40,11 @@ public interface TraceLinkApproach {
      */
     default void callFinished() {}
 
+    /** Prompt template ids as 'name@hash' for Run.promptIds (they depend on the effective params); empty if none. */
+    default List<String> promptIds(TlrContext ctx) {
+        return List.of();
+    }
+
     default ScopeMode scopeMode() {
         return ScopeMode.PAIRWISE;
     }

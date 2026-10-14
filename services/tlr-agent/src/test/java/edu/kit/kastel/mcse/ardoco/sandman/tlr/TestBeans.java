@@ -28,11 +28,29 @@ final class TestBeans {
             .waitingFor(Wait.forListeningPort());
 
     static final java.nio.file.Path ARTIFACTS;
+    static final java.nio.file.Path MODELS;
+    static final com.sun.net.httpserver.HttpServer LLM_STUB;
+    static volatile int llmStatus = 200;
 
     static {
         MEMGRAPH.start();
         try {
             ARTIFACTS = java.nio.file.Files.createTempDirectory("tlr-artifacts-");
+            MODELS = ARTIFACTS.resolveSibling(ARTIFACTS.getFileName() + "-models.yaml");
+            java.nio.file.Files.writeString(MODELS, "routes:\n  chat-default: gpt-test\n  chat-local: local-test\n");
+            LLM_STUB = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+            LLM_STUB.createContext("/", exchange -> {
+                exchange.getRequestBody().readAllBytes();
+                byte[] body = (llmStatus == 200
+                                ? "{\"model\":\"gpt-test-1\",\"choices\":[{\"message\":{\"content\":\"yes\"},"
+                                        + "\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":10,\"completion_tokens\":2}}"
+                                : "{}")
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(llmStatus, body.length);
+                exchange.getResponseBody().write(body);
+                exchange.close();
+            });
+            LLM_STUB.start();
         } catch (java.io.IOException e) {
             throw new java.io.UncheckedIOException(e);
         }
@@ -46,10 +64,10 @@ final class TestBeans {
         return new Settings(
                 "tlr-agent",
                 Settings.defaultContractsDir(),
+                "http://127.0.0.1:" + LLM_STUB.getAddress().getPort(),
+                "cloud-key",
                 null,
-                null,
-                null,
-                null,
+                MODELS,
                 "bolt://" + MEMGRAPH.getHost() + ":" + MEMGRAPH.getMappedPort(7687),
                 null,
                 null,

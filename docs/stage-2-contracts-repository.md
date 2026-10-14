@@ -412,9 +412,9 @@ General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards 
 
 | | |
 |---|---|
-| Stub behavior | Real: auth (users, roles, tokens), admin endpoints, forwarding, raw Cypher with validation and read transactions, schema endpoint, exports, console pages. Stubbed: NL endpoint maps 5 regex intents (`untraced requirements`, `links of <name>`, `open inconsistencies`, `components without documentation`, `what changed since <revision>`) to fixed Cypher templates; other questions → 422 with explanation. |
-| Configuration | `config/query/intents.yaml`, `examples.yaml` (empty in stub). |
-| Finalized when | LLM NL-to-Cypher with validation/repair reaches ≥ 80 % execution accuracy on the held-out example split (target to be confirmed in Stage 3); security test suite (write/admin queries rejected; read transaction blocks writes with validation disabled) green; authorization matrix tests green. |
+| Stub behavior | Real: auth (users, roles, tokens), admin endpoints, forwarding, raw Cypher with validation and read transactions, schema endpoint, exports, console pages. Stubbed: NL endpoint maps 5 regex intents (`untraced requirements`, `links of <name>`, `open inconsistencies`, `components without documentation`, `what changed since <revision>`) to fixed Cypher templates; other questions → 422 with explanation. `strategy` (`auto`\|`cypher`\|`graphrag`\|`explore`) is accepted; `auto` and `cypher` use the intents, `graphrag` and `explore` answer 501 (ADR-0018). |
+| Configuration | `config/query/intents.yaml`, `examples.yaml` (empty in stub; later with a `strategy` label per question), `strategies.yaml` (enabled strategies, budgets, classifier threshold; schema in `contracts/config/`). |
+| Finalized when | LLM NL-to-Cypher with validation/repair reaches ≥ 80 % execution accuracy on the held-out example split (target to be confirmed in Stage 3); security test suite (write/admin queries rejected; read transaction blocks writes with validation disabled) green; authorization matrix tests green; strategies `graphrag` and `explore` and `auto` selection meet the targets of ADR-0018 (Confirmation) and pass the same security suite. |
 
 ### 4.6 Plugin stubs (`tests/plugin-stubs`, profile `stubs`)
 

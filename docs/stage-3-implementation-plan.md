@@ -22,7 +22,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M1 Real extraction + dashboard** | Built-in extractors for documentation, requirements and models; LLM enrichment; record/replay end to end; observability profile; system overview dashboard (ADR-0016) | Golden-file tests on benchmark projects; replay determinism test green; dashboard shows every service's health and activity, the KG graph view and gateway statistics on the walking-skeleton deployment |
 | **M2 TLR approaches** | ArDoCo TLR and LiSSA in-process; evaluation exports and harness | ArDoCo: link set identical to the standalone runner on ≥ 2 benchmark projects; LiSSA: live re-run with the closest available model on ≥ 2 projects, Δ F1 to the published value reported with a 95 % CI, then recorded for replay (§3.3) |
 | **M3 ArDoCo inconsistency detection** | ArDoCo ID (standard + Artemis variant) running in-process, using the TLR results of M2, mapped to the KG | Same findings as the standalone ArDoCo runner on its benchmark inputs; lifecycle scenario on real data |
-| **M4 NL-to-Cypher** | LLM generation with validation and repair; evaluation set; console evidence views | Execution accuracy ≥ target (Q-16) on the held-out split; security suite green |
+| **M4 Query strategies** | `cypher` (LLM generation with validation and repair), `graphrag`, `explore`, automatic selection; evaluation set; console Ask page with strategy switch and evidence views | Execution accuracy ≥ target (Q-16) on the held-out split for `cypher`; classifier and per-strategy targets of ADR-0018; security suite green for all strategies |
 | **M5 Continuous use** | GitHub Action for ingesting user projects, retention/prune skills, backup/restore drill, performance budget | 30-day soak on an evolving project without manual intervention; restore drill passes |
 | **M6 (optional)** | LLM planner with approval gate; trace-link review in console | Planner plans validated against skill schemas; no unapproved execution |
 | **MX (on demand)** | Agent kits for TypeScript, Go (tier 1) and Rust (tier 2), built when the first agent in that language is planned (ADR-0017) | Kit passes all conformance vectors, Memgraph/NATS integration tests and the interop test with the Python orchestrator and a Java agent |
@@ -76,10 +76,14 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T3.5 | Switch to released ArDoCo artifact when available (Q-15) | S | release | |
 | T3.6 | Labeling study for detector precision: stratified random sample of findings, two blinded raters with written guidelines, Cohen's κ (§3.3) | M | T3.1 | |
 | **M4** | | | | |
-| T4.1 | NL-to-Cypher generation + validation + repair | M | T0.9 | |
-| T4.2 | Example/evaluation set (≥ 150 question–Cypher pairs on benchmark projects, split by template and by project; test questions written by people not tuning the prompts); intent-template baseline | M | T1.x data | |
-| T4.3 | Answer synthesis with citations; answers may cite only ids present in the result rows (R-032); console "Ask" page | S | T4.1 | |
-| T4.4 | Security test suite for the query path; includes prompt-injection fixtures that measure effects on outputs, and escaping and CSP checks for LLM rationale and plugin evidence in the console (R-032) | S | T4.1 | |
+| T4.1 | NL-to-Cypher generation + validation + repair as strategy `cypher`, incl. the strategy dispatch in `POST /v1/query/nl` (one function per strategy, `strategies.yaml`, 501 for disabled ones) | M | T0.9 | |
+| T4.1b | Element embeddings: additive KG schema change (`Element.embedding`, embedding model id), writer in the extraction-agent via the gateway (record/replay), vector index in `init.cypher`, re-embedding on content change (V-43) | M | T1.1, T1.5 | |
+| T4.5 | Strategy `graphrag`: vector search filtered by `projectId`, bounded template expansion, evidence list, synthesis over the retrieved subgraph | M | T4.1, T4.1b | |
+| T4.6 | Strategy `explore`: bounded tool loop (`get_schema`, `find_elements`, `neighbors`, `run_cypher`) through the scope guard, step/token/time budgets, `steps` in the response; off by default | M | T4.1, T4.1b | |
+| T4.7 | Strategy `auto`: classifier with structured output, confidence threshold, fallback to `cypher`; skipped when only one strategy is enabled | S | T4.1; T4.5, T4.6 for the full effect | |
+| T4.2 | Example/evaluation set (≥ 150 question–Cypher pairs on benchmark projects, split by template and by project; test questions written by people not tuning the prompts); intent-template baseline; each question carries a `strategy` label, plus ≥ 50 content and multi-hop questions with gold element keys for `graphrag`/`explore` and the classifier confusion matrix | M | T1.x data | |
+| T4.3 | Answer synthesis with citations; answers may cite only ids present in the result rows (R-032); console "Ask" page with strategy selector (auto/cypher/graphrag/explore), resolved strategy, classification, evidence and steps | S | T4.1 | |
+| T4.4 | Security test suite for the query path, all strategies (cross-project retrieval, budget exhaustion, injection into `explore` tool calls and the classifier); includes prompt-injection fixtures that measure effects on outputs, and escaping and CSP checks for LLM rationale and plugin evidence in the console (R-032) | S | T4.1 | |
 | **M5** | | | | |
 | T5.1 | GitHub Action `sandman-ingest` for user projects (token from secrets) | S | T0.10 | |
 | T5.2 | Retention: `prune` skills (tlr, extraction) + scheduled workflow | M | M2 | |
@@ -114,7 +118,7 @@ Rough calendar (one developer), **re-baselined after the review decisions (D-10 
 | Order | Replace | Rationale | Risk reduction |
 |---|---|---|---|
 | 1 | Extraction (M1) | Every other component consumes elements. Sentence and model-id fidelity decides whether ArDoCo results can be mapped. Mostly deterministic, so low LLM risk. | Golden files per format; stub fallback stays; LLM enrichment optional per run |
-| 2 | TLR: ArDoCo, then LiSSA (M2) | Inconsistency detection uses TLR information (Q-18), so real links must exist first. ArDoCo is deterministic, which makes it a cheap correctness baseline before the LLM-based LiSSA. | Reproduction per §3.3 (ArDoCo exact, LiSSA live with Δ and CI) before any new experiment; per-approach failure isolation |
+| 2 | TLR: ArDoCo, then LiSSA (M2; LiSSA adapted in T2.2, done) | Inconsistency detection uses TLR information (Q-18), so real links must exist first. ArDoCo is deterministic, which makes it a cheap correctness baseline before the LLM-based LiSSA. | Reproduction per §3.3 (ArDoCo exact, LiSSA live with Δ and CI) before any new experiment; per-approach failure isolation |
 | 3 | ArDoCo inconsistency detection (M3) | Builds on M2 links; highest mapping uncertainty (V-16/V-17), de-risked early by spike T0.12; the lifecycle already exists, so real findings exercise it at once | Equivalence test against the standalone runner; `stub-untraced` remains for comparison; adapter isolated behind the detector SPI |
 | 4 | NL-to-Cypher (M4) | Needs a stable schema and realistic data from M1–M3 to build a meaningful evaluation set | Stub intents remain as fallback; security suite runs with validation on and off |
 | 5 | Orchestrator planner (M6, optional) | The rule engine already covers automatic flows | Feature flag, approval gate |
@@ -141,7 +145,7 @@ General rules:
 ### 3.2 LLM-dependent behavior
 
 1. **Unit:** `ScriptedLlmClient` (Python) with hand-written responses, including malformed JSON, schema violations and refusals. Assert handling, not model quality.
-2. **Record/replay:** small fixture projects are recorded once per prompt version through `llm-replay` (cassettes under `tests/cassettes/<name>/`, mounted as `/llm-records` with `SANDMAN_EXPERIMENT=<name>` in CI; reviewed for secrets and confidential content); this also covers LangChain4j calls of LiSSA/ArDoCo. CI runs strict replay, so a missing cassette fails the test. Changing a prompt requires re-recording, which makes prompt changes visible in review.
+2. **Record/replay:** small fixture projects are recorded once per prompt version through `llm-replay` (cassettes under `tests/cassettes/<name>/`, mounted as `/llm-records` with `SANDMAN_EXPERIMENT=<name>` in CI; reviewed for secrets and confidential content); this covers the Java `LlmClient` calls of LiSSA (T2.2) and LangChain4j calls of ArDoCo. CI runs strict replay, so a missing cassette fails the test. Changing a prompt requires re-recording, which makes prompt changes visible in review.
 3. **Live canary:** nightly, a small budget-capped run through the gateway on one fixture. It detects provider/API drift and is reported only, never blocking.
 4. **Evaluation runs:** separate from CI. Experiment manifests on benchmark data, recorded (Section 3.3).
 
@@ -240,7 +244,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-26 | Whether GitHub-hosted runners can build the Java images with the ArDoCo stage in acceptable time (cache `~/.m2`). |
 | V-27 | **Answered (T0.12):** no built-in input; workaround via a custom pipeline step after `ConnectionGenerator`; exact semantics need an upstream extension (sentence-level links read by both detectors). |
 | V-28 | A maintained openCypher parser usable from Python (e.g. the openCypher ANTLR grammar with `antlr4-python3-runtime`) that parses the allowlisted subset incl. pattern comprehensions and existential subqueries (T0.9). |
-| V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming. **ArDoCo answered (T0.12):** non-streaming `ChatModel`, but configured only by process-wide env/`.env` (`OLLAMA_GENERIC`, `OLLAMA_TOKEN`, `OLLAMA_HOST`); per-project keys need an upstream change accepting a `ChatModel`. LiSSA still open (T2.2). |
+| V-29 | LiSSA and ArDoCo `llm-access`: LangChain4j base URL and API key configurable per call/project; requests non-streaming. **ArDoCo answered (T0.12):** non-streaming `ChatModel`, but configured only by process-wide env/`.env` (`OLLAMA_GENERIC`, `OLLAMA_TOKEN`, `OLLAMA_HOST`); per-project keys need an upstream change accepting a `ChatModel`. **LiSSA answered (T2.2):** the approach is adapted, so it needs no LangChain4j. It calls the gateway through the Java `LlmClient` with the project's base URL and key, non-streaming. |
 | V-30 | Memgraph `--memory-limit` unit (MiB) and behavior when reached (query abort vs. process kill) (T0.4). |
 | V-31 | **Answered (T0.4):** disabling IP masquerading does not block egress on Docker Desktop; replaced by `edge-proxy` in front of internal-only services (verified: published port works, internal service has no egress). |
 | V-32 | OpenRouter account-level privacy setting excluding providers that train on prompts; whether Bifrost can pass provider preferences (`data_collection: deny`) (T0.4). |
@@ -254,6 +258,7 @@ The first eight tasks are in [docs/tasks/](tasks/). Each file contains everythin
 | V-40 | Rust Bolt drivers against Memgraph 3.13: `neo4rs` 0.9 (Bolt 4.4/5.x, read transactions rejecting writes, auto-commit for schema statements) vs. Memgraph's `rsmgclient` (TX.3). |
 | V-41 | Availability of the npm scope `@ardoco`, Go module path `github.com/ArDoCo/sandman`, crate names `sandman-*` (Q-22). |
 | V-42 | **Answered (T1.14):** Bifrost custom provider with `custom_provider_config.base_provider_type: openai` and `network_config.base_url` reaches an OpenAI-compatible server (chat, embeddings, key forwarded); `base_url` is a literal (`env.*` is not resolved there, the key is); unknown top-level keys such as `_comment*` are ignored (`spikes/T0.4/custom_provider_check.py`, stub server, Bifrost v2.2.6 in Docker; custom provider PASS). OpenRouter provider preferences (`order`, `allow_fallbacks`) have no config-level option; only per-request `extra_params.provider` with the header `x-bf-passthrough-extra-params: true` on `/openai/v1`, which Bifrost forwards (run, v2.2.6); a top-level `provider` is dropped on that route. |
+| V-43 | Memgraph 3.13 vector index in Community: syntax, `projectId`-filtered search (pre- vs. post-filter), dimension limits, memory cost per 100 k elements, persistence across snapshots (T4.1b, T4.5). |
 
 ## 8. Open questions
 

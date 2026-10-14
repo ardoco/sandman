@@ -156,7 +156,7 @@ class Runner:
             del out["rows"]
         elif execute:
             out = await self.run(who, project, cypher, dict(extracted))
-        return {**out, "cypher": cypher, "params": {"projectId": project, **extracted},
+        return {**out, "strategy": "cypher", "cypher": cypher, "params": {"projectId": project, **extracted},
                 "attempts": [{"cypher": cypher}], "warnings": []}  # fmt: skip
 
     # ---------------------------------------------------------------- exports

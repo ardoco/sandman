@@ -12,6 +12,15 @@ Re-check on every ArDoCo upgrade (`ardoco.version` in the root `pom.xml`).
 | ONNX Runtime (`com.microsoft.onnxruntime:onnxruntime`), transitive of `magika` | 1.20.0 | MIT | not used on the `ardoco` path |
 | Eclipse JDT core and platform jars, transitive of `model-provider` | 3.46.0 | EPL-2.0 | not used on the `ardoco` path |
 
+## LiSSA classes (T2.2)
+
+The approach `lissa` (module `approach-lissa`) contains source files copied from ArDoCo/LiSSA-RATLR.
+The commit is in the file `approach-lissa/LISSA_COMMIT`.
+
+| Component | Version | License | Note |
+|---|---|---|---|
+| LiSSA-RATLR (`ArDoCo/LiSSA-RATLR`), vendored classes | commit `18ed9365c626d5919790a85d87c675c766c22abb` | MIT | modified: LangChain4j access replaced by the Sandman `LlmClient`; no LangChain4j in this module |
+
 ## Containers next to the image (T2.5)
 
 | Component | Version | License | Note |

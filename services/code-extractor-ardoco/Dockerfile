@@ -5,6 +5,7 @@ COPY libs/java libs/java
 COPY services/tlr-agent/pom.xml services/tlr-agent/pom.xml
 COPY services/tlr-agent/approach-spi/pom.xml services/tlr-agent/approach-spi/pom.xml
 COPY services/tlr-agent/approach-ardoco/pom.xml services/tlr-agent/approach-ardoco/pom.xml
+COPY services/tlr-agent/approach-lissa/pom.xml services/tlr-agent/approach-lissa/pom.xml
 COPY services/inconsistency-agent/pom.xml services/inconsistency-agent/pom.xml
 COPY services/code-extractor-ardoco services/code-extractor-ardoco
 COPY contracts contracts

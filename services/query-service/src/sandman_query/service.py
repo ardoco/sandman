@@ -87,6 +87,7 @@ class NlBody(BaseModel):
     model_config = ConfigDict(extra="forbid")
     projectId: str = Field(pattern=PROJECT_ID)
     question: str = Field(min_length=3, max_length=2000)
+    strategy: Literal["auto", "cypher", "graphrag", "explore"] = "auto"
     mode: Literal["answer", "cypher-only"] = "answer"
     execute: bool = True
 

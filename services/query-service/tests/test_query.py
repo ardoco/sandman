@@ -225,3 +225,17 @@ def test_config_files_are_validated_against_their_schemas(tmp_path: Path) -> Non
     bad.write_text("plugin-stubs: nope\n")
     with pytest.raises(ContractError):
         load_plugin_grants(bad, contracts)
+
+
+async def test_nl_strategy(env: Env) -> None:
+    env.user("alice", {"alpha": "viewer"})
+    h = env.token("alice")
+    body = {"projectId": "alpha", "question": "open inconsistencies"}
+    for strategy in ("auto", "cypher"):
+        ok = await env.http.post("/v1/query/nl", json={**body, "strategy": strategy}, headers=h)
+        assert ok.status_code == 200 and ok.json()["strategy"] == "cypher"
+    for strategy in ("graphrag", "explore"):
+        r = await env.http.post("/v1/query/nl", json={**body, "strategy": strategy}, headers=h)
+        assert r.status_code == 501
+    bad = await env.http.post("/v1/query/nl", json={**body, "strategy": "magic"}, headers=h)
+    assert bad.status_code == 400

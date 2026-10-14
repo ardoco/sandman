@@ -4,9 +4,9 @@
 
 The system shall cache media files to reduce load times.
 
-## REQ-2 Upload audio into cache
+## REQ-2 Print invoices into cache
 
-Users shall be able to upload audio files.
+Users shall be able to print monthly invoices.
 
 ## REQ-3 Encrypt user passwords
 

@@ -2,6 +2,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -11,7 +12,7 @@ import edu.kit.kastel.mcse.ardoco.rulefixture.StanfordPipelineOutsideProvider;
 import org.junit.jupiter.api.Test;
 
 /**
- * R-030: LangChain4j only inside the ArDoCo approach package. T2.5: no in-process CoreNLP pipeline and no models. T2.6: no
+ * R-030: LangChain4j only inside the ArDoCo approach package (so never in the LiSSA package). T2.5: no in-process CoreNLP pipeline and no models. T2.6: no
  * code extraction libraries (JDT, Magika, onnxruntime).
  */
 class ModuleRulesTest {
@@ -97,6 +98,13 @@ class ModuleRulesTest {
     @Test
     void langchain4jOnlyInArdocoPackage() {
         var classes = new ClassFileImporter().importPackages("edu.kit.kastel.mcse.ardoco.sandman");
+        LANGCHAIN4J_ONLY_IN_ARDOCO_PACKAGE.check(classes);
+    }
+
+    @Test
+    void langchain4jRuleCoversTheLissaPackage() {
+        var classes = new ClassFileImporter().importPackages("edu.kit.kastel.mcse.ardoco.sandman");
+        assertTrue(classes.contain(edu.kit.kastel.mcse.ardoco.sandman.tlr.lissa.LissaApproach.class));
         LANGCHAIN4J_ONLY_IN_ARDOCO_PACKAGE.check(classes);
     }
 

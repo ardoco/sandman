@@ -1,10 +1,12 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.BudgetExceededException;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Jcs;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.KgClient;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmAccess;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmClient;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.RunRecorder;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.RunRecorder.RunInfo;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Settings;
@@ -95,6 +97,8 @@ public class RecoverTraceLinks implements Skill {
         Set<String> changedSources = new TreeSet<>();
         Set<String> changedTargets = new TreeSet<>();
         List<String> unavailable = new ArrayList<>();
+        List<String> budget = new ArrayList<>();
+        List<String> invalid = new ArrayList<>();
         try {
             for (Approaches.Entry entry : selected) {
                 if (ctx.cancelled()) {
@@ -120,7 +124,9 @@ public class RecoverTraceLinks implements Skill {
                                 llmPolicy,
                                 changedSources,
                                 changedTargets,
-                                unavailable);
+                                unavailable,
+                                budget,
+                                invalid);
                         if (run != null) {
                             runs.add(run);
                         }
@@ -152,13 +158,21 @@ public class RecoverTraceLinks implements Skill {
                         llmPolicy,
                         changedSources,
                         changedTargets,
-                        unavailable);
+                        unavailable,
+                        budget,
+                        invalid);
                 if (run != null) {
                     runs.add(run);
                 }
             }
         } finally {
             selected.forEach(e -> e.approach().callFinished());
+        }
+        if (!budget.isEmpty()) { // the orchestrator blocks the workflow; the other approaches are finished
+            throw new SkillException("BUDGET_EXCEEDED", String.join("; ", budget), false);
+        }
+        if (!invalid.isEmpty()) {
+            throw new SkillException("INVALID_INPUT", String.join("; ", invalid), false);
         }
         if (!unavailable.isEmpty()) { // the other approaches are finished and their links written
             throw new SkillException("DEPENDENCY_UNAVAILABLE", String.join("; ", unavailable), true);
@@ -208,15 +222,27 @@ public class RecoverTraceLinks implements Skill {
             String llmPolicy,
             Set<String> changedSources,
             Set<String> changedTargets,
-            List<String> unavailable) {
+            List<String> unavailable,
+            List<String> budget,
+            List<String> invalid) {
         TraceLinkApproach approach = entry.approach();
         ObjectNode params =
                 Approaches.effective(entry.params(), input.path("params").path(approach.id()));
         ObjectNode hashed = params.deepCopy();
         String environment;
+        LlmAccess llm = null;
+        List<String> promptIds;
         try {
-            environment = approach.environment(
-                    new TlrContext(null, null, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params));
+            llm = approach.usesLlm() ? LlmAccess.forPolicy(settings, llmPolicy) : null;
+            var envCtx =
+                    new TlrContext(llm, null, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params);
+            environment = approach.environment(envCtx);
+            promptIds = approach.promptIds(envCtx);
+        } catch (LlmAccess.PolicyException
+                | Settings.ConfigException e) { // no configured model, so no configHash and no Run
+            LOG.error("approach {} violates the LLM policy", approach.id(), e);
+            invalid.add(approach.id() + ": " + e.getMessage());
+            return null;
         } catch (CancellationException e) {
             LOG.info("approach {} cancelled", approach.id());
             return null;
@@ -233,6 +259,10 @@ public class RecoverTraceLinks implements Skill {
         keyed.set("input", input);
         keyed.put("tool", approach.id());
         keyed.put("configHash", configHash);
+        if (!promptIds.isEmpty()) {
+            ArrayNode ids = keyed.putArray("promptIds");
+            promptIds.forEach(ids::add);
+        }
         String inputKey = Ids.sha256Hex(Jcs.canonicalize(keyed));
         recorder.cleanupStale(inputKey);
         String runId = recorder.start(new RunInfo(
@@ -241,24 +271,25 @@ public class RecoverTraceLinks implements Skill {
                 approach.id(),
                 approach.version(),
                 inputKey,
-                null,
+                llm != null ? llm.chatRoute() : null,
                 params.toString(),
                 configHash,
                 in.versions().stream().map(TlrInput.Version::id).toList(),
                 ctx.workflowId(),
                 ctx.taskId(),
                 ctx.actor() != null ? ctx.actor() : "service:" + ctx.caller(),
-                null));
+                null,
+                promptIds));
         ObjectNode run = JsonMapper.shared().createObjectNode();
         run.put("approach", approach.id());
         run.put("approachVersion", approach.version());
         run.put("runId", runId);
+        LlmClient client = llm != null ? new LlmClient(llm, runId) : null;
         try {
-            LlmAccess llm = approach.usesLlm() ? LlmAccess.forPolicy(settings, llmPolicy) : null;
             ArtifactStore artifacts =
                     settings.artifactStore() == null ? null : new ArtifactStore(settings.artifactStore());
             var tlrCtx = new TlrContext(
-                    llm, artifacts, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params);
+                    llm, artifacts, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params, client);
             Map<String, Map<String, Object>> links = new LinkedHashMap<>();
             for (CandidateLink c : approach.recover(in, tlrCtx)) {
                 String id =
@@ -281,30 +312,61 @@ public class RecoverTraceLinks implements Skill {
             } else {
                 store.finish(runId, in.projectId(), approach.id(), sourceIds, targetIds);
             }
+            if (client != null) {
+                recorder.complete(
+                        runId,
+                        "completed",
+                        client.inputTokens(),
+                        client.outputTokens(),
+                        client.resolvedModel(),
+                        client.mixedModels());
+            }
             run.put("status", "completed");
             run.put("linkCount", links.size());
         } catch (CancellationException e) { // the A2A layer reports the task as canceled and drops this summary
             LOG.info("approach {} cancelled", approach.id());
-            recorder.fail(runId, "cancelled"); // the KG Run status has no cancelled value
+            fail(recorder, runId, "cancelled", client); // the KG Run status has no cancelled value
             run.put("status", "cancelled");
             run.put("linkCount", 0);
         } catch (ApproachUnavailableException e) { // the skill fails retryable after the other approaches
             LOG.error("approach {} unavailable", approach.id(), e);
             String error = e.getClass().getSimpleName() + ": " + e.getMessage();
-            recorder.fail(runId, error);
+            fail(recorder, runId, error, client);
             unavailable.add(approach.id() + ": " + e.getMessage());
+            run.put("status", "failed");
+            run.put("linkCount", 0);
+            run.put("error", error);
+        } catch (BudgetExceededException e) { // the skill fails non-retryable after the other approaches
+            LOG.error("approach {} exceeded the LLM budget", approach.id(), e);
+            String error = "BUDGET_EXCEEDED: " + e.getMessage();
+            fail(recorder, runId, error, client);
+            budget.add(approach.id() + ": " + e.getMessage());
             run.put("status", "failed");
             run.put("linkCount", 0);
             run.put("error", error);
         } catch (RuntimeException e) { // isolates this approach; its links stay inactive
             LOG.error("approach {} failed", approach.id(), e);
             String error = e.getClass().getSimpleName() + ": " + e.getMessage();
-            recorder.fail(runId, error);
+            fail(recorder, runId, error, client);
             run.put("status", "failed");
             run.put("linkCount", 0);
             run.put("error", error);
         }
         return run;
+    }
+
+    private static void fail(RunRecorder recorder, String runId, String error, LlmClient client) {
+        if (client == null) {
+            recorder.fail(runId, error);
+        } else {
+            recorder.fail(
+                    runId,
+                    error,
+                    client.inputTokens(),
+                    client.outputTokens(),
+                    client.resolvedModel(),
+                    client.mixedModels());
+        }
     }
 
     /** All current versions of the kinds the approach supports; the requested version subset is ignored (R-022). */

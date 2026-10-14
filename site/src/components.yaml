@@ -158,8 +158,10 @@ components:
     details: >-
       It checks who you are (session or personal token), what role you have in a project, and then answers questions
       about the graph, lists findings, accepts uploads and lets you triage findings. Questions can be asked in
-      natural language (today five fixed question patterns, with LLM based translation to follow) or as database queries
-      that are always confined to one project. Without it nobody could use the results.
+      natural language or as database queries that are always confined to one project. A natural language question
+      can use one of several strategies: translation into a database query, a search by meaning over the element
+      texts, or a step by step exploration of the graph. You can pick a strategy, or let the service choose one and
+      show its choice. Today five fixed question patterns work; the strategies follow. Without it nobody could use the results.
     planned: M4
     flow: Receives requests from the front door, reads the knowledge graph, and forwards uploads and workflow commands to the agents.
   dashboard:

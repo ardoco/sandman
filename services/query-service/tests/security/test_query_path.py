@@ -13,6 +13,7 @@ from sandman_agent.llm import BudgetExceededError, ChatMessage, ChatRequest, Cha
 from sandman_query import nl as nl_module
 from sandman_query import query as query_module
 from sandman_query.guard import Checked
+from sandman_query.strategies import explore
 
 CORPUS = yaml.safe_load((Path(__file__).parent / "corpus.yaml").read_text())
 ANCHOR = "(n:Element {projectId: $projectId})"
@@ -40,8 +41,19 @@ class HostileLlm:
     async def chat(self, req: ChatRequest) -> ChatResponse:
         self.requests.append(req)
         cypher = self.payloads[(len(self.requests) - 1) % len(self.payloads)]
-        content = {"cypher": cypher, "explanation": MARKER, "answer": f"[[{self.cite}]]", "citations": [self.cite]}
+        content = {
+            "cypher": cypher,
+            "explanation": MARKER,
+            "tool": "find_elements",
+            "query": "a",
+            "projectId": "beta",
+            "answer": f"[[{self.cite}]]",
+            "citations": [self.cite],
+        }
         return ChatResponse(ChatMessage("assistant", json.dumps(content)), "stop", Usage(), "gw-model")
+
+    async def embed(self, model: str, texts: Any) -> list[list[float]]:
+        return [[1.0] + [0.0] * 767 for _ in texts]
 
 
 class FailingLlm:
@@ -68,6 +80,8 @@ def validation(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) 
 @pytest.fixture(params=["cypher", "graphrag", "explore"])
 def strategy(request: pytest.FixtureRequest, env: Env) -> str:
     nl = env.app.state.service.nl
+    if request.param == "explore":
+        explore.register(nl)  # until nl.py registers it (T4.6 report)
     if request.param not in nl.strategies:
         pytest.skip(f"strategy {request.param} not implemented (T4.5/T4.6)")
     nl.config.setdefault(request.param, {})["enabled"] = True

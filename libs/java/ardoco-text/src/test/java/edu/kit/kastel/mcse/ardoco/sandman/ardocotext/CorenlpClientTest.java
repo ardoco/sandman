@@ -30,6 +30,7 @@ class CorenlpClientTest {
     private HttpServer server;
     private final List<Seen> seen = Collections.synchronizedList(new ArrayList<>());
     private volatile Function<Seen, Reply> handler;
+    private final List<String> upgrades = Collections.synchronizedList(new ArrayList<>());
 
     @BeforeEach
     void start() throws IOException {
@@ -52,6 +53,7 @@ class CorenlpClientTest {
                 ex.getRequestHeaders().getFirst("Authorization"),
                 new String(ex.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
         seen.add(s);
+        upgrades.add(String.valueOf(ex.getRequestHeaders().getFirst("Upgrade")));
         Reply r = handler.apply(s);
         byte[] bytes = r.body().getBytes(StandardCharsets.UTF_8);
         ex.sendResponseHeaders(r.status(), bytes.length);
@@ -96,6 +98,15 @@ class CorenlpClientTest {
     }
 
     private static final List<String> LINES = List.of("Alpha", "Beta", "Gamma");
+
+    @Test
+    void requestsDoNotOfferAnH2cUpgrade() {
+        handler = s -> s.path().endsWith("/version") ? new Reply(404, "{}") : new Reply(200, answer("Alpha"));
+        var client = client(CorenlpClient.Eolonly.AUTO, 0);
+        client.annotate(List.of("Alpha"), client.provider(() -> false), () -> false);
+        assertFalse(upgrades.isEmpty());
+        assertTrue(upgrades.stream().allMatch("null"::equals));
+    }
 
     @Test
     void serviceWithoutVersionEndpointGetsTheInterimBlankLineSplit() {

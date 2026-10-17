@@ -61,6 +61,7 @@ public class CorenlpClient {
         this.eolonly = eolonly;
         this.backoff = backoff;
         this.http = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();

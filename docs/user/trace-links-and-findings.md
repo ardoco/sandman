@@ -21,7 +21,18 @@ Status values are `candidate`, `confirmed` and `rejected`. Every link is `candid
 
 ## Findings
 
-A finding is a potential inconsistency reported by a detector. Today there is one detector, `stub-untraced`: type `untraced-requirement`, severity `warning`, title `Requirement without trace link: <requirement name>`, for each current requirement that has no active, non-rejected link to another current element. In the mini example after `s1`, REQ-2 and REQ-3 are reported.
+A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`.
+
+The detector `ardoco-id` runs the ArDoCo inconsistency detection on each current document and architecture model (PCM or UML). It uses the active trace links of all approaches. It reports two types:
+
+| Type | Severity | Meaning |
+|---|---|---|
+| `undocumented-model-element` | `warning` | A model component has no mention in the documentation. The involved element is the model element. |
+| `missing-model-element` | `info` | A sentence names an entity that is not in the model. One finding per sentence. The evidence lists the words with their confidence. |
+
+The detector needs the CoreNLP service. If the service is down, the run is `partial` and the detector reports `failed`. No `ardoco-id` finding resolves in that run.
+
+The detector `stub-untraced` reports type `untraced-requirement`, severity `warning`, title `Requirement without trace link: <requirement name>`, for each current requirement that has no active, non-rejected link to another current element. In the mini example after `s1`, REQ-2 and REQ-3 are reported.
 
 ### Console
 

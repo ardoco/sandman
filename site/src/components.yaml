@@ -211,8 +211,9 @@ components:
     details: >-
       It runs detectors over the elements and trace links and stores each finding in the graph. People then set
       a status (open, accepted, false positive, resolved), and the agent keeps this history when a later version
-      of the project shows the same problem again. Today only a demo detector is active (requirement without any
-      trace link). Detectors from ArDoCo and further plugin detectors follow.
+      of the project shows the same problem again. Today a demo detector (requirement without any trace link) and
+      the ArDoCo detector are active. The ArDoCo detector reports model components that the documentation does
+      not mention and sentences that name entities missing in the model. Further detectors follow.
     planned: M3
     flow: Starts after trace link recovery, reads elements and links, calls detector plugins, and writes findings to the graph.
   orchestrator:
@@ -353,6 +354,14 @@ components:
     details: >-
       Trace link and inconsistency agents are written in Java so they can reuse the Java research code of
       ArDoCo and LiSSA directly. This library gives them the shared basics.
+    flow: Included in the Java services at build time. It is not a running service.
+  ardoco-text:
+    zone: libs
+    title: ArDoCo text support
+    summary: Shared code that prepares document text for ArDoCo.
+    details: >-
+      It cuts a document into one sentence per line and sends the text to the CoreNLP service for language
+      analysis. The trace link agent and the inconsistency agent both use it, so both give ArDoCo the same input.
     flow: Included in the Java services at build time. It is not a running service.
   agent-lib-a2a:
     zone: libs

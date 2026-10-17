@@ -46,7 +46,7 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 |---|---|---|
 | Extraction | Markdown, plain text, requirements (Markdown/CSV), PCM repository, UML/XMI, file-level elements for everything else, optional LLM enrichment (summaries and concepts of requirements and document sections) | PDF and DOCX (T1.4) |
 | Trace links | `explicit-reference` (built in), `stub-name-match` (token overlap, for pipeline checks), `ardoco` (document to model), `ardocode` (document to code) | further approaches such as LiSSA (disabled in `config/tlr/approaches.yaml`) |
-| Findings | `stub-untraced` (requirement without active link) | further detectors |
+| Findings | `stub-untraced` (requirement without active link), `ardoco-id` (model elements missing in the documentation, sentences with entities missing in the model) | LLM-based detection (T3.2) |
 | Natural language questions | five fixed question patterns, no LLM | LLM-based translation |
 | Web UI | console (projects, findings, upload, workflows, ask, tokens, administration) | dashboard for admins (T1.9) |
 

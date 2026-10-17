@@ -366,3 +366,8 @@ async def test_administration(env: Env) -> None:
         await post(env, "/console/admin/users", csrf2, username="evil", password="long-enough-pw")
     ).status_code == 403
     assert env.store.get_user("evil") is None
+
+
+async def test_static_console_css_is_served(env: Env) -> None:
+    assert (await env.http.get("/static/console.css")).status_code == 200
+    assert 'class="auth card"' in (await env.http.get("/console/login")).text

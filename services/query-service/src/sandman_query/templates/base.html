@@ -11,9 +11,11 @@
 <header>
   <strong>SANDMAN</strong>
   {% if user %}
+  <nav>
   <a href="/console/projects">Projects</a>
   <a href="/console/tokens">Tokens</a>
   {% if is_admin %}<a href="/console/admin">Administration</a>{% endif %}
+  </nav>
   <form method="post" action="/console/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><span>{{ user }}</span> <button>Log out</button></form>
   {% endif %}
 </header>

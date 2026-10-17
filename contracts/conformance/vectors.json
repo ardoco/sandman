@@ -1,5 +1,5 @@
 {
-  "description": "Language-neutral conformance vectors. Both agent libraries must reproduce every 'expected*' value; groups a library does not know yet (inputKey, actionKey, ingestionId, traceLinkId, evidenceHash) are verified by scripts/validate_contracts.py and implemented with the code tasks (T1.13). Contract version 0.8.0.",
+  "description": "Language-neutral conformance vectors. Both agent libraries must reproduce every 'expected*' value; groups a library does not know yet (inputKey, actionKey, ingestionId, traceLinkId, evidenceHash) are verified by scripts/validate_contracts.py and implemented with the code tasks (T1.13). Contract version 0.9.0.",
   "stableId": {
     "rule": "prefix + '_' + first 32 hex chars of sha256(UTF-8(parts joined by U+001F))",
     "cases": [

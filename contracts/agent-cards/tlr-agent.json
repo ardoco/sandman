@@ -1,7 +1,7 @@
 {
   "name": "sandman-tlr-agent",
   "description": "Recovers trace links between artifact versions using pluggable approaches (e.g. ArDoCo, LiSSA). Approach catalog: REST GET /v1/approaches.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "supportedInterfaces": [
     {
       "url": "http://tlr-agent:8080/a2a",
@@ -23,9 +23,7 @@
             "recover-trace-links": {
               "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/RecoverTraceLinksInput",
               "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/RecoverTraceLinksOutput"
-            }
-          },
-          "plannedSkills": {
+            },
             "prune-trace-links": {
               "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneTraceLinksInput",
               "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneTraceLinksOutput"

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/orchestrator-rules.schema.json",
   "title": "config/orchestrator/rules.yaml",
-  "description": "Orchestrator rule configuration; the rules themselves are fixed in code. Contract version 0.8.0.",
+  "description": "Orchestrator rule configuration; the rules themselves are fixed in code. Contract version 0.9.0.",
   "type": "object",
   "properties": {
     "debounceSeconds": {
@@ -72,6 +72,50 @@
                 "items": {
                   "type": "string"
                 }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "retention": {
+      "type": "object",
+      "description": "Scheduled prune workflows (T5.2). Defaults: enabled, dryRun true, 24h, 20 versions per artifact.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "interval": {
+          "$ref": "#/$defs/duration"
+        },
+        "keepVersionsPerArtifact": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dryRun": {
+          "type": "boolean"
+        },
+        "experimentsDir": {
+          "type": "string",
+          "description": "Directory with experiments/<name>/experiment.yaml; its snapshot content hashes protect versions."
+        },
+        "projects": {
+          "type": "object",
+          "description": "Project id -> overrides.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "keepVersionsPerArtifact": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "dryRun": {
+                "type": "boolean"
               }
             },
             "additionalProperties": false

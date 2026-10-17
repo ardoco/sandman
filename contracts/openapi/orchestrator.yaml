@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN orchestrator API
-  version: 0.8.0
+  version: 0.9.0
   description: |
     Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
     The query-service forwards in M0 only list/create/get workflows; cancel, retry, dead-event listing and replay are
@@ -58,8 +58,8 @@ paths:
               required: [type, projectId]
               properties:
                 type:
-                  enum: [full, extract, tlr, detect]
-                  description: full = extract all current versions, then tlr, then detect.
+                  enum: [full, extract, tlr, detect, prune]
+                  description: full = extract all current versions, then tlr, then detect. prune = prune-trace-links, then prune-artifact-data (T5.2); params may carry keepVersionsPerArtifact and dryRun.
                 projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
                 params:
                   type: object

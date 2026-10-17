@@ -101,7 +101,7 @@ class SkillContext:
     _last_progress: float = field(default=float("-inf"), repr=False)
 
     async def progress(self, text: str) -> None:
-        """Report the current activity as a TASK_STATE_WORKING status message; at most one per 2 s, others are dropped."""
+        """Report the current activity as TASK_STATE_WORKING status message; at most one per 2 s."""
         now = time.monotonic()
         if now - self._last_progress < ACTIVITY_INTERVAL:
             return

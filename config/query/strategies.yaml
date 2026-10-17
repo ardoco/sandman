@@ -1,6 +1,6 @@
 # Query strategies of POST /v1/query/nl (ADR-0018; schema: contracts/config/query-strategies.schema.json).
 # A disabled or not yet implemented strategy answers 501. `auto` considers enabled strategies only.
-classifierThreshold: 0.6
+classifierThreshold: 0.6   # `auto`: classifier confidence below this uses cypher (T4.7)
 strategies:
   cypher:
     enabled: true

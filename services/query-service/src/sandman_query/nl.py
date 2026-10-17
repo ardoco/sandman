@@ -24,6 +24,8 @@ from sandman_query.auth import Principal
 from sandman_query.guard import GuardError, check
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
+from sandman_query.strategies.auto import candidates
+from sandman_query.strategies.auto import register as register_auto
 from sandman_query.strategies.explore import register as register_explore
 from sandman_query.strategies.graphrag import DEFAULTS as GRAPHRAG_DEFAULTS
 from sandman_query.strategies.graphrag import graphrag
@@ -78,6 +80,7 @@ class NlService:
         path = config_dir / "query" / "strategies.yaml"
         raw = contracts.load_config("query-strategies", path) if path.is_file() else {}
         configured = raw.get("strategies", {})
+        self.threshold: float = raw.get("classifierThreshold", 0.6)
         self.config: dict[str, dict[str, Any]] = {
             **configured,
             "cypher": {**DEFAULTS["cypher"], **configured.get("cypher", {})},
@@ -101,18 +104,20 @@ class NlService:
         self.strategies: dict[str, Callable[..., Awaitable[dict[str, Any]]]] = {"cypher": self.cypher}
         self.strategies["graphrag"] = self.graphrag
         register_explore(self)
+        register_auto(self)
 
     def enabled(self, strategy: str) -> bool:
+        if strategy == "auto":
+            return bool(candidates(self))
         return bool(self.config.get(strategy, {}).get("enabled")) and strategy in self.strategies
 
     async def answer(
         self, who: Principal, project: str, question: str, strategy: str, mode: str, execute: bool
     ) -> dict[str, Any]:
-        """Resolve the strategy (auto: cypher until the classifier of T4.7 exists) and run it; 501 if unavailable."""
-        resolved = "cypher" if strategy == "auto" else strategy
-        if not self.enabled(resolved):
-            raise HTTPException(501, f"strategy {resolved} is not enabled or not implemented (ADR-0018)")
-        result = await self.strategies[resolved](who, project, question, mode, execute)
+        """Run the strategy (auto classifies first, T4.7); 501 if it is not enabled or not implemented."""
+        if not self.enabled(strategy):
+            raise HTTPException(501, f"strategy {strategy} is not enabled or not implemented (ADR-0018)")
+        result = await self.strategies[strategy](who, project, question, mode, execute)
         if mode == "answer" and execute and result.get("rows") and self.can_call_llm():
             client, route = await self.llm(project)
             synthesized, model, warning = await synthesize(client, route, project, question, result)

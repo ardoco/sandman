@@ -403,3 +403,29 @@ async def test_ask_strategy_answer_citations_and_escaping(env: Env) -> None:
     assert bad.status_code == 400
     missing = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="explore")
     assert missing.status_code == 501
+
+
+async def test_ask_auto_shows_classification_badge_with_escaped_reason(env: Env) -> None:
+    csrf = await logged_in(env, "vic", {"alpha": "viewer"})
+    nl = env.app.state.service.nl
+    nl.config["graphrag"]["enabled"] = True
+    evil = "<script>alert(1)</script>"
+
+    async def stub(who: Any, project: str, question: str, mode: str, execute: bool) -> dict[str, Any]:
+        return {
+            "columns": [],
+            "rows": [],
+            "truncated": False,
+            "elapsedMs": 0,
+            "strategy": "graphrag",
+            "attempts": [],
+            "warnings": [],
+        }
+
+    nl.strategies["graphrag"] = stub
+    verdict = json.dumps({"strategy": "graphrag", "confidence": 0.9, "reason": evil})
+    client = ScriptedLlmClient([ChatResponse(ChatMessage("assistant", verdict), "stop", Usage(), "gw")])
+    nl.llm_factory = lambda policy: client
+    resp = await post(env, "/console/projects/alpha/ask", csrf, question="where is payment handled", strategy="auto")
+    assert resp.status_code == 200 and "classified graphrag, confidence 0.9" in resp.text
+    assert evil not in resp.text and "&lt;script&gt;" in resp.text

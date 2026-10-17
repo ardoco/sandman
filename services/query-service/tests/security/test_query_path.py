@@ -76,12 +76,13 @@ def validation(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) 
     return str(request.param)
 
 
-@pytest.fixture(params=["cypher", "graphrag", "explore"])
+@pytest.fixture(params=["cypher", "graphrag", "explore", "auto"])
 def strategy(request: pytest.FixtureRequest, env: Env) -> str:
     nl = env.app.state.service.nl
     if request.param not in nl.strategies:
-        pytest.skip(f"strategy {request.param} not implemented (T4.5/T4.6)")
-    nl.config.setdefault(request.param, {})["enabled"] = True
+        pytest.skip(f"strategy {request.param} not implemented (T4.5/T4.6/T4.7)")
+    for name in ("graphrag", "explore") if request.param == "auto" else (request.param,):
+        nl.config.setdefault(name, {})["enabled"] = True  # auto: all enabled, so the classifier runs
     return str(request.param)
 
 
@@ -162,7 +163,7 @@ async def test_foreign_node_without_project_id_is_not_detected(env: Env, alice: 
     assert MARKER not in resp.text
 
 
-@pytest.mark.parametrize("strategy_name", ["cypher", "graphrag", "explore"])
+@pytest.mark.parametrize("strategy_name", ["cypher", "graphrag", "explore", "auto"])
 async def test_role_check_runs_before_strategy_availability(env: Env, strategy_name: str) -> None:
     env.user("alice", {"alpha": "viewer"})
     env.user("mallory")

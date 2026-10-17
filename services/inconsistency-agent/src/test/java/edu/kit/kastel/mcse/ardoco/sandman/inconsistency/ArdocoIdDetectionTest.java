@@ -157,10 +157,8 @@ class ArdocoIdDetectionTest {
 
     @Test
     void reportsUndocumentedAndMissingFindings() throws Exception {
-        var r = detect(service(", params: { linkApproaches: [] }"));
-        System.out.println(r.output());
+        detect(service(", params: { linkApproaches: [] }"));
         var items = items();
-        items.forEach((id, v) -> System.out.println("ITEM " + v));
         assertFalse(items.isEmpty());
         assertTrue(items.values().stream().anyMatch(v -> v.startsWith("undocumented-model-element|OPEN|")));
         assertTrue(items.values().stream().anyMatch(v -> v.startsWith("missing-model-element|OPEN|")));
@@ -246,6 +244,50 @@ class ArdocoIdDetectionTest {
     }
 
     @Test
+    void everyFindingInvolvesACurrentElementAndHasItsOwnFingerprint() throws Exception {
+        detect(service(", params: { linkApproaches: [] }"));
+        var rows = kg.read(
+                "MATCH (i:Inconsistency) "
+                        + "OPTIONAL MATCH (i)-[:INVOLVES]->(e:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)"
+                        + "<-[:CURRENT_VERSION]-(:Artifact) "
+                        + "RETURN i.id AS id, i.fingerprint AS fp, count(e) AS involved",
+                Map.of());
+        assertFalse(rows.isEmpty());
+        var fingerprints = new java.util.HashSet<Object>();
+        for (var r : rows) {
+            assertTrue(((Number) r.get("involved")).intValue() >= 1, "finding without a current involved element");
+            assertTrue(fingerprints.add(r.get("fp")), "duplicate fingerprint " + r.get("fp"));
+        }
+        assertEquals(items().size(), fingerprints.size());
+    }
+
+    @Test
+    void documentationOnlyChangeAutoResolvesTheFinding() throws Exception {
+        var s = service(", params: { linkApproaches: [ardoco] }");
+        detect(s);
+        var before = itemsWith("undocumented-model-element", "OPEN", items());
+        String[] added = {
+            "The Packaging component packs the media files of a download.",
+            "The Packaging component is called by the Facade component.",
+            "The Reencoding component converts the audio files of a download.",
+            "The Reencoding component is called by the Facade component."
+        };
+        for (int i = 0; i < added.length; i++) {
+            sentence(
+                    "sec:/" + edu.kit.kastel.mcse.ardoco.sandman.ardocotext.SentenceRendering.hash(added[i]),
+                    added[i],
+                    1000 + i);
+        }
+        linkByName("ardoco");
+        var r = detect(s);
+        var all = items();
+        assertTrue(r.output().get("autoResolvedIds").size() >= 1);
+        assertTrue(before.contains("Undocumented model element: Packaging"));
+        assertTrue(itemsWith("undocumented-model-element", "RESOLVED", all)
+                .contains("Undocumented model element: Packaging"));
+    }
+
+    @Test
     void coreNlpOutageFailsTheDetectorWithoutResolvingAnything() throws Exception {
         var s = service(", params: { linkApproaches: [] }");
         detect(s);
@@ -254,7 +296,6 @@ class ArdocoIdDetectionTest {
         System.setProperty("SANDMAN_CORENLP_URL", "http://127.0.0.1:9");
         try {
             var r = detect(s);
-            System.out.println(r.output());
             assertEquals("partial", r.output().get("status").asString());
             assertEquals(
                     "failed",

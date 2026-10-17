@@ -117,6 +117,41 @@ class TlrLinksEquivalenceTest {
         assertTrue(actual.textFindings().containsAll(expected.textFindings()), "no standalone text finding is lost");
     }
 
+    @ParameterizedTest
+    @CsvSource({"pcm/ms.repository, PCM, ms.repository", "uml/ms.uml, UML, ms.uml"})
+    void mediaStoreRawCounts(String model, ModelFormat format, String name) throws Exception {
+        Path raw = FIXTURES.resolve("mediastore/mediastore.txt");
+        Path modelFile = FIXTURES.resolve("mediastore").resolve(model);
+        List<String> lines = lines(GOLDEN.resolve("mediastore/mediastore.txt.json"));
+        var corenlp = CorenlpClient.fromEnv();
+        Text rawAnnotated = CorenlpClient.convert(corenlp.request(Files.readString(raw), false, () -> false));
+        Text rendered = CorenlpClient.convert(corenlp.request(SentenceRendering.text(lines), true, () -> false));
+        var standalone = IdRunner.standalone(rawAnnotated, raw, modelFile, format, tmp);
+        var own = IdRunner.extract(IdRunner.inconsistencies(standalone));
+        var sentences17 = List.of(1, 9, 12, 13, 20, 22, 23, 24, 25, 27, 28, 29, 31, 32, 33, 34, 35);
+        assertEquals(6, own.models().size());
+        assertEquals(36, own.words().size());
+        assertEquals(sentences17, sentences(own));
+
+        var selfLinks = IdRunner.extract(IdRunner.run(rendered, modelFile, format, IdRunner.selfLinks(standalone)));
+        assertEquals(6, selfLinks.models().size());
+        assertEquals(36, selfLinks.words().size());
+        assertEquals(sentences17, sentences(selfLinks));
+
+        var tlr = IdRunner.extract(
+                IdRunner.run(rendered, modelFile, format, readLinks(LINKS.resolve("mediastore-" + name + ".csv"))));
+        assertEquals(6, tlr.models().size());
+        assertEquals(38, tlr.words().size(), "T3.3 deviation: release TLR links fewer pairs than the ID branch");
+        var expectedTlr = new ArrayList<>(sentences17);
+        expectedTlr.add(37);
+        assertEquals(expectedTlr, sentences(tlr));
+    }
+
+    private static List<Integer> sentences(Mapping.Raw raw) {
+        return new TreeSet<>(raw.words().stream().map(Mapping.WordHit::sentence).toList())
+                .stream().toList();
+    }
+
     private static List<String> lines(Path golden) throws IOException {
         JsonNode root = JsonMapper.shared().readTree(Files.readString(golden));
         var sentences = new ArrayList<JsonNode>();

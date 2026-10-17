@@ -117,10 +117,34 @@ def ingest(http: httpx.Client, args: argparse.Namespace) -> int:
     return 0
 
 
+def _transitions(wf: dict[str, Any], seen: dict[str, str], started: float) -> None:
+    steps = wf.get("steps", [])
+    for i, st in enumerate(steps, 1):
+        state = (
+            f"{st['status']} attempt {st['attempts']}"
+            if st["status"] in ("RUNNING", "PENDING") and st["attempts"]
+            else st["status"]
+        )
+        if seen.get(st["id"]) != state and (state != "PENDING" or st["id"] in seen):
+            print(
+                f"[{time.monotonic() - started:5.0f}s] step {i}/{len(steps)} {st['skill']} ({st['agent']}): {state}",
+                file=sys.stderr,
+            )
+        seen[st["id"]] = state
+    if seen.get("") != wf["status"]:
+        print(f"[{time.monotonic() - started:5.0f}s] workflow {wf['status']}", file=sys.stderr)
+        seen[""] = wf["status"]
+
+
 def workflows(http: httpx.Client, args: argparse.Namespace) -> int:
     if args.wait:
-        deadline = time.monotonic() + args.timeout
-        while (wf := _ok(http.get(f"/v1/workflows/{args.wait}")).json())["status"] not in DONE:
+        started = time.monotonic()
+        deadline, seen = started + args.timeout, {}
+        while True:
+            wf = _ok(http.get(f"/v1/workflows/{args.wait}")).json()
+            _transitions(wf, seen, started)
+            if wf["status"] in DONE:
+                break
             if time.monotonic() > deadline:
                 raise SystemExit(f"sandman: timeout waiting for {args.wait} (status {wf['status']})")
             time.sleep(args.poll)

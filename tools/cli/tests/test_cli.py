@@ -152,3 +152,30 @@ def test_scan_skips_symlinks(tmp_path: Path) -> None:
     (root / "a.md").write_text("x")
     (root / "link.txt").symlink_to(outside)
     assert list(scan(root)) == ["a.md"]
+
+
+def test_workflows_wait_reports_step_transitions_on_stderr(capsys: pytest.CaptureFixture[str]) -> None:
+    def wf(status: str, *steps: tuple[str, int]) -> dict[str, Any]:
+        return {"id": WF, "status": status, "steps": [
+            {"id": f"s{i}", "agent": "a", "skill": k, "status": st, "attempts": int(st != "PENDING")} for i, (k, st) in enumerate(steps)
+        ]}  # fmt: skip
+
+    states = iter([
+        wf("PENDING", ("extract", "PENDING"), ("tlr", "PENDING")),
+        wf("RUNNING", ("extract", "RUNNING"), ("tlr", "PENDING")),
+        wf("RUNNING", ("extract", "RUNNING"), ("tlr", "PENDING")),
+        wf("SUCCEEDED", ("extract", "SUCCEEDED"), ("tlr", "SUCCEEDED")),
+    ])  # fmt: skip
+    routes = {f"/v1/workflows/{WF}": lambda r: httpx.Response(200, json=next(states))}
+    assert main(["workflows", "--project", "mini", "--wait", WF, "--poll", "0"], server([], [], routes)) == 0
+    out, err = capsys.readouterr()
+    lines = [line.split("] ", 1)[1] for line in err.splitlines()]
+    assert lines == [
+        "workflow PENDING",
+        "step 1/2 extract (a): RUNNING attempt 1",
+        "workflow RUNNING",
+        "step 1/2 extract (a): SUCCEEDED",
+        "step 2/2 tlr (a): SUCCEEDED",
+        "workflow SUCCEEDED",
+    ]
+    assert json.loads(out)["status"] == "SUCCEEDED"

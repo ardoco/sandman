@@ -12,7 +12,9 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -96,6 +98,18 @@ def snapshot_hashes(uri: str, project: str) -> dict[str, Any]:
     return {"project": project, "snapshotHash": digest, "artifacts": artifacts}
 
 
+def evaluation(root: Path, gold: Sequence[Path]) -> dict[str, Any]:
+    """experiments/PROTOCOL.md hash and version, plus sha256 of every gold standard file."""
+    protocol = root / "experiments" / "PROTOCOL.md"
+    text = protocol.read_text(encoding="utf-8")
+    version = re.search(r"^Version: (\d+)", text, re.MULTILINE)
+    return {
+        "protocolSha256": sha256_file(protocol),
+        "protocolVersion": int(version.group(1)) if version else None,
+        "gold": {str(g): sha256_file(g) for g in gold},
+    }
+
+
 def build(
     root: Path,
     name: str,
@@ -104,6 +118,7 @@ def build(
     dirty: bool,
     images: dict[str, Any],
     snapshot: dict[str, Any],
+    gold: Sequence[Path] = (),
 ) -> dict[str, Any]:
     """The manifest document."""
     routes = yaml.safe_load((root / "config/llm/models.yaml").read_text())["routes"]
@@ -116,6 +131,7 @@ def build(
         "snapshot": snapshot,
         "llmMode": llm_mode,
         "seeds": seeds(root),
+        "evaluation": evaluation(root, gold),
     }
 
 
@@ -133,12 +149,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--project", required=True)
     ap.add_argument("--llm-mode", default=os.environ.get("SANDMAN_LLM_MODE"), choices=["live", "record", "replay"])
     ap.add_argument("--uri", default="bolt://127.0.0.1:7687")
+    ap.add_argument("--gold", type=Path, action="append", default=[], help="gold standard file (repeatable)")
     args = ap.parse_args(argv)
     if not args.llm_mode:
         ap.error("--llm-mode or SANDMAN_LLM_MODE required")
     commit, dirty = git_state(ROOT)
     manifest = build(
-        ROOT, args.name, args.llm_mode, commit, dirty, docker_images(), snapshot_hashes(args.uri, args.project)
+        ROOT,
+        args.name,
+        args.llm_mode,
+        commit,
+        dirty,
+        docker_images(),
+        snapshot_hashes(args.uri, args.project),
+        args.gold,
     )
     print(write(ROOT, manifest))
     return 0

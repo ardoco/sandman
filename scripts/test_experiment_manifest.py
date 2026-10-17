@@ -14,18 +14,36 @@ def fixture(tmp: Path) -> None:
     (tmp / "config/llm/models.yaml").write_text("routes:\n  chat-local: ollama/qwen3:1.7b\n")
     (tmp / "config/extraction/enrichment.yaml").write_text("llm:\n  seed: 42\n")
     (tmp / "deploy/gateway/config.json").write_text("{}")
+    (tmp / "experiments").mkdir()
+    (tmp / "experiments/PROTOCOL.md").write_text("# P\n\nVersion: 3 · Date: x\n")
 
 
 def test_manifest_has_every_section_and_hashes(tmp_path: Path) -> None:
     fixture(tmp_path)
     images = {"memgraph": {"image": "memgraph/memgraph:3.13.1", "id": "sha256:x", "repoDigests": ["m@sha256:y"]}}
     snapshot = {"project": "p", "snapshotHash": "h", "artifacts": {"a.md": "c"}}
-    m = build(tmp_path, "exp", "replay", "abc123", True, images, snapshot)
+    gold = tmp_path / "gold.csv"
+    gold.write_text("a,b\n")
+    m = build(tmp_path, "exp", "replay", "abc123", True, images, snapshot, [gold])
     path = write(tmp_path, m)
     assert path == tmp_path / "experiments/exp/experiment.yaml"
     loaded = yaml.safe_load(path.read_text())
     assert loaded == m
-    assert set(loaded) == {"experiment", "git", "images", "configFiles", "routes", "snapshot", "llmMode", "seeds"}
+    assert set(loaded) == {
+        "experiment",
+        "git",
+        "images",
+        "configFiles",
+        "routes",
+        "snapshot",
+        "llmMode",
+        "seeds",
+        "evaluation",
+    }
+    ev = loaded["evaluation"]
+    assert ev["protocolVersion"] == 3
+    assert ev["protocolSha256"] == hashlib.sha256((tmp_path / "experiments/PROTOCOL.md").read_bytes()).hexdigest()
+    assert ev["gold"] == {str(gold): hashlib.sha256(b"a,b\n").hexdigest()}
     assert loaded["git"] == {"commit": "abc123", "dirty": True}
     assert loaded["routes"] == {"chat-local": "ollama/qwen3:1.7b"}
     assert loaded["seeds"] == {"config/extraction/enrichment.yaml:llm.seed": 42}

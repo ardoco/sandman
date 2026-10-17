@@ -10,6 +10,8 @@ from typing import Any
 import httpx
 from conftest import ADMIN_PASSWORD, Env
 from helpers import INC_ID, TS
+from sandman_agent.llm import ChatMessage, ChatResponse, Usage
+from sandman_agent.testing import ScriptedLlmClient
 
 
 def csrf_of(html: str) -> str:
@@ -371,3 +373,33 @@ async def test_administration(env: Env) -> None:
 async def test_static_console_css_is_served(env: Env) -> None:
     assert (await env.http.get("/static/console.css")).status_code == 200
     assert 'class="auth card"' in (await env.http.get("/console/login")).text
+
+
+async def test_ask_strategy_answer_citations_and_escaping(env: Env) -> None:
+    csrf = await logged_in(env, "vic", {"alpha": "viewer"})
+    inc = "inc_" + "a" * 32
+    evil = "<script>alert(1)</script>"
+    env.reader.result = (["key", "name"], [["a#R1", evil], [inc, "x"]])
+
+    def msg(**d: Any) -> ChatResponse:
+        return ChatResponse(ChatMessage("assistant", json.dumps(d)), "stop", Usage(), "gw")
+
+    client = ScriptedLlmClient(
+        [
+            msg(
+                cypher="MATCH (r:Requirement {projectId: $projectId}) RETURN r.key AS key, r.name AS name",
+                explanation="",
+            ),
+            msg(answer=f"See [[a#R1]], [[{inc}]] {evil}", citations=["a#R1", inc]),
+        ]
+    )
+    env.app.state.service.nl.llm_factory = lambda policy: client
+    resp = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="cypher")
+    assert resp.status_code == 200 and '<option value="graphrag"' in resp.text
+    assert 'href="#row-0"' in resp.text and f'href="/console/inconsistencies/{inc}"' in resp.text
+    assert 'id="row-1"' in resp.text and "badge info" in resp.text and ">cypher<" in resp.text
+    assert evil not in resp.text and "&lt;script&gt;" in resp.text
+    bad = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="magic")
+    assert bad.status_code == 400
+    missing = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="explore")
+    assert missing.status_code == 501

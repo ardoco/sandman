@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import io
 import json
+import re
 import secrets
 import stat
 import tarfile
@@ -22,6 +23,7 @@ from starlette.exceptions import HTTPException
 from sandman_query.auth import LEVEL, Principal
 from sandman_query.service import Service, WorkflowBody, new_token, valid_project, valid_username
 from sandman_query.store import Exists
+from sandman_query.synthesis import MARKER
 
 TEMPLATES = jinja2.Environment(
     loader=jinja2.FileSystemLoader(Path(__file__).parent / "templates"),
@@ -59,6 +61,24 @@ def parse(resp: Response) -> Any:
             resp.status_code, (data or {}).get("detail") or (data or {}).get("title") or "request failed"
         )
     return data
+
+
+STRATEGIES = ("auto", "cypher", "graphrag", "explore")
+INCONSISTENCY_ID = re.compile(r"^inc_[0-9a-f]{32}$")
+
+
+def answer_parts(answer: str, rows: list[list[str]]) -> list[tuple[str, str | None]]:
+    """(text, link) pairs; link is set for the [[id]] citations (finding page or evidence row), text is autoescaped."""
+    parts: list[tuple[str, str | None]] = []
+    last = 0
+    for m in MARKER.finditer(answer):
+        parts.append((answer[last : m.start()], None))
+        ident = m.group(1)
+        row = next((i for i, r in enumerate(rows) if ident in r), None)
+        link = f"/console/inconsistencies/{ident}" if INCONSISTENCY_ID.match(ident) else None
+        parts.append((ident, link or (f"#row-{row}" if row is not None else None)))
+        last = m.end()
+    return [*parts, (answer[last:], None)]
 
 
 def cell(value: Any) -> str:
@@ -353,21 +373,27 @@ def build_router(svc: Service) -> APIRouter:
     async def ask_page(project: str, ctx: Ctx = Session) -> HTMLResponse:
         readable(ctx, "queryNl", project)
         return render(
-            ctx, "ask.html", project=project, question="", result=None, intents=", ".join(svc.intents.supported())
-        )
+            ctx, "ask.html", project=project, question="", strategy="auto", strategies=STRATEGIES, result=None,
+            intents=", ".join(svc.intents.supported()),
+        )  # fmt: skip
 
     @router.post("/projects/{project}/ask")
     async def ask(project: str, request: Request, ctx: Ctx = Session) -> HTMLResponse:
         readable(ctx, "queryNl", project)
         data = await form(request, ctx)
         question = text(data, "question")
-        base = {"project": project, "question": question, "intents": ", ".join(svc.intents.supported())}
+        strategy = text(data, "strategy") or "auto"
+        base = {"project": project, "question": question, "strategy": strategy, "strategies": STRATEGIES,
+                "intents": ", ".join(svc.intents.supported())}  # fmt: skip
         try:
-            result = await svc.nl.answer(ctx.who, project, question, "auto", "answer", True)
+            if strategy not in STRATEGIES:
+                raise HTTPException(400, "unknown strategy")
+            result = await svc.nl.answer(ctx.who, project, question, strategy, "answer", True)
         except HTTPException as e:
             return render(ctx, "ask.html", e.status_code, result=None, message=str(e.detail), error=True, **base)
         rows = [[cell(v) for v in row] for row in result["rows"]]
-        return render(ctx, "ask.html", result=result, rows=rows, **base)
+        parts = answer_parts(result["answer"], rows) if result.get("answer") else []
+        return render(ctx, "ask.html", result=result, rows=rows, parts=parts, **base)
 
     # ----------------------------------------------------------- workflows
 

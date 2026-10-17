@@ -14,7 +14,7 @@ All queries are read-only and confined to one project. Any project role (`viewer
 | `components without documentation` | model components with no active `documents` link. The only approach today (`stub-name-match`) creates `relates` links, so this lists all components |
 | `what changed since <revision>` | versions activated by ingestions after the latest one with that `--revision`: ingestion number, revision, path, version id |
 
-`<name>` is the element's name: for a requirement its title (`links of Cache media files`), for code `MediaCache`. A requirement id alone (`REQ-1`) does not match; use the title or the full key (`art_...#REQ-1`, see the `key` column). Anything else answers `question not understood (M0 stub, no LLM)` and lists the supported intents (`id`s from `config/query/intents.yaml`). LLM-based questions are planned (T4.1, natural language to Cypher).
+`<name>` is the element's name: for a requirement its title (`links of Cache media files`), for code `MediaCache`. A requirement id alone (`REQ-1`) does not match; use the title or the full key (`art_...#REQ-1`, see the `key` column). Any other question goes to the LLM (strategy `cypher`), which writes one read-only Cypher query. The query passes the scope guard; if it fails, the model gets the error and tries again (at most twice). The response lists all `attempts`. Without a configured LLM, other questions answer `question not understood (M0 stub, no LLM)` and list the supported intents (`id`s from `config/query/intents.yaml`). Strategies `graphrag` and `explore`, and a disabled `cypher`, answer 501 (`config/query/strategies.yaml`).
 
 The same through the API; `mode: "cypher-only"` returns the Cypher without running it:
 

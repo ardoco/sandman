@@ -76,7 +76,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T3.5 | Switch to released ArDoCo artifact when available (Q-15) | S | release | |
 | T3.6 | Labeling study for detector precision: stratified random sample of findings, two blinded raters with written guidelines, Cohen's κ (§3.3) | M | T3.1 | |
 | **M4** | | | | |
-| T4.1 | NL-to-Cypher generation + validation + repair as strategy `cypher`, incl. the strategy dispatch in `POST /v1/query/nl` (one function per strategy, `strategies.yaml`, 501 for disabled ones) | M | T0.9 | |
+| T4.1 | NL-to-Cypher generation + validation + repair as strategy `cypher`, incl. the strategy dispatch in `POST /v1/query/nl` (one function per strategy, `strategies.yaml`, 501 for disabled ones) | M | T0.9 | [T4.1](tasks/T4.1-nl-to-cypher-strategy.md) |
 | T4.1b | Element embeddings: additive KG schema change (`Element.embedding`, embedding model id), writer in the extraction-agent via the gateway (record/replay), vector index in `init.cypher`, re-embedding on content change (V-43) | M | T1.1, T1.5 | |
 | T4.5 | Strategy `graphrag`: vector search filtered by `projectId`, bounded template expansion, evidence list, synthesis over the retrieved subgraph | M | T4.1, T4.1b | |
 | T4.6 | Strategy `explore`: bounded tool loop (`get_schema`, `find_elements`, `neighbors`, `run_cypher`) through the scope guard, step/token/time budgets, `steps` in the response; off by default | M | T4.1, T4.1b | |

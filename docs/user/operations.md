@@ -67,6 +67,7 @@ docker compose -f deploy/docker-compose.yml restart extraction-agent
 | `config/tlr/approaches.yaml` | enabled trace link approaches and their parameters |
 | `config/orchestrator/rules.yaml` | debounce, concurrency, timeouts, retries, kind pairs for link recovery |
 | `config/query/intents.yaml` | question patterns of **Ask** |
+| `config/query/strategies.yaml` | enabled query strategies, repair and example budgets |
 | `config/query/plugins.yaml` | projects each plugin may read |
 
 Plugin authors: [plugins.md](../plugins.md).

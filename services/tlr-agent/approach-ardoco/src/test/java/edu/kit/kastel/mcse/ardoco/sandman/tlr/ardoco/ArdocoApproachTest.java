@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
 import java.util.List;
@@ -25,8 +26,8 @@ class ArdocoApproachTest {
         var sentence = new TlrInput.Element(
                 "el_s0",
                 "ver_doc",
-                "art_doc#sec:/" + SentenceRendering.hash(TEXT),
-                "sec:/" + SentenceRendering.hash(TEXT),
+                "art_doc#sec:/" + edu.kit.kastel.mcse.ardoco.sandman.ardocotext.SentenceRendering.hash(TEXT),
+                "sec:/" + edu.kit.kastel.mcse.ardoco.sandman.ardocotext.SentenceRendering.hash(TEXT),
                 "TextUnit",
                 "sentence",
                 TEXT,

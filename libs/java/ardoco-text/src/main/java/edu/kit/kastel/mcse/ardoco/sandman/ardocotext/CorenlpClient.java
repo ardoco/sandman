@@ -1,4 +1,4 @@
-package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
+package edu.kit.kastel.mcse.ardoco.sandman.ardocotext;
 
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.common.JsonHandling;
@@ -6,7 +6,6 @@ import edu.kit.kastel.mcse.ardoco.core.textproviderjson.converter.DtoToObjectCon
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.error.NotConvertableException;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Jcs;
-import edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -31,17 +30,17 @@ import tools.jackson.databind.json.JsonMapper;
  * gateway adds them. ArDoCo's own provider selection (ConfigManager) is never used, so its silent local fallback cannot
  * run. Converts the answer with ArDoCo's DtoToObjectConverter, as ArDoCo's TextProcessorService does.
  */
-class CorenlpClient {
+public class CorenlpClient {
 
-    static final String DEFAULT_URL = "http://corenlp-gateway:8080";
+    public static final String DEFAULT_URL = "http://corenlp-gateway:8080";
     private static final String PATH = "/stanfordnlp";
     private static final Set<Integer> RETRY_STATUS = Set.of(429, 502, 503, 504);
-    static final List<Duration> BACKOFF = List.of(Duration.ofSeconds(2), Duration.ofSeconds(8));
-    static final String REJECTED =
+    public static final List<Duration> BACKOFF = List.of(Duration.ofSeconds(2), Duration.ofSeconds(8));
+    public static final String REJECTED =
             "CoreNLP credentials rejected: check deploy/secrets/corenlp_credentials (or the caller token corenlp_client_token_*)";
 
     /** Request field eolonly: AUTO asks GET /stanfordnlp/version (404 = service without the field). */
-    enum Eolonly {
+    public enum Eolonly {
         AUTO,
         TRUE,
         FALSE
@@ -55,7 +54,7 @@ class CorenlpClient {
     private final HttpClient http;
 
     /** authorization: the header value that authenticates this caller at the corenlp-gateway, null for none. */
-    CorenlpClient(URI base, Duration timeout, Eolonly eolonly, List<Duration> backoff, String authorization) {
+    public CorenlpClient(URI base, Duration timeout, Eolonly eolonly, List<Duration> backoff, String authorization) {
         this.authorization = authorization;
         this.base = base;
         this.timeout = timeout;
@@ -68,7 +67,7 @@ class CorenlpClient {
     }
 
     /** Environment variable, else JVM system property of the same name (tests start their own provider). */
-    static String setting(String name, String fallback) {
+    public static String setting(String name, String fallback) {
         String v = System.getenv(name);
         if (v == null || v.isBlank()) {
             v = System.getProperty(name);
@@ -81,7 +80,7 @@ class CorenlpClient {
      * gateway token of this caller: file SANDMAN_CORENLP_TOKEN_FILE, user SANDMAN_CORENLP_USER (default
      * SANDMAN_SERVICE_NAME, HTTP Basic).
      */
-    static CorenlpClient fromEnv() {
+    public static CorenlpClient fromEnv() {
         long seconds = Long.parseLong(setting("SANDMAN_CORENLP_TIMEOUT", "300"));
         Eolonly mode =
                 Eolonly.valueOf(setting("SANDMAN_CORENLP_EOLONLY", "auto").toUpperCase(java.util.Locale.ROOT));
@@ -105,18 +104,18 @@ class CorenlpClient {
                 authorization);
     }
 
-    String authorization() {
+    public String authorization() {
         return authorization;
     }
 
     /** What the next annotation will use: whether the request carries eolonly, and the /version answer (or unknown). */
-    record Provider(boolean eolonly, String version) {
-        String identity() {
+    public record Provider(boolean eolonly, String version) {
+        public String identity() {
             return "provider=" + version + ";eolonly=" + eolonly;
         }
     }
 
-    Provider provider(BooleanSupplier cancelled) {
+    public Provider provider(BooleanSupplier cancelled) {
         Optional<String> version = version(cancelled);
         boolean eol =
                 switch (eolonly) {
@@ -148,12 +147,12 @@ class CorenlpClient {
      * Annotates the lines and checks that sentence i is line i. With eolonly the lines are separated by one newline,
      * else (interim, service without U-1) by a blank line, where CoreNLP's default newlineIsSentenceBreak=two splits.
      */
-    Text annotate(List<String> lines, Provider provider, BooleanSupplier cancelled) {
+    public Text annotate(List<String> lines, Provider provider, BooleanSupplier cancelled) {
         return convert(annotateDto(lines, provider, cancelled));
     }
 
     /** The checked service answer; {@link TextCache} keeps it and builds a new Text from it for every run. */
-    TextDto annotateDto(List<String> lines, Provider provider, BooleanSupplier cancelled) {
+    public TextDto annotateDto(List<String> lines, Provider provider, BooleanSupplier cancelled) {
         String text = String.join(provider.eolonly() ? "\n" : "\n\n", lines) + "\n";
         TextDto dto = request(text, provider.eolonly(), cancelled);
         check(lines, dto);
@@ -161,7 +160,7 @@ class CorenlpClient {
     }
 
     /** One POST /stanfordnlp: the service answer for the text as is (the equivalence test sends raw texts). */
-    TextDto request(String text, boolean eolonly, BooleanSupplier cancelled) {
+    public TextDto request(String text, boolean eolonly, BooleanSupplier cancelled) {
         String body = "{\"text\": \"" + URLEncoder.encode(text, StandardCharsets.UTF_8) + "\""
                 + (eolonly ? ", \"eolonly\": true" : "") + "}";
         HttpResponse<String> r = send(
@@ -184,7 +183,7 @@ class CorenlpClient {
         }
     }
 
-    static Text convert(TextDto dto) {
+    public static Text convert(TextDto dto) {
         try {
             return new DtoToObjectConverter().convertText(dto);
         } catch (NotConvertableException e) {
@@ -193,7 +192,7 @@ class CorenlpClient {
     }
 
     /** The answer has one sentence per line, and sentence i normalized equals line i; names the first difference. */
-    static void check(List<String> lines, TextDto dto) {
+    public static void check(List<String> lines, TextDto dto) {
         var sentences = dto.getSentences();
         for (int i = 0; i < Math.min(lines.size(), sentences.size()); i++) {
             String expected = SentenceRendering.normalize(lines.get(i));
@@ -241,7 +240,7 @@ class CorenlpClient {
                 }
                 last = new IOException("status " + r.statusCode());
             } catch (HttpTimeoutException e) {
-                throw new ApproachUnavailableException(
+                throw new CorenlpUnavailableException(
                         "CoreNLP service did not answer within " + timeout.toSeconds() + " s", e);
             } catch (IOException e) {
                 last = e;
@@ -259,7 +258,7 @@ class CorenlpClient {
                 throw new java.util.concurrent.CancellationException("interrupted");
             }
         }
-        throw new ApproachUnavailableException(
+        throw new CorenlpUnavailableException(
                 "CoreNLP service unavailable at " + base + " (" + last.getMessage() + ")", last);
     }
 }

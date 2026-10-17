@@ -13,6 +13,7 @@
   <modules>
     <module>libs/java/agent-lib</module>
     <module>libs/java/agent-lib-a2a</module>
+    <module>libs/java/ardoco-text</module>
     <module>services/tlr-agent/approach-spi</module>
     <module>services/tlr-agent/approach-ardoco</module>
     <module>services/tlr-agent/approach-lissa</module>

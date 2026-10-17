@@ -17,6 +17,9 @@ import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
 import edu.kit.kastel.mcse.ardoco.core.data.DataRepository;
 import edu.kit.kastel.mcse.ardoco.core.execution.Ardoco;
 import edu.kit.kastel.mcse.ardoco.core.execution.runner.ArdocoRunner;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpUnavailableException;
+import edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.KindPair;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.ScopeMode;
@@ -116,6 +119,14 @@ public final class ArdocodeApproach implements TraceLinkApproach {
 
     @Override
     public String environment(TlrContext ctx) {
+        try {
+            return environmentUnwrapped(ctx);
+        } catch (CorenlpUnavailableException e) {
+            throw new ApproachUnavailableException(e.getMessage(), e);
+        }
+    }
+
+    private String environmentUnwrapped(TlrContext ctx) {
         String provider = corenlp().provider(ctx.cancelled()).identity();
         try (CodeModelClient client = codeModel()) {
             return provider + ";codeModel=" + client.identity();
@@ -124,6 +135,14 @@ public final class ArdocodeApproach implements TraceLinkApproach {
 
     @Override
     public List<CandidateLink> recover(TlrInput in, TlrContext ctx) {
+        try {
+            return recoverUnwrapped(in, ctx);
+        } catch (CorenlpUnavailableException e) {
+            throw new ApproachUnavailableException(e.getMessage(), e);
+        }
+    }
+
+    private List<CandidateLink> recoverUnwrapped(TlrInput in, TlrContext ctx) {
         List<TlrInput.Version> docs = in.versions().stream()
                 .filter(v -> "architecture-doc".equals(v.kind()))
                 .sorted(Comparator.comparing(TlrInput.Version::id))

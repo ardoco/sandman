@@ -12,6 +12,7 @@ import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.A2aClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
@@ -137,7 +138,7 @@ class BenchmarkEquivalenceTest {
                         CorenlpClient.BACKOFF,
                         CorenlpClient.fromEnv().authorization()) {
                     @Override
-                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                    public TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
                         requests[0]++;
                         return super.request(text, eolonly, cancelled);
                     }
@@ -404,7 +405,7 @@ class BenchmarkEquivalenceTest {
                         CorenlpClient.BACKOFF,
                         CorenlpClient.fromEnv().authorization()) {
                     @Override
-                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                    public TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
                         requests[0]++;
                         return super.request(text, eolonly, cancelled);
                     }
@@ -461,7 +462,7 @@ class BenchmarkEquivalenceTest {
                         CorenlpClient.BACKOFF,
                         CorenlpClient.fromEnv().authorization()) {
                     @Override
-                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                    public TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
                         requests[0]++;
                         return super.request(text, eolonly, cancelled);
                     }

@@ -24,14 +24,6 @@ class SentenceRenderingTest {
     }
 
     @Test
-    void hashVectorsOfTheSentenceKey() {
-        assertEquals("703c4e4a5dd6", SentenceRendering.hash("The  MediaCache stores\taudio files. "));
-        assertEquals("703c4e4a5dd6", SentenceRendering.hash("The MediaCache stores audio files."));
-        assertEquals("54b850c03299", SentenceRendering.hash("Größe und Café."));
-        assertEquals("703c4e4a5dd6", SentenceRendering.hashPart("sec:Architecture/Cache/703c4e4a5dd6~3"));
-    }
-
-    @Test
     void ordersBySentenceIndexAndKeepsDuplicatesAndWrappedSentences() {
         var a = sentence(1, "sec:/703c4e4a5dd6", "The MediaCache stores audio files.");
         var b = sentence(0, "sec:/54b850c03299", "Größe und Café.");
@@ -61,7 +53,7 @@ class SentenceRenderingTest {
     @Test
     void hashesTheRawTextEvenWhenTheRenderedLineDiffers() {
         String raw = "The MediaCache\u2028stores audio files.";
-        var s = sentence(0, "sec:/" + SentenceRendering.hash(raw), raw);
+        var s = sentence(0, "sec:/" + edu.kit.kastel.mcse.ardoco.sandman.ardocotext.SentenceRendering.hash(raw), raw);
 
         assertEquals(List.of("The MediaCache stores audio files."), SentenceRendering.lines(List.of(s)));
         SentenceRendering.assertHashes(List.of(s));

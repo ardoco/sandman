@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeCompilationUnit;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItemRepository;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.ProgrammingLanguage;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
@@ -160,7 +161,7 @@ class ArdocodeApproachTest {
                 List.of(),
                 null) {
             @Override
-            Provider provider(java.util.function.BooleanSupplier cancelled) {
+            public Provider provider(java.util.function.BooleanSupplier cancelled) {
                 return provider.get();
             }
         };

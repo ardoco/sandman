@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;

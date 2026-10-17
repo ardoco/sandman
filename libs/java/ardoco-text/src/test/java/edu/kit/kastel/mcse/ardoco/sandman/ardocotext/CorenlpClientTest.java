@@ -1,4 +1,4 @@
-package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
+package edu.kit.kastel.mcse.ardoco.sandman.ardocotext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -201,7 +200,7 @@ class CorenlpClientTest {
         handler = s -> new Reply(503, "");
         var client = client(CorenlpClient.Eolonly.TRUE, 2);
         assertThrows(
-                ApproachUnavailableException.class,
+                CorenlpUnavailableException.class,
                 () -> client.annotate(List.of("Alpha"), new CorenlpClient.Provider(true, "x"), () -> false));
         assertEquals(3, seen.size());
     }
@@ -216,10 +215,10 @@ class CorenlpClientTest {
                 CorenlpClient.Eolonly.AUTO,
                 List.of(Duration.ZERO, Duration.ZERO),
                 null);
-        var e = assertThrows(ApproachUnavailableException.class, () -> client.provider(() -> false));
+        var e = assertThrows(CorenlpUnavailableException.class, () -> client.provider(() -> false));
         assertTrue(e.getMessage().contains("unavailable"), e.getMessage());
         assertThrows(
-                ApproachUnavailableException.class,
+                CorenlpUnavailableException.class,
                 () -> client.annotate(List.of("Alpha"), new CorenlpClient.Provider(true, "x"), () -> false));
         server = null;
     }
@@ -268,7 +267,7 @@ class CorenlpClientTest {
                 List.of(Duration.ZERO, Duration.ZERO),
                 null);
         var e = assertThrows(
-                ApproachUnavailableException.class,
+                CorenlpUnavailableException.class,
                 () -> client.annotate(List.of("Alpha"), new CorenlpClient.Provider(true, "x"), () -> false));
         assertTrue(e.getMessage().contains("did not answer"), e.getMessage());
         assertEquals(1, seen.size());

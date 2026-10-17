@@ -253,7 +253,7 @@ sandman/
 
 Further languages (ADR-0017, on demand): TypeScript on Node.js LTS with npm workspaces (`package-lock.json`), Go modules, Rust Cargo workspace (`Cargo.lock`); each kit has its own CI job (lint, tests, conformance vectors, Testcontainers) and a framework guard (no LangChain.js/LangGraph.js/LlamaIndex/Mastra, LangChainGo/Eino, langchain-rust/rig).
 
-ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…`) in one pass (`spikes/T0.12/bootstrap.sh`) — in the Docker build stage and via `make ardoco` for local development — with `named-architecture-entity-recognition` 2.1.0 from Maven Central (the script patches the branch's two `2.1.0-SNAPSHOT` references until the branch switches upstream).
+ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…`) in one pass (`scripts/ardoco-id-bootstrap.sh`) — in the Docker build stage and via `make ardoco` for local development — with `named-architecture-entity-recognition` 2.1.0 from Maven Central (the script patches the branch's two `2.1.0-SNAPSHOT` references until the branch switches upstream).
 
 ### 2.3 CI outline (GitHub Actions)
 
@@ -301,7 +301,7 @@ Java services (example: inconsistency-agent):
 
 ```dockerfile
 FROM maven:3.9-eclipse-temurin-21 AS ardoco
-COPY spikes/T0.12/bootstrap.sh /bootstrap.sh
+COPY scripts/ardoco-id-bootstrap.sh /bootstrap.sh
 # one-pass build of the pinned ArDoCo branch against named-architecture-entity-recognition 2.1.0 (Maven Central);
 # pinned commit and Maven repository location are set in the script (adapted for the image in T0.11)
 RUN sh /bootstrap.sh

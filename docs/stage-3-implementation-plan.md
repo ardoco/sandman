@@ -74,7 +74,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T3.3 | Equivalence test vs. standalone ArDoCo runner on benchmark inputs (`linkApproaches: [ardoco]`) | M | T3.1 | [T3.3](tasks/T3.3-detector-equivalence.md) |
 | T3.4 | Console evidence view (sentence text, model element, involved links, history) | S | T3.1, T0.9 | |
 | T3.5 | Switch to released ArDoCo artifact when available (Q-15) | S | release | |
-| T3.6 | Labeling study for detector precision: stratified random sample of findings, two blinded raters with written guidelines, Cohen's κ (§3.3) | M | T3.1 |[T3.6](tasks/T3.6-labeling-study.md) |
+| T3.6 | Labeling study for detector precision: stratified random sample of findings, two blinded raters with written guidelines, Cohen's κ (§3.3) | M | T3.1 | [T3.6](tasks/T3.6-labeling-study.md) |
 | **M4** | | | | |
 | T4.1 | NL-to-Cypher generation + validation + repair as strategy `cypher`, incl. the strategy dispatch in `POST /v1/query/nl` (one function per strategy, `strategies.yaml`, 501 for disabled ones) | M | T0.9 | [T4.1](tasks/T4.1-nl-to-cypher-strategy.md) |
 | T4.1b | Element embeddings: additive KG schema change (`Element.embedding`, embedding model id), writer in the extraction-agent via the gateway (record/replay), vector index in `init.cypher`, re-embedding on content change (V-43) | M | T1.1, T1.5 | [T4.1b](tasks/T4.1b-element-embeddings.md) |

@@ -362,7 +362,7 @@ def build_router(svc: Service) -> APIRouter:
         question = text(data, "question")
         base = {"project": project, "question": question, "intents": ", ".join(svc.intents.supported())}
         try:
-            result = await svc.runner.nl(ctx.who, svc.intents, project, question, "answer", True)
+            result = await svc.nl.answer(ctx.who, project, question, "auto", "answer", True)
         except HTTPException as e:
             return render(ctx, "ask.html", e.status_code, result=None, message=str(e.detail), error=True, **base)
         rows = [[cell(v) for v in row] for row in result["rows"]]

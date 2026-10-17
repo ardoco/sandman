@@ -155,6 +155,7 @@ def main(contracts: Path) -> list[str]:
         "query/plugins.yaml": "query-plugins",
         "query/intents.yaml": "query-intents",
         "query/examples.yaml": "query-examples",
+        "query/strategies.yaml": "query-strategies",
     }
     config_registry = registry.with_resources(
         (s["$id"], Resource.from_contents(s))

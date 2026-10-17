@@ -370,9 +370,7 @@ def create_app(
     async def query_nl(body: NlBody, request: Request) -> dict[str, Any]:
         who = svc.authenticate(request.headers.get("authorization"))
         svc.check(who, "queryNl", body.projectId)
-        if body.strategy in ("graphrag", "explore"):
-            raise HTTPException(501, f"strategy {body.strategy} is not implemented (ADR-0018)")
-        return await svc.runner.nl(who, svc.intents, body.projectId, body.question, body.mode, body.execute)
+        return await svc.nl.answer(who, body.projectId, body.question, body.strategy, body.mode, body.execute)
 
     @app.get("/v1/projects/{projectId}/export/tracelinks")
     async def export_tracelinks(

@@ -29,6 +29,7 @@ from sandman_query.auth import (
     plugin_principal,
 )
 from sandman_query.forward import Owners, relay
+from sandman_query.nl import NlService
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
 from sandman_query.store import UserStore
@@ -124,6 +125,7 @@ class Service:
         self.grants = load_plugin_grants(config_dir / "query" / "plugins.yaml", contracts)
         self.runner = Runner(reader, memory_limit)
         self.intents = Intents(config_dir / "query" / "intents.yaml", contracts)
+        self.nl = NlService(settings, contracts, config_dir, reader, self.runner, self.intents)
         self.limiter = RateLimiter()
         self.tracker = StatusTracker("query-service", __version__)
 

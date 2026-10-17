@@ -73,6 +73,8 @@ class FakeReader:
             await self.gate.wait()
         self.queries.append((cypher, dict(params)))
         self.timeouts.append(timeout)
+        if cypher.startswith("MATCH (p:Project {id"):
+            return ["llmPolicy"], [[p["llmPolicy"]] for p in self.projects if p["id"] == params["id"]]
         if cypher.startswith("MATCH (p:Project)"):
             return ["p"], [[p] for p in self.projects]
         if cypher.lstrip().startswith(("MATCH (l:TraceLink", "MATCH (i:Inconsistency", "MATCH (a:Artifact {")):

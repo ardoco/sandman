@@ -1,0 +1,13 @@
+# Query strategies of POST /v1/query/nl (ADR-0018; schema: contracts/config/query-strategies.schema.json).
+# A disabled or not yet implemented strategy answers 501. `auto` considers enabled strategies only.
+classifierThreshold: 0.6
+strategies:
+  cypher:
+    enabled: true
+    intentsFirst: true   # regex intents (intents.yaml) answer before the LLM is asked
+    maxRepairs: 2
+    maxExamples: 8
+  graphrag:
+    enabled: false
+  explore:
+    enabled: false

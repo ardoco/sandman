@@ -1,6 +1,7 @@
 """Cypher endpoint, NL stub, schema and exports with a fake KG reader (real Memgraph: test_memgraph.py)."""
 
 import asyncio
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -9,8 +10,11 @@ import pytest
 import yaml
 from conftest import Env, service_headers
 from helpers import validate, validate_shared
+from neo4j.exceptions import ClientError
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.contracts import ContractError, Contracts
+from sandman_agent.llm import BudgetExceededError, ChatMessage, ChatResponse, Usage
+from sandman_agent.testing import ScriptedLlmClient
 from sandman_query.auth import load_plugin_grants
 from sandman_query.query import Intents
 
@@ -239,3 +243,146 @@ async def test_nl_strategy(env: Env) -> None:
         assert r.status_code == 501
     bad = await env.http.post("/v1/query/nl", json={**body, "strategy": "magic"}, headers=h)
     assert bad.status_code == 400
+
+
+GOOD = "MATCH (r:Requirement {projectId: $projectId}) RETURN r.key AS key ORDER BY key"
+
+
+def llm(*cyphers: str) -> ScriptedLlmClient:
+    return ScriptedLlmClient(
+        [
+            ChatResponse(
+                ChatMessage("assistant", json.dumps({"cypher": c, "explanation": "x"})), "stop", Usage(), "gw-model"
+            )
+            for c in cyphers
+        ]
+    )
+
+
+async def ask(env: Env, client: ScriptedLlmClient | None, **body: Any) -> Any:
+    if env.store.get_user("alice") is None:
+        env.user("alice", {"alpha": "viewer"})
+    policies: list[str] = []
+    if client is not None:
+        env.app.state.service.nl.llm_factory = lambda policy: (policies.append(policy), client)[1]
+    resp = await env.http.post(
+        "/v1/query/nl",
+        json={"projectId": "alpha", "question": "how many requirements are there", **body},
+        headers=env.token("alice"),
+    )
+    return resp, policies
+
+
+async def test_nl_llm_generates_and_runs(env: Env) -> None:
+    client = llm(GOOD)
+    resp, policies = await ask(env, client)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    validate("/v1/query/nl", "post", 200, body)
+    assert body["strategy"] == "cypher" and body["cypher"] == GOOD and body["resolvedModel"] == "gw-model"
+    assert body["attempts"] == [{"cypher": GOOD}] and body["params"] == {"projectId": "alpha"}
+    assert policies == ["local-only"]  # project alpha is local-only
+    system, question = client.requests[0].messages[0], client.requests[0].messages[-1]
+    assert "Requirement" in system.content and "how many" not in system.content
+    assert question.content == "how many requirements are there" and client.requests[0].model == "chat-local"
+    assert client.requests[0].response_schema is not None and client.requests[0].temperature == 0.0
+    assert env.reader.queries[-1][1] == {"projectId": "alpha"}
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "MATCH (n) RETURN n",
+        "MATCH (r:Requirement {projectId: $projectId}) CALL db.labels() YIELD label RETURN label",
+        "MATCH (r:Requirement {projectId: $projectId}) DETACH DELETE r",
+        "not cypher at all",
+    ],
+)
+async def test_nl_llm_guard_rejection_is_repaired(env: Env, bad: str) -> None:
+    client = llm(bad, GOOD)
+    resp, _ = await ask(env, client)
+    body = resp.json()
+    assert resp.status_code == 200 and body["cypher"] == GOOD
+    assert body["attempts"][0]["cypher"] == bad and body["attempts"][0]["error"] and "error" not in body["attempts"][1]
+    assert [q for q, _ in env.reader.queries if "DELETE" in q or "CALL" in q or "(n)" in q] == []
+    assert "rejected" in client.requests[1].messages[-1].content
+
+
+async def test_nl_llm_database_error_is_repaired(env: Env) -> None:
+    real = env.reader.run
+    calls = []
+
+    async def flaky(cypher: str, params: Any, timeout: float = 10.0, max_rows: int | None = None) -> Any:
+        if cypher.startswith("MATCH (r:Requirement") and not calls:
+            calls.append(1)
+            raise ClientError("Neo.ClientError.Statement.SyntaxError", "boom")
+        return await real(cypher, params, timeout, max_rows)
+
+    env.reader.run = flaky  # type: ignore[method-assign]
+    resp, _ = await ask(env, llm(GOOD, GOOD))
+    assert resp.status_code == 200 and "rejected by the database" in resp.json()["attempts"][0]["error"]
+
+
+async def test_nl_llm_repairs_are_bounded(env: Env) -> None:
+    client = llm("MATCH (n) RETURN n", "MATCH (n) RETURN n", "MATCH (n) RETURN n", GOOD)
+    resp, _ = await ask(env, client)
+    assert resp.status_code == 422 and "no valid query after repairs" in resp.json()["detail"]
+    assert len(client.requests) == 3 and not [
+        q for q, _ in env.reader.queries if "Requirement" in q
+    ]  # default maxRepairs = 2
+
+
+async def test_nl_llm_scope_violation_is_not_repaired(env: Env) -> None:
+    env.reader.result = (["n"], [[{"projectId": "beta"}]])
+    client = llm(GOOD, GOOD)
+    resp, _ = await ask(env, client)
+    assert resp.status_code == 422 and len(client.requests) == 1
+
+
+async def test_nl_llm_modes_and_failures(env: Env) -> None:
+    resp, _ = await ask(env, llm(GOOD), mode="cypher-only")
+    assert (
+        resp.json()["cypher"] == GOOD
+        and "rows" not in resp.json()
+        and not [q for q, _ in env.reader.queries if "Requirement" in q]
+    )
+    resp, _ = await ask(env, llm(GOOD), execute=False)
+    assert resp.json()["rows"] == [] and not [q for q, _ in env.reader.queries if "Requirement" in q]
+
+    class Broken(ScriptedLlmClient):
+        async def chat(self, req: Any) -> Any:
+            raise BudgetExceededError("budget")
+
+    resp, _ = await ask(env, Broken())
+    assert resp.status_code == 503
+    validate("/v1/query/nl", "post", 503, resp.json())
+
+
+async def test_nl_without_llm_and_intents_first(env: Env) -> None:
+    resp, _ = await ask(env, None)
+    assert resp.status_code == 422 and "question not understood" in resp.json()["detail"]
+    client = llm(GOOD)
+    resp, _ = await ask(env, client, question="open inconsistencies")
+    assert resp.status_code == 200 and not client.requests  # the intent answers without an LLM call
+
+
+async def test_nl_strategy_availability(env: Env, tmp_path: Path) -> None:
+    nl = env.app.state.service.nl
+    nl.config["cypher"]["enabled"] = False
+    for strategy in ("auto", "cypher", "graphrag", "explore"):
+        resp, _ = await ask(env, None, strategy=strategy, question="open inconsistencies")
+        assert resp.status_code == 501, strategy
+        validate("/v1/query/nl", "post", 501, resp.json())
+    nl.config.setdefault("graphrag", {})["enabled"] = True  # enabled in config but no function yet
+    resp, _ = await ask(env, None, strategy="graphrag")
+    assert resp.status_code == 501
+
+
+def test_strategies_config(tmp_path: Path) -> None:
+    contracts = Contracts(DEFAULT_CONTRACTS_DIR)
+    shipped = DEFAULT_CONTRACTS_DIR.parent / "config" / "query" / "strategies.yaml"
+    assert contracts.load_config("query-strategies", shipped)["strategies"]["explore"] == {"enabled": False}
+    bad = tmp_path / "s.yaml"
+    bad.write_text("strategies: {cypher: {maxRepairs: 99}}\n")
+    with pytest.raises(ContractError):
+        contracts.load_config("query-strategies", bad)

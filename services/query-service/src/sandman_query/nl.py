@@ -23,6 +23,7 @@ from sandman_query.auth import Principal
 from sandman_query.guard import GuardError, check
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
+from sandman_query.synthesis import synthesize
 
 log = logging.getLogger(__name__)
 
@@ -102,16 +103,21 @@ class NlService:
         resolved = "cypher" if strategy == "auto" else strategy
         if not self.enabled(resolved):
             raise HTTPException(501, f"strategy {resolved} is not enabled or not implemented (ADR-0018)")
-        return await self.strategies[resolved](who, project, question, mode, execute)
+        result = await self.strategies[resolved](who, project, question, mode, execute)
+        if mode == "answer" and execute and result.get("rows") and self.can_call_llm():
+            client, route = await self.llm(project)
+            synthesized, model, warning = await synthesize(client, route, project, question, result)
+            result |= synthesized or {}
+            result["warnings"] = [*result.get("warnings", []), *([warning] if warning else [])]
+            if synthesized:
+                result["resolvedModel"] = result.get("resolvedModel") or model
+                result["model"] = result.get("model") or route
+        return result
 
-    # ------------------------------------------------------------ strategy cypher
+    def can_call_llm(self) -> bool:
+        return self.selector is not None or self.llm_factory is not None
 
-    async def cypher(self, who: Principal, project: str, question: str, mode: str, execute: bool) -> dict[str, Any]:
-        cfg = self.config["cypher"]
-        if cfg["intentsFirst"] and self.intents.match(question):
-            return await self.runner.nl(who, self.intents, project, question, mode, execute)
-        if self.selector is None and self.llm_factory is None:
-            return await self.runner.nl(who, self.intents, project, question, mode, execute)  # 422, supported intents
+    async def llm(self, project: str) -> tuple[LlmClient, str]:
         policy = await self.policy(project)
         client = self.llm_factory(policy) if self.llm_factory else self.selector.client(policy)  # type: ignore[union-attr]
         route = (
@@ -119,6 +125,17 @@ class NlService:
             if self.selector
             else ("chat-local" if policy == "local-only" else "chat-default")
         )
+        return client, route
+
+    # ------------------------------------------------------------ strategy cypher
+
+    async def cypher(self, who: Principal, project: str, question: str, mode: str, execute: bool) -> dict[str, Any]:
+        cfg = self.config["cypher"]
+        if cfg["intentsFirst"] and self.intents.match(question):
+            return await self.runner.nl(who, self.intents, project, question, mode, execute)
+        if not self.can_call_llm():
+            return await self.runner.nl(who, self.intents, project, question, mode, execute)  # 422, supported intents
+        client, route = await self.llm(project)
         messages = [ChatMessage("system", self.system)]
         for e in self.examples:
             messages += [

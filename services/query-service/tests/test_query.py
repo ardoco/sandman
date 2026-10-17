@@ -281,12 +281,12 @@ async def test_nl_llm_generates_and_runs(env: Env) -> None:
     validate("/v1/query/nl", "post", 200, body)
     assert body["strategy"] == "cypher" and body["cypher"] == GOOD and body["resolvedModel"] == "gw-model"
     assert body["attempts"] == [{"cypher": GOOD}] and body["params"] == {"projectId": "alpha"}
-    assert policies == ["local-only"]  # project alpha is local-only
+    assert set(policies) == {"local-only"}  # project alpha is local-only
     system, question = client.requests[0].messages[0], client.requests[0].messages[-1]
     assert "Requirement" in system.content and "how many" not in system.content
     assert question.content == "how many requirements are there" and client.requests[0].model == "chat-local"
     assert client.requests[0].response_schema is not None and client.requests[0].temperature == 0.0
-    assert env.reader.queries[-1][1] == {"projectId": "alpha"}
+    assert any(q[0].startswith("MATCH (r:Requirement") and q[1] == {"projectId": "alpha"} for q in env.reader.queries)
 
 
 @pytest.mark.parametrize(

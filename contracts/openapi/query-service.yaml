@@ -528,7 +528,13 @@ paths:
                     description: rows are present unless mode is cypher-only (the Cypher is then returned without execution). cypher and params are present only for strategy cypher and for Cypher run by explore.
                     required: [strategy, attempts, warnings]
                     properties:
-                      answer: { type: string }
+                      answer:
+                        description: Short synthesized answer. Citations are written [[id]]. Absent when synthesis is not possible; a warning then says why.
+                        type: string
+                      citations:
+                        description: Ids cited in answer. Each is a string value of a returned row or an evidence key (R-032).
+                        type: array
+                        items: { type: string }
                       strategy:
                         description: Strategy that produced the answer (the resolved one when the request said auto).
                         enum: [cypher, graphrag, explore]

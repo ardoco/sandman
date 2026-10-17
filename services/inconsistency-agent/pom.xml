@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-inconsistency-detector-spi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
       <artifactId>sandman-agent-lib-a2a</artifactId>
       <version>${project.version}</version>
     </dependency>

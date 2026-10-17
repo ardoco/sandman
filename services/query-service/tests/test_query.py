@@ -373,7 +373,8 @@ async def test_nl_strategy_availability(env: Env, tmp_path: Path) -> None:
         resp, _ = await ask(env, None, strategy=strategy, question="open inconsistencies")
         assert resp.status_code == 501, strategy
         validate("/v1/query/nl", "post", 501, resp.json())
-    nl.config.setdefault("graphrag", {})["enabled"] = True  # enabled in config but no function yet
+    nl.config.setdefault("graphrag", {})["enabled"] = True
+    nl.strategies.pop("graphrag")  # enabled in config but no function
     resp, _ = await ask(env, None, strategy="graphrag")
     assert resp.status_code == 501
 
@@ -386,3 +387,12 @@ def test_strategies_config(tmp_path: Path) -> None:
     bad.write_text("strategies: {cypher: {maxRepairs: 99}}\n")
     with pytest.raises(ContractError):
         contracts.load_config("query-strategies", bad)
+
+
+async def test_nl_registers_explore(env: Env) -> None:
+    nl = env.app.state.service.nl
+    assert "explore" in nl.strategies and "graphrag" in nl.strategies
+    nl.config.setdefault("explore", {})["enabled"] = True
+    finish = ChatResponse(ChatMessage("assistant", json.dumps({"tool": "finish", "keys": []})), "stop", Usage(), "gw")
+    resp, _ = await ask(env, ScriptedLlmClient([finish]), strategy="explore", mode="cypher-only")
+    assert resp.status_code != 501 and resp.json().get("strategy") == "explore", resp.text

@@ -72,4 +72,4 @@ async def synthesize(
                 "user", f"Rejected: these citations are not ids of the rows: {problem}. Return a corrected answer."
             ),
         ]
-    return None, model, f"answer dropped: it cited ids that are not in the result rows ({problem[:200]})"
+    return None, model, "answer dropped: it cited ids that are not in the result rows"

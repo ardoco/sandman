@@ -587,6 +587,11 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "409":
+          description: Strategy graphrag needs element embeddings and the project has none
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
         "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
         "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
   /v1/projects/{projectId}/export/tracelinks:

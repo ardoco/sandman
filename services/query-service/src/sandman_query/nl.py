@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from neo4j.exceptions import DriverError, Neo4jError
 from sandman_agent import Settings
 from sandman_agent.contracts import Contracts
 from sandman_agent.llm import (
@@ -23,6 +24,9 @@ from sandman_query.auth import Principal
 from sandman_query.guard import GuardError, check
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
+from sandman_query.strategies.explore import register as register_explore
+from sandman_query.strategies.graphrag import DEFAULTS as GRAPHRAG_DEFAULTS
+from sandman_query.strategies.graphrag import graphrag
 from sandman_query.synthesis import synthesize
 
 log = logging.getLogger(__name__)
@@ -49,7 +53,9 @@ def schema_text(schema: Mapping[str, Any]) -> str:
     """Compact schema description for the prompt, generated from contracts/kg/schema.yaml."""
     lines = []
     for name, node in schema["nodes"].items():
-        props = ", ".join(f"{p}: {spec['type']}" for p, spec in node.get("properties", {}).items())
+        props = ", ".join(
+            f"{p}: {spec['type']}" for p, spec in node.get("properties", {}).items() if not spec.get("internal")
+        )
         labels = f" (secondary label one of {', '.join(node['labels'])})" if node.get("labels") else ""
         lines.append(f"(:{name}){labels} {{{props}}}")
     lines += [f"(:{r['from']})-[:{name}]->(:{r['to']})" for name, r in schema["relationships"].items()]
@@ -75,6 +81,7 @@ class NlService:
         self.config: dict[str, dict[str, Any]] = {
             **configured,
             "cypher": {**DEFAULTS["cypher"], **configured.get("cypher", {})},
+            "graphrag": {**GRAPHRAG_DEFAULTS, **configured.get("graphrag", {})},
         }
         schema = yaml.safe_load((settings.contracts_dir / "kg" / "schema.yaml").read_text(encoding="utf-8"))
         self.system = f"{RULES}\n\nSchema:\n{schema_text(schema)}"
@@ -92,6 +99,8 @@ class NlService:
             )
         self.llm_factory: Callable[[str], LlmClient] | None = None  # tests inject scripted or replay clients
         self.strategies: dict[str, Callable[..., Awaitable[dict[str, Any]]]] = {"cypher": self.cypher}
+        self.strategies["graphrag"] = self.graphrag
+        register_explore(self)
 
     def enabled(self, strategy: str) -> bool:
         return bool(self.config.get(strategy, {}).get("enabled")) and strategy in self.strategies
@@ -117,15 +126,19 @@ class NlService:
     def can_call_llm(self) -> bool:
         return self.selector is not None or self.llm_factory is not None
 
-    async def llm(self, project: str) -> tuple[LlmClient, str]:
+    async def llm(self, project: str, embed: bool = False) -> tuple[LlmClient, str]:
+        """Client and logical route (chat, or embedding for graphrag) for the project's llmPolicy."""
         policy = await self.policy(project)
         client = self.llm_factory(policy) if self.llm_factory else self.selector.client(policy)  # type: ignore[union-attr]
-        route = (
-            self.selector.chat_model(policy)
-            if self.selector
-            else ("chat-local" if policy == "local-only" else "chat-default")
-        )
+        kind, local = ("embed", "embed-local") if embed else ("chat", "chat-local")
+        if self.selector:
+            route = self.selector.embed_model(policy) if embed else self.selector.chat_model(policy)
+        else:
+            route = local if policy == "local-only" else f"{kind}-default"
         return client, route
+
+    async def graphrag(self, who: Principal, project: str, question: str, mode: str, execute: bool) -> dict[str, Any]:
+        return await graphrag(self, who, project, question, mode, execute)
 
     # ------------------------------------------------------------ strategy cypher
 
@@ -202,5 +215,11 @@ class NlService:
         return None
 
     async def policy(self, project: str) -> str:
-        rows = await self.reader.rows("MATCH (p:Project {id: $id}) RETURN p.llmPolicy AS llmPolicy", {"id": project})
+        try:
+            rows = await self.reader.rows(
+                "MATCH (p:Project {id: $id}) RETURN p.llmPolicy AS llmPolicy", {"id": project}
+            )
+        except (Neo4jError, DriverError, OSError, TimeoutError):
+            log.warning("project policy read failed", exc_info=True)
+            raise HTTPException(503, "knowledge graph unavailable") from None
         return rows[0].get("llmPolicy", "local-only") if rows else "local-only"  # unknown policy: stay local

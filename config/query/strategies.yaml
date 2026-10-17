@@ -8,6 +8,10 @@ strategies:
     maxRepairs: 2
     maxExamples: 8
   graphrag:
-    enabled: false
+    enabled: false       # needs element embeddings (config/extraction/embedding.yaml, T4.1b); without them the strategy answers 409
+    topK: 5              # seed elements of the vector search
+    overFetch: 20        # search asks for topK * overFetch hits, because the projectId filter runs after the search
+    maxNeighbours: 5     # neighbours and trace-link partners per seed
+    dimension: 768       # = vector index element_embedding
   explore:
     enabled: false

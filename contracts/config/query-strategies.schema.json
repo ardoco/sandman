@@ -21,7 +21,14 @@
         },
         "graphrag": {
           "type": "object",
-          "properties": { "enabled": { "type": "boolean" } }
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "topK": { "type": "integer", "minimum": 1, "maximum": 50 },
+            "overFetch": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "maxNeighbours": { "type": "integer", "minimum": 0, "maximum": 50 },
+            "dimension": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
         },
         "explore": {
           "type": "object",

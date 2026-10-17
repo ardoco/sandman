@@ -19,6 +19,7 @@
     <module>services/tlr-agent/approach-lissa</module>
     <module>services/tlr-agent</module>
     <module>services/inconsistency-agent/detector-spi</module>
+    <module>services/inconsistency-agent/detector-ardoco</module>
     <module>services/inconsistency-agent</module>
     <module>services/code-extractor-ardoco</module>
   </modules>

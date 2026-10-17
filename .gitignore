@@ -368,3 +368,6 @@ site/dist/
 /out/
 /actual.csv
 /*-live.csv
+
+# local live-run artifacts
+/experiments/live/

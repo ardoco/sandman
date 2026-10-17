@@ -1,0 +1,1627 @@
+items:
+- id: nl-ms-001
+  project: mediastore
+  question: How many components does Media Store have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) RETURN count(c) AS n'
+- id: nl-ms-002
+  project: mediastore
+  question: How many components does Media Store have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''interface''}) RETURN count(c) AS n'
+- id: nl-ts-001
+  project: teastore
+  question: How many components does TeaStore have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) RETURN count(c) AS n'
+- id: nl-ts-002
+  project: teastore
+  question: How many components does TeaStore have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''interface''}) RETURN count(c) AS n'
+- id: nl-bb-001
+  project: bigbluebutton
+  question: How many components does BigBlueButton have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) RETURN count(c) AS n'
+- id: nl-bb-002
+  project: bigbluebutton
+  question: How many components does BigBlueButton have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''interface''}) RETURN count(c) AS n'
+- id: nl-ms-003
+  project: mediastore
+  question: List the names of all components of Media Store.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) RETURN c.name AS name ORDER BY name'
+- id: nl-ts-003
+  project: teastore
+  question: List the names of all components of TeaStore.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) RETURN c.name AS name ORDER BY name'
+- id: nl-bb-003
+  project: bigbluebutton
+  question: List the names of all components of BigBlueButton.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) RETURN c.name AS name ORDER BY name'
+- id: nl-ms-004
+  project: mediastore
+  question: Which components provide the interface IMediaAccess?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId, name: ''IMediaAccess''})
+    RETURN c.name AS name'
+- id: nl-ms-005
+  project: mediastore
+  question: Which components provide the interface IDB?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId, name: ''IDB''})
+    RETURN c.name AS name'
+- id: nl-ts-004
+  project: teastore
+  question: Which components provide the interface Persistence?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId, name: ''Persistence''})
+    RETURN c.name AS name'
+- id: nl-bb-004
+  project: bigbluebutton
+  question: Which components provide the interface Redis PubSub?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId, name: ''Redis
+    PubSub''}) RETURN c.name AS name'
+- id: nl-ms-006
+  project: mediastore
+  question: Which components require the interface IMediaAccess?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId, name: ''IMediaAccess''})
+    RETURN c.name AS name'
+- id: nl-ms-007
+  project: mediastore
+  question: Which components require the interface IUserManagement?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId, name: ''IUserManagement''})
+    RETURN c.name AS name'
+- id: nl-ts-005
+  project: teastore
+  question: Which components require the interface Persistence?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId, name: ''Persistence''})
+    RETURN c.name AS name'
+- id: nl-ts-006
+  project: teastore
+  question: Which components require the interface LoadBalancer?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId, name: ''LoadBalancer''})
+    RETURN c.name AS name'
+- id: nl-bb-005
+  project: bigbluebutton
+  question: Which components require the interface Redis PubSub?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId, name: ''Redis
+    PubSub''}) RETURN c.name AS name'
+- id: nl-ms-008
+  project: mediastore
+  question: Which interfaces does the component MediaAccess provide?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''MediaAccess''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId}) RETURN
+    i.name AS name'
+- id: nl-ms-009
+  project: mediastore
+  question: Which interfaces does the component Facade provide?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''Facade''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId}) RETURN i.name
+    AS name'
+- id: nl-ts-007
+  project: teastore
+  question: Which interfaces does the component WebUI provide?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''WebUI''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId}) RETURN i.name
+    AS name'
+- id: nl-bb-006
+  project: bigbluebutton
+  question: Which interfaces does the component Apps provide?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''Apps''})-[:PROVIDES]->(i:ModelElement {projectId: $projectId}) RETURN i.name
+    AS name'
+- id: nl-ms-010
+  project: mediastore
+  question: Which interfaces does the component MediaManagement require?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''MediaManagement''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId}) RETURN
+    i.name AS name'
+- id: nl-ms-011
+  project: mediastore
+  question: Which interfaces does the component Facade require?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''Facade''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId}) RETURN i.name
+    AS name'
+- id: nl-ts-008
+  project: teastore
+  question: Which interfaces does the component Registry require?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''Registry''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId}) RETURN i.name
+    AS name'
+- id: nl-bb-007
+  project: bigbluebutton
+  question: Which interfaces does the component Presentation Conversion require?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, name: ''Presentation Conversion''})-[:REQUIRES]->(i:ModelElement {projectId: $projectId})
+    RETURN i.name AS name'
+- id: nl-ms-012
+  project: mediastore
+  question: Which components require no interface at all?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) WHERE NOT (c)-[:REQUIRES]->() RETURN c.name AS name ORDER BY name'
+- id: nl-ts-009
+  project: teastore
+  question: Which components require no interface at all?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) WHERE NOT (c)-[:REQUIRES]->() RETURN c.name AS name ORDER BY name'
+- id: nl-bb-008
+  project: bigbluebutton
+  question: Which components require no interface at all?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:ModelElement {projectId: $projectId, kind: ''component''}) WHERE NOT (c)-[:REQUIRES]->() RETURN c.name AS name ORDER BY name'
+- id: nl-ms-013
+  project: mediastore
+  question: Which interfaces are provided but never required by a component?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:ModelElement {projectId: $projectId, kind: ''interface''}) WHERE NOT ()-[:REQUIRES]->(i) RETURN i.name AS name ORDER BY name'
+- id: nl-ts-010
+  project: teastore
+  question: Which interfaces are provided but never required by a component?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:ModelElement {projectId: $projectId, kind: ''interface''}) WHERE NOT ()-[:REQUIRES]->(i) RETURN i.name AS name ORDER BY name'
+- id: nl-bb-009
+  project: bigbluebutton
+  question: Which interfaces are provided but never required by a component?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:ModelElement {projectId: $projectId, kind: ''interface''}) WHERE NOT ()-[:REQUIRES]->(i) RETURN i.name AS name ORDER BY name'
+- id: nl-ms-014
+  project: mediastore
+  question: Which component depends on which other component through an interface?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(b:ModelElement
+    {projectId: $projectId, kind: ''component''}) RETURN a.name AS client, b.name AS provider ORDER BY client, provider'
+- id: nl-ts-011
+  project: teastore
+  question: Which component depends on which other component through an interface?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(b:ModelElement
+    {projectId: $projectId, kind: ''component''}) RETURN a.name AS client, b.name AS provider ORDER BY client, provider'
+- id: nl-bb-010
+  project: bigbluebutton
+  question: Which component depends on which other component through an interface?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(b:ModelElement
+    {projectId: $projectId, kind: ''component''}) RETURN a.name AS client, b.name AS provider ORDER BY client, provider'
+- id: nl-ms-015
+  project: mediastore
+  question: How many active trace links exist per status?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) RETURN l.status AS status, count(l) AS n ORDER BY status'
+- id: nl-ts-012
+  project: teastore
+  question: How many active trace links exist per status?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) RETURN l.status AS status, count(l) AS n ORDER BY status'
+- id: nl-bb-011
+  project: bigbluebutton
+  question: How many active trace links exist per status?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) RETURN l.status AS status, count(l) AS n ORDER BY status'
+- id: nl-ms-016
+  project: mediastore
+  question: Which sentences are linked to the component Facade?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(:ModelElement {projectId: $projectId, name: ''Facade''}) MATCH
+    (l)-[:SOURCE]->(s:TextUnit) RETURN s.key AS key, s.text AS text ORDER BY key'
+- id: nl-ms-017
+  project: mediastore
+  question: Which sentences are linked to the component MediaAccess?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(:ModelElement {projectId: $projectId, name: ''MediaAccess''})
+    MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN s.key AS key, s.text AS text ORDER BY key'
+- id: nl-ts-013
+  project: teastore
+  question: Which sentences are linked to the component Registry?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(:ModelElement {projectId: $projectId, name: ''Registry''}) MATCH
+    (l)-[:SOURCE]->(s:TextUnit) RETURN s.key AS key, s.text AS text ORDER BY key'
+- id: nl-ts-014
+  project: teastore
+  question: Which sentences are linked to the component WebUI?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(:ModelElement {projectId: $projectId, name: ''WebUI''}) MATCH
+    (l)-[:SOURCE]->(s:TextUnit) RETURN s.key AS key, s.text AS text ORDER BY key'
+- id: nl-bb-012
+  project: bigbluebutton
+  question: Which sentences are linked to the component FreeSWITCH?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(:ModelElement {projectId: $projectId, name: ''FreeSWITCH''})
+    MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN s.key AS key, s.text AS text ORDER BY key'
+- id: nl-bb-013
+  project: bigbluebutton
+  question: Which sentences are linked to the component Apps?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(:ModelElement {projectId: $projectId, name: ''Apps''}) MATCH
+    (l)-[:SOURCE]->(s:TextUnit) RETURN s.key AS key, s.text AS text ORDER BY key'
+- id: nl-ms-018
+  project: mediastore
+  question: Which components without documentation exist?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(c:ModelElement {projectId: $projectId, kind: ''component''})
+    OPTIONAL MATCH (l:TraceLink {projectId: $projectId, active: true, linkType: ''documents''})-[:SOURCE|TARGET]->(c) WITH c, count(l) AS docs
+    WHERE docs = 0 RETURN c.key AS key, c.name AS name ORDER BY key'
+- id: nl-ts-015
+  project: teastore
+  question: Which components without documentation exist?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(c:ModelElement {projectId: $projectId, kind: ''component''})
+    OPTIONAL MATCH (l:TraceLink {projectId: $projectId, active: true, linkType: ''documents''})-[:SOURCE|TARGET]->(c) WITH c, count(l) AS docs
+    WHERE docs = 0 RETURN c.key AS key, c.name AS name ORDER BY key'
+- id: nl-bb-014
+  project: bigbluebutton
+  question: Which components without documentation exist?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(c:ModelElement {projectId: $projectId, kind: ''component''})
+    OPTIONAL MATCH (l:TraceLink {projectId: $projectId, active: true, linkType: ''documents''})-[:SOURCE|TARGET]->(c) WITH c, count(l) AS docs
+    WHERE docs = 0 RETURN c.key AS key, c.name AS name ORDER BY key'
+- id: nl-ms-019
+  project: mediastore
+  question: Show the open inconsistencies
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN [''OPEN'', ''REOPENED''] RETURN i.id AS id, i.type AS type, i.severity
+    AS severity, i.title AS title, i.status AS status ORDER BY severity, id'
+- id: nl-ts-016
+  project: teastore
+  question: Show the open inconsistencies
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN [''OPEN'', ''REOPENED''] RETURN i.id AS id, i.type AS type, i.severity
+    AS severity, i.title AS title, i.status AS status ORDER BY severity, id'
+- id: nl-bb-015
+  project: bigbluebutton
+  question: Show the open inconsistencies
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN [''OPEN'', ''REOPENED''] RETURN i.id AS id, i.type AS type, i.severity
+    AS severity, i.title AS title, i.status AS status ORDER BY severity, id'
+- id: nl-ms-020
+  project: mediastore
+  question: Show the links of Facade
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (e:Element {projectId: $projectId}) WHERE e.name = ''Facade'' OR e.key = ''Facade'' MATCH (l:TraceLink {projectId: $projectId,
+    active: true})-[:SOURCE|TARGET]->(e) MATCH (l)-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element) RETURN s.key AS sourceKey, t.key AS targetKey,
+    l.linkType AS linkType, l.approach AS approach, l.confidence AS confidence, l.status AS status ORDER BY sourceKey, targetKey, approach'
+- id: nl-ts-017
+  project: teastore
+  question: Show the links of Registry
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (e:Element {projectId: $projectId}) WHERE e.name = ''Registry'' OR e.key = ''Registry'' MATCH (l:TraceLink {projectId: $projectId,
+    active: true})-[:SOURCE|TARGET]->(e) MATCH (l)-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element) RETURN s.key AS sourceKey, t.key AS targetKey,
+    l.linkType AS linkType, l.approach AS approach, l.confidence AS confidence, l.status AS status ORDER BY sourceKey, targetKey, approach'
+- id: nl-bb-016
+  project: bigbluebutton
+  question: Show the links of FreeSWITCH
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (e:Element {projectId: $projectId}) WHERE e.name = ''FreeSWITCH'' OR e.key = ''FreeSWITCH'' MATCH (l:TraceLink {projectId: $projectId,
+    active: true})-[:SOURCE|TARGET]->(e) MATCH (l)-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element) RETURN s.key AS sourceKey, t.key AS targetKey,
+    l.linkType AS linkType, l.approach AS approach, l.confidence AS confidence, l.status AS status ORDER BY sourceKey, targetKey, approach'
+- id: nl-ms-021
+  project: mediastore
+  question: What changed since v1?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (base:Ingestion {projectId: $projectId, sourceRevision: ''v1''}) WITH max(base.seq) AS since MATCH (i:Ingestion {projectId: $projectId})-[:ACTIVATED]->(v:ArtifactVersion)<-[:HAS_VERSION]-(a:Artifact)
+    WHERE i.seq > since RETURN i.seq AS seq, i.sourceRevision AS revision, a.path AS path, v.id AS versionId ORDER BY seq, path'
+- id: nl-ts-018
+  project: teastore
+  question: What changed since v1?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (base:Ingestion {projectId: $projectId, sourceRevision: ''v1''}) WITH max(base.seq) AS since MATCH (i:Ingestion {projectId: $projectId})-[:ACTIVATED]->(v:ArtifactVersion)<-[:HAS_VERSION]-(a:Artifact)
+    WHERE i.seq > since RETURN i.seq AS seq, i.sourceRevision AS revision, a.path AS path, v.id AS versionId ORDER BY seq, path'
+- id: nl-bb-017
+  project: bigbluebutton
+  question: What changed since v1?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (base:Ingestion {projectId: $projectId, sourceRevision: ''v1''}) WITH max(base.seq) AS since MATCH (i:Ingestion {projectId: $projectId})-[:ACTIVATED]->(v:ArtifactVersion)<-[:HAS_VERSION]-(a:Artifact)
+    WHERE i.seq > since RETURN i.seq AS seq, i.sourceRevision AS revision, a.path AS path, v.id AS versionId ORDER BY seq, path'
+- id: nl-ms-022
+  project: mediastore
+  question: How many inconsistencies exist per type?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.type AS type, count(i) AS n ORDER BY type'
+- id: nl-ts-019
+  project: teastore
+  question: How many inconsistencies exist per type?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.type AS type, count(i) AS n ORDER BY type'
+- id: nl-bb-018
+  project: bigbluebutton
+  question: How many inconsistencies exist per type?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.type AS type, count(i) AS n ORDER BY type'
+- id: nl-ms-023
+  project: mediastore
+  question: How many inconsistencies exist per severity?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.severity AS severity, count(i) AS n ORDER BY severity'
+- id: nl-ts-020
+  project: teastore
+  question: How many inconsistencies exist per severity?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.severity AS severity, count(i) AS n ORDER BY severity'
+- id: nl-bb-019
+  project: bigbluebutton
+  question: How many inconsistencies exist per severity?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.severity AS severity, count(i) AS n ORDER BY severity'
+- id: nl-ms-024
+  project: mediastore
+  question: Which detector found how many inconsistencies?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.detector AS detector, count(i) AS n ORDER BY detector'
+- id: nl-ts-021
+  project: teastore
+  question: Which detector found how many inconsistencies?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.detector AS detector, count(i) AS n ORDER BY detector'
+- id: nl-bb-020
+  project: bigbluebutton
+  question: Which detector found how many inconsistencies?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.detector AS detector, count(i) AS n ORDER BY detector'
+- id: nl-ms-025
+  project: mediastore
+  question: How many inconsistencies have each status?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.status AS status, count(i) AS n ORDER BY status'
+- id: nl-ts-022
+  project: teastore
+  question: How many inconsistencies have each status?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.status AS status, count(i) AS n ORDER BY status'
+- id: nl-bb-021
+  project: bigbluebutton
+  question: How many inconsistencies have each status?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.status AS status, count(i) AS n ORDER BY status'
+- id: nl-ms-026
+  project: mediastore
+  question: List the titles of all inconsistencies with status ACCEPTED.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId, status: ''ACCEPTED''}) RETURN i.title AS title ORDER BY title'
+- id: nl-ms-027
+  project: mediastore
+  question: List the titles of all inconsistencies with status RESOLVED.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId, status: ''RESOLVED''}) RETURN i.title AS title ORDER BY title'
+- id: nl-ts-023
+  project: teastore
+  question: List the titles of all inconsistencies with status REJECTED.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId, status: ''REJECTED''}) RETURN i.title AS title ORDER BY title'
+- id: nl-bb-022
+  project: bigbluebutton
+  question: List the titles of all inconsistencies with status DEFERRED.
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId, status: ''DEFERRED''}) RETURN i.title AS title ORDER BY title'
+- id: nl-ms-028
+  project: mediastore
+  question: What is the average confidence of the active trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) RETURN avg(l.confidence) AS averageConfidence'
+- id: nl-ts-024
+  project: teastore
+  question: What is the average confidence of the active trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) RETURN avg(l.confidence) AS averageConfidence'
+- id: nl-bb-023
+  project: bigbluebutton
+  question: What is the average confidence of the active trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) RETURN avg(l.confidence) AS averageConfidence'
+- id: nl-ms-029
+  project: mediastore
+  question: Which active trace links have a confidence of at least 0.8?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) WHERE l.confidence >= 0.8 MATCH (l)-[:SOURCE]->(s:TextUnit), (l)-[:TARGET]->(t:ModelElement)
+    RETURN s.key AS sentence, t.name AS component ORDER BY sentence, component'
+- id: nl-ts-025
+  project: teastore
+  question: Which active trace links have a confidence of at least 0.8?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) WHERE l.confidence >= 0.8 MATCH (l)-[:SOURCE]->(s:TextUnit), (l)-[:TARGET]->(t:ModelElement)
+    RETURN s.key AS sentence, t.name AS component ORDER BY sentence, component'
+- id: nl-bb-024
+  project: bigbluebutton
+  question: Which active trace links have a confidence of at least 0.8?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true}) WHERE l.confidence >= 0.8 MATCH (l)-[:SOURCE]->(s:TextUnit), (l)-[:TARGET]->(t:ModelElement)
+    RETURN s.key AS sentence, t.name AS component ORDER BY sentence, component'
+- id: nl-ms-030
+  project: mediastore
+  question: Which artifacts does the project contain?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:Artifact {projectId: $projectId}) RETURN a.path AS path, a.kind AS kind ORDER BY path'
+- id: nl-ts-026
+  project: teastore
+  question: Which artifacts does the project contain?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:Artifact {projectId: $projectId}) RETURN a.path AS path, a.kind AS kind ORDER BY path'
+- id: nl-bb-025
+  project: bigbluebutton
+  question: Which artifacts does the project contain?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:Artifact {projectId: $projectId}) RETURN a.path AS path, a.kind AS kind ORDER BY path'
+- id: nl-ms-031
+  project: mediastore
+  question: How many versions does each artifact have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:Artifact {projectId: $projectId})-[:HAS_VERSION]->(v:ArtifactVersion) RETURN a.path AS path, count(v) AS versions ORDER BY
+    path'
+- id: nl-ts-027
+  project: teastore
+  question: How many versions does each artifact have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:Artifact {projectId: $projectId})-[:HAS_VERSION]->(v:ArtifactVersion) RETURN a.path AS path, count(v) AS versions ORDER BY
+    path'
+- id: nl-bb-026
+  project: bigbluebutton
+  question: How many versions does each artifact have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:Artifact {projectId: $projectId})-[:HAS_VERSION]->(v:ArtifactVersion) RETURN a.path AS path, count(v) AS versions ORDER BY
+    path'
+- id: nl-ms-032
+  project: mediastore
+  question: Which concepts are mentioned how often?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:Concept {projectId: $projectId})<-[:MENTIONS]-(e:Element) RETURN c.name AS concept, count(e) AS mentions ORDER BY mentions
+    DESC, concept'
+- id: nl-ts-028
+  project: teastore
+  question: Which concepts are mentioned how often?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:Concept {projectId: $projectId})<-[:MENTIONS]-(e:Element) RETURN c.name AS concept, count(e) AS mentions ORDER BY mentions
+    DESC, concept'
+- id: nl-bb-027
+  project: bigbluebutton
+  question: Which concepts are mentioned how often?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (c:Concept {projectId: $projectId})<-[:MENTIONS]-(e:Element) RETURN c.name AS concept, count(e) AS mentions ORDER BY mentions
+    DESC, concept'
+- id: nl-ms-033
+  project: mediastore
+  question: Which sentences contain the word watermark?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE toLower(s.text) CONTAINS ''watermark'' RETURN s.key AS key ORDER
+    BY key'
+- id: nl-ms-034
+  project: mediastore
+  question: Which sentences contain the word database?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE toLower(s.text) CONTAINS ''database'' RETURN s.key AS key ORDER
+    BY key'
+- id: nl-ts-029
+  project: teastore
+  question: Which sentences contain the word image?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE toLower(s.text) CONTAINS ''image'' RETURN s.key AS key ORDER BY
+    key'
+- id: nl-ts-030
+  project: teastore
+  question: Which sentences contain the word recommend?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE toLower(s.text) CONTAINS ''recommend'' RETURN s.key AS key ORDER
+    BY key'
+- id: nl-bb-028
+  project: bigbluebutton
+  question: Which sentences contain the word redis?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE toLower(s.text) CONTAINS ''redis'' RETURN s.key AS key ORDER BY
+    key'
+- id: nl-bb-029
+  project: bigbluebutton
+  question: Which sentences contain the word conference?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE toLower(s.text) CONTAINS ''conference'' RETURN s.key AS key ORDER
+    BY key'
+- id: nl-ms-035
+  project: mediastore
+  question: Which inconsistencies involve the component Cache?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId})-[:INVOLVES]->(:ModelElement {projectId: $projectId, name: ''Cache''}) RETURN i.id AS
+    id, i.title AS title, i.status AS status ORDER BY id'
+- id: nl-ms-036
+  project: mediastore
+  question: Which inconsistencies involve the component DB?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId})-[:INVOLVES]->(:ModelElement {projectId: $projectId, name: ''DB''}) RETURN i.id AS id,
+    i.title AS title, i.status AS status ORDER BY id'
+- id: nl-ts-031
+  project: teastore
+  question: Which inconsistencies involve the component DummyRecommender?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId})-[:INVOLVES]->(:ModelElement {projectId: $projectId, name: ''DummyRecommender''}) RETURN
+    i.id AS id, i.title AS title, i.status AS status ORDER BY id'
+- id: nl-bb-030
+  project: bigbluebutton
+  question: Which inconsistencies involve the component Recording Service?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId})-[:INVOLVES]->(:ModelElement {projectId: $projectId, name: ''Recording Service''}) RETURN
+    i.id AS id, i.title AS title, i.status AS status ORDER BY id'
+- id: nl-ms-037
+  project: mediastore
+  question: Which approaches created trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId}) RETURN DISTINCT l.approach AS approach, l.approachVersion AS version ORDER BY version'
+- id: nl-ts-032
+  project: teastore
+  question: Which approaches created trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId}) RETURN DISTINCT l.approach AS approach, l.approachVersion AS version ORDER BY version'
+- id: nl-bb-031
+  project: bigbluebutton
+  question: Which approaches created trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId}) RETURN DISTINCT l.approach AS approach, l.approachVersion AS version ORDER BY version'
+- id: nl-ms-038
+  project: mediastore
+  question: Which agents ran for this project?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (r:Run {projectId: $projectId}) RETURN r.agent AS agent ORDER BY agent'
+- id: nl-ts-033
+  project: teastore
+  question: Which agents ran for this project?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (r:Run {projectId: $projectId}) RETURN r.agent AS agent ORDER BY agent'
+- id: nl-bb-032
+  project: bigbluebutton
+  question: Which agents ran for this project?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (r:Run {projectId: $projectId}) RETURN r.agent AS agent ORDER BY agent'
+- id: nl-ms-039
+  project: mediastore
+  question: How many elements exist per kind?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (e:Element {projectId: $projectId}) RETURN e.kind AS kind, count(e) AS n ORDER BY kind'
+- id: nl-ts-034
+  project: teastore
+  question: How many elements exist per kind?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (e:Element {projectId: $projectId}) RETURN e.kind AS kind, count(e) AS n ORDER BY kind'
+- id: nl-bb-033
+  project: bigbluebutton
+  question: How many elements exist per kind?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (e:Element {projectId: $projectId}) RETURN e.kind AS kind, count(e) AS n ORDER BY kind'
+- id: nl-ms-040
+  project: mediastore
+  question: Which component has the most active trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(c:ModelElement {projectId: $projectId}) WITH c.name AS name,
+    count(l) AS links WITH max(links) AS top, collect({name: name, links: links}) AS rows UNWIND rows AS r WITH r WHERE r.links = top RETURN r.name
+    AS name, r.links AS links'
+- id: nl-ts-035
+  project: teastore
+  question: Which component has the most active trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(c:ModelElement {projectId: $projectId}) WITH c.name AS name,
+    count(l) AS links WITH max(links) AS top, collect({name: name, links: links}) AS rows UNWIND rows AS r WITH r WHERE r.links = top RETURN r.name
+    AS name, r.links AS links'
+- id: nl-bb-034
+  project: bigbluebutton
+  question: Which component has the most active trace links?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(c:ModelElement {projectId: $projectId}) WITH c.name AS name,
+    count(l) AS links WITH max(links) AS top, collect({name: name, links: links}) AS rows UNWIND rows AS r WITH r WHERE r.links = top RETURN r.name
+    AS name, r.links AS links'
+- id: nl-ms-041
+  project: mediastore
+  question: How many sentences have no trace link?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE NOT (s)<-[:SOURCE]-(:TraceLink {projectId: $projectId, active:
+    true}) RETURN count(s) AS n'
+- id: nl-ts-036
+  project: teastore
+  question: How many sentences have no trace link?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE NOT (s)<-[:SOURCE]-(:TraceLink {projectId: $projectId, active:
+    true}) RETURN count(s) AS n'
+- id: nl-bb-035
+  project: bigbluebutton
+  question: How many sentences have no trace link?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) WHERE NOT (s)<-[:SOURCE]-(:TraceLink {projectId: $projectId, active:
+    true}) RETURN count(s) AS n'
+- id: nl-ms-042
+  project: mediastore
+  question: How many inactive trace links of earlier runs exist?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: false}) RETURN count(l) AS n'
+- id: nl-ts-037
+  project: teastore
+  question: How many inactive trace links of earlier runs exist?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: false}) RETURN count(l) AS n'
+- id: nl-bb-036
+  project: bigbluebutton
+  question: How many inactive trace links of earlier runs exist?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: false}) RETURN count(l) AS n'
+- id: nl-ms-043
+  project: mediastore
+  question: How many confirmed trace links does each component have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(c:ModelElement {projectId: $projectId})
+    RETURN c.name AS name, count(l) AS n ORDER BY name'
+- id: nl-ts-038
+  project: teastore
+  question: How many confirmed trace links does each component have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(c:ModelElement {projectId: $projectId})
+    RETURN c.name AS name, count(l) AS n ORDER BY name'
+- id: nl-bb-037
+  project: bigbluebutton
+  question: How many confirmed trace links does each component have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(c:ModelElement {projectId: $projectId})
+    RETURN c.name AS name, count(l) AS n ORDER BY name'
+- id: nl-ms-044
+  project: mediastore
+  question: How many sentences does the documentation have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) RETURN count(s) AS n'
+- id: nl-ts-039
+  project: teastore
+  question: How many sentences does the documentation have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) RETURN count(s) AS n'
+- id: nl-bb-038
+  project: bigbluebutton
+  question: How many sentences does the documentation have?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (s:TextUnit {projectId: $projectId, kind: ''sentence''}) RETURN count(s) AS n'
+- id: nl-ms-045
+  project: mediastore
+  question: Which components are required by more than one other component?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(b:ModelElement
+    {projectId: $projectId, kind: ''component''}) WITH b.name AS name, count(DISTINCT a) AS clients WHERE clients > 1 RETURN name, clients ORDER
+    BY name'
+- id: nl-ts-040
+  project: teastore
+  question: Which components are required by more than one other component?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(b:ModelElement
+    {projectId: $projectId, kind: ''component''}) WITH b.name AS name, count(DISTINCT a) AS clients WHERE clients > 1 RETURN name, clients ORDER
+    BY name'
+- id: nl-bb-039
+  project: bigbluebutton
+  question: Which components are required by more than one other component?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (a:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(b:ModelElement
+    {projectId: $projectId, kind: ''component''}) WITH b.name AS name, count(DISTINCT a) AS clients WHERE clients > 1 RETURN name, clients ORDER
+    BY name'
+- id: nl-ms-046
+  project: mediastore
+  question: Which components are linked to sentences with high confidence only?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(c:ModelElement {projectId: $projectId}) WITH c.name AS name,
+    min(l.confidence) AS lowest WHERE lowest >= 0.8 RETURN name, lowest ORDER BY name'
+- id: nl-bb-040
+  project: bigbluebutton
+  question: Which components are linked to sentences with high confidence only?
+  strategy: cypher
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(c:ModelElement {projectId: $projectId}) WITH c.name AS name,
+    min(l.confidence) AS lowest WHERE lowest >= 0.8 RETURN name, lowest ORDER BY name'
+- id: nl-ms-047
+  project: mediastore
+  question: Which sentences describe the components that Facade requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Facade''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN
+    DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/345135596777
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/662f224283cc
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/881ff586f490
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/8d8f9f715dbe
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/90a5b8553a35
+- id: nl-ms-048
+  project: mediastore
+  question: Which sentences describe the components that MediaManagement requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''MediaManagement''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN
+    DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/4a3559cd849b
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/69a0d5d47c5f
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/8d8f9f715dbe
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40
+- id: nl-ts-041
+  project: teastore
+  question: Which sentences describe the components that Registry requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Registry''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN
+    DISTINCT s.key AS key'
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/7252e32a9fbf
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/8da214a59b59
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/d1c23d32066b
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/edbbec2fc714
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/f5ab17540faf
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/fe3061969302
+- id: nl-bb-041
+  project: bigbluebutton
+  question: Which sentences describe the components that Presentation Conversion requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Presentation Conversion''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN
+    DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/27780a79da68
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/ac98db064f69
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/bee3e8c8407b
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/dcb5289e8fe0
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/e95628f6c861
+- id: nl-bb-042
+  project: bigbluebutton
+  question: Which sentences describe the components that Apps requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Apps''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN
+    DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/03d849a9594b
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/109148f71af0
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/27780a79da68
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/e95628f6c861
+- id: nl-ms-049
+  project: mediastore
+  question: Which sentences document the components that provide the interface IMediaAccess?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (d:ModelElement {projectId: $projectId})-[:PROVIDES]->(:ModelElement {projectId: $projectId, name: ''IMediaAccess''}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40
+- id: nl-ms-050
+  project: mediastore
+  question: Which sentences document the components that provide the interface IFacade?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (d:ModelElement {projectId: $projectId})-[:PROVIDES]->(:ModelElement {projectId: $projectId, name: ''IFacade''}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/6b96738aef3f
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/7be7397118b9
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/89d2d01ca27a
+- id: nl-ts-042
+  project: teastore
+  question: Which sentences document the components that provide the interface Persistence?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (d:ModelElement {projectId: $projectId})-[:PROVIDES]->(:ModelElement {projectId: $projectId, name: ''Persistence''}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/7252e32a9fbf
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/8da214a59b59
+- id: nl-ts-043
+  project: teastore
+  question: Which sentences document the components that provide the interface ImageProvider?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (d:ModelElement {projectId: $projectId})-[:PROVIDES]->(:ModelElement {projectId: $projectId, name: ''ImageProvider''}) MATCH
+    (l:TraceLink {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/d1c23d32066b
+- id: nl-bb-043
+  project: bigbluebutton
+  question: Which sentences document the components that provide the interface HTML5 Server?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (d:ModelElement {projectId: $projectId})-[:PROVIDES]->(:ModelElement {projectId: $projectId, name: ''HTML5 Server''}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/09f89a187333
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/13a5009df7bc
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/359113c1a0e4
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/3ab24c3ebd9f
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/4249b3a292f5
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/96a77fca0157
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/a7e94cce33ea
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b05d31d56dec
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b50d0aa9b540
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b606b3f24d2f
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/cb3869e4897b
+- id: nl-bb-044
+  project: bigbluebutton
+  question: Which sentences document the components that provide the interface WebRTC-SFU?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (d:ModelElement {projectId: $projectId})-[:PROVIDES]->(:ModelElement {projectId: $projectId, name: ''WebRTC-SFU''}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/0da418629f01
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/382b4ebea4e9
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/a5b0666570f2
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/a7e94cce33ea
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b63306e45eb0
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/e8676f073c69
+- id: nl-ms-051
+  project: mediastore
+  question: Which components are reached from Facade over two required interfaces?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Facade''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(:ModelElement
+    {projectId: $projectId})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(c:ModelElement {projectId: $projectId}) RETURN
+    DISTINCT c.key AS key'
+  gold_keys:
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_9eK7YHDrEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_B5geQHDsEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_h_QpkLhEEeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_o10-YHDrEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_tBjC0HDpEeSqnN80MQ2uGw
+- id: nl-ms-052
+  project: mediastore
+  question: Which components are reached from MediaManagement over two required interfaces?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''MediaManagement''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(:ModelElement
+    {projectId: $projectId})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(c:ModelElement {projectId: $projectId}) RETURN
+    DISTINCT c.key AS key'
+  gold_keys:
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_5LN7MLg2EeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_9eK7YHDrEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_h_QpkLhEEeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_o10-YHDrEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_qxAiILg7EeSNPorBlo7x9g
+- id: nl-ts-044
+  project: teastore
+  question: Which components are reached from Registry over two required interfaces?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Registry''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(:ModelElement
+    {projectId: $projectId})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(c:ModelElement {projectId: $projectId}) RETURN
+    DISTINCT c.key AS key'
+  gold_keys:
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_YkXeIDVgEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_iaElgKpwEeqHXcsU55mirw
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_kgbngDVgEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_ouzFYDVgEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_raxjcDVgEeqPG_FgW3bi6Q
+- id: nl-bb-045
+  project: bigbluebutton
+  question: Which components are reached from Presentation Conversion over two required interfaces?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Presentation Conversion''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(:ModelElement
+    {projectId: $projectId})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(c:ModelElement {projectId: $projectId}) RETURN
+    DISTINCT c.key AS key'
+  gold_keys:
+  - art_6f4adffa98764fd6fd6cc83114284417#_6sergFkHEeyewPSmlgszyA
+- id: nl-ms-053
+  project: mediastore
+  question: Which sentences are involved in open inconsistencies?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN [''OPEN'', ''REOPENED''] MATCH (i)-[:INVOLVES]->(s:TextUnit {projectId:
+    $projectId}) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/0111c96228b3
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/02b31e4ddb20
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/9085afc72527
+- id: nl-ts-045
+  project: teastore
+  question: Which sentences are involved in open inconsistencies?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN [''OPEN'', ''REOPENED''] MATCH (i)-[:INVOLVES]->(s:TextUnit {projectId:
+    $projectId}) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61859c8d0bb5
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9ba68a80130c
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/bd63ddb6dd7b
+- id: nl-bb-046
+  project: bigbluebutton
+  question: Which sentences are involved in open inconsistencies?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (i:Inconsistency {projectId: $projectId}) WHERE i.status IN [''OPEN'', ''REOPENED''] MATCH (i)-[:INVOLVES]->(s:TextUnit {projectId:
+    $projectId}) RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/413d9e6ad509
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/49122ef0ee5e
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/86ace42073f7
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/98a6c0ec41aa
+- id: nl-ms-054
+  project: mediastore
+  question: Which undocumented components are required by other components?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(c:ModelElement
+    {projectId: $projectId, kind: ''component''}) WHERE NOT (c)<-[:TARGET]-(:TraceLink {projectId: $projectId, active: true}) RETURN DISTINCT
+    c.key AS key'
+  gold_keys:
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_5LN7MLg2EeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_qxAiILg7EeSNPorBlo7x9g
+- id: nl-ts-046
+  project: teastore
+  question: Which undocumented components are required by other components?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:ModelElement {projectId: $projectId, kind: ''component''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(c:ModelElement
+    {projectId: $projectId, kind: ''component''}) WHERE NOT (c)<-[:TARGET]-(:TraceLink {projectId: $projectId, active: true}) RETURN DISTINCT
+    c.key AS key'
+  gold_keys:
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_YkXeIDVgEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_iaElgKpwEeqHXcsU55mirw
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_kgbngDVgEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_ouzFYDVgEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_raxjcDVgEeqPG_FgW3bi6Q
+- id: nl-ms-055
+  project: mediastore
+  question: Which sentences with a confirmed link document components that Facade requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Facade''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit)
+    RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/662f224283cc
+- id: nl-ms-056
+  project: mediastore
+  question: Which sentences with a confirmed link document components that MediaManagement requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''MediaManagement''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit)
+    RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4
+- id: nl-ts-047
+  project: teastore
+  question: Which sentences with a confirmed link document components that Registry requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Registry''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit)
+    RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/edbbec2fc714
+- id: nl-bb-047
+  project: bigbluebutton
+  question: Which sentences with a confirmed link document components that Presentation Conversion requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Presentation Conversion''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit)
+    RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032
+- id: nl-bb-048
+  project: bigbluebutton
+  question: Which sentences with a confirmed link document components that Apps requires?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (x:ModelElement {projectId: $projectId, name: ''Apps''})-[:REQUIRES]->(:ModelElement {projectId: $projectId})<-[:PROVIDES]-(d:ModelElement
+    {projectId: $projectId}) MATCH (l:TraceLink {projectId: $projectId, active: true, status: ''confirmed''})-[:TARGET]->(d) MATCH (l)-[:SOURCE]->(s:TextUnit)
+    RETURN DISTINCT s.key AS key'
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/03d849a9594b
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032
+- id: nl-ms-057
+  project: mediastore
+  question: Which components are documented by sentences that mention the concept MediaManagement?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Concept {projectId: $projectId, name: ''MediaManagement''})<-[:MENTIONS]-(s:TextUnit {projectId: $projectId}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:SOURCE]->(s) MATCH (l)-[:TARGET]->(c:ModelElement {projectId: $projectId}) RETURN DISTINCT c.key
+    AS key'
+  gold_keys:
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_h_QpkLhEEeSNPorBlo7x9g
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_p_EeYHDrEeSqnN80MQ2uGw
+- id: nl-ms-058
+  project: mediastore
+  question: Which components are documented by sentences that mention the concept DB?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Concept {projectId: $projectId, name: ''DB''})<-[:MENTIONS]-(s:TextUnit {projectId: $projectId}) MATCH (l:TraceLink {projectId:
+    $projectId, active: true})-[:SOURCE]->(s) MATCH (l)-[:TARGET]->(c:ModelElement {projectId: $projectId}) RETURN DISTINCT c.key AS key'
+  gold_keys:
+  - art_02cec5c0afbe0f5567bf363381b5c60a#_tBjC0HDpEeSqnN80MQ2uGw
+- id: nl-ts-048
+  project: teastore
+  question: Which components are documented by sentences that mention the concept WebUI?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Concept {projectId: $projectId, name: ''WebUI''})<-[:MENTIONS]-(s:TextUnit {projectId: $projectId}) MATCH (l:TraceLink {projectId:
+    $projectId, active: true})-[:SOURCE]->(s) MATCH (l)-[:TARGET]->(c:ModelElement {projectId: $projectId}) RETURN DISTINCT c.key AS key'
+  gold_keys:
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_bC13QDVWEeqPG_FgW3bi6Q
+  - art_fa4cba726c861b80d5b6a258cd8afa36#_yA04AKTKEeqKjI323B3R3w
+- id: nl-bb-049
+  project: bigbluebutton
+  question: Which components are documented by sentences that mention the concept Apps?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Concept {projectId: $projectId, name: ''Apps''})<-[:MENTIONS]-(s:TextUnit {projectId: $projectId}) MATCH (l:TraceLink {projectId:
+    $projectId, active: true})-[:SOURCE]->(s) MATCH (l)-[:TARGET]->(c:ModelElement {projectId: $projectId}) RETURN DISTINCT c.key AS key'
+  gold_keys:
+  - art_6f4adffa98764fd6fd6cc83114284417#_6sergFkHEeyewPSmlgszyA
+  - art_6f4adffa98764fd6fd6cc83114284417#_XuNf4FkJEeyewPSmlgszyA
+  - art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q
+- id: nl-bb-050
+  project: bigbluebutton
+  question: Which components are documented by sentences that mention the concept FreeSWITCH?
+  strategy: explore
+  author: ai-draft
+  split: dev
+  cypher: 'MATCH (:Concept {projectId: $projectId, name: ''FreeSWITCH''})<-[:MENTIONS]-(s:TextUnit {projectId: $projectId}) MATCH (l:TraceLink
+    {projectId: $projectId, active: true})-[:SOURCE]->(s) MATCH (l)-[:TARGET]->(c:ModelElement {projectId: $projectId}) RETURN DISTINCT c.key
+    AS key'
+  gold_keys:
+  - art_6f4adffa98764fd6fd6cc83114284417#_6sergFkHEeyewPSmlgszyA
+  - art_6f4adffa98764fd6fd6cc83114284417#_XuNf4FkJEeyewPSmlgszyA
+  - art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q
+- id: nl-ms-059
+  project: mediastore
+  question: How does Media Store protect against copyright infringement?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/1697de9b5895
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/9085afc72527
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/bd96d30ea9cf
+- id: nl-ms-060
+  project: mediastore
+  question: How are user passwords stored?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/67a9f19b3442
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/881ff586f490
+- id: nl-ms-061
+  project: mediastore
+  question: Which component converts the bit rate of audio files?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/0dfae3f968c6
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/cda0e8516404
+- id: nl-ms-062
+  project: mediastore
+  question: What happens when a user uploads an audio file?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/156d67e348ef
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4
+- id: nl-ms-063
+  project: mediastore
+  question: How can users download several files at once?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/69a0d5d47c5f
+- id: nl-ms-064
+  project: mediastore
+  question: What does the Database component store?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/67a9f19b3442
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/8f15e587e06a
+- id: nl-ms-065
+  project: mediastore
+  question: Where are audio files physically stored?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/02b31e4ddb20
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/156d67e348ef
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/1c3245b8c2ed
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/3103c30e4aad
+- id: nl-ms-066
+  project: mediastore
+  question: How do users log in and what happens afterwards?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/2cf37d2d8964
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/74b482b0b848
+  - art_e0cfd865c44da97bc2510bcd0839515d#sec:/89d2d01ca27a
+- id: nl-ts-049
+  project: teastore
+  question: How are passwords and sessions secured in TeaStore?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/753e7f9df45b
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/b90ea81c37eb
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/bcc69da287e8
+- id: nl-ts-050
+  project: teastore
+  question: How does the image provider handle missing sizes?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/37223a1c5e39
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61859c8d0bb5
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/6765d487cf01
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/d1c23d32066b
+- id: nl-ts-051
+  project: teastore
+  question: What caching does the image provider use?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/bc872ed322e4
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/c884dd055a0d
+- id: nl-ts-052
+  project: teastore
+  question: How are recommendations generated for unknown users?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/731615c2ed69
+- id: nl-ts-053
+  project: teastore
+  question: What happens when a service stops sending heartbeats?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/8f3327662f7e
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/c1386a7f21af
+- id: nl-ts-054
+  project: teastore
+  question: How do service instances register at the registry?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/1cbfa48ab34a
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/c1386a7f21af
+- id: nl-ts-055
+  project: teastore
+  question: Which recommendation algorithms exist?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/4762105b0dbd
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/731615c2ed69
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/7400f354ba51
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9ba68a80130c
+- id: nl-ts-056
+  project: teastore
+  question: What caching layer does the persistence service offer?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/54a7d43d9566
+  - art_3a2a5e70e637e694e718cb1977cd4c52#sec:/8da214a59b59
+- id: nl-bb-051
+  project: bigbluebutton
+  question: How does BigBlueButton scale the HTML5 server beyond one CPU core?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/1f7ca880eda1
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/24f6e5e92bc2
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/3c8c8f0ff18c
+- id: nl-bb-052
+  project: bigbluebutton
+  question: How are recorded meeting events stored?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/109148f71af0
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/a902c4193fe0
+- id: nl-bb-053
+  project: bigbluebutton
+  question: How can users join the voice conference?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/26ba146c57c5
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/a5b0666570f2
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/a7e94cce33ea
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/c2e5e916e3ef
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/e4d63cde1e6d
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/ed04ef7ba2e6
+- id: nl-bb-054
+  project: bigbluebutton
+  question: What does WebRTC-SFU do?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/382b4ebea4e9
+- id: nl-bb-055
+  project: bigbluebutton
+  question: How are uploaded presentations converted?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/237e625af9d9
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/5c50dd2193b2
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/bee3e8c8407b
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/e95628f6c861
+- id: nl-bb-056
+  project: bigbluebutton
+  question: How does the SVG conversion fall back?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/9df1d8e94aa4
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b63c0b41ed46
+- id: nl-bb-057
+  project: bigbluebutton
+  question: Which component handles the connection between client and server?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/0a43c96088c6
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/cb3869e4897b
+- id: nl-bb-058
+  project: bigbluebutton
+  question: What does the Kurento Media Server stream?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/6881681d79f8
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b50d0aa9b540
+- id: nl-bb-059
+  project: bigbluebutton
+  question: Which learning management systems can integrate BigBlueButton?
+  strategy: graphrag
+  author: ai-draft
+  split: dev
+  gold_keys:
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/0eadf31e8a5e
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/2eb94f9dc675
+  - art_a1a500bf8a37c610983d9083f46482e2#sec:/b606b3f24d2f

@@ -164,6 +164,52 @@ def wilcoxon_exact(diffs: Sequence[float]) -> float:
     return float(min(1.0, 2 * min(lower, upper)))
 
 
+def cohens_kappa(pairs: Sequence[tuple[Hashable, Hashable]]) -> float:
+    """Cohen's kappa of two raters over (label a, label b) pairs; 1.0 if chance agreement is 1."""
+    n = len(pairs)
+    if n == 0:
+        raise ValueError("kappa needs at least one item")
+    po = sum(1 for a, b in pairs if a == b) / n
+    ca, cb = Counter(a for a, _ in pairs), Counter(b for _, b in pairs)
+    pe = sum(ca[k] * cb[k] for k in ca) / (n * n)
+    return 1.0 if pe == 1 else (po - pe) / (1 - pe)
+
+
+def kappa_ci(pairs: Sequence[tuple[Hashable, Hashable]], resamples: int = RESAMPLES, seed: int = SEED) -> list[float]:
+    """95 % percentile bootstrap CI of Cohen's kappa, resampling items."""
+    rng = random.Random(seed)
+    s = sorted(cohens_kappa(rng.choices(pairs, k=len(pairs))) for _ in range(resamples))
+    return [s[int(0.025 * resamples)], s[math.ceil(0.975 * resamples) - 1]]
+
+
+def wilson(k: int, n: int, z: float = 1.96) -> list[float]:
+    """95 % Wilson score interval of k successes in n trials; [0, 1] for n = 0."""
+    if n == 0:
+        return [0.0, 1.0]
+    p = k / n
+    centre = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+    return [max(0.0, centre - half), min(1.0, centre + half)]
+
+
+def stratified_proportion(strata: Sequence[tuple[int, int, int]], z: float = 1.96) -> dict[str, Any]:
+    """Stratified estimate over (population N, labeled n, successes k) per stratum, weights N / sum N.
+
+    Normal CI with finite population correction; strata with n = 0 are dropped and the weights renormalized.
+    """
+    # ponytail: normal approximation, too narrow when a sampled stratum is all 0 or all 1; bootstrap if that matters
+    used = [(big, n, k) for big, n, k in strata if n]
+    total = sum(big for big, _, _ in used)
+    if not total:
+        return {"estimate": None, "ci": [0.0, 1.0], "strata": 0}
+    est = sum(big / total * k / n for big, n, k in used)
+    var = sum(
+        (big / total) ** 2 * (1 - n / big) * (k / n) * (1 - k / n) / max(n - 1, 1) for big, n, k in used if big > 0
+    )
+    half = z * math.sqrt(var)
+    return {"estimate": est, "ci": [max(0.0, est - half), min(1.0, est + half)], "strata": len(used)}
+
+
 def runs_needed(sd: float, pilot_runs: int, half_width: float = 0.02, lo: int = 3, hi: int = 20) -> tuple[int, bool]:
     """Variance pilot (protocol section 5): runs per configuration and whether the cap hid a larger need."""
     if pilot_runs < 2:

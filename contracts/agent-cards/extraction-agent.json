@@ -1,7 +1,7 @@
 {
   "name": "sandman-extraction-agent",
   "description": "Extracts structure and content of ingested artifact versions into the SANDMAN knowledge graph; delegates configured formats to extraction plugins.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "supportedInterfaces": [
     {
       "url": "http://extraction-agent:8000/a2a",

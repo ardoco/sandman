@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/config/inconsistency-plugins.schema.json",
   "title": "config/inconsistency/plugins.yaml",
-  "description": "Enabled detectors and detector plugins (plain HTTP in M0). Contract version 0.7.0.",
+  "description": "Enabled detectors and detector plugins (plain HTTP in M0). Contract version 0.8.0.",
   "type": "object",
   "properties": {
     "detectors": {

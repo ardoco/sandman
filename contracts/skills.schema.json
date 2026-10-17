@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/skills.schema.json",
   "title": "SANDMAN A2A skill inputs and outputs",
-  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.7.0.",
+  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.8.0.",
   "$defs": {
     "ExtractArtifactVersionsInput": {
       "type": "object",

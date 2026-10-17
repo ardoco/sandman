@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.converter.ObjectToDtoConverter;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpProvider;
 import edu.kit.kastel.mcse.ardoco.tlr.text.providers.informants.corenlp.textprocessor.TextProcessorLocal;
 import java.nio.file.Files;
 import java.nio.file.Path;

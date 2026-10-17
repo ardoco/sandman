@@ -31,6 +31,13 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-text</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.github.ardoco.tlr</groupId>
       <artifactId>pipeline-tlr</artifactId>
       <version>${ardoco.version}</version>

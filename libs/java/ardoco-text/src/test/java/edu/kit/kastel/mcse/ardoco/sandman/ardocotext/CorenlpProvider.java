@@ -1,4 +1,4 @@
-package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
+package edu.kit.kastel.mcse.ardoco.sandman.ardocotext;
 
 import java.io.IOException;
 import java.net.URI;

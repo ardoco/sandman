@@ -71,7 +71,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M3** | | | | |
 | T3.1 | ArDoCo `InconsistencyDetection` adapter: own pipeline from public factories, `runWithoutSaving()`; hands in the one-sentence-per-line rendering as pre-annotated `PreprocessingData` (`ssplit.eolonly`), maps sentence *i* to line *i* (hash as assertion), model elements by XMI id incl. interfaces; **active trace links of all approaches** via a custom step after `ConnectionGenerator` (Q-20 workaround; exact semantics need the upstream extension); deduplicates text findings by (sentence, word) (ADR-0015, spike T0.12); lives in its own Maven module `detector-ardoco` (LangChain4j allowed only there, R-030) | L | T2.1, T0.7 | [T3.1](tasks/T3.1-ardoco-inconsistency-detection.md) |
 | T3.2 | ArDoCo `ArtemisInconsistencyDetection` adapter (LLM via gateway through ArDoCo's client) | M | T3.1 | [T3.2](tasks/T3.2-artemis-inconsistency-detection.md) |
-| T3.3 | Equivalence test vs. standalone ArDoCo runner on benchmark inputs (`linkApproaches: [ardoco]`) | M | T3.1 | |
+| T3.3 | Equivalence test vs. standalone ArDoCo runner on benchmark inputs (`linkApproaches: [ardoco]`) | M | T3.1 | [T3.3](tasks/T3.3-detector-equivalence.md) |
 | T3.4 | Console evidence view (sentence text, model element, involved links, history) | S | T3.1, T0.9 | |
 | T3.5 | Switch to released ArDoCo artifact when available (Q-15) | S | release | |
 | T3.6 | Labeling study for detector precision: stratified random sample of findings, two blinded raters with written guidelines, Cohen's κ (§3.3) | M | T3.1 | |

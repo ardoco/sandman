@@ -8,7 +8,7 @@ COMPOSE     = docker compose -f deploy/docker-compose.yml $(if $(filter local,$(
 COMPOSE_DEV = $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup site
+.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill site
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -100,8 +100,15 @@ replay-twice: secrets  ## two fresh replay runs must export byte-identical canon
 	[ $$rc -eq 0 ] || exit $$rc; \
 	cmp .work/replay-1.json .work/replay-2.json && echo "replay-twice: identical"
 
-backup:
-	@echo "not implemented (T5.3)"; exit 1
+backup:             ## archive the running stack into backups/ (BACKUP_ARGS="--out DIR --keep N --include-secrets")
+	scripts/backup.sh $(BACKUP_ARGS)
+
+restore:            ## make restore ARCHIVE=backups/<file>.tar.gz [RESTORE_ARGS="--force --with-secrets"]
+	@test -n "$(ARCHIVE)" || { echo "usage: make restore ARCHIVE=backups/<file>.tar.gz"; exit 1; }
+	scripts/restore.sh $(ARCHIVE) $(RESTORE_ARGS)
+
+backup-drill: secrets  ## backup and restore in the scratch compose project sandman-drill; compares KG export, workflow history, users and artifacts
+	SANDMAN_E2E=1 uv run pytest tests/e2e/test_backup_restore.py -q
 
 site:               ## build the component site into site/dist (open index.html via a local web server)
 	uv run python scripts/build_site.py site/dist

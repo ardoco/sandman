@@ -371,3 +371,6 @@ site/dist/
 
 # local live-run artifacts
 /experiments/live/
+
+# T5.3 backup archives
+backups/

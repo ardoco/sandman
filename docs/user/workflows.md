@@ -20,7 +20,7 @@ Link-recovery and detection steps that are still waiting are merged when new wor
 
 ## Watching
 
-Console: **Workflows** on the project row (`/console/projects/<id>/workflows`) lists the latest 20 workflows with id, trigger, status and times. The trigger shows `event` or `manual (user:<name>)`. Steps are not shown there.
+Console: **Workflows** on the project row (`/console/projects/<id>/workflows`) lists the latest 20 workflows with id, trigger, status and times. The trigger shows `event` or `manual (user:<name>)`. For a running workflow, the list shows the finished steps, the current skill and its activity text.
 
 CLI:
 
@@ -33,9 +33,9 @@ uv run sandman workflows --project demo --wait wf_faff0b3c9533410eac03b6bfeb87a8
 
 Dashboard: the workflow page (`/workflows/<id>`) shows the step number, a progress bar, a timeline of all steps, the current step with its agent and elapsed time, attempts, and the time since the last update. If a running workflow has no update for 10 minutes, the page shows "Stalled?". The page refreshes every 5 seconds while the workflow is `PENDING` or `RUNNING`. The workflows list shows finished and total steps.
 
-`--wait` prints each step change and workflow change to stderr, for example `[   12s] step 2/3 recover-trace-links (tlr-agent): RUNNING attempt 1`. It polls until the workflow is `SUCCEEDED`, `FAILED`, `CANCELED` or `BLOCKED`, prints the full workflow as JSON, and exits with 0 only for `SUCCEEDED`; it exits with an error after `--timeout` seconds (default 600). Use it in scripts after `sandman ingest`.
+`--wait` prints each step change and workflow change to stderr, for example `[   12s] step 2/3 recover-trace-links (tlr-agent): RUNNING attempt 1`. While a step runs, the line also shows the activity text of the agent, for example `step 2/3 recover-trace-links: calling LLM for link classification 40/120`. It polls until the workflow is `SUCCEEDED`, `FAILED`, `CANCELED` or `BLOCKED`, prints the full workflow as JSON, and exits with 0 only for `SUCCEEDED`; it exits with an error after `--timeout` seconds (default 600). Use it in scripts after `sandman ingest`.
 
-REST: `GET /v1/projects/{id}/workflows?status=FAILED&limit=20&cursor=...` (newest first) and `GET /v1/workflows/{workflowId}`. The detail has `steps`: agent, skill, status, `attempts`, `input`, `result`, `error` (`code`, `message`, `retryable`), `startedAt`, `endedAt`.
+REST: `GET /v1/projects/{id}/workflows?status=FAILED&limit=20&cursor=...` (newest first) and `GET /v1/workflows/{workflowId}`. The detail has `steps`: agent, skill, status, `attempts`, `input`, `result`, `error` (`code`, `message`, `retryable`), `startedAt`, `endedAt`. A `RUNNING` step can have `activity` (`text`, `at`): a short text of the current work. Agents update it at most every 2 s. Old agents send no text, so `activity` is absent.
 
 ```sh
 curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" http://127.0.0.1:8080/v1/workflows/wf_...

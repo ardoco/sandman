@@ -6,12 +6,12 @@ The user sees in which state a running workflow is.
 
 ## Decisions
 
-- No contract change. The existing workflow detail has all data needed (step status, attempts, start and end times, `updatedAt`).
+- The first part needed no contract change. Step status, attempts, start and end times and `updatedAt` were enough.
 - The view model is `services/dashboard/src/sandman_dashboard/progress.py`. The template filter `progress` uses it.
 - Stalled hint: workflow `RUNNING`, current step `RUNNING`, no update for 600 s.
 - The list page reads the steps of active workflows only.
 - The CLI writes transitions to stderr. Stdout keeps the JSON result.
-- Agent activity text is not built. See `docs/notes/workflow-progress.md`.
+- Agent activity text is built with the optional `activity` member (contracts 0.8.0). See `docs/notes/workflow-progress.md`.
 
 ## Verification
 

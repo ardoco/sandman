@@ -11,15 +11,11 @@
 - Polling stays at 5 s and runs only while the workflow is `PENDING` or `RUNNING`.
 - The project page has no indicator. It does not read workflows today.
 
-## Not done: current activity text
+## Decided and built: current activity text (contracts 0.8.0)
 
-The orchestrator stores no text from the agents. It knows only the step status and the A2A task state. A message such as "linking 40 of 120 elements" needs new data on the contract path.
-
-## Proposal
-
-1. Agents set a status message on the A2A task update (`TaskStatus.message`). This field exists in A2A and needs no change to it.
-2. The orchestrator copies the last message text and its time into new nullable columns of `steps` (migration 004).
-3. The orchestrator adds an optional `activity` object (`text`, `at`) to the step in `WorkflowDetail`. Existing clients ignore it.
-4. The dashboard and the CLI show `activity.text` next to the current step.
-
-Follow the contract rules in `docs/stage-2-contracts-repository.md`: change `contracts/openapi/orchestrator.yaml` first, keep the member optional, and extend the contract tests. Do this in a separate task.
+1. Agents call `progress(text)` of the agent lib. The lib sends the text as the A2A `TaskStatus.message` with state `TASK_STATE_WORKING`.
+2. The lib sends at most one update every 2 s. It drops the other updates.
+3. The orchestrator copies the last text and its time into the columns `activity_text` and `activity_at` of `steps` (migration 004). It cuts the text at 200 characters.
+4. `WorkflowDetail.steps[*].activity` (`text`, `at`) is optional. The orchestrator sets it only while the step is `RUNNING`. Old agents and old clients keep working.
+5. The dashboard (workflow detail and workflows list) and `sandman workflows --wait` show the text.
+6. The agents tlr-agent (lissa, ardoco, ardocode), inconsistency-agent and extraction-agent send the text.

@@ -5,6 +5,7 @@ import io
 import json
 import re
 import tarfile
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -429,3 +430,10 @@ async def test_ask_auto_shows_classification_badge_with_escaped_reason(env: Env)
     resp = await post(env, "/console/projects/alpha/ask", csrf, question="where is payment handled", strategy="auto")
     assert resp.status_code == 200 and "classified graphrag, confidence 0.9" in resp.text
     assert evil not in resp.text and "&lt;script&gt;" in resp.text
+
+
+def test_console_templates_and_code_never_mark_text_safe() -> None:
+    root = Path(__file__).parents[1] / "src" / "sandman_query"
+    for path in [*root.glob("templates/*.html"), root / "console.py"]:
+        text = path.read_text(encoding="utf-8")
+        assert not re.search(r"\|\s*safe\b|\bMarkup\(|\bmark_safe\b|\bautoescape\s+false", text), path

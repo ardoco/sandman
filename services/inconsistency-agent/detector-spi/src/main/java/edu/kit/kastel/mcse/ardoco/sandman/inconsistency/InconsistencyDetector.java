@@ -22,6 +22,26 @@ public interface InconsistencyDetector {
         return new Detection(detect(scope, ctx), List.of());
     }
 
+    /** Names accepted under detectors.<id>.params in plugins.yaml; others fail at startup. */
+    default Set<String> paramKeys() {
+        return Set.of();
+    }
+
+    /** PAIRWISE: the scope subset limits the run. WHOLE_PROJECT: the detector reads all current versions and a completed run resolves its own items. */
+    enum ScopeMode {
+        PAIRWISE,
+        WHOLE_PROJECT
+    }
+
+    default ScopeMode scopeMode() {
+        return ScopeMode.PAIRWISE;
+    }
+
+    /** Environment part of the run identity (for example the CoreNLP provider); null if none. May throw if unavailable. */
+    default String configIdentity(DetectorContext ctx) {
+        return null;
+    }
+
     default boolean usesLlm() {
         return false;
     }

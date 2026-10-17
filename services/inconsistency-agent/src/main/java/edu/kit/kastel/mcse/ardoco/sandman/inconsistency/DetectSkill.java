@@ -30,7 +30,8 @@ public class DetectSkill implements Skill {
                 strings(input.get("detectors")),
                 ctx.workflowId(),
                 ctx.taskId(),
-                ctx.actor()));
+                ctx.actor(),
+                ctx::cancelled));
         return new SkillResult(result.output(), "sandman.inconsistencies.updated", result.eventData());
     }
 

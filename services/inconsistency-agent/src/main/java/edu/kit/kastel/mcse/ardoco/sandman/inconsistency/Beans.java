@@ -1,5 +1,6 @@
 package edu.kit.kastel.mcse.ardoco.sandman.inconsistency;
 
+import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.EventPublisher;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.KgClient;
@@ -66,7 +67,13 @@ public class Beans {
         RunRecorder runs = new RunRecorder(
                 kg, settings.serviceName(), Objects.requireNonNullElse(System.getenv("SANDMAN_VERSION"), "dev"));
         return new DetectionService(
-                kg, contracts, runs, registry, queryServiceUrl, new Notifications(settings.logFile()));
+                kg,
+                contracts,
+                runs,
+                registry,
+                queryServiceUrl,
+                new Notifications(settings.logFile()),
+                settings.artifactStore() == null ? null : new ArtifactStore(settings.artifactStore()));
     }
 
     @Produces

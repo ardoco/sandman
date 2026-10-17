@@ -42,7 +42,19 @@ public final class DetectionService {
             String workflowId,
             String taskId,
             String actor,
-            BooleanSupplier cancelled) {
+            BooleanSupplier cancelled,
+            Consumer<String> progress) {
+
+        public Request(
+                String projectId,
+                List<String> scopeArtifactIds,
+                List<String> detectors,
+                String workflowId,
+                String taskId,
+                String actor,
+                BooleanSupplier cancelled) {
+            this(projectId, scopeArtifactIds, detectors, workflowId, taskId, actor, cancelled, text -> {});
+        }
 
         public Request(
                 String projectId,
@@ -136,7 +148,9 @@ public final class DetectionService {
             Map<String, Prepared> detected = new LinkedHashMap<>();
             Set<String> completed = new HashSet<>();
             ArrayNode detectorRuns = JSON.createArrayNode();
+            int position = 0;
             for (InconsistencyDetector d : selected) {
+                req.progress().accept("running detector " + d.id() + " (" + ++position + "/" + selected.size() + ")");
                 ObjectNode entry = detectorRuns.addObject().put("detector", d.id());
                 try {
                     var detection = d.detectWithWarnings(ds, base.forDetector(registry.params(d.id())));

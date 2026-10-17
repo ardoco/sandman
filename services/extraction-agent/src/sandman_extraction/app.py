@@ -44,6 +44,7 @@ from sandman_extraction import documents, ingest
 from sandman_extraction.embed import EmbedConfig
 from sandman_extraction.enrich import EnrichConfig
 from sandman_extraction.extract import ExtractSkill
+from sandman_extraction.prune import PruneSkill
 
 log = logging.getLogger(__name__)
 
@@ -297,5 +298,7 @@ def create_app(
 
     card = settings.contracts_dir / "agent-cards" / "extraction-agent.json"
     skill = ExtractSkill(svc, plugin_transport)
-    app.mount("/", serve(card, [skill], settings, events=svc, contracts=svc.contracts, status=svc.status))
+    app.mount(
+        "/", serve(card, [skill, PruneSkill(svc)], settings, events=svc, contracts=svc.contracts, status=svc.status)
+    )
     return app

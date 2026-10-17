@@ -1,6 +1,5 @@
 """T1.12: explicit-link re-resolution, stored references, configHash vector (Memgraph via Testcontainers)."""
 
-import asyncio
 import hashlib
 import json
 from pathlib import Path
@@ -65,23 +64,6 @@ def test_config_files_match_contract_schemas() -> None:
         Draft202012Validator(schema, registry=registry).validate(
             yaml.safe_load((config / f"{name}.yaml").read_text("utf-8"))
         )
-
-
-async def test_planned_skill_not_implemented(env: Any) -> None:
-    import httpx
-    from sandman_agent import A2aClient
-
-    client = A2aClient("orch-token", transport=httpx.ASGITransport(app=env.app))
-    try:
-        task = await client.submit("http://extraction-agent:8000", "prune-artifact-data", {"projectId": env.project})
-        for _ in range(50):
-            if task.terminal:
-                break
-            await asyncio.sleep(0.1)
-            task = await client.get("http://extraction-agent:8000", task.task_id)
-    finally:
-        await client.close()
-    assert task.state == "TASK_STATE_REJECTED" or (task.error or {}).get("code") == "NOT_IMPLEMENTED", task
 
 
 async def _current_links(env: Any) -> list[tuple[str, str]]:

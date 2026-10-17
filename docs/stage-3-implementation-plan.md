@@ -87,7 +87,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M5** | | | | |
 | T5.1 | GitHub Action `sandman-ingest` for user projects (token from secrets) | S | T0.10 | |
 | T5.2 | Retention: `prune` skills (tlr, extraction) + scheduled workflow | M | M2 | |
-| T5.3 | Backup/restore scripts + drill | S | T0.11 | |
+| T5.3 | Backup/restore scripts + drill | S | T0.11 | [T5.3](tasks/T5.3-backup-restore.md) |
 | T5.4 | Performance budget (ingest 1 000 changed files, detection latency, Memgraph query latency and memory against the budget; ADR-0014 fallback only if it fails) and fixes | M | M3 | |
 | T5.5 | Soak test on an evolving open-source project (30 days, nightly ingest) | M | T5.1 | |
 | **MX** | | | | |

@@ -6,6 +6,7 @@ import io
 import json
 import os
 import re
+import statistics
 import sys
 import tarfile
 import time
@@ -18,8 +19,9 @@ import httpx
 import yaml
 
 from sandman_cli.evaluation import stats
-from sandman_cli.evaluation.compare import compare
+from sandman_cli.evaluation.compare import compare, identical
 from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
+from sandman_cli.evaluation.perturb import build_mapping, rename
 
 DEFAULT_URL = "http://127.0.0.1:8080"
 CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
@@ -158,6 +160,35 @@ def eval_compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def eval_equal(args: argparse.Namespace) -> int:
+    result = identical(read_file(args.format, args.expected), read_file(args.format, args.actual))
+    print(json.dumps(result, indent=2))
+    return 0 if result["equal"] else 1
+
+
+def eval_pilot(args: argparse.Namespace) -> int:
+    runs = args.f1
+    sd = statistics.stdev(runs)
+    n, capped = stats.runs_needed(sd, len(runs), args.half_width)
+    print(json.dumps({"pilotRuns": len(runs), "mean": statistics.fmean(runs), "sd": sd, "runs": n, "capped": capped}))
+    return 0
+
+
+def eval_contamination(args: argparse.Namespace) -> int:
+    print(json.dumps(stats.contamination_verdict(args.original, args.perturbed), indent=2))
+    return 0
+
+
+def eval_perturb(args: argparse.Namespace) -> int:
+    names = [n.strip() for n in args.names.read_text(encoding="utf-8").splitlines() if n.strip()]
+    mapping = build_mapping(names, args.seed)
+    args.out.mkdir(parents=True, exist_ok=True)
+    for path in args.paths:
+        (args.out / path.name).write_text(rename(path.read_text(encoding="utf-8"), mapping), encoding="utf-8")
+    (args.out / "mapping.json").write_text(json.dumps(mapping, indent=2, sort_keys=True), encoding="utf-8")
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--project", required=True, type=_pattern(r"[a-z0-9][a-z0-9-]{1,62}", "project id"))
@@ -196,6 +227,29 @@ def parser() -> argparse.ArgumentParser:
     c.add_argument("--seed", type=int, default=stats.SEED)
     c.add_argument("--resamples", type=int, default=stats.RESAMPLES)
     c.set_defaults(func=eval_compare, offline=True)
+
+    e = ev.add_parser("equal", help="exact equality of two link sets (exit 1 if they differ)")
+    e.add_argument("--format", choices=list(FORMATS), required=True)
+    e.add_argument("--expected", type=Path, required=True)
+    e.add_argument("--actual", type=Path, required=True)
+    e.set_defaults(func=eval_equal, offline=True)
+
+    e = ev.add_parser("pilot", help="run count from pilot F1 values (protocol section 5)")
+    e.add_argument("--f1", type=float, action="append", required=True, help="F1 of one pilot run (repeat, at least 2)")
+    e.add_argument("--half-width", type=float, default=0.02)
+    e.set_defaults(func=eval_pilot, offline=True)
+
+    e = ev.add_parser("contamination", help="memorization verdict (protocol section 6)")
+    e.add_argument("--original", type=float, nargs="+", required=True)
+    e.add_argument("--perturbed", type=float, nargs="+", required=True)
+    e.set_defaults(func=eval_contamination, offline=True)
+
+    e = ev.add_parser("perturb", help="rename identifiers consistently in text files")
+    e.add_argument("--names", type=Path, required=True, help="file with one identifier per line")
+    e.add_argument("--out", type=Path, required=True)
+    e.add_argument("--seed", type=int, default=stats.SEED)
+    e.add_argument("paths", type=Path, nargs="+")
+    e.set_defaults(func=eval_perturb, offline=True)
     return p
 
 

@@ -20,8 +20,8 @@
   {% if p.failed %}<p class="msg error" role="alert">Step {{ p.failed.skill }} {{ p.failed.label }}. {{ p.failed.problem }}</p>{% endif %}
   <ol class="timeline">
   {% for s in p.steps %}
-    <li class="step status-{{ s.status }}{% if s.current %} current{% endif %}"{% if s.current %} aria-current="step"{% endif %}>
-      <span class="badge">{{ s.label }}</span> {{ s.skill }} <span class="muted">({{ s.agent }}{% if s.elapsed %}, {{ s.elapsed }}{% endif %}{% if s.attempts > 1 or s.retry %}, attempt {{ s.attempts }}{% endif %}{% if s.merged %}, merged into a newer workflow{% endif %})</span>
+    <li class="step {{ 'done' if s.status == 'SUCCEEDED' else 'failed' if s.status in ('FAILED', 'BLOCKED') else 'active' if s.current else '' }}"{% if s.current %} aria-current="step"{% endif %}>
+      <span class="status-{{ s.status }}">{{ s.label }}</span> {{ s.skill }} <span class="muted">({{ s.agent }}{% if s.elapsed %}, {{ s.elapsed }}{% endif %}{% if s.attempts > 1 or s.retry %}, attempt {{ s.attempts }}{% endif %}{% if s.merged %}, merged into a newer workflow{% endif %})</span>
     </li>
   {% endfor %}
   </ol>

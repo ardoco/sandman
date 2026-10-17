@@ -86,7 +86,33 @@ Plugin authors: [plugins.md](../plugins.md).
 
 Logs are JSON lines on stdout: `make logs`, or one service with `docker compose -f deploy/docker-compose.yml logs -f extraction-agent`. Setting `SANDMAN_LOG_FILE=/logs/sandman.jsonl` in the shell that runs compose also writes them to `data/logs/`.
 
-Backup is not implemented: `make backup` prints `not implemented (T5.3)` and exits with 1. There is no supported backup or restore procedure yet.
+### Backup and restore
+
+Start a backup while the stack runs and no workflow is active.
+
+```
+make backup                                   # writes backups/sandman-backup-<time>.tar.gz and a .sha256 file
+make backup BACKUP_ARGS="--out /mnt/backup --keep 14"
+make restore ARCHIVE=backups/sandman-backup-<time>.tar.gz
+make restore ARCHIVE=... RESTORE_ARGS="--force"
+```
+
+The archive holds the graph (Memgraph snapshot), the SQLite databases (workflow state, users, dashboard state), the artifact store and `manifest.json`. It does not hold events (`nats-data`), gateway state, logs or `deploy/secrets`.
+
+- The script keeps the newest 7 archives. Set `--keep N` or `BACKUP_KEEP` to change this. Value 0 keeps all archives.
+- Warning: `--include-secrets` adds `deploy/secrets` to the archive. Store such an archive encrypted. Restore needs `--with-secrets` to use them.
+- Keep your own copy of `deploy/secrets`. A restore into a new host needs the same secrets.
+
+To restore on a new host:
+
+1. Clone the repository at the commit in `manifest.json` and put `deploy/secrets` in place.
+2. Run `make restore ARCHIVE=<file>` with no stack running. The command refuses if the stack runs or a data volume holds files.
+3. Use `--force` to overwrite an existing stack. It stops the stack and empties the data volumes first.
+4. Run `make up`.
+
+The restore stops with an error if the checksum fails, the archive format or the Memgraph image differs, or a schema version in the archive is newer than the repository.
+
+Run `make backup-drill` to test the procedure. It uses the scratch project `sandman-drill` and never touches the project `sandman`.
 
 ## Troubleshooting
 

@@ -10,7 +10,7 @@ SANDMAN ingests a project snapshot (requirements, documentation, architecture mo
 
 ## Status
 
-The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the ArDoCo and LiSSA trace link approaches, the ArDoCo code extraction plugin, the system dashboard, and record/replay of LLM calls for reproducible runs. Natural language queries currently answer a fixed set of question patterns. The query strategies `graphrag`, `explore` and automatic selection are planned ([ADR-0018](adr/0018-query-strategies.md)). `make backup` is not implemented.
+The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the ArDoCo and LiSSA trace link approaches, the ArDoCo code extraction plugin, the system dashboard, and record/replay of LLM calls for reproducible runs. Natural language queries currently answer a fixed set of question patterns. The query strategies `graphrag`, `explore` and automatic selection are planned ([ADR-0018](adr/0018-query-strategies.md)).
 
 ## Components
 
@@ -72,6 +72,6 @@ Integration tests need Docker running. On Docker Desktop, Python Testcontainers 
 | `make contracts` | Validates `contracts/` (schemas, conformance vectors, Agent Cards, OpenAPI, KG schema) |
 | `make images` | Builds all images of the `stubs` profile |
 | `make e2e` | Walking skeleton, dashboard and replay determinism tests against the stack with plugin stubs |
-| `make backup` | Not implemented, exits 1 |
+| `make backup`, `make restore ARCHIVE=<file>` | Archive and restore the running stack ([operations guide](docs/user/operations.md)) |
 
 Design: [docs/](docs/) (stage 1–3, task specs), decisions: [adr/](adr/README.md), review: [docs/stage-4-review.md](docs/stage-4-review.md).

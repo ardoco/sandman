@@ -17,6 +17,10 @@ from typing import Any
 import httpx
 import yaml
 
+from sandman_cli.evaluation import stats
+from sandman_cli.evaluation.compare import compare
+from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
+
 DEFAULT_URL = "http://127.0.0.1:8080"
 CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
 KINDS = ("requirements", "architecture-doc", "architecture-model", "code", "test", "other")
@@ -127,8 +131,30 @@ def workflows(http: httpx.Client, args: argparse.Namespace) -> int:
 
 
 def export(http: httpx.Client, args: argparse.Namespace) -> int:
+    if args.format in FORMATS:
+        if args.what != "tracelinks":
+            raise SystemExit(f"sandman: format {args.format} exists for tracelinks only")
+        rows = fetch_rows(
+            lambda body: _ok(http.post("/v1/query/cypher", json=body)).json(), args.project, args.approach
+        )
+        sys.stdout.write(write_links(args.format, rows_to_links(args.format, rows, args.code_root)))
+        return 0
     params = {"format": args.format} if args.format else {}
     sys.stdout.write(_ok(http.get(f"/v1/projects/{args.project}/export/{args.what}", params=params)).text)
+    return 0
+
+
+def eval_compare(args: argparse.Namespace) -> int:
+    fmt = args.format
+    report = compare(
+        read_file(fmt, args.gold),
+        read_file(fmt, args.a),
+        {str(p): read_file(fmt, p) for p in args.b},
+        args.published,
+        args.resamples,
+        args.seed,
+    )
+    print(json.dumps(report, indent=2))
     return 0
 
 
@@ -154,14 +180,30 @@ def parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("export", parents=[common], help="export trace links or inconsistencies")
     s.add_argument("what", choices=["tracelinks", "inconsistencies"])
-    s.add_argument("--format", choices=["csv", "json"])
+    s.add_argument("--format", choices=["csv", "json", *FORMATS], help="benchmark formats: tracelinks only (T2.3)")
+    s.add_argument("--approach", help="benchmark formats: only links of this approach")
+    s.add_argument("--code-root", default="", help="ardoco-sad-code: path prefix removed from code paths")
     s.set_defaults(func=export)
+
+    s = sub.add_parser("eval", help="evaluation harness (experiments/PROTOCOL.md)")
+    ev = s.add_subparsers(required=True)
+    c = ev.add_parser("compare", help="metrics with CIs; differences, McNemar, Holm against other systems")
+    c.add_argument("--format", choices=list(FORMATS), required=True)
+    c.add_argument("--gold", type=Path, required=True)
+    c.add_argument("--a", type=Path, required=True, help="exported links of system A")
+    c.add_argument("--b", type=Path, action="append", default=[], help="exported links of another system (repeatable)")
+    c.add_argument("--published", type=float, help="published F1 of A: report delta with CI")
+    c.add_argument("--seed", type=int, default=stats.SEED)
+    c.add_argument("--resamples", type=int, default=stats.RESAMPLES)
+    c.set_defaults(func=eval_compare, offline=True)
     return p
 
 
 def main(argv: Sequence[str] | None = None, transport: httpx.BaseTransport | None = None) -> int:
     p = parser()
     args = p.parse_args(argv)
+    if getattr(args, "offline", False):
+        return int(args.func(args))
     token = args.token_file.read_text().strip() if args.token_file else os.environ.get("SANDMAN_TOKEN", "")
     if not token:
         p.error("no token: set SANDMAN_TOKEN or pass --token-file")

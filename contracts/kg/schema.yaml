@@ -4,7 +4,8 @@
 # 0.3.0 (contracts 0.4.0, additive): Element.references, Element.contentHash required, evidenceHash and idempotency-key
 #   derivations (conventions.evidence_hash, conventions.derivations), StatusChange.from optional.
 # 0.4.0 (contracts 0.5.0, additive): Run.mixedModels, SchemaVersion node (R-029, R-041).
-version: 0.4.0
+# 0.5.0 (additive): Element.embedding, Element.embeddingModel (internal), vector index element_embedding (init.cypher), SchemaVersion 2 (T4.1b, V-43).
+version: 0.5.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -97,6 +98,8 @@ nodes:
       sentenceIndex: { type: integer, required: false, description: "0-based sentence number within the document (TextUnit sentences); not part of the key." }
       contentHash: { type: string, required: true, description: "sha256 hex of the element's content as defined by its extractor (built-in: text, else name). Enters Inconsistency.evidenceHash." }
       references: { type: string, required: false, description: "JSON string, array of {text, linkType}: unresolved explicit-reference texts found in the element (explicitReferences patterns or plugin explicitReferences), written with the element and re-resolved against the current Requirements after every ingestion (R-014). Absent when the element has none." }
+      embedding: { type: list, required: false, internal: true, description: "Embedding vector (float list, 768 dimensions = vector index element_embedding); only for the labels and kinds of config/extraction/embedding.yaml, written by the extraction-agent after extraction. Not for prompts or answers. Search is vector_search.search('element_embedding', k, $vector) with a post-filter on projectId." }
+      embeddingModel: { type: string, required: false, internal: true, description: "Gateway model id that produced embedding (e.g. openai/text-embedding-3-small); a different id means re-embed." }
       runId: { type: string, required: true }
 
   Concept:
@@ -212,4 +215,5 @@ relationships:
 memgraph_dialect_notes:
   - "No pattern expressions inside size(); use OPTIONAL MATCH + count()."
   - "Use MAGE procedures, not APOC."
+  - "Vector search (3.13): CALL vector_search.search('element_embedding', k, $vector) YIELD node, similarity; no pre-filter, filter by projectId afterwards and over-fetch k."
   - "Internal ids (id()/elementId) are not stable; always use the id property."

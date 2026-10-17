@@ -27,3 +27,5 @@ CREATE INDEX ON :Run(id);
 CREATE INDEX ON :Run(inputKey);
 CREATE CONSTRAINT ON (n:SchemaVersion) ASSERT n.id IS UNIQUE;
 MERGE (v:SchemaVersion {id: 'kg'}) ON CREATE SET v.version = 1, v.appliedAt = toString(localDateTime());
+CREATE VECTOR INDEX element_embedding ON :Element(embedding) WITH CONFIG {"dimension": 768, "capacity": 100000, "metric": "cos"};
+MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 2 SET v.version = 2;

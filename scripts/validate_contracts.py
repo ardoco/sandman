@@ -150,6 +150,7 @@ def main(contracts: Path) -> list[str]:
         "orchestrator/rules.yaml": "orchestrator-rules",
         "extraction/plugins.yaml": "extraction-plugins",
         "extraction/enrichment.yaml": "extraction-enrichment",
+        "extraction/embedding.yaml": "extraction-embedding",
         "tlr/approaches.yaml": "tlr-approaches",
         "inconsistency/plugins.yaml": "inconsistency-plugins",
         "query/plugins.yaml": "query-plugins",

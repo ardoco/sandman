@@ -217,6 +217,22 @@ Notes per command:
 - `contamination`: give at least 2 values for each variant. Expected result: JSON with `drop`, `ci`, `baselineSd` and `flagged`. `flagged` is true if the drop exceeds 2 standard deviations and the CI excludes 0.
 - The paraphrase step of protocol section 6 is manual. The harness does not include it.
 
+## 5a. Scripts for the live runs
+
+Two scripts run the live checks. Set `SANDMAN_URL` and `SANDMAN_TOKEN` (admin) first.
+
+| Script | Check |
+|---|---|
+| `scripts/live_equality.sh [--skip-mvn]` | ArDoCo check B for `mediastore` and `teastore` (PCM). Prints `PASS` or `FAIL` for each project. |
+| `scripts/live_lissa.sh rerun INPUT_DIR GOLD PUBLISHED_F1 [RUNS]` | LiSSA live re-run. Writes one report with delta and CI for each run. |
+| `scripts/live_lissa.sh pilot INPUT_DIR GOLD [RUNS=5]` | Runs LiSSA RUNS times, then runs `sandman eval pilot`. |
+| `scripts/live_lissa.sh contamination INPUT_DIR GOLD NAMES_FILE [RUNS=3]` | Perturbs the code files, runs LiSSA on both variants, then runs `sandman eval contamination`. |
+
+- `INPUT_DIR` holds the requirements, the code under `src/` and a `sandman.yaml` with `kindRules`. See the `mini` example.
+- The LiSSA scripts need an LLM endpoint. They create a new project for each run. Set `LLM_POLICY=local-only` to change the project policy (default `cloud-allowed`).
+- Results go to `experiments/live/<timestamp>-<mode>/`.
+- The code file names must be unique. LiSSA links use file names only.
+
 ## 6. Troubleshooting
 
 | Message or symptom | Cause | Action |

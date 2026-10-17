@@ -18,7 +18,7 @@ from typing import Any
 import httpx
 import yaml
 
-from sandman_cli.evaluation import labeling, stats
+from sandman_cli.evaluation import labeling, nlquery, stats
 from sandman_cli.evaluation.compare import compare, identical
 from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
 from sandman_cli.evaluation.perturb import build_mapping, rename
@@ -321,6 +321,8 @@ def parser() -> argparse.ArgumentParser:
     e.add_argument("--seed", type=int, default=stats.SEED)
     e.add_argument("--resamples", type=int, default=stats.RESAMPLES)
     e.set_defaults(func=eval_label_score, offline=True)
+
+    nlquery.register(ev)
     return p
 
 

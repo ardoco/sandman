@@ -8,7 +8,7 @@ COMPOSE     = docker compose -f deploy/docker-compose.yml $(if $(filter local,$(
 COMPOSE_DEV = $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup site
+.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup site
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -38,10 +38,13 @@ logs:
 
 test: test-py test-java
 
+ardoco:            ## install the pinned ArDoCo inconsistency branch into ~/.m2 (no-op if installed; needs git and network once)
+	scripts/ardoco-id-bootstrap.sh
+
 test-py:
 	uv run pytest
 
-test-java:
+test-java: ardoco
 	mvn -B verify
 
 lint: guard        ## Python lint/format/type checks (Java: Spotless runs in mvn verify)

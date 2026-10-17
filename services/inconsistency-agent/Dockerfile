@@ -6,7 +6,9 @@ COPY services/tlr-agent services/tlr-agent
 COPY services/inconsistency-agent services/inconsistency-agent
 COPY services/code-extractor-ardoco/pom.xml services/code-extractor-ardoco/pom.xml
 COPY contracts contracts
-RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl services/inconsistency-agent -am package -DskipTests
+COPY scripts/ardoco-id-bootstrap.sh scripts/ardoco-id-bootstrap.sh
+RUN --mount=type=cache,target=/root/.m2 scripts/ardoco-id-bootstrap.sh \
+ && mvn -B -q -pl services/inconsistency-agent -am package -DskipTests
 
 FROM eclipse-temurin:21-jre@sha256:cff19e6215689161eb6162c11b86b0c60ddf802164f2eaf48d570f8fb79a36c5
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \

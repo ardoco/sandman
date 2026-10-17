@@ -51,6 +51,7 @@ jobs:
               - 'services/inconsistency-agent/**'
               - 'services/code-extractor-ardoco/**'
               - 'pom.xml'
+              - 'scripts/ardoco-id-bootstrap.sh'
               - '.github/workflows/**'
             compose:
               - 'deploy/**'
@@ -107,6 +108,14 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
+      - name: pinned ArDoCo commit
+        id: ardoco
+        run: echo "sha=$(sed -n 's/^ARDOCO_COMMIT=\([0-9a-f]*\).*/\1/p' scripts/ardoco-id-bootstrap.sh)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/.m2/repository/io/github/ardoco
+          key: ardoco-id-${{ steps.ardoco.outputs.sha }}
+      - run: make ardoco
       - run: mvn -B verify
 
   compose:

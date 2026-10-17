@@ -21,6 +21,7 @@ from sandman_orchestrator.rules import SKILL_AGENT, Graph, Rules, StepSpec, manu
 log = logging.getLogger(__name__)
 
 ACTIVE = ("PENDING", "RUNNING")
+ACTIVITY_MAX = 200
 MAX_DELIVER = 5  # EventConsumer.config().max_deliver
 
 
@@ -392,7 +393,8 @@ class Orchestrator:
                 self.db.execute("INSERT INTO messages VALUES (?, ?)", (message_id, step_id))
             self.db.execute(
                 "UPDATE steps SET status = 'RUNNING', attempts = attempts + 1, a2a_task_id = NULL, attempt_at = ?, "
-                "started_at = coalesce(started_at, ?), next_poll_at = ? WHERE id = ?",
+                "started_at = coalesce(started_at, ?), next_poll_at = ?, activity_text = NULL, activity_at = NULL "
+                "WHERE id = ?",
                 (now, self.iso(now), now + self.rules.poll_initial, step_id),
             )
             self._touch(step["workflow_id"])
@@ -465,6 +467,11 @@ class Orchestrator:
         else:
             interval = min(self.rules.poll_max, max(self.rules.poll_initial, now - step["attempt_at"]))
             with self.db:
+                text = (snap.activity or "")[:ACTIVITY_MAX]
+                if text and text != step["activity_text"]:
+                    self.db.execute(
+                        "UPDATE steps SET activity_text = ?, activity_at = ? WHERE id = ?", (text, self.iso(), step_id)
+                    )
                 self.db.execute("UPDATE steps SET next_poll_at = ? WHERE id = ?", (now + interval, step_id))
 
     async def _cancel_task(self, step: sqlite3.Row) -> None:
@@ -523,6 +530,8 @@ class Orchestrator:
             "result": json.loads(s["result_json"] or "null"), "error": json.loads(s["error_json"] or "null"),
             "startedAt": s["started_at"], "endedAt": s["ended_at"],
         }  # fmt: skip
+        if s["status"] == "RUNNING" and s["activity_text"]:
+            step["activity"] = {"text": s["activity_text"], "at": s["activity_at"]}
         return {k: v for k, v in step.items() if v is not None}
 
     def get_workflow(self, wf_id: str) -> dict[str, Any] | None:

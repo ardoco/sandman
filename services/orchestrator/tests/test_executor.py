@@ -172,7 +172,7 @@ def test_migrations_apply_once(tmp_path) -> None:
 
     for _ in range(2):
         Orchestrator(tmp_path / "m.db", RULES, None, None, AGENTS, None).close()  # type: ignore[arg-type]
-    assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 3
+    assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 4
 
 
 def test_failing_migration_leaves_user_version(tmp_path, monkeypatch) -> None:
@@ -182,10 +182,10 @@ def test_failing_migration_leaves_user_version(tmp_path, monkeypatch) -> None:
 
     real = Path.read_text
     monkeypatch.setattr(Path, "read_text", lambda self, *a, **k: real(self, *a, **k) + (
-        "; CREATE TABLE inbox (x)" if self.name.startswith("003") else ""))  # fmt: skip
+        "; CREATE TABLE inbox (x)" if self.name.startswith("004") else ""))  # fmt: skip
     with pytest.raises(sqlite3.OperationalError):
         Orchestrator(tmp_path / "f.db", RULES, None, None, AGENTS, None)  # type: ignore[arg-type]
-    assert sqlite3.connect(tmp_path / "f.db").execute("PRAGMA user_version").fetchone()[0] == 2
+    assert sqlite3.connect(tmp_path / "f.db").execute("PRAGMA user_version").fetchone()[0] == 3
 
 
 def test_upgrade_from_v1_keeps_rows_and_is_atomic(tmp_path) -> None:
@@ -208,7 +208,7 @@ def test_upgrade_from_v1_keeps_rows_and_is_atomic(tmp_path) -> None:
     orch = Orchestrator(path, RULES, None, None, AGENTS, None)  # type: ignore[arg-type]
     row = orch.db.execute("SELECT id, traceparent FROM steps").fetchone()
     assert (row["id"], row["traceparent"]) == ("step_1", None)
-    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 3
+    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 4
     orch.close()
 
 
@@ -300,3 +300,20 @@ async def test_retry_after_jsonrpc_error_answer_uses_new_message_id(env: Env) ->
     await run_manual(env, "detect")
     await env.until(lambda: statuses(env) == ["SUCCEEDED"])
     assert len(sent) == 2 and sent[0] != sent[1]
+
+
+async def test_agent_activity_is_stored_while_running_and_dropped_after(env: Env) -> None:
+    from test_rest import check
+
+    env.skills[EXTRACT].script = ["talk"]
+    wf = await run_manual(env)
+    await env.until(lambda: any(s["activity_text"] for s in env.steps()))
+    detail = env.orch.get_workflow(wf)
+    assert detail is not None
+    check(detail, "WorkflowDetail")
+    assert detail["steps"][0]["activity"]["text"] == "annotating sentences 1/3"
+    env.skills[EXTRACT].release.set()
+    await env.until(lambda: statuses(env) == ["SUCCEEDED"])
+    done = env.orch.get_workflow(wf)
+    assert done is not None and "activity" not in done["steps"][0]
+    check(done, "WorkflowDetail")

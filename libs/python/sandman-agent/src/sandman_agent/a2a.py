@@ -10,6 +10,7 @@ import asyncio
 import hmac
 import json
 import logging
+import time
 import uuid
 from collections import OrderedDict
 from collections.abc import Mapping, Sequence
@@ -60,6 +61,7 @@ __all__ = [
     "A2aClient", "Skill", "SkillContext", "SkillError", "SkillResult", "TaskNotFoundError", "TaskSnapshot", "serve",
 ]  # fmt: skip
 
+ACTIVITY_INTERVAL = 2.0
 TERMINAL_STATES = frozenset({"TASK_STATE_COMPLETED", "TASK_STATE_FAILED", "TASK_STATE_CANCELED", "TASK_STATE_REJECTED"})
 
 
@@ -96,9 +98,14 @@ class SkillContext:
     settings: Settings
     updater: TaskUpdater = field(repr=False)
     cancelled: asyncio.Event = field(default_factory=asyncio.Event)
+    _last_progress: float = field(default=float("-inf"), repr=False)
 
     async def progress(self, text: str) -> None:
-        """Report progress as a TASK_STATE_WORKING status message."""
+        """Report the current activity as a TASK_STATE_WORKING status message; at most one per 2 s, others are dropped."""
+        now = time.monotonic()
+        if now - self._last_progress < ACTIVITY_INTERVAL:
+            return
+        self._last_progress = now
         await self.updater.start_work(self.updater.new_agent_message([new_text_part(text)]))
 
 
@@ -389,6 +396,7 @@ class TaskSnapshot:
     state: str
     result: dict[str, Any] | None = None
     error: dict[str, Any] | None = None
+    activity: str | None = None
 
     @property
     def terminal(self) -> bool:
@@ -404,7 +412,10 @@ def snapshot(task: Task) -> TaskSnapshot:
             data = [p for p in artifact.parts if p.HasField("data")]
             result = json_value(MessageToDict(data[0].data)) if data else None
     error = _struct(task.status.message.metadata).get(ERROR_KEY) if task.status.HasField("message") else None
-    return TaskSnapshot(task.id, TaskState.Name(task.status.state), result, error)
+    activity = None
+    if task.status.state == TaskState.TASK_STATE_WORKING and task.status.HasField("message"):
+        activity = "".join(p.text for p in task.status.message.parts if p.text) or None
+    return TaskSnapshot(task.id, TaskState.Name(task.status.state), result, error, activity)
 
 
 class A2aClient:

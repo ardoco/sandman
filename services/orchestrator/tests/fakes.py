@@ -79,7 +79,7 @@ def output_and_event(skill: str, input: dict[str, Any]) -> SkillResult:
 
 
 class FakeSkill:
-    """Runs a script of behaviors per call: 'ok', 'hang' (until cancelled or released) or a SkillError."""
+    """Script per call: 'ok', 'hang' (until cancelled or released), 'talk' (activity, then hang) or SkillError."""
 
     def __init__(self, id: str) -> None:
         self.id = id
@@ -96,7 +96,9 @@ class FakeSkill:
         action = self.script.pop(0) if self.script else "ok"
         if isinstance(action, SkillError):
             raise action
-        if action == "hang":
+        if action == "talk":
+            await ctx.progress("annotating sentences 1/3")
+        if action in ("hang", "talk"):
             cancel = asyncio.create_task(ctx.cancelled.wait())
             await asyncio.wait([cancel, asyncio.create_task(self.release.wait())], return_when="FIRST_COMPLETED")
             if ctx.cancelled.is_set():

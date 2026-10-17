@@ -13,7 +13,10 @@ public final class SkillContext {
     private final String caller;
     private final String actor;
     private final AgentEmitter emitter;
+    private static final long MIN_PROGRESS_NANOS = 2_000_000_000L;
     private volatile boolean cancelled;
+    private long lastProgress;
+    private boolean progressed;
 
     SkillContext(
             String taskId, String messageId, String workflowId, String caller, String actor, AgentEmitter emitter) {
@@ -58,8 +61,14 @@ public final class SkillContext {
         cancelled = true;
     }
 
-    /** Reports progress as a TASK_STATE_WORKING status message. */
-    public void progress(String text) {
+    /** Reports the current activity as a TASK_STATE_WORKING status message; at most one per 2 s, others are dropped. */
+    public synchronized void progress(String text) {
+        long now = System.nanoTime();
+        if (progressed && now - lastProgress < MIN_PROGRESS_NANOS) {
+            return;
+        }
+        progressed = true;
+        lastProgress = now;
         emitter.startWork(emitter.newAgentMessage(List.of(new TextPart(text)), null));
     }
 }

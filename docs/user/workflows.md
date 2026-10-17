@@ -31,7 +31,9 @@ uv run sandman workflows --project demo
 uv run sandman workflows --project demo --wait wf_faff0b3c9533410eac03b6bfeb87a808 [--timeout 600] [--poll 2]
 ```
 
-`--wait` polls until the workflow is `SUCCEEDED`, `FAILED`, `CANCELED` or `BLOCKED`, prints the full workflow as JSON, and exits with 0 only for `SUCCEEDED`; it exits with an error after `--timeout` seconds (default 600). Use it in scripts after `sandman ingest`.
+Dashboard: the workflow page (`/workflows/<id>`) shows the step number, a progress bar, a timeline of all steps, the current step with its agent and elapsed time, attempts, and the time since the last update. If a running workflow has no update for 10 minutes, the page shows "Stalled?". The page refreshes every 5 seconds while the workflow is `PENDING` or `RUNNING`. The workflows list shows finished and total steps.
+
+`--wait` prints each step change and workflow change to stderr, for example `[   12s] step 2/3 recover-trace-links (tlr-agent): RUNNING attempt 1`. It polls until the workflow is `SUCCEEDED`, `FAILED`, `CANCELED` or `BLOCKED`, prints the full workflow as JSON, and exits with 0 only for `SUCCEEDED`; it exits with an error after `--timeout` seconds (default 600). Use it in scripts after `sandman ingest`.
 
 REST: `GET /v1/projects/{id}/workflows?status=FAILED&limit=20&cursor=...` (newest first) and `GET /v1/workflows/{workflowId}`. The detail has `steps`: agent, skill, status, `attempts`, `input`, `result`, `error` (`code`, `message`, `retryable`), `startedAt`, `endedAt`.
 

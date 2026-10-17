@@ -34,7 +34,6 @@ Proposed: **L2 + S3 + B1** (S3 replaces S2 after spike T0.12, `docs/notes/spike-
 Open points (reason for `proposed`):
 * Upstream changes in ArDoCo: switch the branch's NAER dependency to 2.1.0 (two poms); input for sentence-level links; `ChatModel` injection for the Artemis variant.
 * ArDoCo on the Quarkus classpath (protobuf 3→4, JNA downgrade) is not verified (T3.3).
-* Which doc/model pairs run (R-025, rest open in the review).
 
 ### Consequences
 
@@ -86,3 +85,4 @@ T0.12 spike answers V-16, V-17 and V-27; T3.3 equivalence test with `linkApproac
 ## Amendments
 
 * 2026-10-10, review item R-022 (task T2.1): TLR (`ardoco` approach, `approach-ardoco`) uses the released `io.github.ardoco.tlr:*:2.1.0` from Maven Central. Its SWATTR stages are identical to the pinned commit `0d1f22b`. B1 (pinned commit build) applies to the inconsistency branch only (T3.1) until T3.5. The approach declares `scopeMode: whole-project`.
+* 2026-10-18, review item R-025: the detector runs every current document version of `textKinds` against every current model version of `modelKinds` in the project. Findings are combined by intersection (T3.1 decision 5). The canonical text is the `TextUnit` rendering of S3; extraction, TLR (`SentenceRendering` in `approach-ardoco`) and detection use it. Per-project pairing globs `{docGlob, modelGlob, codeRoot?}` are not implemented. No project needs them yet. Add them when a project holds unrelated doc and model sets.

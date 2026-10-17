@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
@@ -130,9 +131,13 @@ public final class LissaApproach implements TraceLinkApproach {
                 concurrency,
                 ctx.cancelled(),
                 w -> ctx.log().warn("lissa: {}", w));
+        ctx.progress().accept("lissa: embedding " + sources.size() + " requirements and " + targets.size() + " code files");
         var sourceStore = new SourceElementStore(embedder.embed(sources));
         var targetStore = new TargetElementStore(embedder.embed(targets), new CosineSimilarity(k(ctx.params())));
-        var chat = new LissaChat(ctx.llmClient(), llm.chatRoute(), TEMPERATURE, SEED);
+        int pairs = sources.size() * Math.min(k(ctx.params()), targets.size());
+        AtomicInteger done = new AtomicInteger();
+        var chat = new LissaChat(ctx.llmClient(), llm.chatRoute(), TEMPERATURE, SEED, () -> ctx.progress()
+                .accept("lissa: calling LLM for link classification " + done.incrementAndGet() + "/" + pairs));
         Classifier classifier = classifier(ctx.params(), concurrency, ctx, chat);
         var results = classifier.classify(sourceStore, targetStore);
         Set<TraceLink> links = new AnyResultAggregator().aggregate(sources, targets, results);

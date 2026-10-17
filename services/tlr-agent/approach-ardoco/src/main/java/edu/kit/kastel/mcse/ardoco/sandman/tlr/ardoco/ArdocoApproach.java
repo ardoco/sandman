@@ -152,8 +152,10 @@ public final class ArdocoApproach implements TraceLinkApproach {
                         provider = corenlp.provider(ctx.cancelled());
                         ctx.log().info("ardoco: CoreNLP {}", provider.identity());
                     }
+                    ctx.progress().accept("ardoco: annotating " + sentences.size() + " sentences with CoreNLP");
                     annotated = TextCache.annotate(corenlp, provider, SentenceRendering.lines(sentences), ctx);
                 }
+                ctx.progress().accept("ardoco: running ArDoCo on " + model.path());
                 runPair(in, ctx, sentences, annotated, modelElements, model, format)
                         .forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));
             }

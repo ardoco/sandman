@@ -187,6 +187,7 @@ public final class ArdocodeApproach implements TraceLinkApproach {
                     provider = annotator.provider(ctx.cancelled());
                     ctx.log().info("ardocode: CoreNLP {}", provider.identity());
                 }
+                ctx.progress().accept("ardocode: annotating " + sentences.size() + " sentences with CoreNLP");
                 Text annotated = TextCache.annotate(annotator, provider, SentenceRendering.lines(sentences), ctx);
                 run(ctx, dir, acmFile, sentences, annotated, files)
                         .forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));

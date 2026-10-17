@@ -1,5 +1,5 @@
 routes:
-  chat-default: openai/gpt-4o-mini                   # cloud: needs OPENAI_API_KEY in deploy/secrets/gateway.env (T2.4 live run; was openrouter/openai/gpt-4o-mini)
+  chat-default: openrouter/openai/gpt-4o-mini        # cloud: needs OPENROUTER_API_KEY in deploy/secrets/gateway.env
   chat-alt: openrouter/anthropic/claude-3.5-haiku    # cloud: needs OPENROUTER_API_KEY
   embed-default: openai/text-embedding-3-small       # cloud: needs OPENAI_API_KEY
   chat-local: ollama/qwen3:4b                        # self-hosted (Apache-2.0)

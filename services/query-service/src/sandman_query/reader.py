@@ -40,9 +40,10 @@ def jsonable(v: Any) -> Any:
 
 
 def check_scope(value: Any, project: str) -> None:
-    """Every map with a projectId must carry the requested project, at any depth."""
+    """Every map with a projectId, and every Project node, must belong to the requested project, at any depth."""
     if isinstance(value, dict):
-        if "projectId" in value and value["projectId"] != project:
+        foreign_project = "Project" in value.get("_labels", ()) and value.get("id") != project
+        if foreign_project or ("projectId" in value and value["projectId"] != project):
             log.error("scope violation", extra={"fields": {"event": "scope_violation", "projectId": project}})
             raise ScopeViolation("result contains data of another project")
         for x in value.values():

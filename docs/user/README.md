@@ -15,6 +15,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | [querying.md](querying.md) | ask questions, run Cypher, call the REST API, export |
 | [trace-links-and-findings.md](trace-links-and-findings.md) | read trace links and inconsistency findings, triage them |
 | [operations.md](operations.md) | start, stop, logs, profiles, data, troubleshooting |
+| [evaluation.md](evaluation.md) | run the Memgraph integration tests and the reproduction study (T2.4) |
 
 ## Interfaces
 

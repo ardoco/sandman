@@ -104,6 +104,8 @@ class BenchmarkEquivalenceTest {
             System.out.printf(
                     "BENCHMARK %s: %d sentences, %d links, standalone %d ms, adapter %d ms%n",
                     c.name(), lines, adapter.size(), standaloneMs, (System.nanoTime() - start) / 1_000_000);
+            writeCsv(c, "standalone", standalone);
+            writeCsv(c, "adapter", adapter);
             assertEquals(standalone, adapter, c.name());
             if (c.required()) {
                 assertTrue(!adapter.isEmpty(), c.name());
@@ -478,6 +480,23 @@ class BenchmarkEquivalenceTest {
     }
 
     private long standaloneSentences;
+
+    /** ardoco-sad-sam of sandman eval equal: header modelElementID,sentence; rows sorted by id, then sentence number. */
+    private static void writeCsv(Case c, String side, Set<String> links) throws IOException {
+        String dir = System.getProperty("SANDMAN_BENCHMARK_CSV_DIR", System.getenv("SANDMAN_BENCHMARK_CSV_DIR"));
+        if (dir == null || dir.isBlank()) {
+            return;
+        }
+        List<String[]> rows = new ArrayList<>();
+        links.forEach(l -> rows.add(l.split(" ", 2)));
+        rows.sort(java.util.Comparator.<String[], String>comparing(r -> r[1])
+                .thenComparingInt(r -> Integer.parseInt(r[0])));
+        StringBuilder csv = new StringBuilder("modelElementID,sentence\n");
+        rows.forEach(r -> csv.append(r[1]).append(',').append(r[0]).append('\n'));
+        String model = c.model().substring(c.model().lastIndexOf('/') + 1);
+        Path out = Files.createDirectories(Path.of(dir)).resolve(c.project() + "-" + model + "." + side + ".csv");
+        Files.writeString(out, csv.toString(), StandardCharsets.UTF_8);
+    }
 
     /** Swattr on the raw text with the provider's annotation of the raw text (no eolonly), as (1-based sentence, id). */
     private Set<String> standalone(Case c) throws IOException {

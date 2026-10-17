@@ -220,7 +220,7 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
         return path.endsWith(".uml") || path.endsWith(".xmi") ? ModelFormat.UML : null;
     }
 
-    private static List<String> strings(Object value, List<String> fallback) {
+    static List<String> strings(Object value, List<String> fallback) {
         if (value == null) {
             return fallback;
         }
@@ -230,13 +230,13 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
         return List.of(String.valueOf(value));
     }
 
-    private static void cancelCheck(DetectorContext ctx) {
+    static void cancelCheck(DetectorContext ctx) {
         if (ctx.cancelled().getAsBoolean()) {
             throw new CancellationException("cancelled");
         }
     }
 
-    private static void acquire(DetectorContext ctx) {
+    static void acquire(DetectorContext ctx) {
         try {
             while (!IdRunner.LOCK.tryLock(100, TimeUnit.MILLISECONDS)) {
                 cancelCheck(ctx);
@@ -247,7 +247,7 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
         }
     }
 
-    private static void delete(Path dir) {
+    static void delete(Path dir) {
         try (Stream<Path> files = Files.walk(dir)) {
             files.sorted(Comparator.reverseOrder()).forEach(p -> {
                 if (!p.toFile().delete()) {

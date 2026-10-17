@@ -37,6 +37,7 @@ from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.graph import GraphError, GraphService, schema_names
 from sandman_dashboard.orchestrator import OrchestratorClient
 from sandman_dashboard.poller import Poller, parse_targets
+from sandman_dashboard.progress import progress
 from sandman_dashboard.projects import ProjectStats
 from sandman_dashboard.resources import Cadvisor
 from sandman_dashboard.sampler import Sampler
@@ -149,6 +150,7 @@ def _step_duration(step: Mapping[str, Any]) -> str:
 
 
 TEMPLATES.filters.update(num=_number, ago=_ago, pretty=_pretty, pjson=_pjson, step_duration=_step_duration)
+TEMPLATES.filters["progress"] = progress
 TEMPLATES.filters["seconds"] = lambda v: "n/a" if v is None else f"{v * 1000:,.0f} ms" if v < 1 else f"{v:,.2f} s"
 TEMPLATES.filters["mib"] = lambda v: "n/a" if v is None else f"{v / 2**20:,.0f} MiB"
 TEMPLATES.filters["cost"] = lambda v: "n/a" if v is None else f"${v:,.4f}"

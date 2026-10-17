@@ -8,12 +8,31 @@
   <dt>Created</dt><dd>{{ workflow.createdAt }}</dd>
   <dt>Updated</dt><dd>{{ workflow.updatedAt }}</dd>
 </dl>
+{% set p = workflow | progress %}
+{% if p.total %}
+<section class="card stack" aria-label="Progress">
+  <p>
+    {% if p.current %}Step {{ p.position }} of {{ p.total }}: <strong>{{ p.current.skill }}</strong> on {{ p.current.agent }} ({{ p.current.label }}{% if p.current.elapsed %}, {{ p.current.elapsed }}{% endif %}{% if p.current.retry %}, retry after attempt {{ p.current.attempts }}{% endif %}){% else %}{{ p.finished }} of {{ p.total }} steps finished{% endif %}
+  </p>
+  <progress class="progress" max="100" value="{{ p.percent }}">{{ p.percent }} %</progress>
+  <p class="muted">Last update {{ p.since_update }} ago.</p>
+  {% if p.stalled %}<p class="msg error" role="alert">Stalled? No update for {{ p.since_update }}. The agent may be stuck. The step fails at its timeout.</p>{% endif %}
+  {% if p.failed %}<p class="msg error" role="alert">Step {{ p.failed.skill }} {{ p.failed.label }}. {{ p.failed.problem }}</p>{% endif %}
+  <ol class="timeline">
+  {% for s in p.steps %}
+    <li class="step status-{{ s.status }}{% if s.current %} current{% endif %}"{% if s.current %} aria-current="step"{% endif %}>
+      <span class="badge">{{ s.label }}</span> {{ s.skill }} <span class="muted">({{ s.agent }}{% if s.elapsed %}, {{ s.elapsed }}{% endif %}{% if s.attempts > 1 or s.retry %}, attempt {{ s.attempts }}{% endif %}{% if s.merged %}, merged into a newer workflow{% endif %})</span>
+    </li>
+  {% endfor %}
+  </ol>
+</section>
+{% endif %}
 {% if workflow.status in ("PENDING", "RUNNING", "BLOCKED") %}
 <form method="post" action="/workflows/{{ workflow.id }}/cancel" hx-post="/workflows/{{ workflow.id }}/cancel" hx-confirm="Cancel this workflow?" hx-select="main" hx-target="main" hx-swap="outerHTML">
   <input type="hidden" name="csrf" value="{{ csrf }}"><button>Cancel workflow</button>
 </form>
 {% endif %}
-<h2>Steps</h2>
+<h2>Step details</h2>
 <div class="scroll">
 <table>
 <thead><tr><th>Step</th><th>Agent</th><th>Skill</th><th>Status</th><th>Attempts</th><th>A2A task</th><th>Started</th><th>Ended</th><th>Duration</th><th>Error</th><th>Data</th></tr></thead>

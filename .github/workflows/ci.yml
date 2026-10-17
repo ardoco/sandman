@@ -39,6 +39,8 @@ jobs:
               - 'services/dashboard/**'
               - 'services/llm-replay/**'
               - 'tools/**'
+              - 'actions/**'
+              - 'tests/actions/**'
               - 'tests/plugin-stubs/**'
               - 'scripts/**'
               - 'pyproject.toml'

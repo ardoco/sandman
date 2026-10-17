@@ -283,7 +283,8 @@ def build_router(svc: Service) -> APIRouter:
         d = parse(await svc.inconsistency_response(ctx.who, iid, "getInconsistency"))
         evidence = json.dumps(d["evidence"], indent=2, ensure_ascii=False) if d.get("evidence") else ""
         can = ctx.who.level(d["projectId"]) >= LEVEL["triager"]
-        return render(ctx, "inconsistency.html", status, d=d, evidence=evidence, can_transition=can, **extra)
+        ev = await svc.evidence(d["projectId"], d)
+        return render(ctx, "inconsistency.html", status, d=d, evidence=evidence, ev=ev, can_transition=can, **extra)
 
     @router.get("/inconsistencies/{iid}")
     async def inconsistency(iid: str, ctx: Ctx = Session) -> HTMLResponse:

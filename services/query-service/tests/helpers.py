@@ -77,6 +77,8 @@ class FakeReader:
             return ["llmPolicy"], [[p["llmPolicy"]] for p in self.projects if p["id"] == params["id"]]
         if cypher.startswith("MATCH (p:Project)"):
             return ["p"], [[p] for p in self.projects]
+        if cypher.startswith("/* evidence"):
+            return [], []
         if cypher.lstrip().startswith(("MATCH (l:TraceLink", "MATCH (i:Inconsistency", "MATCH (a:Artifact {")):
             return [], []  # exports
         columns, rows = self.result

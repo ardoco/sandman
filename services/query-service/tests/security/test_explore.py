@@ -202,7 +202,7 @@ async def test_memgraph_zero_foreign_data(mg: Env) -> None:  # noqa: F811
             call(tool="get_element", key=beta_r1, projectId="beta"),
             call(tool="neighbors", key=alpha_r1),
             call(tool="trace_links", key=alpha_r1),
-            call(tool="find_elements", query=MARKER),
+            call(tool="find_elements", query=MARKER[:-5]),  # step input is echoed, so search a part of the marker
             call(tool="finish", keys=[alpha_r1, beta_r1]),
             answer(f"R1 [[{alpha_r1}]]", alpha_r1),
         ]

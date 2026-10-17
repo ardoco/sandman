@@ -179,3 +179,28 @@ def test_workflows_wait_reports_step_transitions_on_stderr(capsys: pytest.Captur
         "workflow SUCCEEDED",
     ]
     assert json.loads(out)["status"] == "SUCCEEDED"
+
+
+def test_workflows_wait_prints_activity_text_once_per_change(capsys: pytest.CaptureFixture[str]) -> None:
+    def wf(status: str, activity: str | None) -> dict[str, Any]:
+        step: dict[str, Any] = {"id": "s0", "agent": "a", "skill": "tlr", "status": status, "attempts": 1}
+        if activity:
+            step["activity"] = {"text": activity, "at": "2026-10-08T10:00:00Z"}
+        return {"id": WF, "status": "RUNNING" if status == "RUNNING" else status, "steps": [step]}
+
+    states = iter(
+        [
+            wf("RUNNING", "linking 1/3"),
+            wf("RUNNING", "linking 1/3"),
+            wf("RUNNING", None),
+            wf("RUNNING", "linking 2/3"),
+            wf("SUCCEEDED", None),
+        ]
+    )
+    routes = {f"/v1/workflows/{WF}": lambda r: httpx.Response(200, json=next(states))}
+    assert main(["workflows", "--project", "mini", "--wait", WF, "--poll", "0"], server([], [], routes)) == 0
+    err = capsys.readouterr().err
+    assert [line.split("] ", 1)[1] for line in err.splitlines() if "linking" in line] == [
+        "step 1/1 tlr: linking 1/3",
+        "step 1/1 tlr: linking 2/3",
+    ]

@@ -12,7 +12,7 @@
 {% if p.total %}
 <section class="card stack" aria-label="Progress">
   <p>
-    {% if p.current %}Step {{ p.position }} of {{ p.total }}: <strong>{{ p.current.skill }}</strong> on {{ p.current.agent }} ({{ p.current.label }}{% if p.current.elapsed %}, {{ p.current.elapsed }}{% endif %}{% if p.current.retry %}, retry after attempt {{ p.current.attempts }}{% endif %}){% else %}{{ p.finished }} of {{ p.total }} steps finished{% endif %}
+    {% if p.current %}Step {{ p.position }} of {{ p.total }}: <strong>{{ p.current.skill }}</strong> on {{ p.current.agent }} ({{ p.current.label }}{% if p.current.elapsed %}, {{ p.current.elapsed }}{% endif %}{% if p.current.retry %}, retry after attempt {{ p.current.attempts }}{% endif %}){% if p.current.activity %}: <em>{{ p.current.activity }}</em>{% endif %}{% else %}{{ p.finished }} of {{ p.total }} steps finished{% endif %}
   </p>
   <progress class="progress" max="100" value="{{ p.percent }}">{{ p.percent }} %</progress>
   <p class="muted">Last update {{ p.since_update }} ago.</p>
@@ -22,6 +22,7 @@
   {% for s in p.steps %}
     <li class="step {{ 'done' if s.status == 'SUCCEEDED' else 'failed' if s.status in ('FAILED', 'BLOCKED') else 'active' if s.current else '' }}"{% if s.current %} aria-current="step"{% endif %}>
       <span class="status-{{ s.status }}">{{ s.label }}</span> {{ s.skill }} <span class="muted">({{ s.agent }}{% if s.elapsed %}, {{ s.elapsed }}{% endif %}{% if s.attempts > 1 or s.retry %}, attempt {{ s.attempts }}{% endif %}{% if s.merged %}, merged into a newer workflow{% endif %})</span>
+      {% if s.activity %}<span class="muted">{{ s.activity }}</span>{% endif %}
     </li>
   {% endfor %}
   </ol>

@@ -58,6 +58,7 @@ def progress(wf: Mapping[str, Any], now: datetime | None = None) -> dict[str, An
             "merged": bool(s.get("mergedInto")),
             "elapsed": duration(elapsed.total_seconds()) if elapsed else "",
             "problem": problem(s.get("error")),
+            "activity": (s.get("activity") or {}).get("text", "") if status == "RUNNING" else "",
         })  # fmt: skip
     finished = sum(r["status"] in ("SUCCEEDED", "CANCELED") for r in rows)
     current = next((r for r in rows if r["status"] == "RUNNING"), None) or next(

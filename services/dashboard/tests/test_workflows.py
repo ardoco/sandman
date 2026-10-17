@@ -271,3 +271,21 @@ async def test_list_shows_progress_of_active_workflow(env: Env, orch: FakeOrches
     orch.workflows[WF] = workflow(WF, "RUNNING", steps=_steps("SUCCEEDED", "RUNNING"))
     text = (await env.http.get("/workflows")).text
     assert "<th>Progress</th>" in text and "1/2" in text
+
+
+async def test_activity_text_is_shown_when_present_and_escaped(env: Env, orch: FakeOrchestrator) -> None:
+    await env.login()
+    steps = _steps("SUCCEEDED", "RUNNING")
+    steps[1]["activity"] = {"text": "annotating <b>120</b>/300", "at": "2026-10-08T10:00:09Z"}
+    orch.workflows[WF] = workflow(WF, "RUNNING", steps=steps)
+    detail = (await env.http.get(f"/fragments/workflows/{WF}")).text
+    assert detail.count("annotating &lt;b&gt;120&lt;/b&gt;/300") == 2 and "<b>120</b>" not in detail
+    assert "annotating &lt;b&gt;120&lt;/b&gt;/300" in (await env.http.get("/workflows")).text
+
+
+async def test_no_activity_renders_as_before(env: Env, orch: FakeOrchestrator) -> None:
+    await env.login()
+    orch.workflows[WF] = workflow(WF, "RUNNING", steps=_steps("SUCCEEDED", "RUNNING"))
+    detail = (await env.http.get(f"/fragments/workflows/{WF}")).text
+    assert "<em>" not in detail and "Step 2 of 2" in detail
+    assert ": </td>" not in (await env.http.get("/workflows")).text

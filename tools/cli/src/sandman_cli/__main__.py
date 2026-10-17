@@ -18,7 +18,7 @@ from typing import Any
 import httpx
 import yaml
 
-from sandman_cli.evaluation import stats
+from sandman_cli.evaluation import labeling, stats
 from sandman_cli.evaluation.compare import compare, identical
 from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
 from sandman_cli.evaluation.perturb import build_mapping, rename
@@ -131,6 +131,10 @@ def _transitions(wf: dict[str, Any], seen: dict[str, str], started: float) -> No
                 file=sys.stderr,
             )
         seen[st["id"]] = state
+        text = (st.get("activity") or {}).get("text", "") if st["status"] == "RUNNING" else ""
+        if text and seen.get(st["id"] + "#activity") != text:
+            print(f"[{time.monotonic() - started:5.0f}s] step {i}/{len(steps)} {st['skill']}: {text}", file=sys.stderr)
+        seen[st["id"] + "#activity"] = text
     if seen.get("") != wf["status"]:
         print(f"[{time.monotonic() - started:5.0f}s] workflow {wf['status']}", file=sys.stderr)
         seen[""] = wf["status"]
@@ -213,6 +217,31 @@ def eval_perturb(args: argparse.Namespace) -> int:
     return 0
 
 
+def eval_label_sample(args: argparse.Namespace) -> int:
+    findings = labeling.load_exports(p.read_text(encoding="utf-8") for p in args.export)
+    sheets, key = labeling.sample(findings, args.per_stratum, args.seed, args.detector or labeling.DETECTORS)
+    key["exports"] = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in args.export}
+    args.out.mkdir(parents=True, exist_ok=True)
+    for r, rows in sheets.items():
+        (args.out / f"rater-{r}.csv").write_text(labeling.write_sheet(rows), encoding="utf-8")
+    (args.out / "key.json").write_text(json.dumps(key, indent=2), encoding="utf-8")
+    print(json.dumps({"items": len(key["items"]), "strata": key["strata"]}, indent=2))
+    return 0
+
+
+def eval_label_score(args: argparse.Namespace) -> int:
+    key = json.loads(args.key.read_text(encoding="utf-8"))
+    try:
+        a, b = (labeling.read_sheet(p.read_text(encoding="utf-8"), key["items"]) for p in (args.a, args.b))
+        adj = args.adjudicated and labeling.read_sheet(args.adjudicated.read_text(encoding="utf-8"), key["items"], True)
+    except ValueError as e:
+        raise SystemExit(f"sandman: {e}") from e
+    if args.disagreements:
+        args.disagreements.write_text(labeling.disagreement_sheet(a, b), encoding="utf-8")
+    print(json.dumps(labeling.score(key, a, b, adj or None, args.resamples, args.seed), indent=2))
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--project", required=True, type=_pattern(r"[a-z0-9][a-z0-9-]{1,62}", "project id"))
@@ -274,6 +303,24 @@ def parser() -> argparse.ArgumentParser:
     e.add_argument("--seed", type=int, default=stats.SEED)
     e.add_argument("paths", type=Path, nargs="+")
     e.set_defaults(func=eval_perturb, offline=True)
+
+    e = ev.add_parser("label-sample", help="stratified blinded rater sheets from finding exports (T3.6)")
+    e.add_argument("--export", type=Path, action="append", required=True, help="export inconsistencies --format json")
+    e.add_argument("--detector", action="append", help=f"repeatable (default: {', '.join(labeling.DETECTORS)})")
+    e.add_argument("--per-stratum", type=int, default=30)
+    e.add_argument("--seed", type=int, default=stats.SEED)
+    e.add_argument("--out", type=Path, required=True, help="writes rater-a.csv, rater-b.csv, key.json")
+    e.set_defaults(func=eval_label_sample, offline=True)
+
+    e = ev.add_parser("label-score", help="kappa, disagreements and precision per stratum (T3.6)")
+    e.add_argument("--key", type=Path, required=True)
+    e.add_argument("--a", type=Path, required=True, help="labeled sheet of rater a")
+    e.add_argument("--b", type=Path, required=True, help="labeled sheet of rater b")
+    e.add_argument("--adjudicated", type=Path, help="filled disagreement sheet (item, label)")
+    e.add_argument("--disagreements", type=Path, help="write the adjudication sheet here")
+    e.add_argument("--seed", type=int, default=stats.SEED)
+    e.add_argument("--resamples", type=int, default=stats.RESAMPLES)
+    e.set_defaults(func=eval_label_score, offline=True)
     return p
 
 

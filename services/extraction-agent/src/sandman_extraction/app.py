@@ -41,6 +41,7 @@ from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_extraction import documents, ingest
+from sandman_extraction.embed import EmbedConfig
 from sandman_extraction.enrich import EnrichConfig
 from sandman_extraction.extract import ExtractSkill
 
@@ -83,6 +84,12 @@ class Service:
             self.contracts.load_config("extraction-enrichment", enrichment_file) if enrichment_raw else {}
         )
         self.enrichment_hash = sha256_hex(enrichment_raw)
+        embedding_file = config_dir / "extraction" / "embedding.yaml"
+        embedding_raw = embedding_file.read_bytes() if embedding_file.is_file() else b""
+        self.embedding = EmbedConfig.from_dict(
+            self.contracts.load_config("extraction-embedding", embedding_file) if embedding_raw else {}
+        )
+        self.embedding_hash = sha256_hex(embedding_raw)
         self.selector: ModelSelector | None = None
         if settings.llm_models_file and settings.llm_base_url and settings.llm_key:
             self.selector = ModelSelector(
@@ -114,8 +121,12 @@ class Service:
         """Logical chat route of the project's LLM policy."""
         return "chat-local" if policy == LOCAL_ONLY else "chat-default"
 
+    def embed_route(self, policy: str) -> str:
+        """Logical embedding route of the project's LLM policy."""
+        return "embed-local" if policy == LOCAL_ONLY else "embed-default"
+
     def route_model(self, route: str) -> str:
-        """Gateway model id a logical route maps to (part of the reuse key of enrichment results)."""
+        """Gateway model id a logical route maps to (part of the reuse key of enrichment and embedding results)."""
         return self.selector.routes.get(route, route) if self.selector else route
 
     def llm_client(self, policy: str) -> LlmClient:

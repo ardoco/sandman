@@ -17,7 +17,7 @@ from sandman_agent import A2aPluginClient, PluginError, RunRecorder, SkillContex
 from sandman_agent.ids import canonical_json, sha256_hex
 from sandman_agent.kg import now
 
-from sandman_extraction import builtin, documents, enrich, models
+from sandman_extraction import builtin, documents, embed, enrich, models
 from sandman_extraction.bounds import add_warnings
 from sandman_extraction.ingest import rows
 from sandman_extraction.stub import stub_elements
@@ -180,6 +180,7 @@ class ExtractSkill:
             raise
         await runs.complete(run_id, status=output["status"])
         extra = await enrich.enrich(svc, runs, common, input, pid, project[0]["llmPolicy"], vids)
+        extra += await embed.embed(svc, ctx, runs, common, input, pid, project[0]["llmPolicy"], vids)
         if extra:
             output["warnings"] = output.get("warnings", [])
             add_warnings(output["warnings"], extra)

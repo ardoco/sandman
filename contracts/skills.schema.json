@@ -28,6 +28,11 @@
             "llmEnrichment": {
               "type": "boolean",
               "default": true
+            },
+            "embedding": {
+              "type": "boolean",
+              "default": true,
+              "description": "false skips the element embeddings (config/extraction/embedding.yaml, T4.1b)."
             }
           },
           "additionalProperties": false

@@ -130,11 +130,3 @@ progress.progress::-moz-progress-bar { background: var(--accent); }
 .alerts a { color: var(--bad); font-weight: 600; }
 .filters { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; margin-bottom: 1rem; }
 .filters label { margin: 0; }
-
-/* workflow progress fallback; generic classes live in the restyle block above if present */
-.timeline { list-style: none; padding: 0; margin: .5rem 0; }
-.timeline .step { padding: .2rem .4rem; border-left: 3px solid #d0d7de; margin-bottom: .2rem; }
-.timeline .step.current { border-left-color: #9a6700; background: #fff8e1; font-weight: 600; }
-.badge { display: inline-block; padding: 0 .4rem; border: 1px solid currentColor; border-radius: .6rem; font-size: .85em; }
-progress.progress { width: 12rem; max-width: 100%; vertical-align: middle; }
-.muted { color: #57606a; }

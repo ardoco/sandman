@@ -8,11 +8,14 @@ Dataset file (YAML): `items` = list of {id, project, question, strategy, author,
 import argparse
 import json
 import re
+import sys
+import time
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+import httpx
 import yaml
 
 STRATEGIES = ("cypher", "graphrag", "explore")
@@ -273,6 +276,37 @@ def cmd_classifier(args: argparse.Namespace) -> int:
     return _print(confusion(_items(args), _read(args.predictions)))
 
 
+def classify(
+    http: httpx.Client, items: Iterable[Mapping[str, Any]], pause: float = 0.0
+) -> tuple[dict[str, str | None], dict[str, str]]:
+    """Post each question with `auto` and `execute: false`; return {id: classification.strategy} and {id: reason}."""
+    picks: dict[str, str | None] = {}
+    errors: dict[str, str] = {}
+    for n, i in enumerate(items):
+        if n and pause:
+            time.sleep(pause)
+        body = {"projectId": i["project"], "question": i["question"], "strategy": "auto", "execute": False}
+        try:
+            resp = http.post("/v1/query/nl", json=body)
+            if resp.is_error:
+                raise ValueError(f"{resp.status_code} {resp.text[:200]}")
+            picks[i["id"]] = resp.json()["classification"]["strategy"]
+        except (httpx.HTTPError, ValueError, KeyError, TypeError) as e:
+            picks[i["id"]] = None
+            errors[i["id"]] = f"{type(e).__name__}: {e}"
+            print(f"sandman: {i['id']}: {errors[i['id']]}", file=sys.stderr)
+    return picks, errors
+
+
+def cmd_classify(http: httpx.Client, args: argparse.Namespace) -> int:
+    items = [i for i in _items(args) if args.split in (None, i["split"])]
+    if args.limit is not None:
+        items = items[: args.limit]
+    picks, errors = classify(http, items, args.pause)
+    args.out.write_text(json.dumps(picks, indent=2, ensure_ascii=False), encoding="utf-8")
+    return _print({"items": len(items), "classified": len(items) - len(errors), "errors": errors})
+
+
 def register(ev: Any) -> None:
     """Add `nlquery` with its subcommands to the `eval` subparsers."""
     nl = ev.add_parser("nlquery", help="NL query evaluation set: checks and metrics (T4.2)").add_subparsers(
@@ -316,3 +350,11 @@ def register(ev: Any) -> None:
         cmd_classifier,
         ("--predictions", "JSON {id: strategy}"),
     )
+    p = nl.add_parser("classify", help="post the questions with `auto` (execute false); write {id: strategy}")
+    p.add_argument("--dataset", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True, help="predictions JSON for `classifier`")
+    p.add_argument("--split", choices=SPLITS, help="only this split")
+    p.add_argument("--limit", type=int, help="only the first N items")
+    p.add_argument("--pause", type=float, default=0.0, help="seconds between requests")
+    p.add_argument("--token-file", type=Path, help="personal API token (default: $SANDMAN_TOKEN)")
+    p.set_defaults(func=cmd_classify)

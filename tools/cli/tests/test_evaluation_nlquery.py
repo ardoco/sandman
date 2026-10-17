@@ -152,3 +152,31 @@ def test_cli_end_to_end(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> N
     assert json.loads(capsys.readouterr().out)["accuracy"] == 1.0
     ds.write_text(yaml.safe_dump({"items": [item("x", split="test")]}), encoding="utf-8")
     assert main(["eval", "nlquery", "validate", "--dataset", str(ds)]) == 1
+
+
+def test_classify_posts_auto_and_records_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    ds, out = tmp_path / "ds.yaml", tmp_path / "pred.json"
+    ds.write_text(yaml.safe_dump({"items": [item("a", "p1"), item("b", "p2", strategy="graphrag"), item("c", "p3")]}))
+    bodies: list[dict[str, Any]] = []
+
+    def handle(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        bodies.append(body)
+        assert request.url.path == "/v1/query/nl" and request.headers["authorization"] == "Bearer t"
+        if body["projectId"] == "p3":
+            return httpx.Response(501, json={"title": "not implemented"})
+        return httpx.Response(
+            200, json={"classification": {"strategy": "cypher" if body["projectId"] == "p1" else "graphrag"}}
+        )
+
+    monkeypatch.setenv("SANDMAN_TOKEN", "t")
+    argv = ["eval", "nlquery", "classify", "--dataset", str(ds), "--out", str(out)]
+    assert main(argv, httpx.MockTransport(handle)) == 0
+    assert json.loads(out.read_text()) == {"a": "cypher", "b": "graphrag", "c": None}
+    assert [b["projectId"] for b in bodies] == ["p1", "p2", "p3"]
+    assert all(b["strategy"] == "auto" and b["execute"] is False for b in bodies)
+    bodies.clear()
+    assert main([*argv, "--limit", "1"], httpx.MockTransport(handle)) == 0
+    assert len(bodies) == 1 and json.loads(out.read_text()) == {"a": "cypher"}

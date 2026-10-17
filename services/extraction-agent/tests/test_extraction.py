@@ -670,3 +670,19 @@ async def test_archive_only_upload_is_partial_and_retires_nothing(env: Any) -> N
     assert {r["path"]: r["d"] for r in rows} == {"a.txt": None, "b.txt": None}
     again = await upload({"b.txt": b"b2"})
     assert again["unchangedCount"] == 1 and again["createdVersionIds"] == []
+
+
+async def test_extract_reports_activity(env: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    from sandman_agent.a2a import SkillContext
+
+    texts: list[str] = []
+
+    async def record(self: SkillContext, text: str) -> None:
+        texts.append(text)
+
+    monkeypatch.setattr(SkillContext, "progress", record)
+    await env.put_project()
+    resp = await env.ingest(env.mini())
+    task = await env.extract(resp.json()["createdVersionIds"], None)
+    assert task.state == "TASK_STATE_COMPLETED", task
+    assert any(t.startswith("extracting ") and "/" in t for t in texts), texts

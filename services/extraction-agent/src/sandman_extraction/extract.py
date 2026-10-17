@@ -173,7 +173,7 @@ class ExtractSkill:
                                   used_version_ids=vids, **common)  # fmt: skip
         try:
             output = await self._extract(
-                runs, run_id, common, input_key, pid, project[0]["llmPolicy"], plugins, by_id, use_builtin
+                ctx, runs, run_id, common, input_key, pid, project[0]["llmPolicy"], plugins, by_id, use_builtin
             )
         except Exception as e:
             await runs.fail(run_id, f"{type(e).__name__}: {e}")
@@ -189,6 +189,7 @@ class ExtractSkill:
 
     async def _extract(
         self,
+        ctx: SkillContext,
         runs: RunRecorder,
         run_id: str,
         common: dict[str, Any],
@@ -215,8 +216,12 @@ class ExtractSkill:
             p=pid,
         )
 
+        extracted = 0
+
         async def stub(v: dict[str, Any]) -> None:
-            nonlocal status
+            nonlocal status, extracted
+            extracted += 1
+            await ctx.progress(f"extracting {v['path']} ({extracted}/{len(current)})")
             document = use_builtin and builtin.document_format(v["path"], v["format"])
             content = b"" if document else svc.store.open(v["uri"]).read()
             try:
@@ -281,6 +286,7 @@ class ExtractSkill:
                     ]
                 },  # fmt: skip
             }
+            await ctx.progress(f"running plugin {plugin_id} on {len(versions)} artifacts")
             try:
                 out = await self._call(plugin, plugin_input)
             except (PluginError, OSError) as e:

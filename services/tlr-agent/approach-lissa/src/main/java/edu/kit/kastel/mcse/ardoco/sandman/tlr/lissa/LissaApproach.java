@@ -131,13 +131,19 @@ public final class LissaApproach implements TraceLinkApproach {
                 concurrency,
                 ctx.cancelled(),
                 w -> ctx.log().warn("lissa: {}", w));
-        ctx.progress().accept("lissa: embedding " + sources.size() + " requirements and " + targets.size() + " code files");
+        ctx.progress()
+                .accept("lissa: embedding " + sources.size() + " requirements and " + targets.size() + " code files");
         var sourceStore = new SourceElementStore(embedder.embed(sources));
         var targetStore = new TargetElementStore(embedder.embed(targets), new CosineSimilarity(k(ctx.params())));
         int pairs = sources.size() * Math.min(k(ctx.params()), targets.size());
         AtomicInteger done = new AtomicInteger();
-        var chat = new LissaChat(ctx.llmClient(), llm.chatRoute(), TEMPERATURE, SEED, () -> ctx.progress()
-                .accept("lissa: calling LLM for link classification " + done.incrementAndGet() + "/" + pairs));
+        var chat = new LissaChat(
+                ctx.llmClient(),
+                llm.chatRoute(),
+                TEMPERATURE,
+                SEED,
+                () -> ctx.progress()
+                        .accept("lissa: calling LLM for link classification " + done.incrementAndGet() + "/" + pairs));
         Classifier classifier = classifier(ctx.params(), concurrency, ctx, chat);
         var results = classifier.classify(sourceStore, targetStore);
         Set<TraceLink> links = new AnyResultAggregator().aggregate(sources, targets, results);

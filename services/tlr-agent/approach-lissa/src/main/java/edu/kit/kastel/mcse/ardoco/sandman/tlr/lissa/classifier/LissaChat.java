@@ -8,8 +8,7 @@ import java.util.List;
  * The chat call of a classifier: one {@link LlmClient}, route, temperature and seed.
  * Replaces the LangChain4j chat model of LiSSA.
  */
-public record LissaChat(
-        LlmClient client, String route, double temperature, Integer seed, Runnable afterCall) {
+public record LissaChat(LlmClient client, String route, double temperature, Integer seed, Runnable afterCall) {
 
     public LissaChat(LlmClient client, String route, double temperature, Integer seed) {
         this(client, route, temperature, seed, () -> {});

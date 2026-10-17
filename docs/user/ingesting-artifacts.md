@@ -151,3 +151,53 @@ curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/
 ```
 
 `partial` for `builtin-extractor` means at least one file fell back or an extractor failed; `failed` plugin runs carry the error in `r.error`. The extraction agent log names the file for a fallback (`built-in extractor failed`, see [operations.md](operations.md)).
+
+## 5. Ingest from GitHub Actions
+
+The composite action `actions/sandman-ingest` in this repository runs `sandman ingest` and `sandman workflows --wait` for you. It reads the same `sandman.yaml`.
+
+Prerequisites:
+- Your SANDMAN instance is reachable from the GitHub runner. The default stack listens on `127.0.0.1` only, so publish it first (reverse proxy with TLS).
+- A personal API token with the `maintainer` role ([projects-and-access.md](projects-and-access.md)).
+- A repository secret `SANDMAN_TOKEN` that holds the token, and a repository variable `SANDMAN_URL`.
+
+Example `.github/workflows/sandman.yml` in your project:
+
+```yaml
+name: sandman
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ardoco/sandman/actions/sandman-ingest@<full-commit-sha>
+        with:
+          url: ${{ vars.SANDMAN_URL }}
+          token: ${{ secrets.SANDMAN_TOKEN }}
+          project: my-project
+```
+
+| Input | Meaning |
+|---|---|
+| `url`, `token`, `project` | required. Pass the token only from `secrets` |
+| `path` | directory to ingest (default `.`) |
+| `mode` | `full` (default) or `partial` |
+| `base` | partial mode: commit to compare with, for example `${{ github.event.before }}`. Checkout needs `fetch-depth: 0` |
+| `revision` | default: the commit SHA |
+| `wait` | `true` (default): wait for the workflow and fail unless it is `SUCCEEDED` |
+| `timeout` | seconds to wait (default 600) |
+
+Outputs: `ingestion-id`, `workflow-id` (empty if nothing changed) and `status` (`SUCCEEDED`, `FAILED`, `CANCELED`, `BLOCKED`, `STARTED` without waiting, `none` if nothing changed).
+
+Rules:
+- Pin the action to a full commit SHA, not to a branch.
+- Do not use `pull_request_target`. Secrets are not available to pull requests from forks, and the step then fails with a clear error.
+- Partial mode never deletes artifacts. Run a `full` ingestion (for example nightly with `schedule`) to mark removed files as deleted.
+- The action installs `uv` and the CLI dependencies from the pinned checkout of this repository on each run.
+

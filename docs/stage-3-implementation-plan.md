@@ -85,7 +85,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T4.3 | Answer synthesis with citations; answers may cite only ids present in the result rows (R-032); console "Ask" page with strategy selector (auto/cypher/graphrag/explore), resolved strategy, classification, evidence and steps | S | T4.1 | |
 | T4.4 | Security test suite for the query path, all strategies (cross-project retrieval, budget exhaustion, injection into `explore` tool calls and the classifier); includes prompt-injection fixtures that measure effects on outputs, and escaping and CSP checks for LLM rationale and plugin evidence in the console (R-032) | S | T4.1 | |
 | **M5** | | | | |
-| T5.1 | GitHub Action `sandman-ingest` for user projects (token from secrets) | S | T0.10 | |
+| T5.1 | GitHub Action `sandman-ingest` for user projects (token from secrets) | S | T0.10 | [T5.1](tasks/T5.1-github-action-ingest.md) |
 | T5.2 | Retention: `prune` skills (tlr, extraction) + scheduled workflow | M | M2 | |
 | T5.3 | Backup/restore scripts + drill | S | T0.11 | [T5.3](tasks/T5.3-backup-restore.md) |
 | T5.4 | Performance budget (ingest 1 000 changed files, detection latency, Memgraph query latency and memory against the budget; ADR-0014 fallback only if it fails) and fixes | M | M3 | |

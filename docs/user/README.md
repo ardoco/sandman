@@ -10,7 +10,7 @@ Audience: operators who run the stack and project users (architects, researchers
 |---|---|
 | [getting-started.md](getting-started.md) | install, generate secrets, start the stack, first login |
 | [projects-and-access.md](projects-and-access.md) | users, roles, projects, personal API tokens |
-| [ingesting-artifacts.md](ingesting-artifacts.md) | prepare a repository, run `sandman ingest`, understand versions, limits and partial runs |
+| [ingesting-artifacts.md](ingesting-artifacts.md) | prepare a repository, run `sandman ingest`, understand versions, limits and partial runs; ingest from GitHub Actions |
 | [workflows.md](workflows.md) | follow and trigger the processing that follows an ingestion |
 | [querying.md](querying.md) | ask questions, run Cypher, call the REST API, export |
 | [trace-links-and-findings.md](trace-links-and-findings.md) | read trace links and inconsistency findings, triage them |

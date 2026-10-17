@@ -106,7 +106,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 | NFR-10 | Persistence: KG, event log, workflow state, artifact store and gateway data survive restarts and can be backed up. |
 | NFR-11 | Extensibility: new TLR approaches and inconsistency detectors are added without changing contracts or the orchestrator. |
 | NFR-12 | Local models (Ollama/vLLM) are usable through the same gateway (confidential artifacts). |
-| NFR-13 | Free/open-source components only; licenses compatible with distributing the repository under AGPL-3.0. |
+| NFR-13 | Free/open-source components only; licenses compatible with distributing the repository under AGPL-3.0. Exception (ADR-0014, amended 2026-10-18): Memgraph Community (BSL 1.1) runs as a separate service from the official image. The repository does not redistribute it. |
 | NFR-14 | Testability: LLM-dependent behavior can be tested offline (mock LLM, record/replay). |
 | NFR-15 | Simplicity: single-server research prototype; target size per project ≤ ~5 000 artifacts/files, ≤ ~200 000 KG nodes (assumption A-6). |
 | NFR-16 | Architecture decisions are documented as ADRs (`adr/`). |

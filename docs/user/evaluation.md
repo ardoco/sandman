@@ -217,21 +217,35 @@ Notes per command:
 - `contamination`: give at least 2 values for each variant. Expected result: JSON with `drop`, `ci`, `baselineSd` and `flagged`. `flagged` is true if the drop exceeds 2 standard deviations and the CI excludes 0.
 - The paraphrase step of protocol section 6 is manual. The harness does not include it.
 
-## 5a. Scripts for the live runs
+## 5a. Guided script for the live runs
 
-Two scripts run the live checks. Set `SANDMAN_URL` and `SANDMAN_TOKEN` (admin) first.
+One script leads you through all checks. Start it from the root of a checkout.
 
-| Script | Check |
+```sh
+uv run python scripts/t24_guided.py
+```
+
+| Step | Check |
 |---|---|
-| `scripts/live_equality.sh [--skip-mvn]` | ArDoCo check B for `mediastore` and `teastore` (PCM). Prints `PASS` or `FAIL` for each project. |
-| `scripts/live_lissa.sh rerun INPUT_DIR GOLD PUBLISHED_F1 [RUNS]` | LiSSA live re-run. Writes one report with delta and CI for each run. |
-| `scripts/live_lissa.sh pilot INPUT_DIR GOLD [RUNS=5]` | Runs LiSSA RUNS times, then runs `sandman eval pilot`. |
-| `scripts/live_lissa.sh contamination INPUT_DIR GOLD NAMES_FILE [RUNS=3]` | Perturbs the code files, runs LiSSA on both variants, then runs `sandman eval contamination`. |
+| 0 | Preflight: `SANDMAN_URL`, token, proxy, `/readyz`, Docker, admin rights, CoreNLP mode. |
+| 1 | Memgraph integration tests. |
+| 2 | ArDoCo check A: `BenchmarkEquivalenceTest`, then `eval equal` for each written pair. |
+| 3 | ArDoCo check B for `mediastore` and `teastore` (PCM). |
+| 4 | LiSSA live re-run, compared with the published F1. |
+| 5 | Variance pilot. |
+| 6 | Contamination probe. |
 
-- `INPUT_DIR` holds the requirements, the code under `src/` and a `sandman.yaml` with `kindRules`. See the `mini` example.
-- The LiSSA scripts need an LLM endpoint. They create a new project for each run. Set `LLM_POLICY=local-only` to change the project policy (default `cloud-allowed`).
-- Results go to `experiments/live/<timestamp>-<mode>/`.
+- Each step says what you do by hand. Press Enter to run the automatic part. The step then prints `PASS`, `FAIL` or `SKIP`.
+- Skip any step. Redo any step with `--only STEP...`.
+- Use `--resume [RUN_ID]` to continue a run. Use `--yes` for no prompts. Give the inputs as flags (see `--help`).
+- Use `--dry-run` to print the commands without a call to the stack.
+- Steps 4 to 6 need an LLM endpoint. Each run creates a new project. Set the policy with `--llm-policy local-only` (default `cloud-allowed`).
+- `INPUT_DIR` holds the requirements, the code under `src/` and a `sandman.yaml` with `kindRules`. See the `mini` example `tests/e2e/fixtures/mini/s1`.
 - The code file names must be unique. LiSSA links use file names only.
+- The paraphrase step of the contamination probe is manual (protocol section 6).
+- If a workflow fails, the script saves the workflow JSON and prints the failed steps with the likely cause.
+- Raw outputs go to `experiments/live/<run-id>/`. The script writes `report.md` there.
+- After each step, the script updates the Results table in `docs/tasks/T2.4-reproduction-study.md`. It writes only values from real command output.
 
 ## 6. Troubleshooting
 
@@ -257,4 +271,4 @@ More problems with the stack: see [operations.md](operations.md).
 2. Archive the standalone and adapter CSV files, the KG export, the output of every `sandman eval` command, and the LLM cassettes with the manifest.
 3. Name the model, the provider and the date of each LiSSA run.
 4. If a result deviates from the protocol, add a line to the deviation log at the end of `experiments/PROTOCOL.md`.
-5. When all checks pass, edit the line `Status:` in `docs/tasks/T2.4-reproduction-study.md`. State that the live runs are done, with the date.
+5. The guided script updates the line `Status:` and the Results table in `docs/tasks/T2.4-reproduction-study.md`. Check the text after the last run.

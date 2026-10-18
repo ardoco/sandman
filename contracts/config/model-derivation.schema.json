@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/model-derivation.schema.json",
+  "title": "config/extraction/model-derivation.yaml",
+  "description": "Derived architecture models written by the extraction-agent (T2.7, KG schema 0.6.0). The LLM route comes from the project's llmPolicy (chat-default, chat-local). A separate file keeps the configHash of enrichment unchanged.",
+  "type": "object",
+  "properties": {
+    "maxInputChars": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "A document text longer than this is skipped with a warning; the text is never cut."
+    },
+    "maxTokens": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum output tokens per LLM call."
+    },
+    "seed": {
+      "type": "integer",
+      "description": "LLM seed."
+    },
+    "maxComponents": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Component names after this count are dropped with a warning."
+    },
+    "maxNameLength": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Longer component names are dropped with a warning."
+    }
+  },
+  "additionalProperties": false
+}

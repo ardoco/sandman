@@ -80,6 +80,29 @@
       },
       "additionalProperties": false
     },
+    "modelDerivation": {
+      "type": "object",
+      "description": "Derived architecture models (T2.7). enabled false stops new derivations; existing derived artifacts stay.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "projects": {
+          "type": "object",
+          "description": "Project id -> overrides.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "retention": {
       "type": "object",
       "description": "Scheduled prune workflows (T5.2). Defaults: enabled, dryRun true, 24h, 20 versions per artifact.",

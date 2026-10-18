@@ -893,6 +893,50 @@
       },
       "additionalProperties": false
     },
+    "DeriveArchitectureModelInput": {
+      "type": "object",
+      "description": "Derives a components-only architecture model from each current architecture document of a project without a user architecture model, and retires derived models that a user model supersedes or whose source document is deleted. Idempotent. Skipped with a warning when the project llmPolicy has no LLM route.",
+      "required": [
+        "projectId"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeriveArchitectureModelOutput": {
+      "type": "object",
+      "required": [
+        "derivedVersionIds",
+        "retiredArtifactIds",
+        "warnings"
+      ],
+      "properties": {
+        "derivedVersionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "description": "Artifact versions of derived models that are new or reactivated."
+        },
+        "retiredArtifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "description": "Derived artifacts marked deleted (superseded by a user model or source document deleted)."
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "PruneArtifactDataInput": {
       "type": "object",
       "description": "Retention pruning of old artifact versions, their elements and runs of the extraction-agent. Dry run (default) deletes nothing and reports the counts; the audit trail is a Run with tool retention. Publishes sandman.retention.pruned.",

@@ -27,6 +27,10 @@
             "prune-artifact-data": {
               "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneArtifactDataInput",
               "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneArtifactDataOutput"
+            },
+            "derive-architecture-model": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/DeriveArchitectureModelInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/DeriveArchitectureModelOutput"
             }
           }
         }
@@ -64,6 +68,22 @@
       "tags": [
         "extraction",
         "knowledge-graph"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    },
+    {
+      "id": "derive-architecture-model",
+      "name": "Derive architecture model",
+      "description": "Derives a components-only architecture model from the architecture documents of a project without a user architecture model (ExArch port) and retires derived models that a user model supersedes.",
+      "tags": [
+        "extraction",
+        "llm",
+        "architecture-model"
       ],
       "inputModes": [
         "application/json"

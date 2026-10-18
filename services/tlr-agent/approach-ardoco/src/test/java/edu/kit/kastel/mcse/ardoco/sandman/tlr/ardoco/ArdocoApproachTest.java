@@ -50,6 +50,19 @@ class ArdocoApproachTest {
         return new TlrInput("p", List.of(doc, model), List.of(sentence), targets);
     }
 
+    private static TlrInput withModel(TlrInput base, String origin, String derivedFrom) {
+        var model = new TlrInput.Version(
+                "ver_model",
+                "art_model",
+                "m.components",
+                "architecture-model",
+                "component-listing",
+                "artifact://p/m",
+                origin,
+                derivedFrom);
+        return new TlrInput("p", List.of(base.versions().get(0), model), base.sources(), base.targets());
+    }
+
     private static TlrContext ctx(BooleanSupplier cancelled) {
         return new TlrContext(
                 null,
@@ -103,5 +116,23 @@ class ArdocoApproachTest {
     @Test
     void versionIncreasedForTheProviderChange() {
         assertEquals("2.1.0+a2", ArdocoApproach.VERSION);
+    }
+
+    @Test
+    void derivedModelOfAnotherDocIsNotPaired() {
+        var in = withModel(input("abc"), "derived", "ver_other_doc");
+        assertEquals(List.of(), new ArdocoApproach().recover(in, ctx(() -> true)));
+    }
+
+    @Test
+    void derivedModelIsPairedWithItsSourceDoc() {
+        var in = withModel(input("abc"), "derived", "ver_doc");
+        assertThrows(CancellationException.class, () -> new ArdocoApproach().recover(in, ctx(() -> true)));
+    }
+
+    @Test
+    void userModelIsPairedWithEveryDoc() {
+        var in = withModel(input("abc"), "user", null);
+        assertThrows(CancellationException.class, () -> new ArdocoApproach().recover(in, ctx(() -> true)));
     }
 }

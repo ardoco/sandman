@@ -44,7 +44,8 @@ public final class LinkStore {
         return kg
                 .read(
                         match + "RETURN v.id AS id, a.id AS artifactId, a.path AS path, a.kind AS kind, "
-                                + "a.format AS format, v.storageUri AS storageUri ORDER BY id",
+                                + "a.format AS format, v.storageUri AS storageUri, a.origin AS origin, "
+                                + "v.derivedFrom AS derivedFrom ORDER BY id",
                         params)
                 .stream()
                 .map(r -> new TlrInput.Version(
@@ -53,7 +54,9 @@ public final class LinkStore {
                         (String) r.get("path"),
                         (String) r.get("kind"),
                         (String) r.get("format"),
-                        (String) r.get("storageUri")))
+                        (String) r.get("storageUri"),
+                        r.get("origin") == null ? "user" : (String) r.get("origin"),
+                        (String) r.get("derivedFrom")))
                 .toList();
     }
 

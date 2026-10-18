@@ -136,6 +136,9 @@ public final class ArdocoApproach implements TraceLinkApproach {
             }
             Text annotated = null;
             for (TlrInput.Version model : models) {
+                if (!model.pairsWithDoc(doc.id())) {
+                    continue;
+                }
                 ModelFormat format = format(model);
                 if (format == null) {
                     ctx.log().warn("ardoco: model {} has unsupported format {}, skipped", model.path(), model.format());

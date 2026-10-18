@@ -159,6 +159,27 @@ class RecoverTraceLinksTest {
     // --- tests
 
     @Test
+    void versionsCarryOriginAndDerivedFrom() {
+        kg.write(
+                "CREATE (:Artifact {id: 'art_d', projectId: $p, kind: 'architecture-model', origin: 'derived'})"
+                        + "-[:HAS_VERSION]->(:ArtifactVersion {id: 'ver_d', projectId: $p, derivedFrom: 'ver_src'})",
+                Map.of("p", PROJECT));
+        var versions = new LinkStore(kg).versions(PROJECT, List.of("ver_d", SRC_VERSION));
+        var derived = versions.stream()
+                .filter(v -> v.id().equals("ver_d"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("derived", derived.origin());
+        assertEquals("ver_src", derived.derivedFrom());
+        var user = versions.stream()
+                .filter(v -> v.id().equals(SRC_VERSION))
+                .findFirst()
+                .orElseThrow();
+        assertEquals("user", user.origin());
+        assertEquals(null, user.derivedFrom());
+    }
+
+    @Test
     void createsOneActiveLinkRunAndEvent() throws Exception {
         var done = run(input(",\"approaches\":[\"" + STUB + "\"]"), "m-acceptance");
 

@@ -164,6 +164,9 @@ public final class TransarcApproach implements TraceLinkApproach {
                 }
                 Text annotated = null;
                 for (TlrInput.Version model : models) {
+                    if (!model.pairsWithDoc(doc.id())) {
+                        continue;
+                    }
                     ModelFormat format = ArdocoApproach.format(model);
                     if (format == null) {
                         ctx.log()

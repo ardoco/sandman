@@ -50,20 +50,6 @@ def test_prompts_are_ported_verbatim() -> None:
     assert all(i.startswith("prompts/exarch-doc-") for i in derive.PROMPT_IDS)
 
 
-def test_reuse_key_formula() -> None:
-    key = sha256_hex(
-        canonical_json(
-            {
-                "input": {"projectId": "p", "versionId": "v"},
-                "tool": "exarch",
-                "configHash": "c",
-                "promptIds": derive.PROMPT_IDS,
-            }
-        )
-    )
-    assert len(key) == 64
-
-
 class FakeLlm:
     def __init__(self, answer: str = "- Alpha\n- beta service\n- Alpha") -> None:
         self.answer, self.requests, self.policies = answer, [], []
@@ -172,3 +158,113 @@ async def test_deleted_source_retires_derived_model(env: Any) -> None:
     task = await derive_task(env)
     assert len(task.result["retiredArtifactIds"]) == 1
     assert [r["vid"] for r in await current(env)] == [None]
+
+
+DOC_V1 = b"# Architecture\n\nThe Alpha component stores data. Beta calls Alpha.\n"
+DOC_V2 = b"# Architecture\n\nThe Alpha component stores data. Beta and Gamma call Alpha.\n"
+USER_MODEL = "model/arch.components"
+
+
+async def versions_by_path(env: Any) -> dict[str, str]:
+    cur = await env.svc.kg.read(
+        "MATCH (a:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v) RETURN a.path AS path, v.id AS vid", p=env.project
+    )
+    return {r["path"]: r["vid"] for r in cur}
+
+
+async def snapshot(env: Any) -> dict[str, Any]:
+    kg, p = env.svc.kg, env.project
+    orphans = await kg.read(
+        "MATCH (e:Element {projectId: $p}) WHERE NOT (:ArtifactVersion)-[:HAS_ELEMENT]->(e) RETURN e.id AS id", p=p
+    )
+    stale = await kg.read(
+        "MATCH (a:Artifact {projectId: $p, origin: 'derived'})-[:CURRENT_VERSION]->(v) "
+        "OPTIONAL MATCH (s:ArtifactVersion {id: v.derivedFrom})<-[:CURRENT_VERSION]-(:Artifact) "
+        "WITH v, s WHERE s IS NULL RETURN v.id AS id",
+        p=p,
+    )
+    assert orphans == [] and stale == []
+    return await versions_by_path(env)
+
+
+async def extract_current(env: Any, paths: list[str]) -> None:
+    versions = await versions_by_path(env)
+    task = await env.extract([versions[p] for p in paths])
+    assert task.state == "TASK_STATE_COMPLETED", task
+
+
+async def test_lifecycle(env: Any) -> None:
+    llm = enable(env, FakeLlm())
+    await env.put_project()
+
+    async def put(files: dict[str, bytes], mode: str = "full") -> None:
+        resp = await env.ingest(files, mode=mode)
+        assert resp.status_code == 201, resp.text
+
+    await put({DOC: DOC_V1})
+    await extract_current(env, [DOC])
+    doc1 = (await snapshot(env))[DOC]
+    task = await derive_task(env)
+    assert task.state == "TASK_STATE_COMPLETED" and len(llm.requests) == 2
+    derived1 = task.result["derivedVersionIds"][0]
+    await extract_current(env, [LISTING])
+    assert await snapshot(env) == {DOC: doc1, LISTING: derived1}
+    row = (
+        await env.svc.kg.read(
+            "MATCH (a:Artifact {projectId: $p, path: $path})-[:CURRENT_VERSION]->(v) "
+            "MATCH (v)-[:HAS_ELEMENT]->(e:ModelElement {kind: 'component'}) "
+            "RETURN a.origin AS origin, v.derivedFrom AS src, v.derivationRunId AS run, "
+            "collect(e.inferred) AS inferred, collect(e.name) AS names",
+            p=env.project, path=LISTING,
+        )
+    )[0]  # fmt: skip
+    assert (row["origin"], row["src"]) == ("derived", doc1) and row["run"]
+    assert row["inferred"] == [True, True] and sorted(row["names"]) == ["Alpha", "BetaService"]
+
+    llm.answer = "- Alpha\n- Gamma"
+    await put({DOC: DOC_V2})
+    await extract_current(env, [DOC])
+    doc2 = (await versions_by_path(env))[DOC]
+    task = await derive_task(env)
+    assert task.state == "TASK_STATE_COMPLETED" and len(llm.requests) == 4
+    derived2 = task.result["derivedVersionIds"][0]
+    assert derived2 != derived1
+    assert await snapshot(env) == {DOC: doc2, LISTING: derived2}
+
+    await put({DOC: DOC_V1})
+    task = await derive_task(env)
+    assert task.state == "TASK_STATE_COMPLETED" and len(llm.requests) == 4
+    assert task.result["derivedVersionIds"] == [derived1]
+    assert await snapshot(env) == {DOC: doc1, LISTING: derived1}
+
+    await put({USER_MODEL: b"Gamma::Gamma\n"}, mode="partial")
+    await extract_current(env, [USER_MODEL])
+    task = await derive_task(env)
+    assert task.state == "TASK_STATE_COMPLETED" and len(task.result["retiredArtifactIds"]) == 1
+    user = (await snapshot(env))[USER_MODEL]
+    assert await snapshot(env) == {DOC: doc1, USER_MODEL: user} and len(llm.requests) == 4
+
+    await put({DOC: DOC_V1})
+    task = await derive_task(env)
+    assert task.state == "TASK_STATE_COMPLETED" and len(llm.requests) == 4
+    assert task.result["derivedVersionIds"] == [derived1]
+    assert await snapshot(env) == {DOC: doc1, LISTING: derived1}
+
+
+async def test_reuse_key_matches_the_run_written_by_derive(env: Any) -> None:
+    enable(env, FakeLlm())
+    await prepare(env)
+    doc = (await snapshot(env))[DOC]
+    await derive_task(env)
+    key = sha256_hex(
+        canonical_json(
+            {
+                "input": {"projectId": env.project, "versionId": doc},
+                "tool": "exarch",
+                "configHash": env.svc.derivation_hash,
+                "promptIds": derive.PROMPT_IDS,
+            }
+        )
+    )
+    runs = await env.svc.kg.read("MATCH (r:Run {projectId: $p, tool: 'exarch'}) RETURN r.inputKey AS k", p=env.project)
+    assert [r["k"] for r in runs] == [key]

@@ -1,10 +1,10 @@
 # SANDMAN – Stage 3: Implementation Plan
 
-Status: revision 5 (system overview dashboard added: T0.14, T1.9–T1.11, ADR-0016) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (rev. 4), [Stage 2](stage-2-contracts-repository.md) (rev. 3) and the [ADRs](../adr/README.md).
+Status: revision 6 (M6–M8 from the paper review added; revision 5 added the system overview dashboard: T0.14, T1.9–T1.11, ADR-0016) · Date: 2026-10-18 · Builds on [Stage 1](stage-1-analysis-architecture.md) (rev. 4), [Stage 2](stage-2-contracts-repository.md) (rev. 3) and the [ADRs](../adr/README.md).
 
 ## 0. Summary of key decisions
 
-1. **Seven milestones.** M0 is the walking skeleton: all components as contract-true stubs in Compose, one end-to-end flow. M1–M4 replace stubs one at a time (extraction → TLR → inconsistency detection → NL-to-Cypher). M5 hardens the system for continuous use. M6 (LLM planner, link review) is optional.
+1. **Nine milestones.** M0 is the walking skeleton: all components as contract-true stubs in Compose, one end-to-end flow. M1–M4 replace stubs one at a time (extraction → TLR → inconsistency detection → NL-to-Cypher). M5 hardens the system for continuous use. M6–M8 come from the [paper review](notes/paper-review-3774748.3795871.md): M6 validate and inform (link review, triage causes, change impact), M7 knowledge depth, M8 evaluation with people. The LLM planner (T6.4) stays optional.
 2. **Replacement order:** extraction first, because every later result depends on element quality. Then TLR (ArDoCo first, LiSSA second), because inconsistency detection uses TLR information (Q-18). Then ArDoCo inconsistency detection, then NL-to-Cypher. The ArDoCo mapping risk is reduced early by the M0 spike T0.12.
 3. **Every replacement is a configuration switch.** Stubs stay selectable (`enabled` flags), so a real component can be compared with or rolled back to its stub without changing contracts.
 4. **Testing:** contract tests and conformance vectors are written once in M0 and never change during replacement. Tests that depend on LLM output run on recorded cassettes. Quality is measured on benchmark gold standards with fixed protocols and repeated runs.
@@ -24,7 +24,9 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M3 ArDoCo inconsistency detection** | ArDoCo ID (standard + Artemis variant) running in-process, using the TLR results of M2, mapped to the KG | Same findings as the standalone ArDoCo runner on its benchmark inputs; lifecycle scenario on real data |
 | **M4 Query strategies** | `cypher` (LLM generation with validation and repair), `graphrag`, `explore`, automatic selection; evaluation set; console Ask page with strategy switch and evidence views | Execution accuracy ≥ target (Q-16) on the held-out split for `cypher`; classifier and per-strategy targets of ADR-0018; security suite green for all strategies |
 | **M5 Continuous use** | GitHub Action for ingesting user projects, retention/prune skills, backup/restore drill, performance budget | 30-day soak on an evolving project without manual intervention; restore drill passes |
-| **M6 (optional)** | LLM planner with approval gate; trace-link review in console | Planner plans validated against skill schemas; no unapproved execution |
+| **M6 Validate and inform** | Trace-link review in the console with carry-over to new versions; triage cause categories; change impact report per ingestion; optional LLM planner with approval gate (T6.4). Source: [paper review](notes/paper-review-3774748.3795871.md) | A review survives a new version when both elements are unchanged; every transition to ACCEPTED, REJECTED or DEFERRED in the console has a cause; the impact report of a soak-project push lists the affected documentation sections; if T6.4 is built, its plans are validated against skill schemas and no plan runs without approval |
+| **M7 Knowledge depth** | Decision extraction, user-declared knowledge file, model–code inconsistency detection, time-aware queries, resolution suggestions and clarification questions, grounding checks | Each task meets its spec; new detectors pass a removal-protocol evaluation; LLM features are off by default and replay-tested |
+| **M8 Evaluation with people** | Developer user study; feedback-driven adaptation experiment | Pre-registered study run with a written report; adaptation results reported with CIs and reproducible from manifests |
 | **MX (on demand)** | Agent kits for TypeScript, Go (tier 1) and Rust (tier 2), built when the first agent in that language is planned (ADR-0017) | Kit passes all conformance vectors, Memgraph/NATS integration tests and the interop test with the Python orchestrator and a Java agent |
 
 ### 1.2 Tasks
@@ -90,6 +92,21 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T5.3 | Backup/restore scripts + drill | S | T0.11 | [T5.3](tasks/T5.3-backup-restore.md) |
 | T5.4 | Performance budget (ingest 1 000 changed files, detection latency, Memgraph query latency and memory against the budget; ADR-0014 fallback only if it fails) and fixes | M | M3 | [T5.4](tasks/T5.4-performance-budget.md) |
 | T5.5 | Soak test on an evolving open-source project (30 days, nightly ingest) | M | T5.1 | |
+| **M6** | | | | |
+| T6.1 | Trace-link review: implement the planned `reviewLink`, query-service forwarding route, review per element pair, carry-over to new versions when both `contentHash` values are unchanged, event `sandman.tracelink.reviewed` triggers detection, console Links page, review fields in the export | M | M2, T0.9 | [T6.1](tasks/T6.1-trace-link-review.md) |
+| T6.2 | Triage cause categories (extraction error, link error, detector error, artifact inconsistency, planned change, intentional) on transitions and `StatusChange`; additive contract change; export column | S | T0.7, T3.4 | [T6.2](tasks/T6.2-triage-causes.md) |
+| T6.3 | Change impact report per ingestion: changed elements, bounded traversal over active non-rejected links and `DEPENDS_ON`/`CONTAINS`, affected elements in other artifacts with paths; query-service endpoint, console page, Action job summary; read-only, no LLM | M | M2, T2.6, T5.1 | [T6.3](tasks/T6.3-change-impact-report.md) |
+| T6.4 | LLM planner with approval gate (ADR-0006), optional: JSON plan validated against skill schemas, BLOCKED until approval, feature flag | L | M5 | |
+| **M7** | | | | |
+| T7.1 | Architectural decision extraction: ADR/MADR files to `Decision` elements (additive schema), links to model and code elements | M | M1, M2 | |
+| T7.2 | User-declared knowledge file `sandman-knowledge.yaml` (elements, aliases, links with approach `user-declared`), schema-validated at ingest | M | M1, M2 | |
+| T7.3 | Model–code inconsistency detector (model element without code, code without model element); later LLM documentation–code contradictions (Q-6); removal-protocol evaluation | M | T2.7, T3.1 | |
+| T7.4 | Time-aware queries: optional `asOf` (ingestion or source revision) for all strategies of ADR-0018, bounded by retention | M | M4, T5.2 | |
+| T7.5 | Resolution suggestions and clarification questions for open inconsistencies (LLM, schema-validated, recorded, off by default, severity ≥ warning, never writes artifacts) | M | T3.4, T6.2 | |
+| T7.6 | Grounding checks: LLM-produced facts must cite existing KG elements; cross-approach agreement count as trust signal | S | M4 | |
+| **M8** | | | | |
+| T8.1 | Developer user study (usefulness, trust, task time, cognitive load), pre-registered in `experiments/PROTOCOL.md`, pilot first | L | M6, T5.5 | |
+| T8.2 | Feedback-driven adaptation experiment (few-shot from reviewed links, per-project thresholds); feedback snapshot hash in `configHash`; off by default | L | T6.1 | |
 | **MX** | | | | |
 | TX.1 | TypeScript agent kit (`@a2a-js/sdk` 1.x, `nats.js` v3, `neo4j-driver` 6, `openai`, Ajv 2020, `canonicalize`, OTel): skill server convention, auth, status, completion events, KG client (auto-commit, memory-limit), run provenance, ids/keys/fingerprints, contract validation; CI job, Dockerfile template | M–L | M0 | |
 | TX.2 | Go agent kit (`a2a-go` v2, `nats.go`, `neo4j-go-driver` v6, `openai-go`, `santhosh-tekuri/jsonschema` v6, cyberphone JCS, OTel); same scope | M–L | M0 | |
@@ -107,11 +124,12 @@ flowchart LR
   T02 & T03 & T013 --> T014[T0.14 status endpoint] --> T011
   T012 --> M1
   M1 --> M2[M2 TLR] --> M3[M3 ArDoCo ID] --> M4[M4 NL-to-Cypher] --> M5[M5 continuous use]
+  M5 --> M6[M6 validate + inform] --> M7[M7 knowledge depth] --> M8[M8 evaluation with people]
 ```
 
 Recommended order inside M0: T0.1 → (T0.2 ∥ T0.3 ∥ T0.4 ∥ T0.12 ∥ T0.13) → (T0.5, T0.8, T0.9, T0.10 ∥ T0.6, T0.7) → T0.11. T0.3 does not start its A2A glue before T0.4 has decided the Java runtime (D-6). With two developers, one takes the Python track and one the Java track. T0.4 and T0.12 are early risk spikes. Their results may change ADR-0002, ADR-0004 and the ArDoCo mapping design before much code depends on them.
 
-Rough calendar (one developer), **re-baselined after the review decisions (D-10 confirmed 2026-10-06):** M0 tasks sum to ≈ 46 days at the lower and ≈ 86 days at the upper end of the effort classes (S = 1–2, M = 3–5, L = 5–10 days; T0.9 = L + S for the scope guard), i.e. 9–17 weeks; **planning value M0 = 13 weeks** (midpoint). The D-7 cuts save ≈ 1 week, the scope guard (D-2), the replay proxy (D-3) and the reactivation logic (D-5) add ≈ 2 weeks. T0.14 adds ≈ 2 days to M0 (planning value stays 13 weeks, within the range). M1 ≈ 7 weeks (T1.8 dropped; dashboard T1.9–T1.11 ≈ 3 weeks), M2 ≈ 4–5 weeks, M3 ≈ 4 weeks (incl. labeling study T3.6), M4 ≈ 3 weeks, M5 ≈ 3 weeks plus the soak period.
+Rough calendar (one developer), **re-baselined after the review decisions (D-10 confirmed 2026-10-06):** M0 tasks sum to ≈ 46 days at the lower and ≈ 86 days at the upper end of the effort classes (S = 1–2, M = 3–5, L = 5–10 days; T0.9 = L + S for the scope guard), i.e. 9–17 weeks; **planning value M0 = 13 weeks** (midpoint). The D-7 cuts save ≈ 1 week, the scope guard (D-2), the replay proxy (D-3) and the reactivation logic (D-5) add ≈ 2 weeks. T0.14 adds ≈ 2 days to M0 (planning value stays 13 weeks, within the range). M1 ≈ 7 weeks (T1.8 dropped; dashboard T1.9–T1.11 ≈ 3 weeks), M2 ≈ 4–5 weeks, M3 ≈ 4 weeks (incl. labeling study T3.6), M4 ≈ 3 weeks, M5 ≈ 3 weeks plus the soak period. M6 ≈ 2 weeks (+ 1.5 weeks with the planner T6.4) and can run during the soak period. M7 ≈ 4.5 weeks. M8 ≈ 4 weeks plus the study time.
 
 ## 2. Replacement order
 
@@ -121,7 +139,7 @@ Rough calendar (one developer), **re-baselined after the review decisions (D-10 
 | 2 | TLR: ArDoCo, then LiSSA (M2; LiSSA adapted in T2.2, done) | Inconsistency detection uses TLR information (Q-18), so real links must exist first. ArDoCo is deterministic, which makes it a cheap correctness baseline before the LLM-based LiSSA. | Reproduction per §3.3 (ArDoCo exact, LiSSA live with Δ and CI) before any new experiment; per-approach failure isolation |
 | 3 | ArDoCo inconsistency detection (M3) | Builds on M2 links; highest mapping uncertainty (V-16/V-17), de-risked early by spike T0.12; the lifecycle already exists, so real findings exercise it at once | Equivalence test against the standalone runner; `stub-untraced` remains for comparison; adapter isolated behind the detector SPI |
 | 4 | NL-to-Cypher (M4) | Needs a stable schema and realistic data from M1–M3 to build a meaningful evaluation set | Stub intents remain as fallback; security suite runs with validation on and off |
-| 5 | Orchestrator planner (M6, optional) | The rule engine already covers automatic flows | Feature flag, approval gate |
+| 5 | Orchestrator planner (M6, T6.4, optional) | The rule engine already covers automatic flows | Feature flag, approval gate |
 
 General rules:
 - A replacement PR must not change files under `contracts/`. If it has to, the contract change goes in its own PR with both libraries and the conformance vectors updated.
@@ -211,6 +229,9 @@ Threats to validity to track: benchmark contamination of LLMs (benchmark project
 | RK-22 | ArDoCo branch still references `named-architecture-entity-recognition` 2.1.0-SNAPSHOT (NAER 2.1.0 is published since 2026-10-07; patched to 2.1.0 at build time, one-pass build verified); LangChain4j and old CoreNLP dependencies conflict with the Quarkus BOM (protobuf 3→4, JNA) | L | M | `bootstrap.sh` patches the two poms; upstream switch to 2.1.0; T3.3 equivalence test on the Quarkus classpath (spike T0.4: 42 findings unchanged) | M0–M3 |
 | RK-23 | Rust kit depends on pre-1.0 (`a2a-lf` 0.4) and community components (`neo4rs` RC, `async-openai`) | M | M | Tier 2: build only on demand; pin versions; V-40 Memgraph check first; Go/TS preferred for new agents meanwhile | MX |
 | RK-24 | Each additional language multiplies library maintenance (three more kits, CI jobs, update bots) | M | M | Kits only on demand, minimal scope, shared conformance vectors and interop test as the gate (ADR-0017) | MX |
+| RK-25 | Feedback-driven adaptation breaks reproducibility of experiments | M | H | Feedback snapshot hash in `configHash` and run manifests; adaptation off by default | M8 |
+| RK-26 | Resolution suggestions and clarification questions add LLM cost and user load | M | M | Off by default; only for severity warning or higher; budget stop applies; load measured in T8.1 | M7 |
+| RK-27 | User study finds too few participants or ethics approval is late | M | M | Check consent and ethics early; pilot first | M8 |
 
 L = likelihood, I = impact (H/M/L).
 

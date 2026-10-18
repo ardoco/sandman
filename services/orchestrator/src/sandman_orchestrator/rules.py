@@ -1,15 +1,26 @@
 """Rule configuration (config/orchestrator/rules.yaml) and the event -> step rules of Stage 1 §6."""
 
+import logging
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+import yaml
 from sandman_agent import Contracts, Event, KgClient
 
+log = logging.getLogger(__name__)
+
 EXTRACT, TLR, DETECT = "extract-artifact-versions", "recover-trace-links", "detect-inconsistencies"
-SKILL_AGENT = {EXTRACT: "extraction-agent", TLR: "tlr-agent", DETECT: "inconsistency-agent"}
+PRUNE_LINKS, PRUNE_DATA = "prune-trace-links", "prune-artifact-data"
+SKILL_AGENT = {
+    EXTRACT: "extraction-agent",
+    TLR: "tlr-agent",
+    DETECT: "inconsistency-agent",
+    PRUNE_LINKS: "tlr-agent",
+    PRUNE_DATA: "extraction-agent",
+}
 ID_LISTS = ("artifactVersionIds", "sourceVersionIds", "targetVersionIds", "scopeArtifactIds")
 
 
@@ -31,20 +42,44 @@ class KindPair:
 
 
 @dataclass(frozen=True)
+class Retention:
+    """Scheduled prune workflows (T5.2); per-project overrides in `projects`."""
+
+    enabled: bool = True
+    interval: float = 86400.0
+    keep: int = 20
+    dry_run: bool = True
+    experiments_dir: Path = Path("/experiments")
+    projects: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
+
+    def project(self, project_id: str) -> tuple[bool, int, bool]:
+        o = self.projects.get(project_id, {})
+        return (
+            bool(o.get("enabled", self.enabled)),
+            int(o.get("keepVersionsPerArtifact", self.keep)),
+            bool(o.get("dryRun", self.dry_run)),
+        )
+
+
+@dataclass(frozen=True)
 class Rules:
     debounce: float = 10.0
     max_per_agent: int = 2
-    timeouts: Mapping[str, float] = field(default_factory=lambda: {EXTRACT: 900.0, TLR: 3600.0, DETECT: 1800.0})
+    timeouts: Mapping[str, float] = field(
+        default_factory=lambda: {EXTRACT: 900.0, TLR: 3600.0, DETECT: 1800.0, PRUNE_LINKS: 1800.0, PRUNE_DATA: 1800.0}
+    )
     poll_initial: float = 30.0
     poll_max: float = 120.0
     max_attempts: int = 3
     backoff: tuple[float, ...] = (30.0, 120.0, 600.0)
     kind_pairs: tuple[KindPair, ...] = ()
+    retention: Retention = field(default_factory=Retention)
 
     @classmethod
     def load(cls, path: Path, contracts: Contracts) -> "Rules":
         raw: dict[str, Any] = contracts.load_config("orchestrator-rules", path)
-        poll, retry = raw.get("poll", {}), raw.get("retry", {})
+        poll, retry, ret = raw.get("poll", {}), raw.get("retry", {}), raw.get("retention", {})
+        default = Retention()
         return cls(
             debounce=seconds(raw.get("debounceSeconds", 10)),
             max_per_agent=int(raw.get("maxConcurrentPerAgent", 2)),
@@ -56,6 +91,14 @@ class Rules:
             kind_pairs=tuple(
                 KindPair(p["source"], p["target"], tuple(p.get("approaches", ())))
                 for p in raw.get("tlr", {}).get("kindPairs", ())
+            ),
+            retention=Retention(
+                enabled=ret.get("enabled", default.enabled),
+                interval=seconds(ret.get("interval", default.interval)),
+                keep=int(ret.get("keepVersionsPerArtifact", default.keep)),
+                dry_run=ret.get("dryRun", default.dry_run),
+                experiments_dir=Path(ret.get("experimentsDir", default.experiments_dir)),
+                projects=ret.get("projects", {}),
             ),
         )
 
@@ -83,6 +126,8 @@ class Graph(Protocol):
 
     async def current(self, project_id: str) -> list[Version]: ...
 
+    async def projects(self) -> list[str]: ...
+
 
 class KgGraph:
     def __init__(self, kg: KgClient) -> None:
@@ -104,9 +149,28 @@ class KgGraph:
         )
         return [Version(r["id"], r["artifact"], r["kind"]) for r in rows]
 
+    async def projects(self) -> list[str]:
+        rows = await self._kg.read("MATCH (p:Project) RETURN p.id AS id ORDER BY p.id")
+        return [r["id"] for r in rows]
+
 
 def ids(values: Any) -> list[str]:
     return sorted(set(values))
+
+
+def protected_hashes(directory: Path) -> list[str]:
+    """Content hashes of the snapshot in every experiments/**/experiment.yaml; an unreadable manifest raises."""
+    if not directory.is_dir():
+        log.warning(
+            "experiments directory missing, no version is protected by an experiment",
+            extra={"fields": {"dir": str(directory)}},
+        )
+        return []
+    found: set[str] = set()
+    for manifest in directory.rglob("experiment.yaml"):
+        artifacts = ((yaml.safe_load(manifest.read_text()) or {}).get("snapshot") or {}).get("artifacts") or {}
+        found.update(h for h in artifacts.values() if isinstance(h, str) and re.fullmatch(r"[0-9a-f]{64}", h))
+    return sorted(found)
 
 
 def detect(project_id: str, artifact_ids: Any) -> StepSpec:
@@ -151,6 +215,9 @@ async def plan(event: Event, graph: Graph, rules: Rules) -> list[StepSpec]:
     if event.type == "sandman.tracelinks.updated":
         versions = await graph.versions(project, [*d["sourceVersionIds"], *d["targetVersionIds"]])
         return [detect(project, (v.artifact_id for v in versions))] if versions else []
+    if event.type == "sandman.retention.pruned" and d["scope"] == "trace-links":
+        keep = {k: d[k] for k in ("keepVersionsPerArtifact", "dryRun", "protectedContentHashes") if k in d}
+        return [StepSpec(PRUNE_DATA, {"projectId": project, **keep})]
     return []  # inconsistencies.updated closes the workflow; status.changed is audit only
 
 
@@ -168,9 +235,16 @@ def merge(a: Mapping[str, Any], b: Mapping[str, Any]) -> dict[str, Any] | None:
 
 
 async def manual(kind: str, project_id: str, params: Mapping[str, Any], graph: Graph, rules: Rules) -> list[StepSpec]:
-    """Steps of a manual workflow; 'full' starts with extraction and chains via the event rules."""
+    """Steps of a manual workflow; 'full' and 'prune' chain via the event rules."""
     if kind == "detect":
         return [StepSpec(DETECT, {"projectId": project_id, **params})]
+    if kind == "prune":
+        _, keep, dry_run = rules.retention.project(project_id)
+        hashes = protected_hashes(rules.retention.experiments_dir)
+        base: dict[str, Any] = {"keepVersionsPerArtifact": keep, "dryRun": dry_run}
+        if hashes:
+            base["protectedContentHashes"] = hashes
+        return [StepSpec(PRUNE_LINKS, {"projectId": project_id, **base, **params})]
     current = await graph.current(project_id)
     if kind in ("extract", "full"):
         versions = ids(v.id for v in current)

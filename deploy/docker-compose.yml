@@ -316,6 +316,7 @@ services:
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
+      - ../experiments:/experiments:ro
       - ../data/logs:/logs
       - orchestrator-data:/data
     secrets: [memgraph_password, svc_tokens_verify, svc_token_orchestrator, llm_key_orchestrator]

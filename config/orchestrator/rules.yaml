@@ -1,7 +1,7 @@
 # Orchestrator rule configuration (Stage 2 §1.6); rules themselves are fixed in code (Stage 1 §6).
 debounceSeconds: 10
 maxConcurrentPerAgent: 2
-timeouts: { extract-artifact-versions: 15m, recover-trace-links: 60m, detect-inconsistencies: 30m }
+timeouts: { extract-artifact-versions: 15m, recover-trace-links: 60m, detect-inconsistencies: 30m, prune-trace-links: 30m, prune-artifact-data: 30m }
 poll: { initial: 30s, max: 2m }   # GetTask only detects failures; steps complete on their event
 retry: { maxAttempts: 3, backoff: [30s, 2m, 10m] }
 tlr:
@@ -9,3 +9,10 @@ tlr:
     - { source: requirements, target: code }
     - { source: architecture-doc, target: architecture-model }
     - { source: architecture-doc, target: code }   # T2.1b: approach ardocode; without the pair a change of code alone never starts it
+retention:                       # T5.2: nightly prune workflows; dryRun true reports counts and deletes nothing
+  enabled: true
+  interval: 24h
+  keepVersionsPerArtifact: 20
+  dryRun: true
+  experimentsDir: /experiments
+  projects: {}                   # <project id>: { enabled, keepVersionsPerArtifact, dryRun }

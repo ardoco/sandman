@@ -65,6 +65,7 @@ class Orchestrator:
         self.db.row_factory = sqlite3.Row
         self._migrate()
         self.wake = asyncio.Event()
+        self._next_schedule = 0.0
 
     def _migrate(self) -> None:
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
@@ -146,7 +147,7 @@ class Orchestrator:
         )
         self._touch(step["workflow_id"])
         trigger = json.loads(self._workflow(step["workflow_id"])["trigger_json"])
-        if trigger["kind"] == "manual" and trigger.get("type") != "full":
+        if trigger["kind"] == "manual" and trigger.get("type") not in ("full", "prune"):
             return False
         return str(step["workflow_id"])
 
@@ -343,9 +344,30 @@ class Orchestrator:
             except TimeoutError:
                 pass
 
+    async def schedule_retention(self) -> None:
+        """Start a prune workflow per enabled project when the last one is older than the interval."""
+        retention = self.rules.retention
+        if not retention.enabled or self.clock() < self._next_schedule:
+            return
+        self._next_schedule = self.clock() + 60
+        for project in await self.graph.projects():
+            enabled, _, _ = retention.project(project)
+            last = self.db.execute(
+                "SELECT max(created_at) FROM workflows WHERE project_id = ? "
+                "AND json_extract(trigger_json, '$.type') = 'prune'",
+                (project,),
+            ).fetchone()[0]
+            if not enabled or (last and datetime.fromisoformat(last).timestamp() + retention.interval > self.clock()):
+                continue
+            try:
+                await self.trigger("prune", project, {}, "system:retention-scheduler")
+            except Exception:
+                log.exception("scheduled prune failed", extra={"fields": {"project": project}})
+
     async def tick(self) -> None:
         """Start due steps (pipeline lock per project, per-agent limit), then poll due running steps.
         ponytail: submits and polls run sequentially; a hanging agent delays others by the HTTP timeout (30 s)."""
+        await self.schedule_retention()
         now = self.clock()
         running = self.db.execute("SELECT project_id, agent FROM steps WHERE status = 'RUNNING'").fetchall()
         locked = {r["project_id"] for r in running}

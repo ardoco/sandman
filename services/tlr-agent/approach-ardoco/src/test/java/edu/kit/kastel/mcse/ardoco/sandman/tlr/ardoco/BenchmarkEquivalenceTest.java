@@ -350,6 +350,7 @@ class BenchmarkEquivalenceTest {
                     () -> false,
                     LoggerFactory.getLogger(ArdocodeApproach.class),
                     JsonMapper.shared().createObjectNode());
+            ArdocodeApproach.clearCache();
             List<CandidateLink> links =
                     new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, calls)).recover(in, ctx);
             Map<String, Integer> sentence = new java.util.HashMap<>();
@@ -379,8 +380,31 @@ class BenchmarkEquivalenceTest {
                 () -> false,
                 LoggerFactory.getLogger(ArdocodeApproach.class),
                 JsonMapper.shared().createObjectNode());
+        ArdocodeApproach.clearCache();
         var first = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        ArdocodeApproach.clearCache();
         var second = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(first, second);
+        assertFalse(first.isEmpty());
+    }
+
+    @Test
+    void anUnchangedDocumentAndCodeModelSkipTheArdocoRun() throws Exception {
+        Path acm = CodeModels.acm("mediastore-code-model");
+        Case c = new Case("mediastore", "mediastore.txt", "-", "-", true);
+        TlrInput in = ardocodeInput(c, CodeModels.compilationUnits(acm).values());
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocodeApproach.class),
+                JsonMapper.shared().createObjectNode());
+        ArdocodeApproach.clearCache();
+        long before = ArdocodeApproach.runs();
+        var first = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(before + 1, ArdocodeApproach.runs());
+        var second = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(before + 1, ArdocodeApproach.runs());
         assertEquals(first, second);
         assertFalse(first.isEmpty());
     }
@@ -422,6 +446,7 @@ class BenchmarkEquivalenceTest {
             TextCache.clear();
             fresh.add(new ArdocoApproach(counting).recover(both, ctx));
             TextCache.clear();
+            ArdocodeApproach.clearCache();
             fresh.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
         }
         assertEquals(fresh.get(0), fresh.get(2));
@@ -434,6 +459,7 @@ class BenchmarkEquivalenceTest {
         List<List<CandidateLink>> cached = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
             cached.add(new ArdocoApproach(counting).recover(both, ctx));
+            ArdocodeApproach.clearCache();
             cached.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
         }
         assertEquals(1, requests[0], "all four runs share one cache entry");

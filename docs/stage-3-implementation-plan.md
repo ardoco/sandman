@@ -88,7 +88,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T5.1 | GitHub Action `sandman-ingest` for user projects (token from secrets) | S | T0.10 | [T5.1](tasks/T5.1-github-action-ingest.md) |
 | T5.2 | Retention: `prune` skills (tlr, extraction) + scheduled workflow | M | M2 |[T5.2](tasks/T5.2-retention-prune.md) |
 | T5.3 | Backup/restore scripts + drill | S | T0.11 | [T5.3](tasks/T5.3-backup-restore.md) |
-| T5.4 | Performance budget (ingest 1 000 changed files, detection latency, Memgraph query latency and memory against the budget; ADR-0014 fallback only if it fails) and fixes | M | M3 | |
+| T5.4 | Performance budget (ingest 1 000 changed files, detection latency, Memgraph query latency and memory against the budget; ADR-0014 fallback only if it fails) and fixes | M | M3 | [T5.4](tasks/T5.4-performance-budget.md) |
 | T5.5 | Soak test on an evolving open-source project (30 days, nightly ingest) | M | T5.1 | |
 | **MX** | | | | |
 | TX.1 | TypeScript agent kit (`@a2a-js/sdk` 1.x, `nats.js` v3, `neo4j-driver` 6, `openai`, Ajv 2020, `canonicalize`, OTel): skill server convention, auth, status, completion events, KG client (auto-commit, memory-limit), run provenance, ids/keys/fingerprints, contract validation; CI job, Dockerfile template | M–L | M0 | |

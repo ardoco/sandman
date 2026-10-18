@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-shadow</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
       <artifactId>sandman-tlr-approach-spi</artifactId>
       <version>${project.version}</version>
     </dependency>

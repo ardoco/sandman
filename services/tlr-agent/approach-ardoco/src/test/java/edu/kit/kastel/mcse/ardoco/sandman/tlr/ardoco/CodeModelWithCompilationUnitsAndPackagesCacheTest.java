@@ -23,7 +23,7 @@ class CodeModelWithCompilationUnitsAndPackagesCacheTest {
                 .getCodeSource()
                 .getLocation()
                 .toURI());
-        assertTrue(origin.toString().contains("approach-ardoco"), origin.toString());
+        assertTrue(origin.toString().contains("ardoco-shadow"), origin.toString());
     }
 
     @Test

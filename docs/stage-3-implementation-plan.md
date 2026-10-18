@@ -77,8 +77,9 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T3.2 | ArDoCo `ArtemisInconsistencyDetection` adapter (LLM via gateway through ArDoCo's client) | M | T3.1 | [T3.2](tasks/T3.2-artemis-inconsistency-detection.md) |
 | T3.3 | Equivalence test vs. standalone ArDoCo runner on benchmark inputs (`linkApproaches: [ardoco]`) | M | T3.1 | [T3.3](tasks/T3.3-detector-equivalence.md) |
 | T3.4 | Console evidence view (sentence text, model element, involved links, history) | S | T3.1, T0.9 | |
-| T3.5 | Switch to released ArDoCo artifact when available (Q-15) | S | release | |
+| T3.5 | Switch to released ArDoCo artifact when available (Q-15): trigger commands and decision tree for the merge of `feature/make-inconsistency-great-again` (release with Artemis: Maven coordinates, bootstrap, CI cache and Dockerfile step removed; merge without release: re-pin to the merge commit without the NAER patch); inconsistency agent only | S | release, T3.1–T3.3, T2.7 | [T3.5](tasks/T3.5-ardoco-release-switch.md) |
 | T3.6 | Labeling study for detector precision: stratified random sample of findings, two blinded raters with written guidelines, Cohen's κ (§3.3) | M | T3.1 | [T3.6](tasks/T3.6-labeling-study.md) |
+| T3.7 | Raise `ardoco.version` (TLR, `ardoco-text`, `ardoco-shadow`, `code-extractor-ardoco`) to the T3.5 release: shadow class re-sync, approach versions, TLR and T3.3 equivalence re-baseline, goldens, `make perf` rerun | M | T3.5, T2.7, F-1b | [T3.7](tasks/T3.7-ardoco-version-raise.md) |
 | **M4** | | | | |
 | T4.1 | NL-to-Cypher generation + validation + repair as strategy `cypher`, incl. the strategy dispatch in `POST /v1/query/nl` (one function per strategy, `strategies.yaml`, 501 for disabled ones) | M | T0.9 | [T4.1](tasks/T4.1-nl-to-cypher-strategy.md) |
 | T4.1b | Element embeddings: additive KG schema change (`Element.embedding`, embedding model id), writer in the extraction-agent via the gateway (record/replay), vector index in `init.cypher`, re-embedding on content change (V-43) | M | T1.1, T1.5 | [T4.1b](tasks/T4.1b-element-embeddings.md) |

@@ -2,5 +2,5 @@ approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
   lissa: { enabled: true, params: { retrieval: { k: 20 }, classifier: simple, concurrency: 8 } }
   ardoco: { enabled: true, params: {} }
-  ardocode: { enabled: true, params: {} }
-  transarc: { enabled: false, params: {} }
+  ardocode: { enabled: false, params: {} }
+  transarc: { enabled: true, params: {} }

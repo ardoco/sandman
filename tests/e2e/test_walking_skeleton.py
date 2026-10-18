@@ -229,10 +229,11 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
     first = stack.ingest("s1", "s1", capsys)
     assert len(first["createdVersionIds"]) == 6
     w1 = stack.wait_workflow(known)
-    assert [(s["agent"], s["skill"], s["status"]) for s in w1["steps"]] == [
+    assert sorted((s["agent"], s["skill"], s["status"]) for s in w1["steps"]) == [
+        ("extraction-agent", "derive-architecture-model", "SUCCEEDED"),
         ("extraction-agent", "extract-artifact-versions", "SUCCEEDED"),
-        ("tlr-agent", "recover-trace-links", "SUCCEEDED"),
         ("inconsistency-agent", "detect-inconsistencies", "SUCCEEDED"),
+        ("tlr-agent", "recover-trace-links", "SUCCEEDED"),
     ]
 
     requirements = stack.rows("MATCH (r:Requirement {projectId: $projectId}) RETURN r.name ORDER BY r.name")

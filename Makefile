@@ -8,7 +8,7 @@ COMPOSE     = docker compose -f deploy/docker-compose.yml $(if $(filter local,$(
 COMPOSE_DEV = $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill site
+.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill perf site
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -109,6 +109,9 @@ restore:            ## make restore ARCHIVE=backups/<file>.tar.gz [RESTORE_ARGS=
 
 backup-drill: secrets  ## backup and restore in the scratch compose project sandman-drill; compares KG export, workflow history, users and artifacts
 	SANDMAN_E2E=1 uv run pytest tests/e2e/test_backup_restore.py -q
+
+perf: secrets          ## performance budget (T5.4): scratch project sandman-perf; PERF_ARGS="--files 1000 --delta 100 --kg-nodes 200000 --keep"
+	uv run python scripts/perf.py $(PERF_ARGS)
 
 site:               ## build the component site into site/dist (open index.html via a local web server)
 	uv run python scripts/build_site.py site/dist

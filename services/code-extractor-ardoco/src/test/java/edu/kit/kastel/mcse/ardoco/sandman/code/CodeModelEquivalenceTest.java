@@ -108,7 +108,8 @@ class CodeModelEquivalenceTest {
         for (String[] spec : new String[][] {
             {"teastore", "teastore-code-model", ""},
             {"teastore", "teastore-code-model-noimage", "services/tools.descartes.teastore.image/"},
-            {"mediastore", "mediastore-code-model", ""}
+            {"mediastore", "mediastore-code-model", ""},
+            {"teammates", "teammates-code-model", ""}
         }) {
             Path dir = BenchmarkCode.unpack(spec[0], tmp.resolve(spec[1]));
             ObjectNode request = JSON.createObjectNode();

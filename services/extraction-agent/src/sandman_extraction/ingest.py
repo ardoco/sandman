@@ -7,6 +7,7 @@ import tarfile
 import uuid
 import zipfile
 import zlib
+from collections.abc import Mapping, Sequence
 from pathlib import PurePosixPath
 from typing import Any, Literal, LiteralString
 
@@ -22,6 +23,7 @@ MAX_ENTRY_BYTES = 256 * 1024**2
 SPECIAL_MODES = (stat.S_IFLNK, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFIFO, stat.S_IFSOCK)
 _DRIVE = re.compile(r"^[A-Za-z]:")
 INGESTION_COMPLETED = "sandman.ingestion.completed"
+RESERVED_PREFIX = ".sandman/"
 Kind = Literal["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
 
 
@@ -72,6 +74,13 @@ class Manifest(BaseModel):
             if PurePosixPath(path).full_match(rule.glob):
                 return rule.kind, rule.format
         return "other", None
+
+
+def reject_reserved(manifest: Manifest) -> None:
+    """INVALID_INPUT for every path under the prefix reserved for derived artifacts."""
+    reserved = sorted(f.path for f in manifest.files if f.path.startswith(RESERVED_PREFIX))
+    if reserved:
+        raise HTTPException(400, f"INVALID_INPUT: paths under {RESERVED_PREFIX} are reserved, e.g. {reserved[0]}")
 
 
 def read_archive(
@@ -157,9 +166,21 @@ def missing_hashes(store: ArtifactStore, project_id: str, manifest: Manifest) ->
 
 
 async def ingest(
-    kg: KgClient, store: ArtifactStore, project_id: str, manifest: Manifest, archive: dict[str, bytes], actor: str
+    kg: KgClient,
+    store: ArtifactStore,
+    project_id: str,
+    manifest: Manifest,
+    archive: dict[str, bytes],
+    actor: str,
+    derived: Mapping[str, tuple[str, str]] | None = None,
+    retire: Sequence[str] = (),
 ) -> str:
-    """Store blobs and apply the manifest in one transaction; return the ingestion id."""
+    """Store blobs and apply the manifest in one transaction; return the ingestion id.
+
+    Only the internal derivation passes `derived` (path -> source version id, derivation run id) and `retire`
+    (artifact ids to mark deleted). A full snapshot never deletes an artifact with origin derived.
+    """
+    derived = derived or {}
     wanted = {f.path: f.sha256 for f in manifest.files}
     for path, data in archive.items():
         if path not in wanted:
@@ -183,11 +204,11 @@ async def ingest(
         seq = int(seq_rows[0]["seq"])
         ing_id = stable_id("ing", project_id, str(seq))
         current = {
-            r["id"]: (r["path"], r["current"])
+            r["id"]: (r["path"], r["current"], r["origin"], r["derivedFrom"])
             for r in await rows(
                 tx,
                 "MATCH (a:Artifact {projectId: $p}) OPTIONAL MATCH (a)-[:CURRENT_VERSION]->(v) "
-                "RETURN a.id AS id, a.path AS path, v.id AS current",
+                "RETURN a.id AS id, a.path AS path, v.id AS current, a.origin AS origin, v.derivedFrom AS derivedFrom",
                 p=project_id,
             )
         }
@@ -195,19 +216,24 @@ async def ingest(
         for f in manifest.files:
             art = stable_id("art", project_id, f.path)
             ver = stable_id("ver", art, f.sha256)
-            if current.get(art, (None, None))[1] == ver:
+            source, run = derived.get(f.path, (None, None))
+            _, now_current, _, now_source = current.get(art, (None, None, None, None))
+            if now_current == ver and now_source == source:
                 unchanged += 1
                 continue
             kind, fmt = manifest.kind_of(f.path)
             uri = f"artifact://{project_id}/{f.sha256}"
             size = store.path_for(uri).stat().st_size
             items.append({"art": art, "ver": ver, "path": f.path, "kind": kind, "format": fmt, "hash": f.sha256,
-                          "uri": uri, "size": size})  # fmt: skip
+                          "uri": uri, "size": size, "origin": "derived" if source else None,
+                          "derivedFrom": source, "derivationRunId": run})  # fmt: skip
         deleted = (
-            [a for a, (path, cur) in current.items() if cur is not None and path not in wanted]
+            [a for a, (path, cur, origin, _) in current.items()
+             if cur is not None and path not in wanted and origin != "derived"]
             if manifest.mode == "full"
             else []
-        )
+        )  # fmt: skip
+        deleted += [a for a in retire if current.get(a, (None, None))[1] is not None and a not in deleted]
         props = {"id": ing_id, "projectId": project_id, "seq": seq, "mode": manifest.mode,
                  "sourceRevision": manifest.sourceRevision, "actor": actor, "unchangedCount": unchanged,
                  "eventPublished": not (items or deleted), "createdAt": now()}  # fmt: skip
@@ -221,11 +247,14 @@ async def ingest(
             tx,
             "MATCH (p:Project {id: $p}), (g:Ingestion {id: $g}) UNWIND $items AS i "
             "MERGE (a:Artifact {id: i.art}) "
-            "ON CREATE SET a.projectId = $p, a.path = i.path, a.kind = i.kind, a.format = i.format "
+            "ON CREATE SET a.projectId = $p, a.path = i.path, a.kind = i.kind, a.format = i.format, "
+            "a.origin = i.origin "
             "MERGE (p)-[:HAS_ARTIFACT]->(a) "
             "MERGE (v:ArtifactVersion {id: i.ver}) "
             "ON CREATE SET v.artifactId = i.art, v.projectId = $p, v.contentHash = i.hash, v.storageUri = i.uri, "
             "v.sizeBytes = i.size, v.ingestionId = $g, v.ingestedAt = $now, v.sourceRevision = $rev "
+            "SET v.derivedFrom = coalesce(i.derivedFrom, v.derivedFrom), "
+            "v.derivationRunId = coalesce(i.derivationRunId, v.derivationRunId) "
             "MERGE (a)-[:HAS_VERSION]->(v) "
             "CREATE (g)-[:ACTIVATED]->(v) "
             "REMOVE a.deletedAt "

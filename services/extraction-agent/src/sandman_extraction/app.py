@@ -245,6 +245,7 @@ def create_app(
     @app.post("/v1/projects/{projectId}/ingestions/check")
     async def check(projectId: ProjectId, manifest: ingest.Manifest, caller: Caller) -> dict[str, list[str]]:
         await project_or_404(projectId)
+        ingest.reject_reserved(manifest)
         return {"missing": ingest.missing_hashes(svc.store, projectId, manifest)}
 
     @app.post("/v1/projects/{projectId}/ingestions", status_code=201)
@@ -280,6 +281,7 @@ def create_app(
                     parsed = ingest.manifest_of(files)
                 except ValidationError as e:
                     raise HTTPException(400, f"archive: {e.errors()[0]['msg']}") from None
+            ingest.reject_reserved(parsed)
             ing_id = await ingest.ingest(svc.kg, svc.store, projectId, parsed, files, actor)
             ing = await ingest.load_ingestion(svc.kg, projectId, ing_id)
             assert ing is not None

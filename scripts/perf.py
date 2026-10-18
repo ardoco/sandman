@@ -173,7 +173,11 @@ class Compose:
         enrich = self.cfg / "extraction/enrichment.yaml"
         enrich.write_text(re.sub(r"(?m)^enabled: true", "enabled: false", enrich.read_text()))
         approaches = self.cfg / "tlr/approaches.yaml"
-        approaches.write_text(approaches.read_text().replace("lissa: { enabled: true", "lissa: { enabled: false"))
+        approaches.write_text(
+            approaches.read_text()
+            .replace("lissa: { enabled: true", "lissa: { enabled: false")
+            .replace("stub-name-match: { enabled: true", "stub-name-match: { enabled: false")
+        )
         mount = {"volumes": [f"{self.cfg}:/config:ro"]}
         services = {s: dict(mount) for s in ("extraction-agent", "tlr-agent", "inconsistency-agent", "orchestrator")}
         services["query-service"] = {**mount, "networks": ["internal", "edge"], "ports": ["127.0.0.1:18080:8000"]}

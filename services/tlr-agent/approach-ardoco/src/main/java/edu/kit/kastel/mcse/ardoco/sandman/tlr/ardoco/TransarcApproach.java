@@ -2,13 +2,22 @@ package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import edu.kit.kastel.mcse.ardoco.core.api.PreprocessingData;
+import edu.kit.kastel.mcse.ardoco.core.api.models.ArchitectureModel;
 import edu.kit.kastel.mcse.ardoco.core.api.models.CodeModel;
+import edu.kit.kastel.mcse.ardoco.core.api.models.architecture.ArchitectureItem;
+import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItem;
 import edu.kit.kastel.mcse.ardoco.core.api.models.CodeModelWithCompilationUnits;
 import edu.kit.kastel.mcse.ardoco.core.api.models.Metamodel;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelFormat;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelStates;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeCompilationUnit;
 import edu.kit.kastel.mcse.ardoco.core.api.output.ArdocoResult;
+import edu.kit.kastel.mcse.ardoco.core.api.stage.codetraceability.CodeTraceabilityState;
+import edu.kit.kastel.mcse.ardoco.core.api.stage.codetraceability.ArchitectureCodeTraceLink;
+import edu.kit.kastel.mcse.ardoco.core.data.DataRepository;
+import edu.kit.kastel.mcse.ardoco.core.pipeline.AbstractExecutionStage;
+import edu.kit.kastel.mcse.ardoco.core.pipeline.agent.Informant;
+import edu.kit.kastel.mcse.ardoco.core.pipeline.agent.PipelineAgent;
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.common.IdentifierProvider;
 import edu.kit.kastel.mcse.ardoco.core.common.JsonHandling;
@@ -16,6 +25,7 @@ import edu.kit.kastel.mcse.ardoco.core.common.util.CommonUtilities;
 import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
 import edu.kit.kastel.mcse.ardoco.core.execution.Ardoco;
 import edu.kit.kastel.mcse.ardoco.core.execution.runner.ArdocoRunner;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpUnavailableException;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException;
@@ -25,8 +35,9 @@ import edu.kit.kastel.mcse.ardoco.sandman.tlr.ScopeMode;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TraceLinkApproach;
+import edu.kit.kastel.mcse.ardoco.tlr.codetraceability.CodeTraceabilityStateImpl;
 import edu.kit.kastel.mcse.ardoco.tlr.codetraceability.SadSamCodeTraceabilityLinkRecovery;
-import edu.kit.kastel.mcse.ardoco.tlr.codetraceability.SamCodeTraceabilityLinkRecovery;
+import edu.kit.kastel.mcse.ardoco.tlr.codetraceability.informants.arcotl.TraceLinkGenerator;
 import edu.kit.kastel.mcse.ardoco.tlr.connectiongenerator.ConnectionGenerator;
 import edu.kit.kastel.mcse.ardoco.tlr.models.agents.ArchitectureConfiguration;
 import edu.kit.kastel.mcse.ardoco.tlr.models.agents.ModelProviderAgent;
@@ -41,6 +52,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,6 +63,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import org.eclipse.collections.api.factory.SortedMaps;
+import org.eclipse.collections.api.map.sorted.ImmutableSortedMap;
 
 /**
  * ArDoCo TransArC (SAD to SAM to code, T2.7): each current architecture document against each current architecture
@@ -61,8 +76,24 @@ public final class TransarcApproach implements TraceLinkApproach {
     /** Raise the +aN suffix when the mapping of ArDoCo results to links changes. */
     public static final String VERSION = "2.1.0+a1";
 
+    /**
+     * SAM to code links as (architecture item id, code item id) by approach version, model file hash and ACM hash.
+     * ArCoTL reads only the two models, so every document of a model shares them. Bounded LRU per JVM.
+     */
+    private static final Map<String, List<Map.Entry<String, String>>> SAM_CODE =
+            Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, List<Map.Entry<String, String>>> eldest) {
+                    return size() > 256;
+                }
+            });
+
     private final CorenlpClient corenlp;
     private final CodeModelClient codeModel;
+
+    static void clearCache() {
+        SAM_CODE.clear();
+    }
 
     /** ServiceLoader entry: settings from the environment, read when the first run needs them. */
     public TransarcApproach() {
@@ -192,7 +223,7 @@ public final class TransarcApproach implements TraceLinkApproach {
                         annotated = TextCache.annotate(annotator, provider, SentenceRendering.lines(sentences), ctx);
                     }
                     ctx.progress().accept("transarc: running ArDoCo on " + model.path());
-                    run(in, ctx, dir, acm.file(), sentences, annotated, model, format, files, links);
+                    run(in, ctx, dir, acm, sentences, annotated, model, format, files, links);
                 }
             }
         } catch (IOException e) {
@@ -217,7 +248,7 @@ public final class TransarcApproach implements TraceLinkApproach {
             TlrInput in,
             TlrContext ctx,
             Path dir,
-            Path acmFile,
+            ArdocodeApproach.Acm acm,
             List<TlrInput.Element> sentences,
             Text annotated,
             TlrInput.Version model,
@@ -241,8 +272,13 @@ public final class TransarcApproach implements TraceLinkApproach {
             long start = System.nanoTime();
             ArdocoRuns.resetHeapPeak();
             var runner = new TransarcRunner();
+            String samKey = Ids.sha256Hex(String.join(
+                    "\0", VERSION, format.name(), Ids.sha256Hex(Files.readAllBytes(modelFile)), acm.sha()));
             runner.setUp(
-                    textFile.toFile(), new ArchitectureConfiguration(modelFile.toFile(), format), acmFile.toFile());
+                    textFile.toFile(),
+                    new ArchitectureConfiguration(modelFile.toFile(), format),
+                    acm.file().toFile(),
+                    samKey);
             DataRepositoryHelper.putPreprocessingData(
                     runner.getArdoco().getDataRepository(), new PreprocessingData(annotated));
             var repository = runner.runWithoutSaving();
@@ -317,7 +353,7 @@ public final class TransarcApproach implements TraceLinkApproach {
             super("sandman");
         }
 
-        void setUp(File textFile, ArchitectureConfiguration architecture, File acm) throws IOException {
+        void setUp(File textFile, ArchitectureConfiguration architecture, File acm, String samKey) throws IOException {
             Ardoco ardoco = getArdoco();
             var repository = ardoco.getDataRepository();
             String text = CommonUtilities.readInputText(textFile);
@@ -339,9 +375,99 @@ public final class TransarcApproach implements TraceLinkApproach {
             ardoco.addPipelineStep(TextExtraction.get(configs, repository));
             ardoco.addPipelineStep(RecommendationGenerator.get(configs, repository));
             ardoco.addPipelineStep(ConnectionGenerator.get(configs, repository));
-            ardoco.addPipelineStep(SamCodeTraceabilityLinkRecovery.get(configs, repository));
+            ardoco.addPipelineStep(SamCodeStage.get(configs, repository, samKey));
             ardoco.addPipelineStep(SadSamCodeTraceabilityLinkRecovery.get(configs, repository));
             isSetUp = true;
         }
+    }
+
+    /** {@code SamCodeTraceabilityLinkRecovery} whose informant reuses the links of {@link #SAM_CODE}. */
+    private static final class SamCodeStage extends AbstractExecutionStage {
+
+        private SamCodeStage(DataRepository repository, String key) {
+            super(
+                    List.of(new PipelineAgent(
+                            List.of(new CachedArCoTL(repository, key)), "InitialCodeTraceabilityAgent", repository) {
+                        @Override
+                        protected void initializeState() {}
+                    }),
+                    "SamCodeTraceabilityLinkRecovery",
+                    repository);
+        }
+
+        static SamCodeStage get(ImmutableSortedMap<String, String> configs, DataRepository repository, String key) {
+            var stage = new SamCodeStage(repository, key);
+            stage.applyConfiguration(configs);
+            return stage;
+        }
+
+        @Override
+        protected void initializeState() {
+            DataRepository repository = getDataRepository();
+            if (!DataRepositoryHelper.hasCodeTraceabilityState(repository)) {
+                repository.addData(CodeTraceabilityState.ID, new CodeTraceabilityStateImpl());
+            }
+        }
+    }
+
+    // ponytail: copy of ArCoTLInformant.process for ArDoCo 2.1.0 plus the SAM_CODE lookup (guard: TransarcEquivalenceTest).
+    private static final class CachedArCoTL extends Informant {
+
+        private final String key;
+
+        CachedArCoTL(DataRepository repository, String key) {
+            super("ArCoTLInformant", repository);
+            this.key = key;
+        }
+
+        @Override
+        public void process() {
+            var repository = getDataRepository();
+            var modelStates = DataRepositoryHelper.getModelStatesData(repository);
+            ArchitectureModel arch = null;
+            CodeModel code = null;
+            for (var metamodel : modelStates.getMetamodels()) {
+                var model = modelStates.getModel(metamodel);
+                if (model instanceof ArchitectureModel a) {
+                    arch = a;
+                } else if (model instanceof CodeModel c) {
+                    code = c;
+                }
+            }
+            List<Map.Entry<String, String>> pairs = SAM_CODE.get(key);
+            Set<ArchitectureCodeTraceLink> links = pairs == null ? null : rebuild(pairs, arch, code);
+            if (links == null) {
+                links = TraceLinkGenerator.generateTraceLinks(TraceLinkGenerator.getRoot(), arch, code);
+                List<Map.Entry<String, String>> ids = new ArrayList<>();
+                for (var l : links) {
+                    ids.add(Map.entry(
+                            l.getFirstEndpoint().getId(), l.getSecondEndpoint().getId()));
+                }
+                SAM_CODE.put(key, ids);
+            }
+            DataRepositoryHelper.getCodeTraceabilityState(repository).addSamCodeTraceLinks(links);
+        }
+
+        /** Null if an id is unknown in the models, so the caller computes the links. */
+        private static Set<ArchitectureCodeTraceLink> rebuild(
+                List<Map.Entry<String, String>> pairs, ArchitectureModel arch, CodeModel code) {
+            Map<String, ArchitectureItem> archById = new HashMap<>();
+            arch.getEndpoints().forEach(e -> archById.put(e.getId(), e));
+            Map<String, CodeItem> codeById = new HashMap<>();
+            code.getEndpoints().forEach(e -> codeById.put(e.getId(), e));
+            Set<ArchitectureCodeTraceLink> links = new LinkedHashSet<>();
+            for (var pair : pairs) {
+                var a = archById.get(pair.getKey());
+                var c = codeById.get(pair.getValue());
+                if (a == null || c == null) {
+                    return null;
+                }
+                links.add(new ArchitectureCodeTraceLink(a, c));
+            }
+            return links;
+        }
+
+        @Override
+        protected void delegateApplyConfigurationToInternalObjects(ImmutableSortedMap<String, String> configuration) {}
     }
 }

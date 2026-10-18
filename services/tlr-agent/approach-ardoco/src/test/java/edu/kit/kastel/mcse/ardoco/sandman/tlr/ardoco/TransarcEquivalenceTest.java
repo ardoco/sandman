@@ -109,6 +109,7 @@ class TransarcEquivalenceTest {
                     JsonMapper.shared().createObjectNode());
             TextCache.clear();
             ArdocodeApproach.clearCache();
+            TransarcApproach.clearCache();
             List<CandidateLink> links = new TransarcApproach(
                             CorenlpClient.fromEnv(), BenchmarkEquivalenceTest.fakePlugin(acm, new int[1]))
                     .recover(in, ctx);
@@ -119,6 +120,12 @@ class TransarcEquivalenceTest {
                     c.project(), paths.size(), lines, adapter[0].size(), adapter[1].size(), standaloneMs, adapterMs);
             assertEquals(standalone[0], adapter[0], c.project() + " SAD-code");
             assertEquals(standalone[1], adapter[1], c.project() + " SAM-code");
+            Set<String>[] reused = adapter(
+                    in,
+                    new TransarcApproach(CorenlpClient.fromEnv(), BenchmarkEquivalenceTest.fakePlugin(acm, new int[1]))
+                            .recover(in, ctx));
+            assertEquals(standalone[0], reused[0], c.project() + " SAD-code, SAM-code links reused");
+            assertEquals(standalone[1], reused[1], c.project() + " SAM-code, links reused");
             if (c.required()) {
                 assertFalse(adapter[0].isEmpty(), c.project() + " SAD-code");
                 assertFalse(adapter[1].isEmpty(), c.project() + " SAM-code");

@@ -14,12 +14,16 @@ log = logging.getLogger(__name__)
 
 EXTRACT, TLR, DETECT = "extract-artifact-versions", "recover-trace-links", "detect-inconsistencies"
 PRUNE_LINKS, PRUNE_DATA = "prune-trace-links", "prune-artifact-data"
+DERIVE = "derive-architecture-model"
+DERIVATION_ACTOR = "system:model-derivation"
+DERIVE_INPUT_KINDS = ("architecture-doc", "architecture-model")
 SKILL_AGENT = {
     EXTRACT: "extraction-agent",
     TLR: "tlr-agent",
     DETECT: "inconsistency-agent",
     PRUNE_LINKS: "tlr-agent",
     PRUNE_DATA: "extraction-agent",
+    DERIVE: "extraction-agent",
 }
 ID_LISTS = ("artifactVersionIds", "sourceVersionIds", "targetVersionIds", "scopeArtifactIds")
 
@@ -62,11 +66,29 @@ class Retention:
 
 
 @dataclass(frozen=True)
+class ModelDerivation:
+    """Derived architecture models (T2.7); per-project overrides in `projects`."""
+
+    enabled: bool = True
+    projects: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
+
+    def project(self, project_id: str) -> bool:
+        return bool(self.projects.get(project_id, {}).get("enabled", self.enabled))
+
+
+@dataclass(frozen=True)
 class Rules:
     debounce: float = 10.0
     max_per_agent: int = 2
     timeouts: Mapping[str, float] = field(
-        default_factory=lambda: {EXTRACT: 900.0, TLR: 3600.0, DETECT: 1800.0, PRUNE_LINKS: 1800.0, PRUNE_DATA: 1800.0}
+        default_factory=lambda: {
+            EXTRACT: 900.0,
+            TLR: 3600.0,
+            DETECT: 1800.0,
+            PRUNE_LINKS: 1800.0,
+            PRUNE_DATA: 1800.0,
+            DERIVE: 1800.0,
+        }
     )
     poll_initial: float = 30.0
     poll_max: float = 120.0
@@ -74,11 +96,13 @@ class Rules:
     backoff: tuple[float, ...] = (30.0, 120.0, 600.0)
     kind_pairs: tuple[KindPair, ...] = ()
     retention: Retention = field(default_factory=Retention)
+    model_derivation: ModelDerivation = field(default_factory=ModelDerivation)
 
     @classmethod
     def load(cls, path: Path, contracts: Contracts) -> "Rules":
         raw: dict[str, Any] = contracts.load_config("orchestrator-rules", path)
         poll, retry, ret = raw.get("poll", {}), raw.get("retry", {}), raw.get("retention", {})
+        derivation = raw.get("modelDerivation", {})
         default = Retention()
         return cls(
             debounce=seconds(raw.get("debounceSeconds", 10)),
@@ -100,6 +124,9 @@ class Rules:
                 experiments_dir=Path(ret.get("experimentsDir", default.experiments_dir)),
                 projects=ret.get("projects", {}),
             ),
+            model_derivation=ModelDerivation(
+                enabled=derivation.get("enabled", True), projects=derivation.get("projects", {})
+            ),
         )
 
 
@@ -117,6 +144,7 @@ class Version:
     id: str
     artifact_id: str
     kind: str
+    origin: str = "user"
 
 
 class Graph(Protocol):
@@ -136,18 +164,18 @@ class KgGraph:
     async def versions(self, project_id: str, version_ids: Sequence[str]) -> list[Version]:
         rows = await self._kg.read(
             "MATCH (a:Artifact {projectId: $p})-[:HAS_VERSION]->(v:ArtifactVersion) WHERE v.id IN $ids "
-            "RETURN v.id AS id, a.id AS artifact, a.kind AS kind",
+            "RETURN v.id AS id, a.id AS artifact, a.kind AS kind, coalesce(a.origin, 'user') AS origin",
             p=project_id, ids=list(version_ids),
         )  # fmt: skip
-        return [Version(r["id"], r["artifact"], r["kind"]) for r in rows]
+        return [Version(r["id"], r["artifact"], r["kind"], r["origin"]) for r in rows]
 
     async def current(self, project_id: str) -> list[Version]:
         rows = await self._kg.read(
             "MATCH (a:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v:ArtifactVersion) "
-            "RETURN v.id AS id, a.id AS artifact, a.kind AS kind",
+            "RETURN v.id AS id, a.id AS artifact, a.kind AS kind, coalesce(a.origin, 'user') AS origin",
             p=project_id,
         )
-        return [Version(r["id"], r["artifact"], r["kind"]) for r in rows]
+        return [Version(r["id"], r["artifact"], r["kind"], r["origin"]) for r in rows]
 
     async def projects(self) -> list[str]:
         rows = await self._kg.read("MATCH (p:Project) RETURN p.id AS id ORDER BY p.id")
@@ -175,6 +203,10 @@ def protected_hashes(directory: Path) -> list[str]:
 
 def detect(project_id: str, artifact_ids: Any) -> StepSpec:
     return StepSpec(DETECT, {"projectId": project_id, "scopeArtifactIds": ids(artifact_ids)}, mergeable=True)
+
+
+def derive(project_id: str) -> StepSpec:
+    return StepSpec(DERIVE, {"projectId": project_id}, mergeable=True)
 
 
 def tlr_steps(project_id: str, changed: list[Version], current: list[Version], rules: Rules) -> list[StepSpec]:
@@ -205,13 +237,17 @@ async def plan(event: Event, graph: Graph, rules: Rules) -> list[StepSpec]:
             specs.append(StepSpec(EXTRACT, {"projectId": project, "artifactVersionIds": ids(versions)}))
         if d["deletedArtifactIds"]:  # also for mixed ingestions, so deleted artifacts resolve their findings
             specs.append(detect(project, d["deletedArtifactIds"]))
+            if d["actor"] != DERIVATION_ACTOR and rules.model_derivation.project(project):
+                specs.append(derive(project))
         return specs
     if event.type == "sandman.extraction.completed":
         changed = await graph.versions(project, d["artifactVersionIds"])
         specs = tlr_steps(project, changed, await graph.current(project), rules) if rules.kind_pairs else []
         linked = {i for s in specs for k in ("sourceVersionIds", "targetVersionIds") for i in s.input[k]}
         unlinked = [v.artifact_id for v in changed if v.id not in linked]
-        return [*specs, detect(project, unlinked)] if unlinked else specs
+        specs = [*specs, detect(project, unlinked)] if unlinked else specs
+        user_input = any(v.kind in DERIVE_INPUT_KINDS and v.origin != "derived" for v in changed)
+        return [*specs, derive(project)] if user_input and rules.model_derivation.project(project) else specs
     if event.type == "sandman.tracelinks.updated":
         versions = await graph.versions(project, [*d["sourceVersionIds"], *d["targetVersionIds"]])
         return [detect(project, (v.artifact_id for v in versions))] if versions else []
@@ -238,6 +274,8 @@ async def manual(kind: str, project_id: str, params: Mapping[str, Any], graph: G
     """Steps of a manual workflow; 'full' and 'prune' chain via the event rules."""
     if kind == "detect":
         return [StepSpec(DETECT, {"projectId": project_id, **params})]
+    if kind == "derive":
+        return [StepSpec(DERIVE, {"projectId": project_id})]
     if kind == "prune":
         _, keep, dry_run = rules.retention.project(project_id)
         hashes = protected_hashes(rules.retention.experiments_dir)

@@ -15,12 +15,14 @@ from sandman_agent.contracts import Contracts
 from sandman_agent.testing import InMemoryEventBus
 from sandman_orchestrator.orchestrator import Orchestrator
 from sandman_orchestrator.rules import (
+    DERIVE,
     DETECT,
     EXTRACT,
     PRUNE_DATA,
     PRUNE_LINKS,
     TLR,
     KindPair,
+    ModelDerivation,
     Retention,
     Rules,
     Version,
@@ -31,15 +33,16 @@ VERIFY = {name: hashlib.sha256(token.encode()).hexdigest() for name, token in TO
 AGENTS = {"extraction-agent": "http://extraction-agent:8000", "tlr-agent": "http://tlr-agent:8080",
           "inconsistency-agent": "http://inconsistency-agent:8080"}  # fmt: skip
 CARDS = {EXTRACT: "extraction-agent", TLR: "tlr-agent", DETECT: "inconsistency-agent",
-         PRUNE_LINKS: "tlr-agent", PRUNE_DATA: "extraction-agent"}  # fmt: skip
+         PRUNE_LINKS: "tlr-agent", PRUNE_DATA: "extraction-agent", DERIVE: "extraction-agent"}  # fmt: skip
 RULES = Rules(
     debounce=0,
-    timeouts={EXTRACT: 5, TLR: 5, DETECT: 5, PRUNE_LINKS: 5, PRUNE_DATA: 5},
+    timeouts={EXTRACT: 5, TLR: 5, DETECT: 5, PRUNE_LINKS: 5, PRUNE_DATA: 5, DERIVE: 5},
     poll_initial=0.02,
     poll_max=0.05,
     backoff=(0.01,),
     kind_pairs=(KindPair("requirements", "code", ("stub-name-match",)),),
     retention=Retention(enabled=False),
+    model_derivation=ModelDerivation(enabled=False),
 )
 RUN = "run_" + "0" * 32
 
@@ -200,8 +203,10 @@ def event(type: str, data: dict[str, Any], causation: str | None = None, id: str
                  causation_id=causation)  # fmt: skip
 
 
-def ingestion(created: list[str] = (), deleted: list[str] = (), reactivated: list[str] = (), **kw: Any) -> Event:  # type: ignore[assignment]
-    data = {"projectId": "mini", "ingestionId": "ing_" + "a" * 32, "seq": 1, "mode": "full", "actor": "user:alice",
+def ingestion(
+    created: list[str] = (), deleted: list[str] = (), reactivated: list[str] = (), actor: str = "user:alice", **kw: Any
+) -> Event:  # type: ignore[assignment]
+    data = {"projectId": "mini", "ingestionId": "ing_" + "a" * 32, "seq": 1, "mode": "full", "actor": actor,
             "createdVersionIds": list(created), "reactivatedVersionIds": list(reactivated),
             "deletedArtifactIds": list(deleted), "unchangedCount": 0}  # fmt: skip
     return event("sandman.ingestion.completed", data, **kw)

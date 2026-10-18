@@ -9,6 +9,7 @@ tlr:
     - { source: requirements, target: code }
     - { source: architecture-doc, target: architecture-model }
     - { source: architecture-doc, target: code }   # T2.1b: approach ardocode; without the pair a change of code alone never starts it
+    - { source: architecture-model, target: code }   # T2.7: a model change starts transarc and stub-name-match
 modelDerivation:                # T2.7: derived architecture models for projects without a user model
   enabled: true
   projects: {}                   # <project id>: { enabled }

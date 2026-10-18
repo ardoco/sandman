@@ -58,8 +58,8 @@ paths:
               required: [type, projectId]
               properties:
                 type:
-                  enum: [full, extract, tlr, detect, prune]
-                  description: full = extract all current versions, then tlr, then detect. prune = prune-trace-links, then prune-artifact-data (T5.2); params may carry keepVersionsPerArtifact and dryRun.
+                  enum: [full, extract, tlr, detect, prune, derive]
+                  description: full = extract all current versions, then tlr, then detect. prune = prune-trace-links, then prune-artifact-data (T5.2); params may carry keepVersionsPerArtifact and dryRun. derive = derive-architecture-model (T2.7), also when modelDerivation is disabled.
                 projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
                 params:
                   type: object

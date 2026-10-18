@@ -55,7 +55,7 @@ class ApprovalRequest(BaseModel):
 
 class WorkflowRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    type: Literal["full", "extract", "tlr", "detect", "prune"]
+    type: Literal["full", "extract", "tlr", "detect", "prune", "derive"]
     projectId: str = Field(pattern=PROJECT_ID)
     params: dict[str, Any] = Field(default_factory=dict)
     force: bool = False

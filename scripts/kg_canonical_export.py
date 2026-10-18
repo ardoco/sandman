@@ -65,7 +65,8 @@ def _ref(node: dict[str, Any], raw_id: Any) -> dict[str, Any]:
 def _fetch(tx: ManagedTransaction, project: str) -> tuple[dict[int, dict[str, Any]], list[dict[str, Any]]]:
     nodes: dict[int, dict[str, Any]] = {}
     queries = (
-        "MATCH (n) WHERE n.projectId = $p RETURN id(n) AS i, labels(n) AS l, properties(n) AS props",
+        "MATCH (n) WHERE n.projectId = $p AND NOT (n:Run AND coalesce(n.tool, '') = 'retention') "
+        "RETURN id(n) AS i, labels(n) AS l, properties(n) AS props",
         "MATCH (n:Project {id: $p}) RETURN id(n) AS i, labels(n) AS l, properties(n) AS props",
         "MATCH (:Inconsistency {projectId: $p})-[:HAS_STATUS_CHANGE]->(n) "
         "RETURN id(n) AS i, labels(n) AS l, properties(n) AS props",

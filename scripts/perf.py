@@ -32,6 +32,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import httpx
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -207,6 +208,16 @@ class Compose:
             self.dc("down", "-v", "--remove-orphans", check=False)
 
 
+def docker_api() -> httpx.Client:
+    sock = os.environ.get("DOCKER_HOST", "unix://" + str(Path.home() / ".docker/run/docker.sock"))
+    return httpx.Client(transport=httpx.HTTPTransport(uds=sock.removeprefix("unix://")), base_url="http://docker")
+
+
+def project_containers(api: httpx.Client) -> list[dict[str, Any]]:
+    query = json.dumps({"label": [f"com.docker.compose.project={PROJECT}"]})
+    return api.get("/containers/json", params={"filters": query, "all": "true"}).json()
+
+
 class Sampler(threading.Thread):
     """Peak memory per container of the project from `docker stats`."""
 
@@ -217,15 +228,17 @@ class Sampler(threading.Thread):
         self.limit: dict[str, float] = {}
 
     def snapshot(self) -> None:
-        fmt = "{{.Name}}|{{.MemUsage}}"
-        run = subprocess.run(["docker", "stats", "--no-stream", "--format", fmt], capture_output=True, text=True)
-        for line in run.stdout.splitlines():
-            name, usage = line.split("|")
-            if name.startswith(PROJECT + "-"):
-                used, limit = usage.split(" / ")
-                key = name.removeprefix(PROJECT + "-").rsplit("-", 1)[0]
-                self.peak[key] = max(self.peak.get(key, 0.0), mib(used))
-                self.limit[key] = mib(limit)
+        with docker_api() as api:
+            for box in project_containers(api):
+                if box["State"] != "running":
+                    continue
+                stats = api.get(
+                    f"/containers/{box['Id']}/stats", params={"stream": "false", "one-shot": "true"}
+                ).json()["memory_stats"]
+                key = box["Labels"]["com.docker.compose.service"]
+                used = (stats["usage"] - stats.get("stats", {}).get("inactive_file", 0)) / 1048576
+                self.peak[key] = max(self.peak.get(key, 0.0), used)
+                self.limit[key] = stats["limit"] / 1048576
 
     def run(self) -> None:
         while not self.stop.is_set():
@@ -236,9 +249,11 @@ class Sampler(threading.Thread):
 def storage_info(driver: Any) -> dict[str, Any]:
     with driver.session() as s:
         info = {r[0]: r[1] for r in s.run("SHOW STORAGE INFO")}
+        vertices = s.run("MATCH (n) RETURN count(n)").single()[0]
+        edges = s.run("MATCH ()-[r]->() RETURN count(r)").single()[0]
     return {
-        "vertices": int(info["vertex_count"]),
-        "edges": int(info["edge_count"]),
+        "vertices": vertices,
+        "edges": edges,
         "memoryResMiB": round(mib(str(info["memory_res"])), 1),
         "memoryTrackedMiB": round(mib(str(info["memory_tracked"])), 1),
     }
@@ -369,7 +384,7 @@ def query_latency(driver: Any, copies: int, reps: int) -> dict[str, Any]:
 
 
 HTTP_QUERIES = [
-    "MATCH (e:Element {projectId: $projectId}) RETURN e.kind, count(e) ORDER BY e.kind",
+    "MATCH (e:Element {projectId: $projectId}) RETURN e.kind AS kind, count(e) AS n ORDER BY kind",
     "MATCH (e:Element {projectId: $projectId, kind: 'class'}) WHERE e.name CONTAINS 'Billing' RETURN e.name LIMIT 50",
     "MATCH (t:TraceLink {projectId: $projectId, active: true})-[:SOURCE]->(s) RETURN s.key, count(t) LIMIT 100",
     "MATCH (i:Inconsistency {projectId: $projectId}) RETURN i.type, i.status, count(i)",
@@ -393,14 +408,13 @@ def http_latency(stack: Any, reps: int) -> dict[str, Any]:
     }
 
 
-def oom_killed(comp: Compose) -> list[str]:
-    ids = comp.dc("ps", "-a", "-q").stdout.split()
-    if not ids:
-        return []
-    out = subprocess.run(
-        ["docker", "inspect", "--format", "{{.Name}} {{.State.OOMKilled}}", *ids], capture_output=True, text=True
-    )
-    return [line.split()[0] for line in out.stdout.splitlines() if line.endswith("true")]
+def oom_killed() -> list[str]:
+    with docker_api() as api:
+        return [
+            box["Labels"]["com.docker.compose.service"]
+            for box in project_containers(api)
+            if api.get(f"/containers/{box['Id']}/json").json()["State"]["OOMKilled"]
+        ]
 
 
 def evaluate(result: dict[str, Any]) -> list[dict[str, Any]]:
@@ -483,6 +497,7 @@ def main(argv: list[str] | None = None) -> int:
         sampler.start()
         sampler.snapshot()
         result["idleMiB"] = dict(sampler.peak)
+        os.environ["SANDMAN_E2E_URL"] = HTTP
         import test_walking_skeleton as e2e
 
         stack = e2e.Stack(project="perf")
@@ -510,7 +525,7 @@ def main(argv: list[str] | None = None) -> int:
         result["containers"] = {
             k: {"peakMiB": round(v, 1), "limitMiB": round(sampler.limit[k], 1)} for k, v in sorted(sampler.peak.items())
         }
-        result["oomKilled"] = oom_killed(comp)
+        result["oomKilled"] = oom_killed()
     finally:
         sampler.stop.set()
         comp.down()

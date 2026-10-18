@@ -40,7 +40,7 @@ def _element_query(label: LiteralString) -> LiteralString:
         "SET n:" + label + " "
         "SET n.key = e.key, n.projectId = $pid, n.kind = e.kind, n.name = e.name, n.qualifiedName = e.qualifiedName, "
         "n.text = e.text, n.sentenceIndex = e.sentenceIndex, n.startLine = e.startLine, "
-        "n.endLine = e.endLine, n.contentHash = e.contentHash, n.references = e.references "
+        "n.endLine = e.endLine, n.contentHash = e.contentHash, n.references = e.references, n.inferred = e.inferred "
         "MERGE (v)-[:HAS_ELEMENT]->(n) MERGE (r)-[:PRODUCED]->(n)"
     )
 
@@ -146,8 +146,8 @@ class ExtractSkill:
         project = await kg.read("MATCH (p:Project {id: $p}) RETURN p.llmPolicy AS llmPolicy", p=pid)
         versions = await kg.read(
             "MATCH (a:Artifact)-[:HAS_VERSION]->(v:ArtifactVersion {projectId: $p}) WHERE v.id IN $ids "
-            "RETURN v.id AS id, a.id AS art, a.path AS path, a.kind AS kind, a.format AS format, v.storageUri AS uri "
-            "ORDER BY v.id",
+            "RETURN v.id AS id, a.id AS art, a.path AS path, a.kind AS kind, a.format AS format, v.storageUri AS uri, "
+            "v.derivedFrom AS derivedFrom ORDER BY v.id",
             p=pid, ids=vids,
         )  # fmt: skip
         if not project or len(versions) != len(vids):
@@ -250,6 +250,10 @@ class ExtractSkill:
                 status = "partial"
                 content = b"" if document else content
                 elements[v["id"]] = stub_elements(v["path"], v["kind"], content)
+            if v.get("derivedFrom"):
+                for e in elements[v["id"]]:
+                    if e["label"] == "ModelElement":
+                        e["inferred"] = True
             refs[v["id"]] = await match_references_off_loop(
                 v["path"], lambda: content, elements[v["id"]], patterns, "relates", pattern_timeout
             )
@@ -397,7 +401,7 @@ class ExtractSkill:
                 "id": stable_id("el", vid, key), "key": f"{art}#{key}", "kind": e["kind"], "name": e["name"],
                 "qualifiedName": e.get("qualifiedName"), "text": e.get("text"), "startLine": e.get("startLine"),
                 "endLine": e.get("endLine"), "sentenceIndex": e.get("sentenceIndex"),
-                "contentHash": sha256_hex(e.get("text") or e["name"]),
+                "contentHash": sha256_hex(e.get("text") or e["name"]), "inferred": e.get("inferred"),
                 "references": canonical_json(stored[key]).decode() if key in stored else None,
             })  # fmt: skip
         ids = [stable_id("el", vid, k) for k in unique]

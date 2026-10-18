@@ -4,14 +4,28 @@ from pathlib import PurePosixPath
 from typing import Any
 
 from sandman_extraction import models, requirements, text
-from sandman_extraction.stub import LABEL_BY_KIND, stub_elements
+from sandman_extraction.stub import FILE_KEY, LABEL_BY_KIND, stub_elements
 
 TOOL, TOOL_VERSION = "builtin-extractor", "2"
 FORMAT_BY_SUFFIX = {".md": "markdown", ".markdown": "markdown", ".txt": "text", ".csv": "csv",
-                    ".repository": "pcm-repository", ".uml": "uml", ".xmi": "uml"}  # fmt: skip
+                    ".repository": "pcm-repository", ".uml": "uml", ".xmi": "uml",
+                    ".components": "component-listing"}  # fmt: skip
 TEXT_FORMATS = ("markdown", "text")
 DOCUMENT_FORMATS = {".pdf": "pdf", ".docx": "docx"}
 MODEL_FORMATS = {"pcm-repository": models.PCM, "uml": models.UML}
+COMPONENT_LISTING = "component-listing"
+
+
+def component_listing(path: str, kind: str, content: bytes) -> list[dict[str, Any]]:
+    """File element and one component per `Name::Id` line (a line without `::` uses the name as id)."""
+    elements = [{"localKey": FILE_KEY, "label": LABEL_BY_KIND[kind], "kind": "file", "name": PurePosixPath(path).name,
+                 "qualifiedName": path}]  # fmt: skip
+    for line in content.decode("utf-8", errors="replace").split("\n"):
+        name, _, key = line.partition("::")
+        if name:
+            elements.append({"localKey": key or name, "label": "ModelElement", "kind": "component",
+                             "name": name, "parent": FILE_KEY})  # fmt: skip
+    return elements
 
 
 def extract(
@@ -33,6 +47,8 @@ def extract(
         elements = text.extract(path, content)
         elements[0]["label"] = LABEL_BY_KIND[kind]
         return elements, []
+    if fmt == COMPONENT_LISTING:
+        return component_listing(path, kind, content), []
     if fmt in MODEL_FORMATS:
         elements, relations = models.extract(
             path, content, MODEL_FORMATS[fmt], max_xml_bytes, [] if warnings is None else warnings

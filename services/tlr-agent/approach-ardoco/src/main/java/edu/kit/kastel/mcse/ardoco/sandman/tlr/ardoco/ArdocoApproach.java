@@ -46,8 +46,13 @@ public final class ArdocoApproach implements TraceLinkApproach {
     /** Raise the +aN suffix when the mapping of ArDoCo results to links changes. */
     public static final String VERSION = "2.1.0+a2";
 
-    private static final Map<String, ModelFormat> FORMATS =
-            Map.of("pcm-repository", ModelFormat.PCM, "uml", ModelFormat.UML);
+    private static final Map<String, ModelFormat> FORMATS = Map.of(
+            "pcm-repository",
+            ModelFormat.PCM,
+            "uml",
+            ModelFormat.UML,
+            "component-listing",
+            ModelFormat.COMPONENT_LISTING);
     private final CorenlpClient client;
 
     /** ServiceLoader entry: settings from the environment, read when the first run needs them. */
@@ -172,6 +177,9 @@ public final class ArdocoApproach implements TraceLinkApproach {
         if (path.endsWith(".repository")) {
             return ModelFormat.PCM;
         }
+        if (path.endsWith(".components")) {
+            return ModelFormat.COMPONENT_LISTING;
+        }
         return path.endsWith(".uml") || path.endsWith(".xmi") ? ModelFormat.UML : null;
     }
 
@@ -198,8 +206,7 @@ public final class ArdocoApproach implements TraceLinkApproach {
         ArdocoRuns.acquire(ctx);
         try {
             dir = Files.createTempDirectory("ardoco-");
-            Path modelFile = dir.resolve(Path.of(model.path()).getFileName().toString());
-            Files.copy(ctx.artifacts().pathFor(model.storageUri()), modelFile);
+            Path modelFile = ArdocoRuns.stageModel(ctx, dir, model);
             Path textFile = dir.resolve("text.txt");
             String text = SentenceRendering.text(lines);
             Files.writeString(textFile, text, StandardCharsets.UTF_8);

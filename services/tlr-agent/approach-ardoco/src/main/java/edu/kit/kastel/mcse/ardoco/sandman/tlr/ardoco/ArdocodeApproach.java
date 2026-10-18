@@ -206,7 +206,7 @@ public final class ArdocodeApproach implements TraceLinkApproach {
                     throw new CancellationException("cancelled");
                 }
                 if (acm == null) {
-                    acm = fetchAcm(in, code, ctx, dir);
+                    acm = fetchAcm(codeModel, in, code, ctx, dir);
                 }
                 SentenceRendering.assertHashes(sentences);
                 if (provider == null) {
@@ -237,20 +237,21 @@ public final class ArdocodeApproach implements TraceLinkApproach {
         return new ArrayList<>(links.values());
     }
 
-    private record Acm(Path file, String sha) {}
+    record Acm(Path file, String sha) {}
 
-    private Acm fetchAcm(TlrInput in, List<TlrInput.Version> code, TlrContext ctx, Path dir) throws IOException {
+    static Acm fetchAcm(CodeModelClient injected, TlrInput in, List<TlrInput.Version> code, TlrContext ctx, Path dir)
+            throws IOException {
         List<CodeModelClient.File> request = code.stream()
                 .map(v -> new CodeModelClient.File(
                         v.path(), ctx.artifacts().pathFor(v.storageUri()).toString()))
                 .toList();
         long start = System.nanoTime();
-        CodeModelClient plugin = codeModel();
+        CodeModelClient plugin = injected != null ? injected : CodeModelClient.fromEnv();
         tools.jackson.databind.JsonNode acm;
         try {
             acm = plugin.acm(in.projectId(), request, ctx.cancelled());
         } finally {
-            if (codeModel == null) {
+            if (injected == null) {
                 plugin.close(); // created from the environment for this call
             }
         }

@@ -41,6 +41,7 @@ from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_extraction import documents, ingest
+from sandman_extraction.derive import DeriveConfig, DeriveSkill
 from sandman_extraction.embed import EmbedConfig
 from sandman_extraction.enrich import EnrichConfig
 from sandman_extraction.extract import ExtractSkill
@@ -91,6 +92,12 @@ class Service:
             self.contracts.load_config("extraction-embedding", embedding_file) if embedding_raw else {}
         )
         self.embedding_hash = sha256_hex(embedding_raw)
+        derivation_file = config_dir / "extraction" / "model-derivation.yaml"
+        derivation_raw = derivation_file.read_bytes() if derivation_file.is_file() else b""
+        self.derivation = DeriveConfig.from_dict(
+            self.contracts.load_config("model-derivation", derivation_file) if derivation_raw else {}
+        )
+        self.derivation_hash = sha256_hex(derivation_raw)
         self.selector: ModelSelector | None = None
         if settings.llm_models_file and settings.llm_base_url and settings.llm_key:
             self.selector = ModelSelector(
@@ -301,6 +308,14 @@ def create_app(
     card = settings.contracts_dir / "agent-cards" / "extraction-agent.json"
     skill = ExtractSkill(svc, plugin_transport)
     app.mount(
-        "/", serve(card, [skill, PruneSkill(svc)], settings, events=svc, contracts=svc.contracts, status=svc.status)
+        "/",
+        serve(
+            card,
+            [skill, PruneSkill(svc), DeriveSkill(svc)],
+            settings,
+            events=svc,
+            contracts=svc.contracts,
+            status=svc.status,
+        ),
     )
     return app

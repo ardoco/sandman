@@ -114,6 +114,26 @@ The restore stops with an error if the checksum fails, the archive format or the
 
 Run `make backup-drill` to test the procedure. It uses the scratch project `sandman-drill` and never touches the project `sandman`.
 
+### Retention
+
+The orchestrator starts a `prune` workflow for each project every 24 hours. The workflow removes old artifact versions and the data that belongs only to them.
+
+- The workflow keeps the newest 20 versions of each artifact.
+- The workflow keeps the current version of each artifact.
+- The workflow keeps versions that an inconsistency or an active or confirmed trace link refers to.
+- The workflow keeps versions whose content hash is in `experiments/*/experiment.yaml`.
+- The shipped setting is a dry run. A dry run deletes nothing and reports counts.
+
+To read the counts, open the workflow in the dashboard. Each step shows `removedCount`. Each prune step also writes a `Run` node with tool `retention`.
+
+To delete data, set `retention.dryRun: false` in `config/orchestrator/rules.yaml`. Then restart the orchestrator.
+Set `retention.projects.<id>` to change `enabled`, `keepVersionsPerArtifact` or `dryRun` for one project.
+Set `retention.enabled: false` to stop the schedule.
+
+To start a prune workflow now, send `POST /v1/workflows` with `{"type": "prune", "projectId": "<id>"}`. Add `"params": {"dryRun": false}` to override the setting.
+
+Caution: A prune with `dryRun: false` cannot be undone. Run `make backup` first.
+
 ## Troubleshooting
 
 | Symptom | Cause and remedy |

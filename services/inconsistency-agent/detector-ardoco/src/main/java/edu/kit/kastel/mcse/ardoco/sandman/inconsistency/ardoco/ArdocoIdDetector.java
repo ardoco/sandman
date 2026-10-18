@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.inconsistency.ardoco;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelFormat;
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.SentenceRendering;
 import edu.kit.kastel.mcse.ardoco.sandman.inconsistency.DetectionScope;
@@ -17,6 +18,7 @@ import java.lang.management.MemoryType;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,6 +28,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,32 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
     private static final Logger LOG = LoggerFactory.getLogger(ArdocoIdDetector.class);
     private static final Map<String, ModelFormat> FORMATS =
             Map.of("pcm-repository", ModelFormat.PCM, "uml", ModelFormat.UML);
+
+    private record Cached(String stats, Mapping.Raw raw) {
+        String summary(KgInput.Version doc, KgInput.Version model) {
+            return "doc " + doc.path() + " x model " + model.path() + ": " + stats + ", "
+                    + raw.models().size() + " model and " + raw.words().size() + " text findings";
+        }
+    }
+
+    /**
+     * Raw result of a run by everything the run reads: text, CoreNLP identity, model content, links. ArDoCo is
+     * deterministic for these inputs (T3.3), so an unchanged pair of the next detection call skips its run. Bounded
+     * LRU per JVM; a restart or a second replica starts empty.
+     */
+    private static final Map<String, Cached> CACHE = Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Cached> eldest) {
+            return size() > 4096;
+        }
+    });
+
+    private static final AtomicLong RUNS = new AtomicLong();
+
+    /** Number of ArDoCo runs in this JVM, without the pairs that the cache answered. */
+    public static long runs() {
+        return RUNS.get();
+    }
 
     /** ServiceLoader entry: CoreNLP settings are read from the environment when the first run needs them. */
     public ArdocoIdDetector() {}
@@ -109,7 +139,8 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
                 warnings.add("document version " + doc.id() + " has no sentences, skipped");
                 continue;
             }
-            TextDto annotated = null;
+            TextDto[] annotated = new TextDto[1];
+            List<String> lines = null;
             for (KgInput.Version model : models) {
                 ModelFormat format = format(model);
                 if (format == null) {
@@ -117,21 +148,29 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
                     continue;
                 }
                 cancelCheck(ctx);
-                if (annotated == null) {
+                if (lines == null) {
                     for (int i = 0; i < sentences.size(); i++) {
                         var s = sentences.get(i);
                         SentenceRendering.assertHash(i, doc.id(), s.localKey(), s.text());
                     }
-                    if (provider == null) {
-                        provider = corenlp.provider(ctx.cancelled());
-                        LOG.info("ardoco-id: CoreNLP {}", provider.identity());
-                    }
-                    List<String> lines = sentences.stream()
+                    lines = sentences.stream()
                             .map(s -> SentenceRendering.line(s.text()))
                             .toList();
-                    annotated = corenlp.annotateDto(lines, provider, ctx.cancelled());
                 }
-                results.add(runPair(ctx, kg, doc, sentences, annotated, model, format, approaches, warnings));
+                if (provider == null) {
+                    provider = corenlp.provider(ctx.cancelled());
+                    LOG.info("ardoco-id: CoreNLP {}", provider.identity());
+                }
+                var textLines = lines;
+                var textProvider = provider;
+                Supplier<TextDto> annotation = () -> {
+                    if (annotated[0] == null) {
+                        annotated[0] = corenlp.annotateDto(textLines, textProvider, ctx.cancelled());
+                    }
+                    return annotated[0];
+                };
+                String textKey = provider.identity() + '\0' + String.join("\n", lines);
+                results.add(runPair(ctx, kg, doc, sentences, annotation, textKey, model, format, approaches, warnings));
             }
         }
         return new Detection(Mapping.map(results), warnings);
@@ -142,7 +181,8 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
             KgInput kg,
             KgInput.Version doc,
             List<KgInput.Sentence> sentences,
-            TextDto annotated,
+            Supplier<TextDto> annotation,
+            String textKey,
             KgInput.Version model,
             ModelFormat format,
             List<String> approaches,
@@ -168,23 +208,32 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
                 links.add(new ExternalLink(sentence, key));
             }
         }
+        String key = Ids.sha256Hex(
+                String.join("\0", textKey, format.name(), model.storageUri(), fileName(model), links.toString()));
+        Cached hit = CACHE.get(key);
+        if (hit != null) {
+            warnings.add(hit.summary(doc, model));
+            return result(doc, model, sentences, byLocalKey, hit.raw());
+        }
         acquire(ctx);
         Path dir = null;
         try {
             dir = Files.createTempDirectory("ardoco-id-");
-            Path modelFile = dir.resolve(Path.of(model.path()).getFileName().toString());
+            Path modelFile = dir.resolve(fileName(model));
             Files.copy(ctx.artifacts().pathFor(model.storageUri()), modelFile);
+            RUNS.incrementAndGet();
             long start = System.nanoTime();
             List<MemoryPoolMXBean> heap = ManagementFactory.getMemoryPoolMXBeans().stream()
                     .filter(p -> p.getType() == MemoryType.HEAP)
                     .toList();
             heap.forEach(MemoryPoolMXBean::resetPeakUsage);
-            Text text = CorenlpClient.convert(annotated);
+            Text text = CorenlpClient.convert(annotation.get());
             var stats = new ExternalLinksStep.Stats();
             var raw = IdRunner.extract(IdRunner.run(text, modelFile, format, links, stats));
             long peak = heap.stream().mapToLong(p -> p.getPeakUsage().getUsed()).sum();
-            String summary = "doc " + doc.path() + " x model " + model.path() + ": " + stats + ", "
-                    + raw.models().size() + " model and " + raw.words().size() + " text findings";
+            var cached = new Cached(stats.toString(), raw);
+            CACHE.put(key, cached);
+            String summary = cached.summary(doc, model);
             warnings.add(summary);
             LOG.info(
                     "ardoco-id run: {} ({} sentences), {} ms, peak heap {} MiB",
@@ -192,12 +241,7 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
                     sentences.size(),
                     (System.nanoTime() - start) / 1_000_000,
                     peak >> 20);
-            return new Mapping.RunResult(
-                    doc.id(),
-                    model.id(),
-                    sentences.stream().map(s -> new Mapping.Sentence(s.key())).toList(),
-                    byLocalKey,
-                    raw);
+            return result(doc, model, sentences, byLocalKey, raw);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
@@ -206,6 +250,24 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
                 delete(dir);
             }
         }
+    }
+
+    private static String fileName(KgInput.Version model) {
+        return Path.of(model.path()).getFileName().toString();
+    }
+
+    private static Mapping.RunResult result(
+            KgInput.Version doc,
+            KgInput.Version model,
+            List<KgInput.Sentence> sentences,
+            Map<String, Mapping.ModelEl> byLocalKey,
+            Mapping.Raw raw) {
+        return new Mapping.RunResult(
+                doc.id(),
+                model.id(),
+                sentences.stream().map(s -> new Mapping.Sentence(s.key())).toList(),
+                byLocalKey,
+                raw);
     }
 
     /** Artifact format, else the file suffix (as the tlr approach does). */

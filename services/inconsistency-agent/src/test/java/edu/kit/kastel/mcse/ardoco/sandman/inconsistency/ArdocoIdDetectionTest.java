@@ -173,6 +173,17 @@ class ArdocoIdDetectionTest {
         assertEquals(first, items());
     }
 
+    @Test
+    void unchangedPairIsNotRunAgain() throws Exception {
+        var s = service(", params: { linkApproaches: [] }");
+        detect(s);
+        long runs = edu.kit.kastel.mcse.ardoco.sandman.inconsistency.ardoco.ArdocoIdDetector.runs();
+        var first = items();
+        detect(s);
+        assertEquals(runs, edu.kit.kastel.mcse.ardoco.sandman.inconsistency.ardoco.ArdocoIdDetector.runs());
+        assertEquals(first, items());
+    }
+
     String itemsWith(String type, String status, Map<String, String> all) {
         return all.values().stream()
                 .filter(v -> v.startsWith(type + "|" + status + "|"))

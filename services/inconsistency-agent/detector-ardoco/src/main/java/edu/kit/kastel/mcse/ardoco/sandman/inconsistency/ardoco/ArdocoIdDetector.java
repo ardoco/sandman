@@ -45,8 +45,13 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
     public static final String VERSION = "0.1.0+0d1f22b";
 
     private static final Logger LOG = LoggerFactory.getLogger(ArdocoIdDetector.class);
-    private static final Map<String, ModelFormat> FORMATS =
-            Map.of("pcm-repository", ModelFormat.PCM, "uml", ModelFormat.UML);
+    private static final Map<String, ModelFormat> FORMATS = Map.of(
+            "pcm-repository",
+            ModelFormat.PCM,
+            "uml",
+            ModelFormat.UML,
+            "component-listing",
+            ModelFormat.COMPONENT_LISTING);
 
     private record Cached(String stats, Mapping.Raw raw) {
         String summary(KgInput.Version doc, KgInput.Version model) {
@@ -190,7 +195,7 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
         Map<String, Mapping.ModelEl> byLocalKey = new LinkedHashMap<>();
         Map<String, String> localKeyById = new HashMap<>();
         for (KgInput.ModelElement e : kg.modelElements(model.id())) {
-            if (byLocalKey.put(e.localKey(), new Mapping.ModelEl(e.key(), e.name())) != null) {
+            if (byLocalKey.put(e.localKey(), new Mapping.ModelEl(e.key(), e.name(), e.inferred())) != null) {
                 throw new IllegalStateException(
                         "model " + model.path() + " has two elements with local key " + e.localKey());
             }
@@ -278,6 +283,9 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
         String path = model.path().toLowerCase(Locale.ROOT);
         if (path.endsWith(".repository")) {
             return ModelFormat.PCM;
+        }
+        if (path.endsWith(".components")) {
+            return ModelFormat.COMPONENT_LISTING;
         }
         return path.endsWith(".uml") || path.endsWith(".xmi") ? ModelFormat.UML : null;
     }

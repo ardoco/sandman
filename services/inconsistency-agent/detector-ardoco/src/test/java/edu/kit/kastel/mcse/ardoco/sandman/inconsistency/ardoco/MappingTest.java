@@ -111,4 +111,28 @@ class MappingTest {
     void noRunsNoFindings() {
         assertEquals(List.of(), Mapping.map(List.of()));
     }
+
+    @Test
+    void inferredModelElementCapsSeverityAndFlagsEvidence() {
+        var inferred = Map.of(
+                "id-cache", new ModelEl("model#id-cache", "Cache", true),
+                "id-web", new ModelEl("model#id-web", "WebGUI", false));
+        var raw = new Raw(
+                List.of(new ModelHit("id-cache", "Cache", "Component"), new ModelHit("id-web", "WebGUI", "Component")),
+                List.of());
+        var findings = Mapping.map(List.of(new RunResult("d1", "m1", SENTENCES, inferred, raw)));
+        assertEquals("info", findings.get(0).severity());
+        assertEquals(true, findings.get(0).evidence().get("inferredModel"));
+        assertEquals("warning", findings.get(1).severity());
+        assertTrue(!findings.get(1).evidence().containsKey("inferredModel"));
+    }
+
+    @Test
+    void textFindingAgainstInferredModelIsFlagged() {
+        var inferred = Map.of("id-cache", new ModelEl("model#id-cache", "Cache", true));
+        var raw = new Raw(List.of(), List.of(new WordHit(1, "Foo", 0.5)));
+        var findings = Mapping.map(List.of(new RunResult("d1", "m1", SENTENCES, inferred, raw)));
+        assertEquals("info", findings.get(0).severity());
+        assertEquals(true, findings.get(0).evidence().get("inferredModel"));
+    }
 }

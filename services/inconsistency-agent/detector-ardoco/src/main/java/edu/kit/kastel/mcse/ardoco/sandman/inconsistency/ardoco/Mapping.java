@@ -28,7 +28,11 @@ final class Mapping {
     record Sentence(String key) {}
 
     /** A ModelElement of the model version. */
-    record ModelEl(String key, String name) {}
+    record ModelEl(String key, String name, boolean inferred) {
+        ModelEl(String key, String name) {
+            this(key, name, false);
+        }
+    }
 
     /** One finished run: its input and its raw result. */
     record RunResult(
@@ -80,9 +84,12 @@ final class Mapping {
                 evidence.put("elementName", hit.name());
                 evidence.put("elementType", hit.type());
                 evidence.put("docVersionIds", List.copyOf(docs));
+                if (el.inferred()) {
+                    evidence.put("inferredModel", true);
+                }
                 out.add(new Finding(
                         UNDOCUMENTED,
-                        "warning",
+                        el.inferred() ? "info" : "warning",
                         cut("Undocumented model element: " + hit.name()),
                         "The architecture model contains " + hit.type() + " \"" + hit.name()
                                 + "\" but the documentation does not seem to mention it.",
@@ -142,6 +149,10 @@ final class Mapping {
                 evidence.put("docVersionId", entry.getKey());
                 evidence.put("sentence", e.getKey() + 1);
                 evidence.put("words", words);
+                if (docRuns.stream()
+                        .anyMatch(r -> r.modelByLocalKey().values().stream().anyMatch(ModelEl::inferred))) {
+                    evidence.put("inferredModel", true);
+                }
                 out.add(new Finding(
                         MISSING,
                         "info",

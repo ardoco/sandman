@@ -15,7 +15,7 @@ final class KgInput {
         }
     }
 
-    record ModelElement(String id, String key, String name) {
+    record ModelElement(String id, String key, String name, boolean inferred) {
         String localKey() {
             return key.substring(key.indexOf('#') + 1);
         }
@@ -58,10 +58,14 @@ final class KgInput {
         return kg
                 .read(
                         "MATCH (:ArtifactVersion {id: $v})-[:HAS_ELEMENT]->(e:ModelElement) "
-                                + "RETURN e.id AS id, e.key AS key, e.name AS name ORDER BY key",
+                                + "RETURN e.id AS id, e.key AS key, e.name AS name, e.inferred AS inferred ORDER BY key",
                         Map.of("v", versionId))
                 .stream()
-                .map(r -> new ModelElement((String) r.get("id"), (String) r.get("key"), (String) r.get("name")))
+                .map(r -> new ModelElement(
+                        (String) r.get("id"),
+                        (String) r.get("key"),
+                        (String) r.get("name"),
+                        Boolean.TRUE.equals(r.get("inferred"))))
                 .toList();
     }
 

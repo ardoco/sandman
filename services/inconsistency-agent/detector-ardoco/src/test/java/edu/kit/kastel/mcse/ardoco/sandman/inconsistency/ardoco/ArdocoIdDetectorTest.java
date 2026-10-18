@@ -17,6 +17,11 @@ class ArdocoIdDetectorTest {
         assertEquals(ModelFormat.PCM, ArdocoIdDetector.format(new Version("v", "a/ms.repository", null, null)));
         assertEquals(ModelFormat.UML, ArdocoIdDetector.format(new Version("v", "a/MS.XMI", null, null)));
         assertEquals(ModelFormat.UML, ArdocoIdDetector.format(new Version("v", "a/ms.uml", null, null)));
+        assertEquals(
+                ModelFormat.COMPONENT_LISTING,
+                ArdocoIdDetector.format(new Version("v", "a/x.components", "component-listing", null)));
+        assertEquals(
+                ModelFormat.COMPONENT_LISTING, ArdocoIdDetector.format(new Version("v", "a/X.components", null, null)));
         assertNull(ArdocoIdDetector.format(new Version("v", "a/ms.json", "acm", null)));
         assertNull(ArdocoIdDetector.format(new Version("v", "a/ms.json", null, null)));
     }

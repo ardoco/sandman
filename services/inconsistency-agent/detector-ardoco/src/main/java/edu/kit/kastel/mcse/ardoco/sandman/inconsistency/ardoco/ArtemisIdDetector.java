@@ -147,7 +147,7 @@ public final class ArtemisIdDetector implements InconsistencyDetector {
             LlmAccess llm) {
         Map<String, Mapping.ModelEl> byLocalKey = new LinkedHashMap<>();
         for (KgInput.ModelElement e : kg.modelElements(model.id())) {
-            if (byLocalKey.put(e.localKey(), new Mapping.ModelEl(e.key(), e.name())) != null) {
+            if (byLocalKey.put(e.localKey(), new Mapping.ModelEl(e.key(), e.name(), e.inferred())) != null) {
                 throw new IllegalStateException(
                         "model " + model.path() + " has two elements with local key " + e.localKey());
             }

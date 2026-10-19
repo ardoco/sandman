@@ -20,6 +20,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from starlette.datastructures import FormData, UploadFile
 from starlette.exceptions import HTTPException
 
+from sandman_query import graph_console
 from sandman_query.auth import LEVEL, Principal
 from sandman_query.service import Service, WorkflowBody, new_token, valid_project, valid_username
 from sandman_query.store import Exists
@@ -521,4 +522,5 @@ def build_router(svc: Service) -> APIRouter:
         store.delete_member(text(data, "project"), text(data, "username"))
         return redirect("/console/admin")
 
+    graph_console.mount(router, svc, ctx_dep, render)
     return router

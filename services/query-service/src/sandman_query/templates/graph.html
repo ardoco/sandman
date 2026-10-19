@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Knowledge graph{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/graph.css">{% endblock %}
+{% block body %}
+<h1>Knowledge graph <small>({{ project }})</small></h1>
+{% if not error %}
+<div id="graph-app" data-csrf="{{ csrf }}" data-base="/console/projects/{{ project }}/graph">
+  <aside id="controls">
+    <fieldset>
+      <legend>Load the graph</legend>
+      <label>Artifact
+        <select id="artifact">
+          <option value="">All artifacts</option>
+          {% for a in artifacts %}<option value="{{ a.id }}">{{ a.path }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Version state
+        <select id="state">
+          <option value="">Any</option>
+          {% for s in states %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Search by key, name or id <input id="search-text" type="search" maxlength="200"></label>
+      <button id="start" type="button">Load</button>
+    </fieldset>
+    <fieldset>
+      <legend>Filter labels</legend>
+      {% for l in labels %}<label class="inline"><input type="checkbox" class="filter-label" value="{{ l }}"> {{ l }}</label>{% endfor %}
+    </fieldset>
+    <fieldset>
+      <legend>Filter relationship types</legend>
+      {% for t in rel_types %}<label class="inline"><input type="checkbox" class="filter-type" value="{{ t }}"> {{ t }}</label>{% endfor %}
+    </fieldset>
+    <fieldset>
+      <legend>Neighborhood</legend>
+      <label>Hop depth <input id="depth" type="number" min="1" max="3" value="1"></label>
+      <div>Click a node to expand it.</div>
+    </fieldset>
+    <fieldset>
+      <legend>Path between two nodes</legend>
+      <div>From: <span id="path-source">-</span></div>
+      <div>To: <span id="path-target">-</span></div>
+      <label>Max hops <input id="path-hops" type="number" min="1" max="6" value="6"></label>
+      <button id="path" type="button">Find path</button>
+    </fieldset>
+    <fieldset>
+      <legend>View</legend>
+      <label>Layout
+        <select id="layout">
+          <option value="cose">Force</option>
+          <option value="breadthfirst">Hierarchical</option>
+          <option value="concentric">Concentric</option>
+        </select>
+      </label>
+      <label>Find in the visible graph <input id="find" type="search" maxlength="200"></label>
+      <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
+      <button id="zoom-fit" type="button">Fit</button>
+    </fieldset>
+    <fieldset>
+      <legend>Export and share</legend>
+      <button id="export-png" type="button">PNG</button>
+      <button id="export-json" type="button">JSON</button>
+      <button id="share" type="button">Copy link</button>
+      <button id="clear" type="button">Clear</button>
+    </fieldset>
+  </aside>
+  <section id="view">
+    <div id="status" role="status"></div>
+    <div id="cy" aria-label="Knowledge graph view"></div>
+    <div id="properties"><h2>Properties</h2><div id="props-empty">Select a node or edge.</div><dl id="props"></dl>
+      <button id="set-source" type="button" hidden>Use as path start</button>
+      <button id="set-target" type="button" hidden>Use as path end</button>
+      <h2>Legend</h2>
+      <ul id="legend"></ul>
+    </div>
+  </section>
+</div>
+<section id="cypher-box">
+  <h2>Read-only Cypher</h2>
+  <p>Anchor every node pattern with <code>{projectId: $projectId}</code>.</p>
+  <form id="cypher-form">
+    <textarea id="cypher" rows="4" maxlength="20000" spellcheck="false" aria-label="Cypher statement" placeholder="MATCH (n:Requirement {projectId: $projectId}) RETURN n LIMIT 25"></textarea>
+    <button type="submit">Run</button>
+    <button id="cypher-add" type="button" hidden>Add returned nodes to the graph</button>
+  </form>
+  <div id="cypher-status" role="status"></div>
+  <div id="cypher-result"></div>
+</section>
+<script src="/static/cytoscape.min.js"></script>
+<script src="/static/graph.js"></script>
+{% endif %}
+{% endblock %}

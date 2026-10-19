@@ -25,7 +25,7 @@ curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/
 
 ## Cypher
 
-`POST /v1/query/cypher` runs a read query against the graph (Memgraph, openCypher dialect). There is no Cypher field in the console.
+`POST /v1/query/cypher` runs a read query against the graph (Memgraph, openCypher dialect). The console has a Cypher box in the [graph explorer](#graph-explorer-console).
 
 ```sh
 curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/json' http://127.0.0.1:8080/v1/query/cypher -d '{
@@ -80,6 +80,42 @@ MATCH (a:Artifact {projectId: $projectId, path: $path})-[:HAS_VERSION]->(v:Artif
 RETURN v.id AS version, v.ingestedAt AS at, v.sourceRevision AS revision ORDER BY at
 ```
 with `"params": {"path": "requirements/requirements.md"}`.
+
+## Graph explorer (console)
+
+The console shows the graph of one project as a picture. Open it with the `Graph` link in the row of the project on `/console/projects`, or go to `/console/projects/<project>/graph`. You need at least the role `viewer` in the project. If you have no role, the page answers `403`.
+
+### Load and filter
+
+1. Choose an artifact, a version state or both. The version state `current` shows the elements of current versions. The state `historic` shows the elements of older versions.
+2. Enter a text in the search field. The search finds nodes by key, name or id.
+3. Select labels or relationship types in the filter lists.
+4. Click `Load`. The page shows up to 500 nodes. If more nodes match, the page shows `truncated`. Add a filter to see the rest.
+
+### Explore
+
+- Click a node to expand its neighborhood. The field `Hop depth` sets the depth from 1 to 3.
+- Click a node, then `Use as path start` or `Use as path end`. Click `Find path` to show the shortest path. The field `Max hops` sets the limit from 1 to 6.
+- Click a node or an edge to read its properties in the panel. Texts longer than 5000 characters end with `... [truncated]`.
+- Use `Layout` to switch between force, hierarchical and concentric layouts.
+- Use `Find in the visible graph` to mark matching nodes.
+- Rejected trace links have a dashed red border. Open and reopened findings have a solid red border. Candidate trace links have a dotted border.
+
+### Share and export
+
+- `Copy link` copies a URL that holds the filters, the hop depth and the Cypher text. Open the URL to load the same view. The page does not run the Cypher text by itself.
+- `PNG` and `JSON` export the visible graph.
+
+### Cypher box
+
+The box runs one read-only statement. The rules are the same as for `POST /v1/query/cypher`, see [Cypher](#cypher). The service binds `$projectId`. Anchor every node pattern with `{projectId: $projectId}`.
+
+- A result with nodes, relationships or paths is drawn in the graph. Other results show as a table.
+- A statement that the guard rejects shows the reason. It never shows an error page.
+- The limits are 10 s, 100 MB and 500 rows.
+- The service writes one log line `event=graph_query` per statement. It holds the user, the project and the duration. It does not hold the statement or the result.
+
+Caution: Users without the global admin flag cannot see nodes with the labels `Run` and `Ingestion`. A statement that names these labels is refused.
 
 ## REST API
 

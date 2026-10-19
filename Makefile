@@ -69,6 +69,7 @@ e2e: secrets        ## walking skeleton, dashboard and replay determinism: stack
 	$(REPLAY_ENV) SANDMAN_LLM_MODE=replay $(STACK_UP)
 	SANDMAN_E2E=1 uv run pytest tests/e2e/test_walking_skeleton.py -q
 	SANDMAN_E2E=1 SANDMAN_LLM_MODE=replay uv run pytest tests/e2e/test_dashboard.py -q
+	SANDMAN_E2E=1 uv run pytest tests/e2e/test_console_graph.py -q
 	SANDMAN_E2E=1 uv run pytest tests/e2e/test_kg_migrate.py -q
 	SANDMAN_E2E=1 $(DETERMINISM)
 

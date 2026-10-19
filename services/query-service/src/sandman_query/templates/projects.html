@@ -13,6 +13,7 @@
   <td>{{ p.workflow or "-" }}</td>
   <td>
     <a href="/console/projects/{{ p.id }}/ask">Ask</a>
+    <a href="/console/projects/{{ p.id }}/graph" hx-boost="false">Graph</a>
     <a href="/console/projects/{{ p.id }}/workflows">Workflows</a>
     {% if p.can_upload %}<a href="/console/projects/{{ p.id }}/upload">Upload</a>{% endif %}
   </td>

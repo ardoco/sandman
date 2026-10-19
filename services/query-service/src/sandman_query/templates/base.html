@@ -5,6 +5,7 @@
 <title>{% block title %}SANDMAN{% endblock %}</title>
 <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "responseHandling": [{"code": "204", "swap": false}, {"code": "[23]..", "swap": true}, {"code": "[45]..", "swap": true, "error": true}]}'>
 <link rel="stylesheet" href="/static/console.css">
+{% block head %}{% endblock %}
 <script src="/static/htmx.min.js"></script>
 </head>
 <body hx-boost="true">

@@ -1,6 +1,8 @@
 """Cypher endpoint, NL stub, schema and exports with a fake KG reader (real Memgraph: test_memgraph.py)."""
 
 import asyncio
+import csv
+import io
 import json
 import logging
 from pathlib import Path
@@ -396,3 +398,13 @@ async def test_nl_registers_explore(env: Env) -> None:
     finish = ChatResponse(ChatMessage("assistant", json.dumps({"tool": "finish", "keys": []})), "stop", Usage(), "gw")
     resp, _ = await ask(env, ScriptedLlmClient([finish]), strategy="explore", mode="cypher-only")
     assert resp.status_code != 501 and resp.json().get("strategy") == "explore", resp.text
+
+
+def test_inconsistencies_csv_has_cause_column() -> None:
+    from sandman_query.query import inconsistencies_csv
+
+    item = {"id": "i", "history": [{"to": "ACCEPTED", "cause": "planned-change"}, {"to": "OPEN"}], "involved": []}
+    other = {"id": "j", "history": [{"to": "OPEN"}], "involved": []}
+    header, first, second = list(csv.reader(io.StringIO(inconsistencies_csv([item, other]))))
+    assert header[-3:] == ["cause", "involved", "history"]
+    assert first[-3] == "planned-change" and second[-3] == ""

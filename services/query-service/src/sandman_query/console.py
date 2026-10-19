@@ -32,6 +32,7 @@ TEMPLATES = jinja2.Environment(
 LOGIN_CSRF = "sandman_login_csrf"
 STATUSES = ["OPEN", "REOPENED", "DEFERRED", "ACCEPTED", "REJECTED", "RESOLVED"]
 REASON_REQUIRED = {"ACCEPTED", "REJECTED", "DEFERRED"}
+CAUSES = ["extraction-error", "link-error", "detector-error", "artifact-inconsistency", "planned-change", "intentional"]
 KINDS = ["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
 MAX_FILES = 20000
 DEFAULT_RULES = "\n".join(
@@ -304,7 +305,9 @@ def build_router(svc: Service) -> APIRouter:
         evidence = json.dumps(d["evidence"], indent=2, ensure_ascii=False) if d.get("evidence") else ""
         can = ctx.who.level(d["projectId"]) >= LEVEL["triager"]
         ev = await svc.evidence(d["projectId"], d)
-        return render(ctx, "inconsistency.html", status, d=d, evidence=evidence, ev=ev, can_transition=can, **extra)
+        return render(
+            ctx, "inconsistency.html", status, d=d, evidence=evidence, ev=ev, can_transition=can, causes=CAUSES, **extra
+        )
 
     @router.get("/inconsistencies/{iid}")
     async def inconsistency(iid: str, ctx: Ctx = Session) -> HTMLResponse:
@@ -318,6 +321,10 @@ def build_router(svc: Service) -> APIRouter:
             body["reason"] = reason
         if body["to"] in REASON_REQUIRED and "reason" not in body:
             return await detail_page(ctx, iid, 400, message=f"A reason is required for {body['to']}.", error=True)
+        if (cause := text(data, "cause")) and body["to"] != "OPEN":
+            body["cause"] = cause
+        if body["to"] in REASON_REQUIRED and "cause" not in body:
+            return await detail_page(ctx, iid, 400, message=f"A cause is required for {body['to']}.", error=True)
         resp = await svc.transition(ctx.who, iid, json.dumps(body).encode())
         if resp.status_code == 200:
             return redirect(f"/console/inconsistencies/{iid}")

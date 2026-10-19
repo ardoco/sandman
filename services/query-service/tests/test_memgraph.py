@@ -63,7 +63,7 @@ CREATE (i2:Inconsistency {id: $i2, fingerprint: $f2, projectId: $p, type: 'untra
        status: 'OPEN', verification: 'none', detector: 'stub', detectorVersion: '1',
        firstRunId: $run, lastRunId: $run, evidenceHash: 'h', createdAt: $ts, updatedAt: $ts})
 CREATE (i1)-[:INVOLVES {role: 'subject'}]->(r3), (i1)-[:INVOLVES {role: 'link'}]->(l4), (i2)-[:INVOLVES {role: 'subject'}]->(r3)
-CREATE (i1)-[:HAS_STATUS_CHANGE]->(:StatusChange {from: 'OPEN', to: 'ACCEPTED', actor: 'user:alice', reason: 'fine', at: $ts})
+CREATE (i1)-[:HAS_STATUS_CHANGE]->(:StatusChange {from: 'OPEN', to: 'ACCEPTED', actor: 'user:alice', reason: 'fine', cause: 'intentional', at: $ts})
 CREATE (g1:Ingestion {id: $g1, projectId: $p, seq: 1, mode: 'full', sourceRevision: 'rev1', actor: 'u', createdAt: $ts})
 CREATE (g2:Ingestion {id: $g2, projectId: $p, seq: 2, mode: 'partial', sourceRevision: 'rev2', actor: 'u', createdAt: $ts})
 CREATE (pr)-[:HAS_INGESTION]->(g1), (pr)-[:HAS_INGESTION]->(g2)
@@ -292,7 +292,9 @@ async def test_inconsistency_export_with_history(mg: Env) -> None:
     by_title = {i["title"]: i for i in items}
     i1 = by_title["I1"]
     assert i1["status"] == "ACCEPTED" and i1["evidence"] == {"k": 1} and i1["allowedTransitions"] == ["OPEN"]
-    assert i1["history"] == [{"from": "OPEN", "to": "ACCEPTED", "actor": "user:alice", "reason": "fine", "at": TS}]
+    assert i1["history"] == [
+        {"from": "OPEN", "to": "ACCEPTED", "actor": "user:alice", "reason": "fine", "cause": "intentional", "at": TS}
+    ]
     assert {e["role"] for e in i1["involved"]} == {"subject", "link"}
     subject = next(e for e in i1["involved"] if e["role"] == "subject")["element"]
     assert (
@@ -301,5 +303,6 @@ async def test_inconsistency_export_with_history(mg: Env) -> None:
     assert i1["artifactPaths"] == ["model.repository", "requirements.md"]
     csv_text = (await mg.http.get("/v1/projects/alpha/export/inconsistencies?format=csv", headers=h)).text
     assert csv_text.splitlines()[0].startswith("id,type,severity") and len(csv_text.splitlines()) == 3
+    assert ",cause,involved,history" in csv_text.splitlines()[0] and "intentional" in csv_text
     assert json.loads(json.dumps(items)) == items
     assert Draft202012Validator is not None and SPEC is not None

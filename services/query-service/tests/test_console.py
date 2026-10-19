@@ -172,11 +172,13 @@ async def test_data_is_escaped(env: Env) -> None:
     env.owner.detail_patch = {
         "title": evil, "description": evil, "evidence": {"x": evil},
         "involved": [{"role": evil, "element": element}],
-        "history": [{"from": "OPEN", "to": "REJECTED", "actor": "user:x", "reason": evil, "at": TS}],
+        "history": [{"from": "OPEN", "to": "REJECTED", "actor": "user:x", "reason": evil,
+                     "cause": "planned-change", "at": TS}],
     }  # fmt: skip
     await logged_in(env)
     page = (await env.http.get(f"/console/inconsistencies/{INC_ID}")).text
     assert evil not in page and "&lt;script&gt;alert(1)&lt;/script&gt;" in page
+    assert "planned-change" in page
     assert page.count("<script") == 1  # only the vendored htmx
     env.reader.result = (["x"], [[evil]])
     ask = await env.http.post(
@@ -192,16 +194,20 @@ async def test_transition_form_posts_with_csrf_and_shows_conflicts(env: Env) -> 
         "Change status" in page.text and 'value="ACCEPTED"' in page.text and f'name="csrf" value="{csrf}"' in page.text
     )
     path = f"/console/inconsistencies/{INC_ID}/transition"
-    fields = {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended"}
+    fields = {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended", "cause": "planned-change"}
     assert (await post(env, path, None, **fields)).status_code == 403
     assert (await post(env, path, "wrong", **fields)).status_code == 403
     assert not any(c["method"] == "POST" for c in env.owner.calls)
     missing = await post(env, path, csrf, to="REJECTED", expectedStatus="OPEN")
     assert missing.status_code == 400 and "reason is required" in missing.text
+    for to in ("ACCEPTED", "REJECTED", "DEFERRED"):
+        no_cause = await post(env, path, csrf, to=to, expectedStatus="OPEN", reason="r")
+        assert no_cause.status_code == 400 and "cause is required" in no_cause.text
+    assert not any(c["method"] == "POST" for c in env.owner.calls)
     done = await post(env, path, csrf, **fields)
     assert done.status_code == 303 and done.headers["location"] == f"/console/inconsistencies/{INC_ID}"
     sent = next(c for c in env.owner.calls if c["method"] == "POST")
-    assert json.loads(sent["body"]) == {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended"}
+    assert json.loads(sent["body"]) == fields
     assert sent["headers"]["x-sandman-actor"] == "user:tina" and "x-sandman-roles" not in sent["headers"]
     env.owner.transition_status = 409
     conflict = await post(env, path, csrf, **fields)
@@ -212,7 +218,13 @@ async def test_viewer_sees_no_transition_form_and_cannot_post(env: Env) -> None:
     csrf = await logged_in(env, "vic", {"alpha": "viewer"})
     assert "Change status" not in (await env.http.get(f"/console/inconsistencies/{INC_ID}")).text
     resp = await post(
-        env, f"/console/inconsistencies/{INC_ID}/transition", csrf, to="ACCEPTED", expectedStatus="OPEN", reason="r"
+        env,
+        f"/console/inconsistencies/{INC_ID}/transition",
+        csrf,
+        to="ACCEPTED",
+        expectedStatus="OPEN",
+        reason="r",
+        cause="intentional",
     )
     assert resp.status_code == 403
     assert (await env.http.get("/console/admin")).status_code == 403

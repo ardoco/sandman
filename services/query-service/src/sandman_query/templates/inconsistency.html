@@ -24,7 +24,7 @@
 </table>
 <h2>History</h2>
 <ol class="timeline">
-{% for h in d.history %}<li class="step"><strong>{{ h.from or "(new)" }} -&gt; {{ h.to }}</strong> <span class="muted">{{ h.at }}, {{ h.actor }}</span>{% if h.reason %}<br>{{ h.reason }}{% endif %}</li>
+{% for h in d.history %}<li class="step"><strong>{{ h.from or "(new)" }} -&gt; {{ h.to }}</strong> <span class="muted">{{ h.at }}, {{ h.actor }}</span>{% if h.cause %}<br><span class="badge">{{ h.cause }}</span>{% endif %}{% if h.reason %}<br>{{ h.reason }}{% endif %}</li>
 {% else %}<li class="step muted">No status change.</li>{% endfor %}
 </ol>
 {% if can_transition and d.allowedTransitions %}
@@ -34,6 +34,8 @@
   <input type="hidden" name="expectedStatus" value="{{ d.status }}">
   <label>New status
     <select name="to">{% for s in d.allowedTransitions %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></label>
+  <label>Cause (required for ACCEPTED, REJECTED, DEFERRED; optional for RESOLVED)
+    <select name="cause"><option value="" selected></option>{% for c in causes %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
   <label>Reason (required for ACCEPTED, REJECTED, DEFERRED) <textarea name="reason" maxlength="2000"></textarea></label>
   <button>Change status</button>
 </form>

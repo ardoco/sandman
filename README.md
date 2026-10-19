@@ -23,8 +23,8 @@ The walking skeleton runs end to end: upload, extraction, trace link recovery, i
 - `services/dashboard` (Python): admin system overview (services, projects, graph page, gateway, workflows, events, history, resources)
 - `services/llm-replay` (Python): OpenAI-compatible record/replay proxy
 - `libs/python/sandman-agent`, `libs/java/agent-lib` (+ `agent-lib-a2a`): agent libraries; `sandman_agent.graphview` is the graph conversion shared by console and dashboard
-- `actions/sandman-ingest`: GitHub Action that ingests a repository and waits for the workflow
-- `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`, `eval`)
+- `actions/sandman-ingest`: GitHub Action that ingests a repository, waits for the workflow and writes the change impact to the job summary
+- `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`, `impact`, `eval`)
 - `tests/plugin-stubs`, `tests/e2e`, `tests/conformance`: plugin stubs, end-to-end and conformance tests
 - `deploy/`: Docker Compose stack, edge proxy, LLM gateway config, CoreNLP gateway and provider, secret generation
 

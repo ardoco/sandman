@@ -106,6 +106,7 @@ OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
                 {"json": {"projectId": "alpha", "question": "open inconsistencies"}}, {200}),
     "exportTraceLinks": ("read", "GET", "/v1/projects/alpha/export/tracelinks?format=json", {}, {200}),
     "exportInconsistencies": ("read", "GET", "/v1/projects/alpha/export/inconsistencies", {}, {200}),
+    "getIngestionImpact": ("read", "GET", f"/v1/projects/alpha/ingestions/ing_{'1' * 32}/impact", {}, {200, 404}),
     "getWorkflow": ("read", "GET", f"/v1/workflows/{WF_ID}", {}, {200}),
 }  # fmt: skip
 

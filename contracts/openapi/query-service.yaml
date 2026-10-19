@@ -639,6 +639,93 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+  /v1/projects/{projectId}/ingestions/{ingestionId}/impact:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+      - name: ingestionId
+        in: path
+        required: true
+        schema: { $ref: "../common.schema.json#/$defs/StableId" }
+    get:
+      summary: Change impact of one ingestion (T6.3); read-only graph traversal in one read transaction, no LLM
+      description: |
+        Changed elements are the elements added, modified or removed between the old and the new version of each artifact the ingestion activated or deleted.
+        Affected elements are elements of current versions in other artifacts, reachable from a changed element over active trace links with status other than rejected (both directions), DEPENDS_ON (both directions) and CONTAINS (upward only).
+        For a removed element the links of the old version are used; such paths carry via previous-version.
+      operationId: getIngestionImpact
+      x-sandman-min-role: viewer
+      parameters:
+        - name: depth
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 4, default: 2 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 1000, default: 200 }
+      responses:
+        "200":
+          description: Impact report; affected is ordered by distance, artifact path, key
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ingestionId, seq, workflowStatus, complete, changed, affected, truncated, warnings]
+                properties:
+                  ingestionId: { $ref: "../common.schema.json#/$defs/StableId" }
+                  seq: { type: integer, minimum: 1 }
+                  sourceRevision: { type: string }
+                  workflowStatus:
+                    type: string
+                    description: Status of the workflow started by the ingestion; none if the ingestion started no workflow, unknown if the orchestrator is unreachable.
+                    enum: [none, unknown, PENDING, RUNNING, SUCCEEDED, FAILED, CANCELED, BLOCKED]
+                  complete: { type: boolean, description: "false while the workflow runs; links may be missing then" }
+                  changed:
+                    type: array
+                    items:
+                      type: object
+                      required: [key, artifactPath, label, kind, change]
+                      properties:
+                        key: { type: string }
+                        artifactPath: { type: string }
+                        label: { type: string }
+                        kind: { type: string }
+                        change: { enum: [added, modified, removed] }
+                  affected:
+                    type: array
+                    items:
+                      type: object
+                      required: [key, artifactPath, label, kind, name, distance, paths]
+                      properties:
+                        key: { type: string }
+                        artifactPath: { type: string }
+                        label: { type: string }
+                        kind: { type: string }
+                        name: { type: string }
+                        excerpt: { type: string }
+                        distance: { type: integer, minimum: 1, maximum: 4 }
+                        paths:
+                          type: array
+                          maxItems: 3
+                          description: Shortest paths; each path lists the elements from the changed element to the affected element
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              required: [key, edge]
+                              properties:
+                                key: { type: string }
+                                edge:
+                                  enum: [start, TRACE_LINK, DEPENDS_ON, CONTAINS]
+                                  description: Edge that leads to this element; start for the changed element at the head of the path.
+                                via:
+                                  enum: [previous-version]
+                                  description: Only on the start item of a path of a removed element.
+                  truncated: { type: boolean }
+                  warnings: { type: array, items: { type: string } }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
   /v1/projects/{projectId}/export/tracelinks:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"

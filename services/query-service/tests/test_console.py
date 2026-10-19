@@ -13,6 +13,7 @@ from conftest import ADMIN_PASSWORD, Env
 from helpers import INC_ID, LINK_ID, OTHER_LINK_ID, TS
 from sandman_agent.llm import ChatMessage, ChatResponse, Usage
 from sandman_agent.testing import ScriptedLlmClient
+from sandman_query import impact
 
 
 def csrf_of(html: str) -> str:
@@ -501,3 +502,21 @@ async def test_viewer_sees_links_without_review_buttons(env: Env) -> None:
         await post(env, f"/console/projects/alpha/links/{LINK_ID}/review", csrf, status="confirmed")
     ).status_code == 403
     assert (await env.http.get("/console/projects/alpha/links?status=confirmed")).text.count("MediaCache") == 0
+
+
+async def test_impact_page_shows_changes_banner_and_escapes(env: Env) -> None:
+    from test_impact import ING, seed
+
+    await logged_in(env, "mia", {"alpha": "viewer"})
+    seed(env)
+    env.reader.tx_data[impact.CURRENT][0]["name"] = "<b>x</b>"
+    url = f"/console/projects/alpha/ingestions/{ING}/impact"
+    page = await env.http.get(url)
+    assert page.status_code == 200
+    assert "art1#a" in page.text and "src/C.java" in page.text and "not complete" not in page.text
+    assert "<b>x</b>" not in page.text and "/console/projects/alpha/graph?q=art2%23c" in page.text
+    env.owner.workflows[0]["status"] = "RUNNING"  # type: ignore[index]
+    assert "not complete" in (await env.http.get(url)).text
+    assert (await env.http.get(url + "?depth=9")).status_code == 400
+    assert (await env.http.get("/console/projects/alpha/ingestions/nope/impact")).status_code == 400
+    assert (await env.http.get("/console/projects/beta/ingestions/" + ING + "/impact")).status_code in (403, 404)

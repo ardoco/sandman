@@ -242,6 +242,46 @@ def eval_label_score(args: argparse.Namespace) -> int:
     return 0
 
 
+MARKDOWN_ROWS = 50
+
+
+def _cell(value: Any) -> str:
+    return str(value if value is not None else "").replace("|", "\\|").replace("\n", " ")
+
+
+def impact_markdown(doc: dict[str, Any], console_url: str) -> str:
+    out = [f"## Change impact of ingestion {doc['seq']}", ""]
+    if not doc["complete"]:
+        out += [
+            f"Warning: the analysis is not complete (workflow status {doc['workflowStatus']}). Links may be missing.",
+            "",
+        ]
+    out += [f"Warning: {w}" for w in doc["warnings"]]
+    if doc["truncated"]:
+        out.append("The lists are truncated.")
+    out += [f"Changed elements: {len(doc['changed'])}. Affected elements: {len(doc['affected'])}.", ""]
+    if doc["affected"]:
+        out += ["| Element | Artifact | Distance | Path |", "| --- | --- | --- | --- |"]
+        for a in doc["affected"][:MARKDOWN_ROWS]:
+            path = " > ".join(step["key"] for step in a["paths"][0])
+            out.append(f"| {_cell(a['key'])} | {_cell(a['artifactPath'])} | {a['distance']} | {_cell(path)} |")
+        if len(doc["affected"]) > MARKDOWN_ROWS:
+            out.append(f"\n{len(doc['affected']) - MARKDOWN_ROWS} more affected elements are not listed.")
+    out += ["", f"[Open the impact report in the console]({console_url})", ""]
+    return "\n".join(out)
+
+
+def impact(http: httpx.Client, args: argparse.Namespace) -> int:
+    path = f"/v1/projects/{args.project}/ingestions/{args.ingestion}/impact"
+    doc = _ok(http.get(path, params={"depth": args.depth})).json()
+    if args.format == "json":
+        print(json.dumps(doc, indent=2))
+    else:
+        console = f"{str(http.base_url).rstrip('/')}/console/projects/{args.project}/ingestions/{args.ingestion}/impact"
+        sys.stdout.write(impact_markdown(doc, console))
+    return 0
+
+
 def parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--project", required=True, type=_pattern(r"[a-z0-9][a-z0-9-]{1,62}", "project id"))
@@ -268,6 +308,12 @@ def parser() -> argparse.ArgumentParser:
     s.add_argument("--approach", help="benchmark formats: only links of this approach")
     s.add_argument("--code-root", default="", help="ardoco-sad-code: path prefix removed from code paths")
     s.set_defaults(func=export)
+
+    s = sub.add_parser("impact", parents=[common], help="changed and affected elements of an ingestion")
+    s.add_argument("ingestion", type=_pattern(r"ing_[0-9a-f]{32}", "ingestion id"))
+    s.add_argument("--depth", type=int, choices=range(1, 5), default=2)
+    s.add_argument("--format", choices=["json", "markdown"], default="json")
+    s.set_defaults(func=impact)
 
     s = sub.add_parser("eval", help="evaluation harness (experiments/PROTOCOL.md)")
     ev = s.add_subparsers(required=True)

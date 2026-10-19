@@ -152,3 +152,23 @@ uv run sandman export --project demo inconsistencies --format csv
 - `inconsistencies`: all findings of the project with involved elements and status history; JSON by default. CSV has one row per finding, with the column `cause` (the cause of the latest history entry that has one) and `involved` and `history` as JSON cells.
 
 Keys in the export are `art_<id>#<local key>`; map them to paths with the Cypher above.
+
+## Change impact
+
+The change impact report shows what an ingestion changed and which elements in other artifacts it affects.
+
+```sh
+uv run sandman impact --project demo ing_<id> --depth 2 --format markdown
+```
+
+- `ing_<id>` is the `ingestionId` that `sandman ingest` prints.
+- `--depth` is 1 to 4 (default 2). `--format` is `json` (default) or `markdown`.
+- The REST endpoint is `GET /v1/projects/{projectId}/ingestions/{ingestionId}/impact` with the parameters `depth` and `limit` (1 to 1000, default 200). The role `viewer` is enough.
+- The console shows the report at `/console/projects/<id>/ingestions/<ingestionId>/impact`.
+
+A changed element is added, modified or removed. A renamed element counts as one removed and one added element.
+An affected element is in a different artifact. It is reachable from a changed element over active trace links (not rejected), `DEPENDS_ON` edges (both directions) or `CONTAINS` edges (upward only).
+Each affected element has its distance and up to three shortest paths. A path of a removed element starts with `via: previous-version`.
+
+If `complete` is `false`, the workflow of the ingestion has not ended. Links may be missing. Run the command again later.
+If `truncated` is `true`, the lists reached a limit.

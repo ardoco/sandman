@@ -205,3 +205,27 @@ def test_workflows_wait_prints_activity_text_once_per_change(capsys: pytest.Capt
         "step 1/1 tlr: linking 1/3",
         "step 1/1 tlr: linking 2/3",
     ]
+
+
+def test_impact_json_and_markdown(capsys: pytest.CaptureFixture[str]) -> None:
+    ing = "ing_" + "1" * 32
+    step = [{"key": "a#1", "edge": "start"}, {"key": "b#2", "edge": "TRACE_LINK"}]
+    doc = {
+        "ingestionId": ing, "seq": 3, "workflowStatus": "RUNNING", "complete": False, "truncated": False,
+        "warnings": [], "changed": [{"key": "a#1"}],
+        "affected": [{"key": f"b#{i}|x", "artifactPath": "B.java", "distance": 1, "paths": [step]} for i in range(60)],
+    }  # fmt: skip
+    routes = {f"/v1/projects/mini/ingestions/{ing}/impact": lambda r: httpx.Response(200, json=doc)}
+    requests: list[httpx.Request] = []
+    assert main(["impact", "--project", "mini", ing, "--depth", "3"], server(requests, [], routes)) == 0
+    assert json.loads(capsys.readouterr().out)["seq"] == 3 and requests[0].url.params["depth"] == "3"
+    assert main(["impact", "--project", "mini", ing, "--format", "markdown"], server([], [], routes)) == 0
+    text = capsys.readouterr().out
+    assert text.startswith("## Change impact of ingestion 3") and "Warning: the analysis is not complete" in text
+    assert text.count("| B.java |") == 50 and "10 more affected elements" in text and "b#0\\|x" in text
+    assert f"(http://qs:8080/console/projects/mini/ingestions/{ing}/impact)" in text
+
+
+def test_impact_rejects_bad_ingestion_id() -> None:
+    with pytest.raises(SystemExit):
+        main(["impact", "--project", "mini", "x"], server([], [], {}))

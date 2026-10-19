@@ -68,6 +68,14 @@ class FakeReader:
         self.gate: asyncio.Event | None = None  # blocks run() until set
         self.link_projects = {LINK_ID: "alpha", OTHER_LINK_ID: "beta"}
         self.link_rows: list[dict[str, Any]] = []
+        self.tx_data: dict[str, list[dict[str, Any]]] = {}
+
+    async def transaction(self, work: Any, timeout: float = 30.0) -> Any:
+        async def rows(cypher: str, params: Any) -> list[dict[str, Any]]:
+            self.queries.append((cypher, dict(params)))
+            return self.tx_data.get(cypher, [])
+
+        return await work(rows)
 
     async def close(self) -> None:
         pass
@@ -109,6 +117,7 @@ class FakeOwner:
     force_status: int | None = None  # every response gets this status
     items: list[dict[str, Any]] = field(default_factory=list)
     detail_patch: dict[str, Any] = field(default_factory=dict)
+    workflows: list[dict[str, Any]] | None = None
     app: FastAPI = field(init=False)
 
     def __post_init__(self) -> None:
@@ -161,7 +170,7 @@ class FakeOwner:
         if parts == ["v1", "workflows"]:
             if method == "POST":
                 return ok({**workflow(json.loads(body)["projectId"]), "steps": []}, 202)
-            return ok({"items": [workflow("alpha")]})
+            return ok({"items": [workflow("alpha")] if self.workflows is None else self.workflows})
         if parts[:2] == ["v1", "workflows"]:
             return ok({**workflow("alpha"), "steps": []})
         return Response(status_code=404)

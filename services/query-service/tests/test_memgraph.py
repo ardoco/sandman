@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator
 from neo4j import AsyncGraphDatabase
 from neo4j.exceptions import Neo4jError
 from sandman_agent.ids import sha256_hex, stable_id
+from sandman_cli.evaluation.formats import FORMATS, LINKS_QUERY, rows_to_links, write_links
 from test_guard import ACCEPTED, REJECTED
 
 TS = "2026-10-06T12:00:00Z"
@@ -286,6 +287,42 @@ async def test_tracelink_export(mg: Env) -> None:
     assert len(with_rejected) == 3 and "rejected" in {link["status"] for link in with_rejected}
     assert len((await mg.http.get(base + "?format=json&minConfidence=0.85", headers=h)).json()) == 1
     assert len((await mg.http.get(base + "?format=json&approach=explicit", headers=h)).json()) == 1
+
+
+async def test_tracelink_export_carries_review_data_in_the_default_format_only(mg: Env) -> None:
+    driver = AsyncGraphDatabase.driver(mg.kg)  # type: ignore[attr-defined]
+    async with driver.session() as s:
+        await s.run(
+            "MATCH (l:TraceLink {id: $id}) SET l.status = 'confirmed', l.reviewedBy = 'user:alice', "
+            "l.reviewedAt = $ts, l.reviewReason = 'looks right', l.reviewOrigin = 'user'",
+            id=ids("alpha", "l1", "tl"),
+            ts=TS,
+        )
+    await driver.close()
+    h = mg.token("alice")
+    base = "/v1/projects/alpha/export/tracelinks"
+    lines = (await mg.http.get(base, headers=h)).text.splitlines()
+    header = lines[0].split(",")
+    assert header[-3:] == ["reviewed_by", "reviewed_at", "review_reason"]
+    reviewed = next(line for line in lines[1:] if ",lissa," in line).split(",")
+    assert reviewed[-3:] == ["user:alice", TS, "looks right"]
+    unreviewed = next(line for line in lines[1:] if ",explicit," in line).split(",")
+    assert unreviewed[-3:] == ["", "", ""]
+    as_json = (await mg.http.get(base + "?format=json", headers=h)).json()
+    validate("/v1/projects/{projectId}/export/tracelinks", "get", 200, as_json)
+    by_approach = {link["approach"]: link for link in as_json}
+    assert by_approach["lissa"]["reviewedBy"] == "user:alice" and by_approach["lissa"]["reviewReason"] == "looks right"
+    assert not {"reviewedBy", "reviewedAt", "reviewReason"} & by_approach["explicit"].keys()
+
+    rows = await q(mg, LINKS_QUERY, params={"approach": None, "skip": 0, "page": 1000})
+    assert rows.status_code == 200, rows.text
+    body = rows.json()
+    link_rows = [dict(zip(body["columns"], r, strict=True)) for r in body["rows"]]
+    assert link_rows
+    for fmt, columns in FORMATS.items():
+        text = write_links(fmt, rows_to_links(fmt, link_rows))
+        assert text.splitlines()[0] == ",".join(columns)
+        assert all(len(line.split(",")) == 2 for line in text.splitlines())
 
 
 async def test_inconsistency_export_with_history(mg: Env) -> None:

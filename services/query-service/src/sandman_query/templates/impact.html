@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Impact of ingestion {{ seq }}{% endblock %}
+{% block body %}
+<h1>Impact of ingestion {{ seq }}</h1>
+<p>Project {{ project }}{% if sourceRevision %}, revision {{ sourceRevision }}{% endif %}. Workflow status: {{ workflowStatus }}. Depth: {{ depth }}.</p>
+<p><a href="/console/projects/{{ project }}/workflows">Workflows</a></p>
+{% if not complete %}<p class="error">The analysis is not complete. The workflow of this ingestion is still running or its state is unknown. Links may be missing. Reload this page later.</p>{% endif %}
+{% for w in warnings %}<p class="error">{{ w }}</p>{% endfor %}
+{% if truncated %}<p>The lists are truncated.</p>{% endif %}
+<h2>Changed elements</h2>
+<table>
+<tr><th>Change</th><th>Artifact</th><th>Element</th><th>Label</th><th>Kind</th></tr>
+{% for c in changed %}
+<tr><td>{{ c.change }}</td><td>{{ c.artifactPath }}</td><td><a href="/console/projects/{{ project }}/graph?q={{ c.key | urlencode }}">{{ c.key }}</a></td><td>{{ c.label }}</td><td>{{ c.kind }}</td></tr>
+{% else %}<tr><td colspan="5">No changed elements.</td></tr>{% endfor %}
+</table>
+<h2>Affected elements</h2>
+{% for path, items in groups.items() %}
+<h3>{{ path }}</h3>
+<table>
+<tr><th>Element</th><th>Distance</th><th>Excerpt</th><th>Paths</th></tr>
+{% for a in items %}
+<tr><td><a href="/console/projects/{{ project }}/graph?q={{ a.key | urlencode }}">{{ a.key }}</a> {{ a.name }}</td><td>{{ a.distance }}</td><td>{{ a.excerpt }}</td>
+<td>{% for p in a.paths %}<div>{% for s in p %}{{ s.key }}{% if not loop.last %} -{{ p[loop.index].edge }}-&gt; {% endif %}{% endfor %}{% if p[0].via %} ({{ p[0].via }}){% endif %}</div>{% endfor %}</td></tr>
+{% endfor %}
+</table>
+{% else %}<p>No affected elements.</p>{% endfor %}
+{% endblock %}

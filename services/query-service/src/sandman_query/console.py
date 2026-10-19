@@ -487,6 +487,19 @@ def build_router(svc: Service) -> APIRouter:
             )
         return redirect(f"/console/projects/{project}/workflows")
 
+    @router.get("/projects/{project}/ingestions/{ingestion}/impact")
+    async def impact(project: str, ingestion: str, depth: int = 2, ctx: Ctx = Session) -> HTMLResponse:
+        readable(ctx, "getIngestionImpact", project)
+        if not re.fullmatch(r"ing_[0-9a-f]{32}", ingestion) or not 1 <= depth <= 4:
+            raise HTTPException(400, "bad ingestion id or depth")
+        doc = await svc.ingestion_impact(ctx.who, project, ingestion, depth, 200)
+        if doc is None:
+            raise HTTPException(404, "ingestion not found")
+        groups: dict[str, list[dict[str, Any]]] = {}
+        for a in doc["affected"]:
+            groups.setdefault(a["artifactPath"], []).append(a)
+        return render(ctx, "impact.html", project=project, depth=depth, groups=groups, **doc)
+
     # -------------------------------------------------------------- tokens
 
     def tokens_page(ctx: Ctx, status: int = 200, **extra: Any) -> HTMLResponse:

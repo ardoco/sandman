@@ -28,6 +28,7 @@ TIMEOUT = 10.0
 MAX_HOPS = 6
 MAX_TEXT = 5000
 MAX_CELL = 2000
+CUT_MARK = "... [truncated]"
 MAX_PAYLOAD = 2_000_000
 CLIENT_ERRORS = (
     ("accessor type", "write statements are not allowed (read-only)"),
@@ -48,8 +49,11 @@ def in_project(var: str) -> str:
 
 
 class Checked(Protocol):
-    text: str
-    has_limit: bool
+    @property
+    def text(self) -> str: ...
+
+    @property
+    def has_limit(self) -> bool: ...
 
 
 def jsonable(v: Any) -> Any:
@@ -84,7 +88,7 @@ class GraphError(Exception):
 def cap(value: Any) -> Any:
     """Table cell with every string cut to MAX_CELL characters."""
     if isinstance(value, str):
-        return value if len(value) <= MAX_CELL else value[:MAX_CELL] + "... [truncated]"
+        return value if len(value) <= MAX_CELL else value[:MAX_CELL] + CUT_MARK
     if isinstance(value, list):
         return [cap(v) for v in value]
     if isinstance(value, dict):
@@ -104,7 +108,7 @@ def schema_names(contracts_dir: Path) -> tuple[list[str], list[str]]:
 
 def _props(entity: Node | Relationship) -> dict[str, Any]:
     out = {k: jsonable(v) for k, v in entity.items()}
-    return {k: v[:MAX_TEXT] if isinstance(v, str) else v for k, v in out.items()}
+    return {k: v[:MAX_TEXT] + CUT_MARK if isinstance(v, str) and len(v) > MAX_TEXT else v for k, v in out.items()}
 
 
 def node_element(node: Node) -> dict[str, Any]:
@@ -324,10 +328,13 @@ class GraphService:
 
     # --------------------------------------------------------------- cypher box
 
-    async def cypher(self, statement: str) -> dict[str, Any]:
-        """Guarded read-only statement: columns, rows, truncated flag and graph elements of returned entities."""
+    async def cypher(self, statement: str, project: str | None = None) -> dict[str, Any]:
+        """Guarded read-only statement: columns, rows, truncated flag and graph elements of returned entities.
+
+        With a project the guard anchors every node pattern and `$projectId` is bound to it.
+        """
         try:
-            checked = self.guard(statement, False)
+            checked = self.guard(statement, project is not None)
         except self.guard_error as e:
             raise GraphError(str(e)) from None
         text = (
@@ -335,7 +342,7 @@ class GraphService:
             + ("" if checked.has_limit else f" LIMIT {MAX_ROWS + 1}")
             + f" QUERY MEMORY LIMIT {self.memory_limit}"
         )
-        columns, rows = await self.run(text, {}, max_rows=MAX_ROWS + 1)
+        columns, rows = await self.run(text, {"projectId": project} if project else {}, max_rows=MAX_ROWS + 1)
         truncated = len(rows) > MAX_ROWS
         rows = rows[:MAX_ROWS]
         graph = await self._result(rows, MAX_NODES)

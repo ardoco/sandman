@@ -66,6 +66,18 @@ class Mock(BaseHTTPRequestHandler):
                     )
                 },
             )
+        if "/impact" in self.path:
+            if b.get("impact_status"):
+                return self._reply(b["impact_status"], {"detail": "boom"})
+            affected = [
+                {"key": f"b#{i}", "artifactPath": "B.java", "distance": 1, "paths": [[{"key": "a#1", "edge": "start"}]]}
+                for i in range(60)
+            ]
+            return self._reply(
+                200,
+                {"seq": 1, "workflowStatus": "SUCCEEDED", "complete": True, "truncated": False, "warnings": [],
+                 "changed": [{"key": "a#1"}], "affected": affected},
+            )  # fmt: skip
         if self.path == f"/v1/workflows/{WF}":
             return self._reply(200, {"id": WF, "status": b.get("final", "SUCCEEDED"), "steps": []})
         self._reply(404, {})
@@ -165,3 +177,34 @@ def test_partial_uploads_only_changed_files(server: HTTPServer, tmp_path: Path) 
     assert proc.returncode == 0, proc.stderr
     check = next(r for r in Mock.requests if r[1].endswith("/check"))
     assert [f["path"] for f in json.loads(check[3])["files"]] == ["docs/b.md"]
+
+
+IMPACT_ING = {**INGESTION, "ingestionId": "ing_" + "1" * 32}
+
+
+def test_impact_summary_is_written_after_success(server: HTTPServer, tmp_path: Path) -> None:
+    Mock.behavior["ingestion"] = IMPACT_ING
+    summary = tmp_path / "summary.md"
+    proc, outputs = run(server, tmp_path, GITHUB_STEP_SUMMARY=str(summary))
+    assert proc.returncode == 0, proc.stderr
+    text = summary.read_text()
+    assert text.startswith("## Change impact of ingestion 1") and text.count("| B.java |") == 50
+    assert "/console/projects/demo/ingestions/ing_" in text
+    assert outputs["status"] == "SUCCEEDED"
+
+
+def test_impact_summary_can_be_disabled_and_needs_success(server: HTTPServer, tmp_path: Path) -> None:
+    Mock.behavior["ingestion"] = IMPACT_ING
+    summary = tmp_path / "summary.md"
+    run(server, tmp_path, GITHUB_STEP_SUMMARY=str(summary), INPUT_IMPACT_SUMMARY="false")
+    assert not summary.exists() and not any("/impact" in p for _, p, _, _ in Mock.requests)
+    Mock.behavior["final"] = "FAILED"
+    run(server, tmp_path, GITHUB_STEP_SUMMARY=str(summary))
+    assert not any("/impact" in p for _, p, _, _ in Mock.requests)
+
+
+def test_impact_failure_only_warns(server: HTTPServer, tmp_path: Path) -> None:
+    Mock.behavior |= {"ingestion": IMPACT_ING, "impact_status": 500}
+    proc, outputs = run(server, tmp_path, GITHUB_STEP_SUMMARY=str(tmp_path / "s.md"))
+    assert proc.returncode == 0 and "::warning::could not write the impact summary" in proc.stdout
+    assert outputs["status"] == "SUCCEEDED"

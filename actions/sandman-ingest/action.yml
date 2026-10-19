@@ -28,6 +28,9 @@ inputs:
   timeout:
     description: Seconds to wait for the workflow.
     default: "600"
+  impact-summary:
+    description: If wait is true and the workflow succeeded, write the change impact report to the job summary. It lists at most 50 affected elements.
+    default: "true"
 outputs:
   ingestion-id:
     description: Id of the ingestion.
@@ -57,3 +60,4 @@ runs:
         INPUT_REVISION: ${{ inputs.revision }}
         INPUT_WAIT: ${{ inputs.wait }}
         INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_IMPACT_SUMMARY: ${{ inputs.impact-summary }}

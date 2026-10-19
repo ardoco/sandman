@@ -61,6 +61,11 @@ if [ -n "$workflow_id" ] && [ "$wait_for" = true ]; then
   [ -n "$wf" ] && status="$(jq -r .status <<<"$wf")"
 fi
 
+if [ "$status" = SUCCEEDED ] && [ "${INPUT_IMPACT_SUMMARY:-true}" = true ]; then
+  "${sandman[@]}" impact --project "$SANDMAN_PROJECT" --format markdown "$ingestion_id" >>"${GITHUB_STEP_SUMMARY:-/dev/null}" ||
+    echo "::warning::could not write the impact summary for ingestion $ingestion_id"
+fi
+
 {
   echo "ingestion-id=$ingestion_id"
   echo "workflow-id=$workflow_id"

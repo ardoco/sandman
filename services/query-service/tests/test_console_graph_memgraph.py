@@ -100,6 +100,13 @@ async def test_admin_sees_hidden_labels(mg: Env) -> None:
     assert labels_of(body) == {"Ingestion"}
 
 
+async def test_page_lists_artifacts_and_only_visible_labels(mg: Env) -> None:
+    await logged_in(mg, "mia", {"alpha": "viewer"})
+    page = await mg.http.get("/console/projects/alpha/graph")
+    assert page.status_code == 200 and "requirements.md" in page.text and "graph.js" in page.text
+    assert 'value="Requirement"' in page.text and 'value="Ingestion"' not in page.text
+
+
 async def test_no_role_is_forbidden(mg: Env) -> None:
     await logged_in(mg, "mia", {"beta": "viewer"})
     assert (await get(mg, "alpha", "start")).status_code == 403

@@ -4,20 +4,37 @@
   if (!root) { return; }
   var csrf = root.dataset.csrf;
   var base = root.dataset.base;
+  var scheme = window.matchMedia("(prefers-color-scheme: dark)");
+  var theme = {};
+  function readTheme() {
+    var cs = getComputedStyle(document.documentElement);
+    ["surface", "bg", "border", "text", "muted", "accent", "bad", "warn"].forEach(function (k) {
+      theme[k] = cs.getPropertyValue("--" + k).trim();
+    });
+    theme.dark = scheme.matches;
+  }
+  function fill(hue) { return "hsl(" + hue + ", " + (theme.dark ? "55%, 52%" : "60%, 78%") + ")"; }
+  function styleSheet() {
+    return [
+      { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": function (n) { return fill(n.data("hue")); }, color: theme.text, "text-valign": "bottom", "text-margin-y": 3, "text-wrap": "ellipsis", "text-max-width": 90 } },
+      { selector: "edge", style: { label: "data(label)", "font-size": 8, "text-wrap": "ellipsis", "text-max-width": 80, width: 1, "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": theme.muted, "target-arrow-color": theme.muted, color: theme.muted } },
+      { selector: "node[status = 'rejected']", style: { "border-width": 3, "border-style": "dashed", "border-color": theme.bad, opacity: 0.7 } },
+      { selector: "node[status = 'OPEN'], node[status = 'REOPENED']", style: { "border-width": 3, "border-color": theme.bad } },
+      { selector: "node[status = 'candidate']", style: { "border-width": 2, "border-style": "dotted", "border-color": theme.warn } },
+      { selector: ".found", style: { "border-width": 4, "border-color": "#8250df" } },
+      { selector: ".path", style: { "line-color": theme.bad, "target-arrow-color": theme.bad, "border-width": 3, "border-color": theme.bad } },
+      { selector: ":selected", style: { "border-width": 3, "border-color": theme.accent, "line-color": theme.accent, "target-arrow-color": theme.accent } }
+    ];
+  }
+  readTheme();
   var cy = cytoscape({
     container: document.getElementById("cy"),
-    userZoomingEnabled: false,
-    maxZoom: 1.5,
-    style: [
-      { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "data(color)", color: "#1b1f24", "text-valign": "bottom", "text-margin-y": 3, "text-wrap": "ellipsis", "text-max-width": 90 } },
-      { selector: "edge", style: { label: "data(label)", "font-size": 8, "text-wrap": "ellipsis", "text-max-width": 80, width: 1, "curve-style": "bezier", "target-arrow-shape": "triangle", "line-color": "#8c959f", "target-arrow-color": "#8c959f", color: "#57606a" } },
-      { selector: "node[status = 'rejected']", style: { "border-width": 3, "border-style": "dashed", "border-color": "#b3261e", opacity: 0.7 } },
-      { selector: "node[status = 'OPEN'], node[status = 'REOPENED']", style: { "border-width": 3, "border-color": "#b3261e" } },
-      { selector: "node[status = 'candidate']", style: { "border-width": 2, "border-style": "dotted", "border-color": "#8a5a00" } },
-      { selector: ".found", style: { "border-width": 4, "border-color": "#8250df" } },
-      { selector: ".path", style: { "line-color": "#d1242f", "target-arrow-color": "#d1242f", "border-width": 3, "border-color": "#d1242f" } },
-      { selector: ":selected", style: { "border-width": 3, "border-color": "#0969da", "line-color": "#0969da", "target-arrow-color": "#0969da" } }
-    ]
+    userZoomingEnabled: true,
+    userPanningEnabled: true,
+    minZoom: 0.1,
+    maxZoom: 3,
+    wheelSensitivity: 0.3,
+    style: styleSheet()
   });
   var selected = null;
   var pathEnds = { source: null, target: null };
@@ -30,11 +47,11 @@
     el.textContent = text || "";
     el.className = error ? "error" : "";
   }
-  function color(labels) {
+  function hue(labels) {
     var key = (labels && labels[labels.length - 1]) || "";
     var h = 0;
     for (var i = 0; i < key.length; i++) { h = (h * 31 + key.charCodeAt(i)) % 360; }
-    return "hsl(" + h + ", 60%, 78%)";
+    return h;
   }
   function checked(cls) {
     return Array.prototype.map.call(document.querySelectorAll("input." + cls + ":checked"), function (e) { return e.value; });
@@ -60,7 +77,7 @@
   }
   function layout() {
     var name = $("layout").value;
-    var options = { name: name, animate: false, fit: true, padding: 40 };
+    var options = { name: name, animate: false, fit: true, padding: 40, stop: function () { if (cy.zoom() > 1.5) { cy.zoom(1.5); cy.center(); } } };
     if (name === "cose") {
       options.nodeRepulsion = function () { return 40000; };
       options.idealEdgeLength = function () { return 120; };
@@ -74,7 +91,7 @@
     Object.keys(legend).sort().forEach(function (label) {
       var li = document.createElement("li");
       var dot = document.createElement("i");
-      dot.style.backgroundColor = legend[label];
+      dot.style.backgroundColor = fill(legend[label]);
       li.appendChild(dot);
       li.appendChild(document.createTextNode(label));
       ul.appendChild(li);
@@ -87,9 +104,9 @@
     var fresh = resp.elements.filter(function (e) { return cy.getElementById(e.data.id).empty(); });
     fresh.forEach(function (e) {
       if (e.group !== "nodes") { return; }
-      e.data.color = color(e.data.labels);
+      e.data.hue = hue(e.data.labels);
       e.data.status = e.data.props.status;
-      legend[e.data.labels[e.data.labels.length - 1]] = e.data.color;
+      legend[e.data.labels[e.data.labels.length - 1]] = e.data.hue;
     });
     cy.add(fresh);
     applyFilters();
@@ -115,6 +132,7 @@
     var dl = $("props");
     dl.textContent = "";
     $("props-empty").hidden = true;
+    $("properties").hidden = false;
     var data = ele.data();
     var rows = [];
     if (ele.isNode()) { rows.push(["labels", data.labels.join(", ")]); } else { rows.push(["type", data.label]); }
@@ -157,6 +175,7 @@
     get("expand", { id: node.data("nid"), hops: $("depth").value, labels: checked("filter-label"), types: checked("filter-type") })
       .then(add).catch(fail);
   });
+  cy.on("tap", function (evt) { if (evt.target === cy) { selected = null; $("properties").hidden = true; } });
   cy.on("tap", "edge", function (evt) { selected = null; show(evt.target); });
 
   function setEnd(which) {
@@ -200,6 +219,21 @@
   $("zoom-in").addEventListener("click", function () { zoom(1.25); });
   $("zoom-out").addEventListener("click", function () { zoom(0.8); });
   $("zoom-fit").addEventListener("click", function () { cy.fit(undefined, 40); });
+  $("zoom-selected").addEventListener("click", function () {
+    var sel = cy.elements(":selected");
+    if (sel.empty()) { status("Select a node or edge first.", true); return; }
+    cy.fit(sel, 80);
+    if (cy.zoom() > 1.5) { cy.zoom({ level: 1.5, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }); }
+  });
+  $("zoom-reset").addEventListener("click", function () { cy.zoom(1); cy.center(); });
+  $("toggle-controls").addEventListener("click", function () { $("controls").hidden = !$("controls").hidden; cy.resize(); });
+  $("toggle-props").addEventListener("click", function () { $("properties").hidden = !$("properties").hidden; cy.resize(); });
+  $("fullscreen").addEventListener("click", function () {
+    if (document.fullscreenElement) { document.exitFullscreen(); } else if ($("workspace").requestFullscreen) { $("workspace").requestFullscreen(); }
+  });
+  document.addEventListener("fullscreenchange", function () { cy.resize(); cy.fit(undefined, 40); });
+  window.addEventListener("resize", function () { cy.resize(); });
+  scheme.addEventListener("change", function () { readTheme(); cy.style(styleSheet()); drawLegend(); });
   $("clear").addEventListener("click", function () { cy.elements().remove(); legend = {}; drawLegend(); status(""); });
 
   function download(href, name) {
@@ -211,7 +245,7 @@
     a.remove();
   }
   $("export-png").addEventListener("click", function () {
-    download(cy.png({ full: true, bg: "#ffffff", output: "base64uri" }), "subgraph.png");
+    download(cy.png({ full: true, bg: theme.surface, output: "base64uri" }), "subgraph.png");
   });
   $("export-json").addEventListener("click", function () {
     var blob = new Blob([JSON.stringify(cy.json().elements, null, 2)], { type: "application/json" });

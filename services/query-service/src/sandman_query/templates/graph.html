@@ -2,91 +2,116 @@
 {% block title %}Knowledge graph{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/graph.css">{% endblock %}
 {% block body %}
-<h1>Knowledge graph <small>({{ project }})</small></h1>
+<div class="row">
+  <h1>Knowledge graph <small class="muted">({{ project }})</small></h1>
+</div>
 {% if not error %}
-<div id="graph-app" data-csrf="{{ csrf }}" data-base="/console/projects/{{ project }}/graph">
-  <aside id="controls">
-    <fieldset>
-      <legend>Load the graph</legend>
-      <label>Artifact
-        <select id="artifact">
-          <option value="">All artifacts</option>
-          {% for a in artifacts %}<option value="{{ a.id }}">{{ a.path }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>Version state
-        <select id="state">
-          <option value="">Any</option>
-          {% for s in states %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
-        </select>
-      </label>
-      <label>Search by key, name or id <input id="search-text" type="search" maxlength="200"></label>
-      <button id="start" type="button">Load</button>
-    </fieldset>
-    <fieldset>
-      <legend>Filter labels</legend>
-      {% for l in labels %}<label class="inline"><input type="checkbox" class="filter-label" value="{{ l }}"> {{ l }}</label>{% endfor %}
-    </fieldset>
-    <fieldset>
-      <legend>Filter relationship types</legend>
-      {% for t in rel_types %}<label class="inline"><input type="checkbox" class="filter-type" value="{{ t }}"> {{ t }}</label>{% endfor %}
-    </fieldset>
-    <fieldset>
-      <legend>Neighborhood</legend>
-      <label>Hop depth <input id="depth" type="number" min="1" max="3" value="1"></label>
-      <div>Click a node to expand it.</div>
-    </fieldset>
-    <fieldset>
-      <legend>Path between two nodes</legend>
-      <div>From: <span id="path-source">-</span></div>
-      <div>To: <span id="path-target">-</span></div>
-      <label>Max hops <input id="path-hops" type="number" min="1" max="6" value="6"></label>
-      <button id="path" type="button">Find path</button>
-    </fieldset>
-    <fieldset>
-      <legend>View</legend>
-      <label>Layout
-        <select id="layout">
-          <option value="cose">Force</option>
-          <option value="breadthfirst">Hierarchical</option>
-          <option value="concentric">Concentric</option>
-        </select>
-      </label>
-      <label>Find in the visible graph <input id="find" type="search" maxlength="200"></label>
-      <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
-      <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
-      <button id="zoom-fit" type="button">Fit</button>
-    </fieldset>
-    <fieldset>
-      <legend>Export and share</legend>
-      <button id="export-png" type="button">PNG</button>
-      <button id="export-json" type="button">JSON</button>
-      <button id="share" type="button">Copy link</button>
-      <button id="clear" type="button">Clear</button>
-    </fieldset>
+<div id="graph-app" class="stack" data-csrf="{{ csrf }}" data-base="/console/projects/{{ project }}/graph">
+  <div id="workspace">
+  <aside id="controls" class="stack">
+    <details class="card" open>
+      <summary>Load</summary>
+      <div class="stack">
+        <label>Artifact
+          <select id="artifact">
+            <option value="">All artifacts</option>
+            {% for a in artifacts %}<option value="{{ a.id }}">{{ a.path }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Version state
+          <select id="state">
+            <option value="">Any</option>
+            {% for s in states %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Search by key, name or id <input id="search-text" type="search" maxlength="200"></label>
+        <button id="start" type="button">Load</button>
+      </div>
+    </details>
+    <details class="card">
+      <summary>Filters</summary>
+      <h3>Labels</h3>
+      <div class="chips">{% for l in labels %}<label class="chip"><input type="checkbox" class="filter-label" value="{{ l }}"> {{ l }}</label>{% endfor %}</div>
+      <h3>Relationship types</h3>
+      <div class="chips">{% for t in rel_types %}<label class="chip"><input type="checkbox" class="filter-type" value="{{ t }}"> {{ t }}</label>{% endfor %}</div>
+    </details>
+    <details class="card">
+      <summary>Neighborhood</summary>
+      <div class="stack">
+        <label>Hop depth <input id="depth" type="number" min="1" max="3" value="1"></label>
+        <span class="muted">Click a node to expand it.</span>
+      </div>
+    </details>
+    <details class="card">
+      <summary>Path between two nodes</summary>
+      <div class="stack">
+        <div>From: <span id="path-source">-</span></div>
+        <div>To: <span id="path-target">-</span></div>
+        <label>Max hops <input id="path-hops" type="number" min="1" max="6" value="6"></label>
+        <button id="path" type="button">Find path</button>
+      </div>
+    </details>
+    <details class="card">
+      <summary>View</summary>
+      <div class="stack">
+        <label>Layout
+          <select id="layout">
+            <option value="cose">Force</option>
+            <option value="breadthfirst">Hierarchical</option>
+            <option value="concentric">Concentric</option>
+          </select>
+        </label>
+        <label>Find in the visible graph <input id="find" type="search" maxlength="200"></label>
+      </div>
+    </details>
+    <details class="card">
+      <summary>Export and share</summary>
+      <div class="row">
+        <button id="export-png" type="button" class="secondary">PNG</button>
+        <button id="export-json" type="button" class="secondary">JSON</button>
+        <button id="share" type="button" class="secondary">Copy link</button>
+        <button id="clear" type="button" class="secondary">Clear</button>
+      </div>
+    </details>
   </aside>
-  <section id="view">
+  <section id="view" class="stack">
     <div id="status" role="status"></div>
-    <div id="cy" aria-label="Knowledge graph view"></div>
-    <div id="properties"><h2>Properties</h2><div id="props-empty">Select a node or edge.</div><dl id="props"></dl>
-      <button id="set-source" type="button" hidden>Use as path start</button>
-      <button id="set-target" type="button" hidden>Use as path end</button>
-      <h2>Legend</h2>
-      <ul id="legend"></ul>
+    <div id="stage">
+      <div id="cy" aria-label="Knowledge graph view"></div>
+      <div id="toolbar" class="row" role="toolbar" aria-label="Graph tools">
+        <button id="toggle-controls" type="button" class="secondary" aria-label="Show or hide the controls" title="Show or hide the controls">Controls</button>
+        <button id="zoom-in" type="button" class="secondary" aria-label="Zoom in" title="Zoom in">+</button>
+        <button id="zoom-out" type="button" class="secondary" aria-label="Zoom out" title="Zoom out">&minus;</button>
+        <button id="zoom-fit" type="button" class="secondary" title="Fit the whole graph">Fit</button>
+        <button id="zoom-selected" type="button" class="secondary" title="Zoom to the selection">Selection</button>
+        <button id="zoom-reset" type="button" class="secondary" title="Reset zoom to 100 %">1:1</button>
+        <button id="toggle-props" type="button" class="secondary" aria-label="Show or hide properties and legend" title="Show or hide properties and legend">Info</button>
+        <button id="fullscreen" type="button" class="secondary" aria-label="Toggle fullscreen" title="Toggle fullscreen">Fullscreen</button>
+      </div>
     </div>
   </section>
-</div>
-<section id="cypher-box">
-  <h2>Read-only Cypher</h2>
+  <aside id="properties" class="card" hidden>
+    <h2>Properties</h2><div id="props-empty" class="muted">Select a node or edge.</div><dl id="props" class="kv"></dl>
+    <div class="row">
+      <button id="set-source" type="button" class="secondary" hidden>Use as path start</button>
+      <button id="set-target" type="button" class="secondary" hidden>Use as path end</button>
+    </div>
+    <h2>Legend</h2>
+    <ul id="legend"></ul>
+  </aside>
+  </div>
+<details id="cypher-box" class="card">
+  <summary>Read-only Cypher</summary>
   <p>Anchor every node pattern with <code>{projectId: $projectId}</code>.</p>
   <form id="cypher-form">
     <textarea id="cypher" rows="4" maxlength="20000" spellcheck="false" aria-label="Cypher statement" placeholder="MATCH (n:Requirement {projectId: $projectId}) RETURN n LIMIT 25"></textarea>
-    <button type="submit">Run</button>
-    <button id="cypher-add" type="button" hidden>Add returned nodes to the graph</button>
+    <div class="row"><button type="submit">Run</button>
+    <button id="cypher-add" type="button" class="secondary" hidden>Add returned nodes to the graph</button></div>
   </form>
   <div id="cypher-status" role="status"></div>
   <div id="cypher-result"></div>
-</section>
+</details>
+</div>
 <script src="/static/cytoscape.min.js"></script>
 <script src="/static/graph.js"></script>
 {% endif %}

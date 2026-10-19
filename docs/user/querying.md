@@ -87,6 +87,8 @@ The console shows the graph of one project as a picture. Open it with the `Graph
 
 ### Load and filter
 
+The controls are foldout menus: `Load`, `Filters`, `Neighborhood`, `Path between two nodes`, `View` and `Export and share`. Only `Load` is open at the start. The Cypher box is a foldout below the graph.
+
 1. Choose an artifact, a version state or both. The version state `current` shows the elements of current versions. The state `historic` shows the elements of older versions.
 2. Enter a text in the search field. The search finds nodes by key, name or id.
 3. Select labels or relationship types in the filter lists.
@@ -97,6 +99,7 @@ The console shows the graph of one project as a picture. Open it with the `Graph
 - Click a node to expand its neighborhood. The field `Hop depth` sets the depth from 1 to 3.
 - Click a node, then `Use as path start` or `Use as path end`. Click `Find path` to show the shortest path. The field `Max hops` sets the limit from 1 to 6.
 - Click a node or an edge to read its properties in the panel. Texts longer than 5000 characters end with `... [truncated]`.
+- Use the mouse wheel or a pinch gesture to zoom. Drag the background to pan. The toolbar on the graph has `+`, `-`, `Fit`, `Selection`, `1:1`, `Info` and `Fullscreen`. `Controls` and `Info` hide or show the side panels.
 - Use `Layout` to switch between force, hierarchical and concentric layouts.
 - Use `Find in the visible graph` to mark matching nodes.
 - Rejected trace links have a dashed red border. Open and reopened findings have a solid red border. Candidate trace links have a dotted border.

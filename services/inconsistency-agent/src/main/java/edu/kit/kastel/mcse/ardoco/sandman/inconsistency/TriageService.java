@@ -59,7 +59,7 @@ public final class TriageService {
                 i.acceptedEvidenceHash = CASE WHEN $to IN ['ACCEPTED', 'REJECTED'] THEN i.evidenceHash
                                               ELSE i.acceptedEvidenceHash END
             CREATE (i)-[:HAS_STATUS_CHANGE]->(:StatusChange {from: $expected, to: $to, actor: $actor,
-                    reason: $reason, at: $now})
+                    reason: $reason, cause: $cause, at: $now})
             RETURN i.id AS id
             """;
 
@@ -176,6 +176,7 @@ public final class TriageService {
             put(h, "from", c.get("from"));
             h.put("to", (String) c.get("to")).put("actor", (String) c.get("actor"));
             put(h, "reason", c.get("reason"));
+            put(h, "cause", c.get("cause"));
             h.put("at", (String) c.get("at"));
         }
         ArrayNode allowed = out.putArray("allowedTransitions");
@@ -185,6 +186,10 @@ public final class TriageService {
 
     /** User transition with optimistic concurrency; publishes sandman.inconsistency.status.changed. */
     public ObjectNode transition(String id, Status to, Status expected, String reason, String actor) {
+        return transition(id, to, expected, reason, null, actor);
+    }
+
+    public ObjectNode transition(String id, Status to, Status expected, String reason, String cause, String actor) {
         var rows = kg.read("MATCH (i:Inconsistency {id: $id}) RETURN i.projectId AS p", Map.of("id", id));
         if (rows.isEmpty()) {
             throw new TriageException(404, "inconsistency " + id + " not found");
@@ -195,6 +200,9 @@ public final class TriageService {
         if (Lifecycle.reasonRequired(to) && (reason == null || reason.isBlank())) {
             throw new TriageException(422, "reason required for " + to);
         }
+        if (cause != null && to == Status.OPEN) {
+            throw new TriageException(422, "cause not allowed for " + to);
+        }
         String now = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString();
         Map<String, Object> params = new HashMap<>();
         params.put("id", id);
@@ -202,6 +210,7 @@ public final class TriageService {
         params.put("to", to.name());
         params.put("actor", actor);
         params.put("reason", reason);
+        params.put("cause", cause);
         params.put("now", now);
         if (kg.write(TRANSITION, params).isEmpty()) {
             throw new TriageException(409, "status is no longer " + expected);
@@ -214,6 +223,9 @@ public final class TriageService {
                 .put("actor", actor);
         if (reason != null) {
             data.put("reason", reason);
+        }
+        if (cause != null) {
+            data.put("cause", cause);
         }
         data.put("at", now);
         try {

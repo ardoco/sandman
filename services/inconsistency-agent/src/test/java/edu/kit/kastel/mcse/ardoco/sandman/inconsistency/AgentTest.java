@@ -16,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -194,6 +195,47 @@ class AgentTest {
         assertEquals("ACCEPTED", event.data().get("to").asString());
         Response resolved = transition(id1, QS, "user:alice", "{\"to\":\"OPEN\",\"expectedStatus\":\"ACCEPTED\"}");
         assertEquals("OPEN", resolved.body().get("status").asString());
+    }
+
+    @Test
+    void causeIsStoredInHistoryAndEvent() throws Exception {
+        Response r = transition(
+                id1,
+                QS,
+                "user:alice",
+                "{\"to\":\"REJECTED\",\"expectedStatus\":\"OPEN\",\"reason\":\"x\",\"cause\":\"extraction-error\"}");
+        assertEquals(200, r.status(), r.body().toString());
+        assertEquals(
+                "extraction-error", r.body().get("history").get(1).get("cause").asString());
+        assertEquals(
+                "extraction-error", events.events.getLast().data().get("cause").asString());
+        assertEquals(
+                "extraction-error",
+                kg.read(
+                                "MATCH (:Inconsistency {id: $id})-[:HAS_STATUS_CHANGE]->(c {to: 'REJECTED'}) RETURN c.cause AS c",
+                                Map.of("id", id1))
+                        .get(0)
+                        .get("c"));
+        Response open = transition(
+                id1, QS, "user:alice", "{\"to\":\"OPEN\",\"expectedStatus\":\"REJECTED\",\"cause\":\"intentional\"}");
+        assertEquals(422, open.status());
+    }
+
+    @Test
+    void transitionWithoutCauseStoresNoCause() throws Exception {
+        Response r =
+                transition(id1, QS, "user:alice", "{\"to\":\"ACCEPTED\",\"expectedStatus\":\"OPEN\",\"reason\":\"x\"}");
+        assertEquals(200, r.status());
+        assertFalse(r.body().get("history").get(1).has("cause"));
+        assertFalse(events.events.getLast().data().has("cause"));
+        assertEquals(
+                400,
+                transition(
+                                id1,
+                                QS,
+                                "user:alice",
+                                "{\"to\":\"OPEN\",\"expectedStatus\":\"ACCEPTED\",\"cause\":\"bogus\"}")
+                        .status());
     }
 
     @Test

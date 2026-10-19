@@ -35,7 +35,14 @@ public class TriageRoutes {
     private static final Pattern STABLE_ID = Pattern.compile("[a-z]+_[0-9a-f]{32}");
     private static final Pattern ACTOR = Pattern.compile("user:[A-Za-z0-9._@-]+");
     private static final Set<String> SEVERITIES = Set.of("info", "warning", "error");
-    private static final Set<String> BODY_FIELDS = Set.of("to", "expectedStatus", "reason");
+    private static final Set<String> CAUSES = Set.of(
+            "extraction-error",
+            "link-error",
+            "detector-error",
+            "artifact-inconsistency",
+            "planned-change",
+            "intentional");
+    private static final Set<String> BODY_FIELDS = Set.of("to", "expectedStatus", "reason", "cause");
 
     @Inject
     Settings settings;
@@ -143,6 +150,8 @@ public class TriageRoutes {
         require(body.has("to") && body.has("expectedStatus"), "to and expectedStatus required");
         JsonNode reason = body.get("reason");
         require(reason == null || (reason.isString() && reason.asString().length() <= 2000), "invalid reason");
+        JsonNode cause = body.get("cause");
+        require(cause == null || (cause.isString() && CAUSES.contains(cause.asString())), "invalid cause");
         json(
                 rc,
                 200,
@@ -151,6 +160,7 @@ public class TriageRoutes {
                         enumValue(body.get("to").asString("")),
                         enumValue(body.get("expectedStatus").asString("")),
                         reason == null ? null : reason.asString(),
+                        cause == null ? null : cause.asString(),
                         actor));
     }
 

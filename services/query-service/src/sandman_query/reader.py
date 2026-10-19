@@ -2,13 +2,12 @@
 
 import asyncio
 import logging
-import math
 from collections.abc import Mapping
 from typing import Any
 
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction, unit_of_work
 from neo4j.exceptions import Neo4jError
-from neo4j.graph import Node, Path, Relationship
+from sandman_agent.graphview import jsonable
 from sandman_agent.kg import MemoryLimitError
 
 log = logging.getLogger(__name__)
@@ -16,27 +15,6 @@ log = logging.getLogger(__name__)
 
 class ScopeViolation(Exception):
     """A result contained data of another project."""
-
-
-def jsonable(v: Any) -> Any:
-    """Graph values as property maps plus _labels/_type (no internal ids); other values as JSON values."""
-    if isinstance(v, Node):
-        return {**{k: jsonable(x) for k, x in v.items()}, "_labels": sorted(v.labels)}
-    if isinstance(v, Relationship):
-        return {**{k: jsonable(x) for k, x in v.items()}, "_type": v.type}
-    if isinstance(v, Path):
-        return [
-            jsonable(x) for pair in zip(v.nodes, [*v.relationships, None], strict=False) for x in pair if x is not None
-        ]
-    if isinstance(v, Mapping):
-        return {str(k): jsonable(x) for k, x in v.items()}
-    if isinstance(v, list | tuple | set):
-        return [jsonable(x) for x in v]
-    if isinstance(v, bool | int | str) or v is None:
-        return v
-    if isinstance(v, float):
-        return v if math.isfinite(v) else None
-    return v.isoformat() if hasattr(v, "isoformat") else str(v)
 
 
 def check_scope(value: Any, project: str) -> None:

@@ -29,7 +29,7 @@ from sandman_query.auth import (
     load_plugin_grants,
     plugin_principal,
 )
-from sandman_query.forward import Owners, relay
+from sandman_query.forward import Owners, problem, relay
 from sandman_query.nl import NlService
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
@@ -280,6 +280,20 @@ class Service:
         )  # fmt: skip
         return relay(resp)
 
+    async def review_link(self, who: Principal, project: str, link_id: str, body: bytes) -> Response:
+        if not await self.reader.rows(_LINK_OF_PROJECT, {"id": link_id, "p": project}):
+            return problem(404, "Not Found", f"link {link_id} not found")
+        resp = await self.forward(
+            "tlr-agent", "POST", f"/v1/links/{link_id}/review", who, project,
+            body=body, headers={"content-type": "application/json"},
+        )  # fmt: skip
+        return relay(resp)
+
+    async def link_rows(self, project: str, approach: str | None, artifact: str | None) -> list[dict[str, Any]]:
+        return await self.reader.rows(
+            _LINKS, {"p": project, "approach": approach or None, "artifact": artifact or None}
+        )
+
     async def list_workflows(self, who: Principal, project: str, query: list[tuple[str, str]]) -> Response:
         params = [("projectId", project), *[(k, v) for k, v in query if k in {"status", "limit", "cursor"}]]
         return relay(await self.forward("orchestrator", "GET", "/v1/workflows", who, project, params=params))
@@ -294,6 +308,17 @@ class Service:
 
 
 EVIDENCE_LINKS = 30
+_LINK_OF_PROJECT = "MATCH (l:TraceLink {id: $id, projectId: $p}) RETURN l.id AS id"
+_LINKS = """/* console:links */
+MATCH (l:TraceLink {projectId: $p, active: true})-[:SOURCE]->(s:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)
+      <-[:HAS_VERSION]-(sa:Artifact),
+      (l)-[:TARGET]->(t:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:HAS_VERSION]-(ta:Artifact)
+WHERE ($approach IS NULL OR l.approach = $approach) AND ($artifact IS NULL OR sa.id = $artifact OR ta.id = $artifact)
+RETURN l.id AS id, l.approach AS approach, l.confidence AS confidence, l.status AS status, l.rationale AS rationale,
+       l.reviewedBy AS reviewedBy, l.reviewedAt AS reviewedAt, l.reviewReason AS reviewReason,
+       l.reviewOrigin AS reviewOrigin, s.id AS sourceId, s.key AS sourceKey, s.name AS sourceName, s.text AS sourceText,
+       t.id AS targetId, t.key AS targetKey, t.name AS targetName, t.text AS targetText
+ORDER BY sourceKey, targetKey, approach LIMIT 5000"""
 _EV_DETECTED = """/* evidence:detected */ MATCH (e:Element {projectId: $p}) WHERE e.id IN $ids
 RETURN e.id AS id, e.contentHash AS hash, e.sentenceIndex AS idx"""
 _EV_CURRENT = """/* evidence:current */

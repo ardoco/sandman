@@ -344,6 +344,7 @@ services:
       SANDMAN_EXTRACTION_URL: http://extraction-agent:8000
       SANDMAN_INCONSISTENCY_URL: http://inconsistency-agent:8080
       SANDMAN_ORCHESTRATOR_URL: http://orchestrator:8000
+      SANDMAN_TLR_URL: http://tlr-agent:8080
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro

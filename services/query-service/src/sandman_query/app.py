@@ -327,6 +327,15 @@ def create_app(
         svc.check(who, "transitionInconsistency")
         return await svc.transition(who, inconsistencyId, await request.body())
 
+    @app.post("/v1/projects/{projectId}/links/{linkId}/review")
+    async def review_trace_link(
+        projectId: ProjectId,
+        linkId: Annotated[str, PathParam(pattern=r"^[a-z]+_[0-9a-f]{32}$")],
+        request: Request,
+        who: Annotated[Principal, access("reviewTraceLink")],
+    ) -> Response:
+        return await svc.review_link(who, projectId, linkId, await request.body())
+
     @app.get("/v1/projects/{projectId}/workflows")
     async def list_workflows(
         projectId: ProjectId, request: Request, who: Annotated[Principal, access("listWorkflows")]
@@ -383,8 +392,9 @@ def create_app(
     ) -> Response:
         links = await svc.runner.tracelinks(projectId, approach, minConfidence, includeRejected)
         if format == "json":
-            return JSONResponse(links)
-        keys = ["sourceKey", "targetKey", "linkType", "approach", "approachVersion", "confidence", "status", "runId"]
+            return JSONResponse([{k: v for k, v in link.items() if v is not None} for link in links])
+        keys = ["sourceKey", "targetKey", "linkType", "approach", "approachVersion", "confidence", "status", "runId",
+                "reviewedBy", "reviewedAt", "reviewReason"]  # fmt: skip
         return Response(to_csv(TRACELINK_COLUMNS, [[link[k] for k in keys] for link in links]), media_type="text/csv")
 
     @app.get("/v1/projects/{projectId}/export/inconsistencies")
@@ -402,7 +412,7 @@ def create_app(
 
 def build(env: Mapping[str, str] | None = None) -> FastAPI:
     """App from SANDMAN_* settings and SANDMAN_USER_DB, SANDMAN_ADMIN_PASSWORD_FILE, SANDMAN_COOKIE_SECURE,
-    SANDMAN_EXTRACTION_URL, SANDMAN_INCONSISTENCY_URL, SANDMAN_ORCHESTRATOR_URL."""
+    SANDMAN_EXTRACTION_URL, SANDMAN_INCONSISTENCY_URL, SANDMAN_ORCHESTRATOR_URL, SANDMAN_TLR_URL."""
     env = os.environ if env is None else env
     settings = Settings.from_env(env)
     password_file = env.get("SANDMAN_ADMIN_PASSWORD_FILE")
@@ -415,5 +425,6 @@ def build(env: Mapping[str, str] | None = None) -> FastAPI:
             "extraction-agent": env.get("SANDMAN_EXTRACTION_URL", ""),
             "inconsistency-agent": env.get("SANDMAN_INCONSISTENCY_URL", ""),
             "orchestrator": env.get("SANDMAN_ORCHESTRATOR_URL", ""),
+            "tlr-agent": env.get("SANDMAN_TLR_URL", ""),
         },
     )

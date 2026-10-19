@@ -83,6 +83,27 @@ def answer_parts(answer: str, rows: list[list[str]]) -> list[tuple[str, str | No
     return [*parts, (answer[last:], None)]
 
 
+def link_pairs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One entry per element pair: approaches, best confidence, status, reviewer (explicit-reference: no review)."""
+    pairs: dict[tuple[str, str], dict[str, Any]] = {}
+    for r in rows:
+        pair = pairs.setdefault((r["sourceId"], r["targetId"]), {
+            "source": {"key": r["sourceKey"], "name": r["sourceName"], "excerpt": (r["sourceText"] or "")[:160]},
+            "target": {"key": r["targetKey"], "name": r["targetName"], "excerpt": (r["targetText"] or "")[:160]},
+            "links": [], "status": "candidate", "reviewer": None, "reviewable": None,
+        })  # fmt: skip
+        pair["links"].append(r)
+        if r["approach"] != "explicit-reference":
+            pair["reviewable"] = pair["reviewable"] or r["id"]
+            if r["status"] != "candidate" or pair["status"] == "candidate":
+                pair["status"], pair["reviewer"] = r["status"], r.get("reviewedBy")
+    out = list(pairs.values())
+    for pair in out:
+        pair["confidence"] = max(link["confidence"] for link in pair["links"])
+        pair["approaches"] = sorted({link["approach"] for link in pair["links"]})
+    return out
+
+
 def cell(value: Any) -> str:
     return value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
 
@@ -335,6 +356,42 @@ def build_router(svc: Service) -> APIRouter:
         else:
             message = problem.get("detail") or problem.get("title") or "The transition failed."
         return await detail_page(ctx, iid, resp.status_code, message=message, error=True)
+
+    LINK_STATUSES = ["candidate", "confirmed", "rejected"]
+
+    async def links_page(ctx: Ctx, project: str, query: Any, status: int = 200, **extra: Any) -> HTMLResponse:
+        readable(ctx, "exportTraceLinks", project)
+        f = {k: query.get(k, "") for k in ("artifactId", "approach", "status", "minConfidence")}
+        try:
+            minimum = float(f["minConfidence"] or 0)
+        except ValueError:
+            minimum = 0.0
+        pairs = link_pairs(await svc.link_rows(project, f["approach"], f["artifactId"]))
+        pairs = [p for p in pairs if (not f["status"] or p["status"] == f["status"]) and p["confidence"] >= minimum]
+        return render(ctx, "links.html", status, project=project, pairs=pairs, f=f, statuses=LINK_STATUSES,
+                      can_review=ctx.who.level(project) >= LEVEL["triager"], **extra)  # fmt: skip
+
+    @router.get("/projects/{project}/links")
+    async def links(project: str, request: Request, ctx: Ctx = Session) -> HTMLResponse:
+        return await links_page(ctx, project, request.query_params)
+
+    @router.post("/projects/{project}/links/{lid}/review")
+    async def review_link(project: str, lid: str, request: Request, ctx: Ctx = Session) -> Response:
+        data = await form(request, ctx)
+        readable(ctx, "reviewTraceLink", project)
+        body = {"status": text(data, "status")}
+        if reason := text(data, "reason"):
+            body["reason"] = reason
+        if body["status"] == "rejected" and "reason" not in body:
+            return await links_page(ctx, project, {}, 400, message="A reason is required to reject a link.", error=True)
+        if not re.fullmatch(r"[a-z]+_[0-9a-f]{32}", lid):
+            raise HTTPException(404, "not found")
+        resp = await svc.review_link(ctx.who, project, lid, json.dumps(body).encode())
+        if resp.status_code == 200:
+            return redirect(f"/console/projects/{project}/links")
+        problem = json.loads(resp.body) if resp.body else {}
+        message = problem.get("detail") or problem.get("title") or "The review failed."
+        return await links_page(ctx, project, {}, resp.status_code, message=message, error=True)
 
     # -------------------------------------------------------------- upload
 

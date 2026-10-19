@@ -38,7 +38,8 @@ WHERE ($approach IS NULL OR l.approach = $approach) AND l.confidence >= $minConf
 MATCH (l)-[:SOURCE]->(s:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:CURRENT_VERSION]-(:Artifact),
       (l)-[:TARGET]->(t:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:CURRENT_VERSION]-(:Artifact)
 RETURN s.key AS sourceKey, t.key AS targetKey, l.linkType AS linkType, l.approach AS approach,
-       l.approachVersion AS approachVersion, l.confidence AS confidence, l.status AS status, l.runId AS runId
+       l.approachVersion AS approachVersion, l.confidence AS confidence, l.status AS status, l.runId AS runId,
+       l.reviewedBy AS reviewedBy, l.reviewedAt AS reviewedAt, l.reviewReason AS reviewReason
 ORDER BY sourceKey, targetKey, approach, approachVersion
 """
 TRACELINK_COLUMNS = [
@@ -50,6 +51,9 @@ TRACELINK_COLUMNS = [
     "confidence",
     "status",
     "run_id",
+    "reviewed_by",
+    "reviewed_at",
+    "review_reason",
 ]
 INCONSISTENCIES = """
 MATCH (i:Inconsistency {projectId: $projectId})

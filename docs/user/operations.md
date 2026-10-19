@@ -48,6 +48,8 @@ Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos 
 
 With profile `dashboard`, `http://127.0.0.1:8090` shows (log in as `admin` with `deploy/secrets/dashboard_admin_password`): services and infrastructure health, projects (current-state statistics from the knowledge graph), the knowledge graph, the LLM gateway, workflows (with cancel), dead events (with replay), the event stream (last 500 events, read-only), history charts (health, activity and LLM usage, sampled every 30 s and kept for 14 days; `SANDMAN_SAMPLE_INTERVAL`, `SANDMAN_HISTORY_DAYS`), record/replay status (experiments) and resource usage. Cancel and replay ask for confirmation and are written to the dashboard log as `event=admin_action`. Alerts (service down for more than 30 s, failed or blocked workflows of the last 24 h, dead events, gateway budget at 80 % or more, Memgraph memory at 80 % of its limit) appear as a banner on every page and as `event=alert` log lines; they are kept in memory and cleared when the condition ends.
 
+The graph page of the dashboard has the same layout as the console graph explorer ([querying.md](querying.md#graph-explorer-console)): foldout controls, wheel zoom, fullscreen and a canvas that follows the color theme.
+
 The Resources page needs profile `resources` (cAdvisor behind a read-only Docker socket proxy on its own internal network, shared only with the dashboard). Enabling it gives these containers root-equivalent visibility of the host; use it for development and diagnosis only, never in production. Without it the page says so and everything else keeps working. On Docker Desktop add `-f deploy/docker-compose.resources-desktop.yml` (mounts the containerd socket, same warning). See `docs/notes/cadvisor.md` for platform notes.
 
 ## Configuration
@@ -67,6 +69,7 @@ docker compose -f deploy/docker-compose.yml restart extraction-agent
 | `config/tlr/approaches.yaml` | enabled trace link approaches and their parameters |
 | `config/orchestrator/rules.yaml` | debounce, concurrency, timeouts, retries, kind pairs for link recovery |
 | `config/query/intents.yaml` | question patterns of **Ask** |
+| `config/query/strategies.yaml` | enabled query strategies, repair and example budgets |
 | `config/query/plugins.yaml` | projects each plugin may read |
 
 Plugin authors: [plugins.md](../plugins.md).
@@ -85,7 +88,53 @@ Plugin authors: [plugins.md](../plugins.md).
 
 Logs are JSON lines on stdout: `make logs`, or one service with `docker compose -f deploy/docker-compose.yml logs -f extraction-agent`. Setting `SANDMAN_LOG_FILE=/logs/sandman.jsonl` in the shell that runs compose also writes them to `data/logs/`.
 
-Backup is not implemented: `make backup` prints `not implemented (T5.3)` and exits with 1. There is no supported backup or restore procedure yet.
+### Backup and restore
+
+Start a backup while the stack runs and no workflow is active.
+
+```
+make backup                                   # writes backups/sandman-backup-<time>.tar.gz and a .sha256 file
+make backup BACKUP_ARGS="--out /mnt/backup --keep 14"
+make restore ARCHIVE=backups/sandman-backup-<time>.tar.gz
+make restore ARCHIVE=... RESTORE_ARGS="--force"
+```
+
+The archive holds the graph (Memgraph snapshot), the SQLite databases (workflow state, users, dashboard state), the artifact store and `manifest.json`. It does not hold events (`nats-data`), gateway state, logs or `deploy/secrets`.
+
+- The script keeps the newest 7 archives. Set `--keep N` or `BACKUP_KEEP` to change this. Value 0 keeps all archives.
+- Warning: `--include-secrets` adds `deploy/secrets` to the archive. Store such an archive encrypted. Restore needs `--with-secrets` to use them.
+- Keep your own copy of `deploy/secrets`. A restore into a new host needs the same secrets.
+
+To restore on a new host:
+
+1. Clone the repository at the commit in `manifest.json` and put `deploy/secrets` in place.
+2. Run `make restore ARCHIVE=<file>` with no stack running. The command refuses if the stack runs or a data volume holds files.
+3. Use `--force` to overwrite an existing stack. It stops the stack and empties the data volumes first.
+4. Run `make up`.
+
+The restore stops with an error if the checksum fails, the archive format or the Memgraph image differs, or a schema version in the archive is newer than the repository.
+
+Run `make backup-drill` to test the procedure. It uses the scratch project `sandman-drill` and never touches the project `sandman`.
+
+### Retention
+
+The orchestrator starts a `prune` workflow for each project every 24 hours. The workflow removes old artifact versions and the data that belongs only to them.
+
+- The workflow keeps the newest 20 versions of each artifact.
+- The workflow keeps the current version of each artifact.
+- The workflow keeps versions that an inconsistency or an active or confirmed trace link refers to.
+- The workflow keeps versions whose content hash is in `experiments/*/experiment.yaml`.
+- The shipped setting is a dry run. A dry run deletes nothing and reports counts.
+
+To read the counts, open the workflow in the dashboard. Each step shows `removedCount`. Each prune step also writes a `Run` node with tool `retention`.
+
+To delete data, set `retention.dryRun: false` in `config/orchestrator/rules.yaml`. Then restart the orchestrator.
+Set `retention.projects.<id>` to change `enabled`, `keepVersionsPerArtifact` or `dryRun` for one project.
+Set `retention.enabled: false` to stop the schedule.
+
+To start a prune workflow now, send `POST /v1/workflows` with `{"type": "prune", "projectId": "<id>"}`. Add `"params": {"dryRun": false}` to override the setting.
+
+Caution: A prune with `dryRun: false` cannot be undone. Run `make backup` first.
 
 ## Troubleshooting
 

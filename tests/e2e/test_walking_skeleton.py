@@ -206,7 +206,11 @@ class Stack:
 
     def inconsistencies(self) -> dict[str, dict[str, Any]]:
         items = self.users["alice"].get(f"/v1/projects/{self.project}/inconsistencies").json()["items"]
-        return {i["title"].rsplit(": ", 1)[1]: i for i in items}
+        return {i["title"].rsplit(": ", 1)[1]: i for i in items if i["type"] == "untraced-requirement"}
+
+    def ardoco_findings(self) -> dict[str, tuple[str, str]]:
+        items = self.users["alice"].get(f"/v1/projects/{self.project}/inconsistencies?limit=200").json()["items"]
+        return {i["id"]: (i["type"], i["status"]) for i in items if i["type"] != "untraced-requirement"}
 
 
 @pytest.fixture(scope="module")
@@ -225,10 +229,11 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
     first = stack.ingest("s1", "s1", capsys)
     assert len(first["createdVersionIds"]) == 6
     w1 = stack.wait_workflow(known)
-    assert [(s["agent"], s["skill"], s["status"]) for s in w1["steps"]] == [
+    assert sorted((s["agent"], s["skill"], s["status"]) for s in w1["steps"]) == [
+        ("extraction-agent", "derive-architecture-model", "SUCCEEDED"),
         ("extraction-agent", "extract-artifact-versions", "SUCCEEDED"),
-        ("tlr-agent", "recover-trace-links", "SUCCEEDED"),
         ("inconsistency-agent", "detect-inconsistencies", "SUCCEEDED"),
+        ("tlr-agent", "recover-trace-links", "SUCCEEDED"),
     ]
 
     requirements = stack.rows("MATCH (r:Requirement {projectId: $projectId}) RETURN r.name ORDER BY r.name")
@@ -237,10 +242,13 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
         ["MediaCache"]
     ]
     tools = {r[0] for r in stack.rows("MATCH (r:Run {projectId: $projectId}) RETURN r.tool")}
-    assert {"code-extractor", "stub-name-match", "stub-untraced,detect-stub"} <= tools
+    assert {"code-extractor", "stub-name-match"} <= tools
+    assert any("ardoco-id" in t and "stub-untraced" in t and "detect-stub" in t for t in tools), tools
 
     # the plugin stub's warning is passed through to detectorRuns[].warnings (R-021)
     detect = stack.a2a_result("inconsistency-agent", w1["steps"][2]["a2aTaskId"])["detectorRuns"]
+    ardoco_run = next(run for run in detect if run["detector"] == "ardoco-id")
+    assert ardoco_run["status"] == "completed", ardoco_run
     warnings = [w for run in detect for w in run.get("warnings", [])]
     assert any(w.startswith(f"plugin-stubs: project {project} has ") for w in warnings), detect
 
@@ -259,7 +267,11 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
     req2, req3 = open_now["Print monthly invoices"], open_now["Encrypt user passwords"]
 
     # one notification line per new inconsistency
-    opened = {e["title"].rsplit(": ", 1)[1] for e in stack.notifications() if e["status"] == "OPEN"}
+    opened = {
+        e["title"].rsplit(": ", 1)[1]
+        for e in stack.notifications()
+        if e["status"] == "OPEN" and e["type"] == "untraced-requirement"
+    }
     assert opened == {"Print monthly invoices", "Encrypt user passwords"}, opened
 
     # triage and authorization

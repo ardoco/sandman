@@ -4,7 +4,11 @@
 # 0.3.0 (contracts 0.4.0, additive): Element.references, Element.contentHash required, evidenceHash and idempotency-key
 #   derivations (conventions.evidence_hash, conventions.derivations), StatusChange.from optional.
 # 0.4.0 (contracts 0.5.0, additive): Run.mixedModels, SchemaVersion node (R-029, R-041).
-version: 0.4.0
+# 0.5.0 (additive): Element.embedding, Element.embeddingModel (internal), vector index element_embedding (init.cypher), SchemaVersion 2 (T4.1b, V-43).
+# 0.6.0 (additive): Artifact.origin, ArtifactVersion.derivedFrom, derivationRunId, Element.inferred, reserved path prefix .sandman/ (T2.7).
+# 0.7.0 (additive): StatusChange.cause (TriageCause, user transitions only; T6.2).
+# 0.8.0 (additive): TraceLink.reviewedBy, reviewedAt, reviewReason, reviewOrigin (T6.1).
+version: 0.8.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -14,6 +18,7 @@ conventions:
   keys: "Element.key = artifactId + '#' + localKey, stable across versions. TextUnit localKeys are content-based (see labels.TextUnit), so inserting text does not change other keys."
   fingerprint: "sha256 hex of UTF-8(type, detector id without version, involved keys sorted byte-wise by UTF-8; joined by U+001F). Involved key = Element.key, or sourceKey + '->' + targetKey for a TraceLink (contracts/conformance/vectors.json)."
   evidence_hash: "Inconsistency.evidenceHash = sha256 hex of UTF-8(pairs joined by U+001F); pairs = the set of 'key=contentHash' strings of all involved Elements (for an involved TraceLink: of both endpoint Elements; duplicates removed), sorted byte-wise by UTF-8 (vectors evidenceHash). Element.contentHash is required, so no pair is ever incomplete."
+  reserved_paths: "The path prefix .sandman/ is reserved for artifacts derived by the system (Artifact.origin = derived). Intake rejects every manifest path under .sandman/ with INVALID_INPUT. A full snapshot never deletes a derived artifact. Derived architecture models: path .sandman/derived/exarch/<source doc path>.components, format component-listing, one line Name::Name per component."
   derivations: "Idempotency keys (contracts/conformance/vectors.json; JCS = RFC 8785, sha256 = lowercase hex of UTF-8). Run.inputKey = sha256(JCS({input, tool, configHash} + promptIds when the tool uses prompts)), input = the skill input as received, tool = extractor/approach/detector id or the plugin's config id, configHash per tool kind (conventions below). Orchestrator actionKey = sha256(JCS({agent, skill, input, triggerId})). Ingestion id: ing_ = stableId(projectId, decimal seq). TraceLink id: tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId) with the ids of the per-version elements; for approach explicit-reference: approachVersion from the extractor ('0'), configHash = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)), sourceId = referenced Requirement, targetId = referring element. configHash of a TLR approach = sha256(JCS(effective params of that approach)); of other tools = sha256 of the config file. Plugin identity: Run.tool = config id of the plugin (config/extraction/plugins.yaml, config/inconsistency/plugins.yaml), Run.toolVersion = version from the plugin's Agent Card or manifest."
 
 nodes:
@@ -57,7 +62,8 @@ nodes:
       projectId: { type: string, required: true }
       path: { type: string, required: true }
       kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, code, test, other] }
-      format: { type: string, required: false, description: "e.g. markdown, pdf, pcm-repository, uml, java" }
+      format: { type: string, required: false, description: "e.g. markdown, pdf, pcm-repository, uml, component-listing, java" }
+      origin: { type: string, required: false, enum: [user, derived], description: "derived = made by the system (T2.7), only the extraction-agent sets it; absent = user." }
       deletedAt: { type: string, required: false, description: "Set when a full snapshot no longer contains the path; cleared when the path is ingested again." }
 
   ArtifactVersion:
@@ -73,6 +79,8 @@ nodes:
       sourceRevision: { type: string, required: false, description: "e.g. Git commit" }
       ingestionId: { type: string, required: true, description: "Ingestion that first created the version; later activations via ACTIVATED edges." }
       ingestedAt: { type: string, required: true }
+      derivedFrom: { type: string, required: false, description: "Derived artifacts only: id of the source document version." }
+      derivationRunId: { type: string, required: false, description: "Derived artifacts only: id of the derivation Run that made the version." }
 
   Element:
     owner: extraction-agent
@@ -96,7 +104,10 @@ nodes:
       endLine: { type: integer, required: false }
       sentenceIndex: { type: integer, required: false, description: "0-based sentence number within the document (TextUnit sentences); not part of the key." }
       contentHash: { type: string, required: true, description: "sha256 hex of the element's content as defined by its extractor (built-in: text, else name). Enters Inconsistency.evidenceHash." }
+      inferred: { type: boolean, required: false, description: "ModelElement only: true when the element belongs to a derived artifact version (ArtifactVersion.derivedFrom set); absent = false." }
       references: { type: string, required: false, description: "JSON string, array of {text, linkType}: unresolved explicit-reference texts found in the element (explicitReferences patterns or plugin explicitReferences), written with the element and re-resolved against the current Requirements after every ingestion (R-014). Absent when the element has none." }
+      embedding: { type: list, required: false, internal: true, description: "Embedding vector (float list, 768 dimensions = vector index element_embedding); only for the labels and kinds of config/extraction/embedding.yaml, written by the extraction-agent after extraction. Not for prompts or answers. Search is vector_search.search('element_embedding', k, $vector) with a post-filter on projectId." }
+      embeddingModel: { type: string, required: false, internal: true, description: "Gateway model id that produced embedding (e.g. openai/text-embedding-3-small); a different id means re-embed." }
       runId: { type: string, required: true }
 
   Concept:
@@ -122,6 +133,10 @@ nodes:
       status: { type: string, required: true, enum: [candidate, confirmed, rejected] }
       active: { type: boolean, required: true, description: "See conventions.active_facts. Detection, console, exports and NL queries use active links only." }
       rationale: { type: string, required: false }
+      reviewedBy: { type: string, required: false, description: "user:<name>; set with a user review, absent after a reset." }
+      reviewedAt: { type: string, required: false }
+      reviewReason: { type: string, required: false, description: "At most 2000 characters; required for rejected." }
+      reviewOrigin: { type: string, required: false, enum: [user, carried-over], description: "carried-over = copied at activation from an earlier reviewed link of the same element pair (same key and contentHash at both ends, same linkType)." }
       runId: { type: string, required: true }
       createdAt: { type: string, required: true }
 
@@ -156,6 +171,7 @@ nodes:
       to: { type: string, required: true }
       actor: { type: string, required: true, description: "user:<name> | system:<detector>" }
       reason: { type: string, required: false, description: "User text, or for system transitions: detected (creation entry, no from), re-detected, not-redetected, artifact-deleted." }
+      cause: { type: string, required: false, description: "common.schema.json#/$defs/TriageCause; user transitions only, absent on system transitions and on entries before T6.2." }
       at: { type: string, required: true }
       runId: { type: string, required: false }
 
@@ -212,4 +228,5 @@ relationships:
 memgraph_dialect_notes:
   - "No pattern expressions inside size(); use OPTIONAL MATCH + count()."
   - "Use MAGE procedures, not APOC."
+  - "Vector search (3.13): CALL vector_search.search('element_embedding', k, $vector) YIELD node, similarity; no pre-filter, filter by projectId afterwards and over-fetch k."
   - "Internal ids (id()/elementId) are not stable; always use the id property."

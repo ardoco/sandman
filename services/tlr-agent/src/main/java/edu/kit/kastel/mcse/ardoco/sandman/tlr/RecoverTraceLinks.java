@@ -289,7 +289,13 @@ public class RecoverTraceLinks implements Skill {
             ArtifactStore artifacts =
                     settings.artifactStore() == null ? null : new ArtifactStore(settings.artifactStore());
             var tlrCtx = new TlrContext(
-                    llm, artifacts, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params, client);
+                    llm,
+                    artifacts,
+                    ctx::cancelled,
+                    LoggerFactory.getLogger(approach.getClass()),
+                    params,
+                    client,
+                    ctx::progress);
             Map<String, Map<String, Object>> links = new LinkedHashMap<>();
             for (CandidateLink c : approach.recover(in, tlrCtx)) {
                 String id =

@@ -1,5 +1,6 @@
 package edu.kit.kastel.mcse.ardoco.sandman.inconsistency;
 
+import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Jcs;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.neo4j.driver.TransactionContext;
@@ -39,7 +41,31 @@ public final class DetectionService {
             List<String> detectors,
             String workflowId,
             String taskId,
-            String actor) {}
+            String actor,
+            BooleanSupplier cancelled,
+            Consumer<String> progress) {
+
+        public Request(
+                String projectId,
+                List<String> scopeArtifactIds,
+                List<String> detectors,
+                String workflowId,
+                String taskId,
+                String actor,
+                BooleanSupplier cancelled) {
+            this(projectId, scopeArtifactIds, detectors, workflowId, taskId, actor, cancelled, text -> {});
+        }
+
+        public Request(
+                String projectId,
+                List<String> scopeArtifactIds,
+                List<String> detectors,
+                String workflowId,
+                String taskId,
+                String actor) {
+            this(projectId, scopeArtifactIds, detectors, workflowId, taskId, actor, () -> false);
+        }
+    }
 
     /** Skill output and the data of sandman.inconsistencies.updated. */
     public record Result(ObjectNode output, ObjectNode eventData) {}
@@ -65,6 +91,7 @@ public final class DetectionService {
     private final DetectorRegistry registry;
     private final String queryServiceUrl;
     private final Consumer<ObjectNode> notifications;
+    private final ArtifactStore artifacts;
 
     public DetectionService(
             KgClient kg,
@@ -73,6 +100,18 @@ public final class DetectionService {
             DetectorRegistry registry,
             String queryServiceUrl,
             Consumer<ObjectNode> notifications) {
+        this(kg, contracts, runs, registry, queryServiceUrl, notifications, null);
+    }
+
+    public DetectionService(
+            KgClient kg,
+            Contracts contracts,
+            RunRecorder runs,
+            DetectorRegistry registry,
+            String queryServiceUrl,
+            Consumer<ObjectNode> notifications,
+            ArtifactStore artifacts) {
+        this.artifacts = artifacts;
         this.kg = kg;
         this.contracts = contracts;
         this.runs = runs;
@@ -94,17 +133,27 @@ public final class DetectionService {
         // snapshot before the detectors run: system transitions are conditional on it, a user decision wins
         List<Item> existing = InconsistencyStore.loadAll(kg, projectId);
 
-        String runId = runs.start(runInfo(req, selected, scope, whole, currentVersions));
+        var base = new DetectorContext(
+                kg, (String) project.get(0).get("policy"), queryServiceUrl, Map.of(), artifacts, req.cancelled());
+        Map<String, String> configs = new TreeMap<>();
+        for (InconsistencyDetector d : selected) {
+            String hash = configHash(d, base.forDetector(registry.params(d.id())));
+            if (hash != null && !hash.isEmpty()) {
+                configs.put(d.id(), hash);
+            }
+        }
+        String runId = runs.start(runInfo(req, selected, scope, whole, currentVersions, configs));
         try {
-            var ctx = new DetectorContext(kg, (String) project.get(0).get("policy"), queryServiceUrl);
             var ds = new DetectionScope(projectId, scope, whole);
             Map<String, Prepared> detected = new LinkedHashMap<>();
             Set<String> completed = new HashSet<>();
             ArrayNode detectorRuns = JSON.createArrayNode();
+            int position = 0;
             for (InconsistencyDetector d : selected) {
+                req.progress().accept("running detector " + d.id() + " (" + ++position + "/" + selected.size() + ")");
                 ObjectNode entry = detectorRuns.addObject().put("detector", d.id());
                 try {
-                    var detection = d.detectWithWarnings(ds, ctx);
+                    var detection = d.detectWithWarnings(ds, base.forDetector(registry.params(d.id())));
                     List<Finding> findings = detection.findings();
                     prepare(projectId, d, findings).forEach(p -> detected.putIfAbsent(p.id(), p));
                     completed.add(d.id());
@@ -118,8 +167,17 @@ public final class DetectionService {
             }
             boolean partial = completed.size() < selected.size();
             String now = Instant.now().truncatedTo(ChronoUnit.SECONDS).toString();
-            Written w = kg.writeTx(tx ->
-                    write(tx, projectId, runId, now, existing, detected, completed, scope, currentVersions.keySet()));
+            Written w = kg.writeTx(tx -> write(
+                    tx,
+                    projectId,
+                    runId,
+                    now,
+                    existing,
+                    detected,
+                    completed,
+                    wholeProjectIds(selected),
+                    scope,
+                    currentVersions.keySet()));
             runs.complete(runId, partial ? "partial" : "completed", null, null);
             w.created().forEach(id -> notify(detected.get(id), id, "OPEN"));
             w.reopened().forEach(id -> notify(detected.get(id), id, "REOPENED"));
@@ -128,6 +186,13 @@ public final class DetectionService {
             runs.fail(runId, String.valueOf(e.getMessage()));
             throw e;
         }
+    }
+
+    private static Set<String> wholeProjectIds(List<InconsistencyDetector> selected) {
+        return selected.stream()
+                .filter(d -> d.scopeMode() == InconsistencyDetector.ScopeMode.WHOLE_PROJECT)
+                .map(InconsistencyDetector::id)
+                .collect(Collectors.toSet());
     }
 
     private List<InconsistencyDetector> select(List<String> ids) throws SkillException {
@@ -145,6 +210,23 @@ public final class DetectionService {
         return selected;
     }
 
+    /** "" = no config to hash, null = the identity is unavailable (the detector fails in its own run). */
+    private static String configHash(InconsistencyDetector d, DetectorContext ctx) {
+        String identity;
+        try {
+            identity = d.configIdentity(ctx);
+        } catch (RuntimeException e) {
+            return null;
+        }
+        if (ctx.params().isEmpty() && identity == null) {
+            return "";
+        }
+        ObjectNode n = JSON.createObjectNode();
+        n.set("params", JSON.valueToTree(ctx.params()));
+        n.put("identity", identity);
+        return Ids.sha256Hex(Jcs.canonicalize(n));
+    }
+
     private Map<String, String> currentVersions(String projectId) {
         Map<String, String> versions = new TreeMap<>();
         kg.read(
@@ -160,7 +242,8 @@ public final class DetectionService {
             List<InconsistencyDetector> selected,
             Set<String> scope,
             boolean whole,
-            Map<String, String> currentVersions) {
+            Map<String, String> currentVersions,
+            Map<String, String> configs) {
         ObjectNode key = JSON.createObjectNode().put("projectId", req.projectId());
         if (!whole) {
             key.putArray("scope")
@@ -170,6 +253,10 @@ public final class DetectionService {
         }
         ArrayNode tools = key.putArray("detectors");
         selected.forEach(d -> tools.add(d.id() + "@" + d.version()));
+        if (!configs.isEmpty()) {
+            ObjectNode c = key.putObject("configs");
+            configs.forEach(c::put);
+        }
         return new RunRecorder.RunInfo(
                 req.projectId(),
                 "detect-inconsistencies",
@@ -178,7 +265,7 @@ public final class DetectionService {
                 Ids.sha256Hex(Jcs.canonicalize(key)),
                 null,
                 null,
-                null,
+                configs.isEmpty() ? null : Ids.sha256Hex(Jcs.canonicalize(key.get("configs"))),
                 scope.stream().map(currentVersions::get).filter(v -> v != null).toList(),
                 req.workflowId(),
                 req.taskId(),
@@ -280,6 +367,7 @@ public final class DetectionService {
             List<Item> existing,
             Map<String, Prepared> detected,
             Set<String> completed,
+            Set<String> wholeProject,
             Set<String> scope,
             Set<String> currentArtifacts) {
         Map<String, Item> byId = existing.stream().collect(Collectors.toMap(Item::id, i -> i));
@@ -316,7 +404,7 @@ public final class DetectionService {
                     && !deleted.contains(item.id())
                     && !detected.containsKey(item.id())
                     && completed.contains(item.props().get("detector"))
-                    && scope.containsAll(item.artifactIds())) {
+                    && (wholeProject.contains(item.props().get("detector")) || scope.containsAll(item.artifactIds()))) {
                 resolve.add(resolve(item, "not-redetected"));
             }
         }

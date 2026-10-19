@@ -1,6 +1,7 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
+import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -48,6 +49,13 @@ final class ArdocoRuns {
         return ManagementFactory.getMemoryPoolMXBeans().stream()
                 .filter(p -> p.getType() == MemoryType.HEAP)
                 .toList();
+    }
+
+    /** Copies the model file of a version from the artifact store into dir, keeping its file name. */
+    static Path stageModel(TlrContext ctx, Path dir, TlrInput.Version model) throws IOException {
+        Path file = dir.resolve(Path.of(model.path()).getFileName().toString());
+        Files.copy(ctx.artifacts().pathFor(model.storageUri()), file);
+        return file;
     }
 
     static void delete(Path dir, TlrContext ctx) {

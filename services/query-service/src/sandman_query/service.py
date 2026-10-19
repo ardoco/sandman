@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -28,11 +29,13 @@ from sandman_query.auth import (
     load_plugin_grants,
     plugin_principal,
 )
-from sandman_query.forward import Owners, relay
+from sandman_query.forward import Owners, problem, relay
+from sandman_query.nl import NlService
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
 from sandman_query.store import UserStore
 
+log = logging.getLogger(__name__)
 PROJECT_ID = r"^[a-z0-9][a-z0-9-]{1,62}$"
 USERNAME = r"^[A-Za-z0-9._@-]{2,64}$"
 ProjectId = Annotated[str, PathParam(pattern=PROJECT_ID)]
@@ -124,6 +127,7 @@ class Service:
         self.grants = load_plugin_grants(config_dir / "query" / "plugins.yaml", contracts)
         self.runner = Runner(reader, memory_limit)
         self.intents = Intents(config_dir / "query" / "intents.yaml", contracts)
+        self.nl = NlService(settings, contracts, config_dir, reader, self.runner, self.intents)
         self.limiter = RateLimiter()
         self.tracker = StatusTracker("query-service", __version__)
 
@@ -231,6 +235,34 @@ class Service:
     async def inconsistency_response(self, who: Principal, iid: str, op: str) -> Response:
         return relay(await self.inconsistency(who, iid, op))
 
+    async def evidence(self, project: str, detail: dict[str, Any]) -> dict[str, Any] | None:
+        """Evidence of a finding from the KG (current state, links, runs); None if the KG read fails.
+
+        Call only after the caller is authorized for the project; every query is scoped to it.
+        """
+        roles = [(x["element"], x["role"]) for x in detail.get("involved", []) if x.get("element")]
+        involved = [e for e, _ in roles]
+        p = {"p": project}
+        try:
+            ids, keys = [e["id"] for e in involved], [e["key"] for e in involved]
+            detected, current, links, runs = await asyncio.gather(
+                self.reader.rows(_EV_DETECTED, p | {"ids": ids}),
+                self.reader.rows(_EV_CURRENT, p | {"keys": keys}),
+                self.reader.rows(_EV_LINKS, p | {"keys": keys}),
+                self.reader.rows(_EV_RUNS, p | {"id": detail["id"]}),
+            )
+            by_id, by_key = {r["id"]: r for r in detected}, {r["key"]: r for r in current}
+            versions = {v for e in involved if (v := e.get("artifactVersionId"))} | {r["version"] for r in current}
+            revisions = {r["id"]: r for r in await self.reader.rows(_EV_REVISIONS, p | {"ids": sorted(versions)})}
+        except Exception:  # noqa: BLE001 - evidence is optional; the page must still render
+            log.warning("evidence read failed", exc_info=True)
+            return None
+        items = [_evidence_item(e, by_id.get(e["id"], {}), by_key.get(e["key"]), revisions) | {"role": r}
+                 for e, r in roles]  # fmt: skip
+        runs = [r for r in runs if r.get("id")]
+        return {"items": items, "links": links[:EVIDENCE_LINKS], "more_links": len(links) > EVIDENCE_LINKS,
+                "runs": runs, "revisions": revisions}  # fmt: skip
+
     async def transition(self, who: Principal, iid: str, body: bytes) -> Response:
         detail = await self.inconsistency(who, iid, "transitionInconsistency")
         project = detail.json()["projectId"]
@@ -248,6 +280,20 @@ class Service:
         )  # fmt: skip
         return relay(resp)
 
+    async def review_link(self, who: Principal, project: str, link_id: str, body: bytes) -> Response:
+        if not await self.reader.rows(_LINK_OF_PROJECT, {"id": link_id, "p": project}):
+            return problem(404, "Not Found", f"link {link_id} not found")
+        resp = await self.forward(
+            "tlr-agent", "POST", f"/v1/links/{link_id}/review", who, project,
+            body=body, headers={"content-type": "application/json"},
+        )  # fmt: skip
+        return relay(resp)
+
+    async def link_rows(self, project: str, approach: str | None, artifact: str | None) -> list[dict[str, Any]]:
+        return await self.reader.rows(
+            _LINKS, {"p": project, "approach": approach or None, "artifact": artifact or None}
+        )
+
     async def list_workflows(self, who: Principal, project: str, query: list[tuple[str, str]]) -> Response:
         params = [("projectId", project), *[(k, v) for k, v in query if k in {"status", "limit", "cursor"}]]
         return relay(await self.forward("orchestrator", "GET", "/v1/workflows", who, project, params=params))
@@ -259,6 +305,58 @@ class Service:
             body=_json(payload), headers={"content-type": "application/json"},
         )  # fmt: skip
         return relay(resp)
+
+
+EVIDENCE_LINKS = 30
+_LINK_OF_PROJECT = "MATCH (l:TraceLink {id: $id, projectId: $p}) RETURN l.id AS id"
+_LINKS = """/* console:links */
+MATCH (l:TraceLink {projectId: $p, active: true})-[:SOURCE]->(s:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)
+      <-[:HAS_VERSION]-(sa:Artifact),
+      (l)-[:TARGET]->(t:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:HAS_VERSION]-(ta:Artifact)
+WHERE ($approach IS NULL OR l.approach = $approach) AND ($artifact IS NULL OR sa.id = $artifact OR ta.id = $artifact)
+RETURN l.id AS id, l.approach AS approach, l.confidence AS confidence, l.status AS status, l.rationale AS rationale,
+       l.reviewedBy AS reviewedBy, l.reviewedAt AS reviewedAt, l.reviewReason AS reviewReason,
+       l.reviewOrigin AS reviewOrigin, s.id AS sourceId, s.key AS sourceKey, s.name AS sourceName, s.text AS sourceText,
+       t.id AS targetId, t.key AS targetKey, t.name AS targetName, t.text AS targetText
+ORDER BY sourceKey, targetKey, approach LIMIT 5000"""
+_EV_DETECTED = """/* evidence:detected */ MATCH (e:Element {projectId: $p}) WHERE e.id IN $ids
+RETURN e.id AS id, e.contentHash AS hash, e.sentenceIndex AS idx"""
+_EV_CURRENT = """/* evidence:current */
+MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v:ArtifactVersion)-[:HAS_ELEMENT]->(c:Element {projectId: $p})
+WHERE c.key IN $keys
+RETURN c.key AS key, c.contentHash AS hash, c.text AS text, c.sentenceIndex AS idx, c.startLine AS startLine,
+       c.endLine AS endLine, v.id AS version"""
+_EV_LINKS = f"""/* evidence:links */
+MATCH (l:TraceLink {{projectId: $p}})-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element)
+WHERE s.key IN $keys OR t.key IN $keys
+RETURN l.id AS id, l.approach AS approach, l.confidence AS confidence, l.status AS status, l.active AS active,
+       l.linkType AS linkType, s.key AS sourceKey, s.name AS sourceName, t.key AS targetKey, t.name AS targetName
+ORDER BY l.active DESC, l.confidence DESC, l.id LIMIT {EVIDENCE_LINKS + 1}"""
+_EV_RUNS = """/* evidence:runs */ MATCH (i:Inconsistency {id: $id, projectId: $p})
+OPTIONAL MATCH (r:Run)-[:DETECTED]->(i)
+RETURN r.id AS id, r.startedAt AS at, r.tool AS tool, r.toolVersion AS toolVersion, r.status AS status
+ORDER BY r.startedAt"""
+_EV_REVISIONS = """/* evidence:revisions */ MATCH (v:ArtifactVersion {projectId: $p}) WHERE v.id IN $ids
+OPTIONAL MATCH (g:Ingestion)-[:ACTIVATED]->(v)
+RETURN v.id AS id, v.sourceRevision AS revision, min(g.seq) AS seq, min(g.createdAt) AS at"""
+
+
+def _evidence_item(e: dict[str, Any], detected: dict[str, Any], cur: dict[str, Any] | None,
+                   revisions: dict[str, Any]) -> dict[str, Any]:  # fmt: skip
+    """One involved element: its text as detected, its current state and its position."""
+    if cur is None:
+        state = "gone"
+    else:
+        state = "current" if cur.get("hash") == detected.get("hash") else "changed"
+    local = e["key"].split("#", 1)[-1]
+    idx = (cur or {}).get("idx") if state != "gone" else detected.get("idx")
+    return {
+        "element": e, "state": state, "current": cur, "detectedText": e.get("excerpt"),
+        "section": local.rsplit("/", 1)[0].removeprefix("sec:") if isinstance(idx, int) else None,
+        "sentence": idx + 1 if isinstance(idx, int) else None,
+        "detectedRevision": revisions.get(e.get("artifactVersionId") or ""),
+        "currentRevision": revisions.get((cur or {}).get("version") or ""),
+    }  # fmt: skip
 
 
 def _json(data: Any) -> bytes:

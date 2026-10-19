@@ -5,15 +5,33 @@
 <form method="post" action="/console/projects/{{ project }}/ask">
   <input type="hidden" name="csrf" value="{{ csrf }}">
   <label>Question <input name="question" size="60" value="{{ question }}" required minlength="3" maxlength="2000"></label>
+  <label>Strategy
+    <select name="strategy">{% for s in strategies %}<option value="{{ s }}"{% if s == strategy %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+  </label>
   <button>Ask</button>
 </form>
-<p><small>M0 stub: {{ intents }}</small></p>
+<p class="muted"><small>Intents without an LLM: {{ intents }}</small></p>
 {% if result %}
-<h2>Cypher</h2><pre>{{ result.cypher }}</pre>
-<h2>Result{% if result.truncated %} (truncated){% endif %}</h2>
+<div class="stack">
+<div class="card">
+  <h2>Answer</h2>
+  <p>Strategy <span class="badge info">{{ result.strategy }}</span>
+  {% if result.classification %}<span class="badge">classified {{ result.classification.strategy }}, confidence {{ result.classification.confidence }}</span>{% if result.classification.reason %} <span class="muted">{{ result.classification.reason }}</span>{% endif %}{% endif %}
+  {% if result.resolvedModel %}<span class="muted">model {{ result.resolvedModel }}</span>{% endif %}</p>
+  {% if result.answer %}<p>{% for text, link in parts %}{% if link %}<a class="badge" href="{{ link }}">{{ text }}</a>{% else %}{{ text }}{% endif %}{% endfor %}</p>
+  {% else %}<p class="muted">No synthesized answer.</p>{% endif %}
+  {% for w in result.warnings %}<p><span class="badge warn">Warning</span> {{ w }}</p>{% endfor %}
+</div>
+{% if result.cypher %}<div class="card"><h2>Cypher</h2><pre>{{ result.cypher }}</pre></div>{% endif %}
+{% if result.evidence %}<div class="card"><h2>Evidence</h2><ul>{% for e in result.evidence %}<li>{{ e.key }}{% if e.score is defined %} <span class="muted">{{ e.score }}</span>{% endif %}{% if e.path %} <span class="muted">{{ e.path | join(" -> ") }}</span>{% endif %}</li>{% endfor %}</ul></div>{% endif %}
+{% if result.steps %}<div class="card"><h2>Steps</h2><ol>{% for s in result.steps %}<li>{{ s.tool }}{% if s.error %} <span class="badge bad">{{ s.error }}</span>{% endif %}</li>{% endfor %}</ol></div>{% endif %}
+<div class="card">
+<h2>Result rows{% if result.truncated %} (truncated){% endif %}</h2>
 <table>
 <tr>{% for c in result.columns %}<th>{{ c }}</th>{% endfor %}</tr>
-{% for row in rows %}<tr>{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>{% else %}<tr><td>No matching data.</td></tr>{% endfor %}
+{% for row in rows %}<tr id="row-{{ loop.index0 }}">{% for v in row %}<td>{{ v }}</td>{% endfor %}</tr>{% else %}<tr><td>No matching data.</td></tr>{% endfor %}
 </table>
+</div>
+</div>
 {% endif %}
 {% endblock %}

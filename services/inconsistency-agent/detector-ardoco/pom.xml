@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.github.ardoco</groupId>
+    <artifactId>sandman-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>sandman-inconsistency-detector-ardoco</artifactId>
+  <name>Inconsistency detector ardoco-id (ArDoCo inconsistency detection).</name>
+
+  <properties>
+    <!-- Built from the pinned branch commit by scripts/ardoco-id-bootstrap.sh (make ardoco); not on Maven Central. -->
+    <ardoco.id.version>2.1.0-SNAPSHOT</ardoco.id.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-inconsistency-detector-spi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-text</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco.id</groupId>
+      <artifactId>pipeline-id</artifactId>
+      <version>${ardoco.id.version}</version>
+      <exclusions>
+        <!-- Only the code extractors of model-provider use them (Magika file typing, JDT Java parsing); the ID path reads PCM and UML. -->
+        <exclusion>
+          <groupId>io.github.ardoco</groupId>
+          <artifactId>magika</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.microsoft.onnxruntime</groupId>
+          <artifactId>onnxruntime</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jdt</groupId>
+          <artifactId>org.eclipse.jdt.core</artifactId>
+        </exclusion>
+        <!-- Removes the code jar and the models jar (464 MB): CoreNLP annotates in the provider service (T2.5). -->
+        <exclusion>
+          <groupId>edu.stanford.nlp</groupId>
+          <artifactId>stanford-corenlp</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- The code jar again, without the models: ArDoCo's text classes (CoreNLP-based TextImpl and others) still link against it. -->
+    <dependency>
+      <groupId>edu.stanford.nlp</groupId>
+      <artifactId>stanford-corenlp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-text</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- The benchmark test helpers are shared with the T3.3 equivalence test. -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <configuration>
+              <rules>
+                <!-- R-030: LangChain4j comes in through ArDoCo's model-provider; other frameworks stay banned. -->
+                <bannedDependencies>
+                  <excludes combine.self="override">
+                    <exclude>org.springframework.ai</exclude>
+                    <exclude>org.bsc.langgraph4j</exclude>
+                    <exclude>org.eclipse.jdt</exclude>
+                    <exclude>com.microsoft.onnxruntime</exclude>
+                    <exclude>io.github.ardoco:magika</exclude>
+                  </excludes>
+                </bannedDependencies>
+                <!-- The pinned ArDoCo branch is a snapshot by design (ADR-0015 B1); anything else must be a release. -->
+                <requireReleaseDeps combine.self="override">
+                  <message>No snapshot dependencies except the pinned ArDoCo branch build (scripts/ardoco-id-bootstrap.sh).</message>
+                  <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+                  <excludes>
+                    <exclude>io.github.ardoco:sandman-*</exclude>
+                    <exclude>io.github.ardoco:*</exclude>
+                    <exclude>io.github.ardoco.*:*</exclude>
+                  </excludes>
+                </requireReleaseDeps>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

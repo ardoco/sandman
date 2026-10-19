@@ -1,0 +1,18 @@
+[
+ {"answer": "- Alpha\u000a- Beta", "names": ["Alpha", "Beta"]},
+ {"answer": "- BetaComponent\u000a- AlphaComponents\u000a- Gamma Component", "names": ["Alpha", "Beta", "Gamma"]},
+ {"answer": "- user management\u000a- USER MANAGEMENT service\u000a- media-store\u000a- a  b   c", "names": ["ABC", "UserManagement", "UserManagementService", "media-store"]},
+ {"answer": "\u000a  - Alpha  \u000a\u000a-Beta\u000a- \u000a-\u000a   \u000a", "names": ["Alpha", "Beta"]},
+ {"answer": "- A\u000a- A\u000a- B\u000a- A\u000a- a", "names": ["A", "B", "a"]},
+ {"answer": "Components:\u000a- Alpha\u000a* Beta\u000a1. Gamma\u000a  not a list", "names": ["Alpha"]},
+ {"answer": "- ÄrzteService\u000a- über cache\u000a- ÉCOLE\u000a- straße handler\u000a- İstanbul module\u000a- ΩΣ ΟΔΟΣ", "names": ["StraßeHandler", "ÄrzteService", "ÉCOLE", "ÜberCache", "İstanbulModule", "ΩσΟδος"]},
+ {"answer": "- Ａx\u000a- 😀y\u000a- 𝒜b\u000a- zeta", "names": ["zeta", "𝒜b", "😀y", "Ａx"]},
+ {"answer": "- A::B\u000a- C\u000a- D::E F", "names": ["A::B", "C", "D::eF"]},
+ {"answer": "- ComponentManager\u000a- Components\u000a- Component\u000a- ProductComponentsService\u000a- X", "names": ["Manager", "ProductService", "X"]},
+ {"answer": "-  Alpha \u000a- Beta \u000a- Gamma\u000a-\u001fDelta\u001f\u000a- ﻿Epsilon", "names": ["Delta", "Gamma", " Alpha ", " Beta ", "﻿Epsilon"]},
+ {"answer": "- Alpha\u000d\u000a- Beta\u000d\u000a\u000d\u000a- Gamma\u000d", "names": ["Alpha", "Beta", "Gamma"]},
+ {"answer": "- shopping cart\u000a- ORDER\u000a- x\u000a- ßeta handler", "names": ["ORDER", "SSetaHandler", "ShoppingCart", "x"]},
+ {"answer": "Here are the components:\u000a\u000a- Facade\u000a- MediaManagement\u000a\u000aThe end.", "names": ["Facade", "MediaManagement"]},
+ {"answer": "- Name With Many Words In It\u000a- tab\u0009inside\u000a- trailing space \u000a- Tab\u0009here now", "names": ["NameWithManyWordsInIt", "Tab\u0009hereNow", "TrailingSpace", "tab\u0009inside"]},
+ {"answer": "-- Double\u000a- - Nested\u000a-\u0009Tabbed", "names": ["-Double", "-Nested", "Tabbed"]}
+]

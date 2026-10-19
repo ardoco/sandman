@@ -150,11 +150,14 @@ def main(contracts: Path) -> list[str]:
         "orchestrator/rules.yaml": "orchestrator-rules",
         "extraction/plugins.yaml": "extraction-plugins",
         "extraction/enrichment.yaml": "extraction-enrichment",
+        "extraction/embedding.yaml": "extraction-embedding",
+        "extraction/model-derivation.yaml": "model-derivation",
         "tlr/approaches.yaml": "tlr-approaches",
         "inconsistency/plugins.yaml": "inconsistency-plugins",
         "query/plugins.yaml": "query-plugins",
         "query/intents.yaml": "query-intents",
         "query/examples.yaml": "query-examples",
+        "query/strategies.yaml": "query-strategies",
     }
     config_registry = registry.with_resources(
         (s["$id"], Resource.from_contents(s))

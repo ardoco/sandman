@@ -1,0 +1,13 @@
+# Element embeddings for graphrag / explore (T4.1b, ADR-0018). Separate from enrichment.yaml on purpose.
+# The route comes from the project's llmPolicy: embed-default (cloud-allowed) or embed-local (local-only), see config/llm/models.yaml.
+enabled: false                # off until the gateway allows the embed routes (and cassettes exist for e2e); per request: options.embedding = false
+dimension: 768                # = vector index element_embedding in contracts/kg/init.cypher (embed-default is cut to this size and re-normalized)
+elements:                     # which elements get a vector, from "name + text"
+  - { label: Requirement }
+  - { label: TextUnit, kind: section }
+  - { label: ModelElement }
+  - { label: CodeUnit, kind: type }
+maxElementsPerRun: 500        # cost cap per skill call, elements beyond the limit are skipped with a warning
+batchSize: 32                 # texts per embeddings call
+concurrency: 2                # parallel embeddings calls
+maxInputChars: 6000

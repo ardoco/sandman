@@ -318,7 +318,7 @@ def test_gateway_is_off_internal_and_only_its_callers_share_the_corenlp_network(
     services = compose["services"]
     assert compose["networks"]["corenlp"]["internal"] is True
     members = sorted(n for n, s in services.items() if "corenlp" in s.get("networks", []))
-    assert members == ["corenlp-gateway", "tlr-agent"]  # inconsistency-agent joins with T3.1
+    assert members == ["corenlp-gateway", "inconsistency-agent", "tlr-agent"]
     assert "internal" not in services["corenlp-gateway"]["networks"]
     assert sorted(services["corenlp-gateway"]["networks"]) == ["corenlp", "corenlp-local", "egress"]
     for outsider in ("plugin-stubs", "query-service", "orchestrator", "extraction-agent", "dashboard"):
@@ -335,7 +335,7 @@ def test_only_the_gateway_has_egress_and_the_provider_is_isolated():
     assert services["corenlp-provider"]["networks"] == ["corenlp-local"]
     assert compose["networks"]["corenlp-local"]["internal"] is True
     assert compose["networks"]["internal"]["internal"] is True
-    assert services["inconsistency-agent"]["networks"] == ["internal"]
+    assert services["inconsistency-agent"]["networks"] == ["internal", "corenlp"]
     assert services["tlr-agent"]["networks"] == ["internal", "corenlp"]
     for agent in ("tlr-agent", "inconsistency-agent"):
         secrets = services[agent].get("secrets", [])

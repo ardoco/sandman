@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator
 from neo4j import AsyncGraphDatabase
 from neo4j.exceptions import Neo4jError
 from sandman_agent.ids import sha256_hex, stable_id
+from sandman_cli.evaluation.formats import FORMATS, LINKS_QUERY, rows_to_links, write_links
 from test_guard import ACCEPTED, REJECTED
 
 TS = "2026-10-06T12:00:00Z"
@@ -63,7 +64,7 @@ CREATE (i2:Inconsistency {id: $i2, fingerprint: $f2, projectId: $p, type: 'untra
        status: 'OPEN', verification: 'none', detector: 'stub', detectorVersion: '1',
        firstRunId: $run, lastRunId: $run, evidenceHash: 'h', createdAt: $ts, updatedAt: $ts})
 CREATE (i1)-[:INVOLVES {role: 'subject'}]->(r3), (i1)-[:INVOLVES {role: 'link'}]->(l4), (i2)-[:INVOLVES {role: 'subject'}]->(r3)
-CREATE (i1)-[:HAS_STATUS_CHANGE]->(:StatusChange {from: 'OPEN', to: 'ACCEPTED', actor: 'user:alice', reason: 'fine', at: $ts})
+CREATE (i1)-[:HAS_STATUS_CHANGE]->(:StatusChange {from: 'OPEN', to: 'ACCEPTED', actor: 'user:alice', reason: 'fine', cause: 'intentional', at: $ts})
 CREATE (g1:Ingestion {id: $g1, projectId: $p, seq: 1, mode: 'full', sourceRevision: 'rev1', actor: 'u', createdAt: $ts})
 CREATE (g2:Ingestion {id: $g2, projectId: $p, seq: 2, mode: 'partial', sourceRevision: 'rev2', actor: 'u', createdAt: $ts})
 CREATE (pr)-[:HAS_INGESTION]->(g1), (pr)-[:HAS_INGESTION]->(g2)
@@ -266,7 +267,10 @@ async def test_tracelink_export(mg: Env) -> None:
     base = "/v1/projects/alpha/export/tracelinks"
     resp = await mg.http.get(base, headers=h)
     lines = resp.text.splitlines()
-    assert lines[0] == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id"
+    assert (
+        lines[0]
+        == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason"
+    )
     rows = sorted(line.split(",")[1:7] for line in lines[1:])
     assert [(r[0].split("#")[1], r[1], r[2]) for r in rows] == [
         ("C1", "documents", "explicit"),
@@ -285,6 +289,42 @@ async def test_tracelink_export(mg: Env) -> None:
     assert len((await mg.http.get(base + "?format=json&approach=explicit", headers=h)).json()) == 1
 
 
+async def test_tracelink_export_carries_review_data_in_the_default_format_only(mg: Env) -> None:
+    driver = AsyncGraphDatabase.driver(mg.kg)  # type: ignore[attr-defined]
+    async with driver.session() as s:
+        await s.run(
+            "MATCH (l:TraceLink {id: $id}) SET l.status = 'confirmed', l.reviewedBy = 'user:alice', "
+            "l.reviewedAt = $ts, l.reviewReason = 'looks right', l.reviewOrigin = 'user'",
+            id=ids("alpha", "l1", "tl"),
+            ts=TS,
+        )
+    await driver.close()
+    h = mg.token("alice")
+    base = "/v1/projects/alpha/export/tracelinks"
+    lines = (await mg.http.get(base, headers=h)).text.splitlines()
+    header = lines[0].split(",")
+    assert header[-3:] == ["reviewed_by", "reviewed_at", "review_reason"]
+    reviewed = next(line for line in lines[1:] if ",lissa," in line).split(",")
+    assert reviewed[-3:] == ["user:alice", TS, "looks right"]
+    unreviewed = next(line for line in lines[1:] if ",explicit," in line).split(",")
+    assert unreviewed[-3:] == ["", "", ""]
+    as_json = (await mg.http.get(base + "?format=json", headers=h)).json()
+    validate("/v1/projects/{projectId}/export/tracelinks", "get", 200, as_json)
+    by_approach = {link["approach"]: link for link in as_json}
+    assert by_approach["lissa"]["reviewedBy"] == "user:alice" and by_approach["lissa"]["reviewReason"] == "looks right"
+    assert not {"reviewedBy", "reviewedAt", "reviewReason"} & by_approach["explicit"].keys()
+
+    rows = await q(mg, LINKS_QUERY, params={"approach": None, "skip": 0, "page": 1000})
+    assert rows.status_code == 200, rows.text
+    body = rows.json()
+    link_rows = [dict(zip(body["columns"], r, strict=True)) for r in body["rows"]]
+    assert link_rows
+    for fmt, columns in FORMATS.items():
+        text = write_links(fmt, rows_to_links(fmt, link_rows))
+        assert text.splitlines()[0] == ",".join(columns)
+        assert all(len(line.split(",")) == 2 for line in text.splitlines())
+
+
 async def test_inconsistency_export_with_history(mg: Env) -> None:
     h = mg.token("alice")
     items = (await mg.http.get("/v1/projects/alpha/export/inconsistencies", headers=h)).json()
@@ -292,7 +332,9 @@ async def test_inconsistency_export_with_history(mg: Env) -> None:
     by_title = {i["title"]: i for i in items}
     i1 = by_title["I1"]
     assert i1["status"] == "ACCEPTED" and i1["evidence"] == {"k": 1} and i1["allowedTransitions"] == ["OPEN"]
-    assert i1["history"] == [{"from": "OPEN", "to": "ACCEPTED", "actor": "user:alice", "reason": "fine", "at": TS}]
+    assert i1["history"] == [
+        {"from": "OPEN", "to": "ACCEPTED", "actor": "user:alice", "reason": "fine", "cause": "intentional", "at": TS}
+    ]
     assert {e["role"] for e in i1["involved"]} == {"subject", "link"}
     subject = next(e for e in i1["involved"] if e["role"] == "subject")["element"]
     assert (
@@ -301,5 +343,6 @@ async def test_inconsistency_export_with_history(mg: Env) -> None:
     assert i1["artifactPaths"] == ["model.repository", "requirements.md"]
     csv_text = (await mg.http.get("/v1/projects/alpha/export/inconsistencies?format=csv", headers=h)).text
     assert csv_text.splitlines()[0].startswith("id,type,severity") and len(csv_text.splitlines()) == 3
+    assert ",cause,involved,history" in csv_text.splitlines()[0] and "intentional" in csv_text
     assert json.loads(json.dumps(items)) == items
     assert Draft202012Validator is not None and SPEC is not None

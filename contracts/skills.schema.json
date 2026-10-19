@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sandman.invalid/contracts/skills.schema.json",
   "title": "SANDMAN A2A skill inputs and outputs",
-  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.7.0.",
+  "description": "Input = the single data part of the A2A message; output = the single data part of task artifact 'result'. Skill id in message.metadata['sandman.skill'] (see common.schema.json#/$defs/SkillInvocationMetadata). Contract version 0.9.0.",
   "$defs": {
     "ExtractArtifactVersionsInput": {
       "type": "object",
@@ -28,6 +28,11 @@
             "llmEnrichment": {
               "type": "boolean",
               "default": true
+            },
+            "embedding": {
+              "type": "boolean",
+              "default": true,
+              "description": "false skips the element embeddings (config/extraction/embedding.yaml, T4.1b)."
             }
           },
           "additionalProperties": false
@@ -820,7 +825,7 @@
     },
     "PruneTraceLinksInput": {
       "type": "object",
-      "description": "Retention pruning of old trace links of the tlr-agent; explicit-reference links are never pruned (owned by the extraction-agent). PLANNED (x-sandman-status planned, M5/T5.2): the skill is declared in the card's plannedSkills; until implemented an invocation fails with sandman.error code NOT_IMPLEMENTED (retryable false).",
+      "description": "Retention pruning of old trace links of the tlr-agent; explicit-reference links are never pruned (owned by the extraction-agent). Dry run (default) deletes nothing and reports the counts; the audit trail is a Run with tool retention. Publishes sandman.retention.pruned.",
       "required": [
         "projectId"
       ],
@@ -836,7 +841,16 @@
         },
         "dryRun": {
           "type": "boolean",
-          "default": false
+          "default": true,
+          "description": "true: run the deletion in a transaction that is rolled back and report the counts."
+        },
+        "protectedContentHashes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "Content hashes of artifact versions that an experiment manifest refers to; these versions are never removed."
         }
       },
       "additionalProperties": false
@@ -859,6 +873,61 @@
           "type": "integer",
           "minimum": 0
         },
+        "dryRun": {
+          "type": "boolean"
+        },
+        "removed": {
+          "type": "object",
+          "description": "Removed items per kind; removedCount is their sum.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeriveArchitectureModelInput": {
+      "type": "object",
+      "description": "Derives a components-only architecture model from each current architecture document of a project without a user architecture model, and retires derived models that a user model supersedes or whose source document is deleted. Idempotent. Skipped with a warning when the project llmPolicy has no LLM route.",
+      "required": [
+        "projectId"
+      ],
+      "properties": {
+        "projectId": {
+          "$ref": "common.schema.json#/$defs/ProjectId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DeriveArchitectureModelOutput": {
+      "type": "object",
+      "required": [
+        "derivedVersionIds",
+        "retiredArtifactIds",
+        "warnings"
+      ],
+      "properties": {
+        "derivedVersionIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "description": "Artifact versions of derived models that are new or reactivated."
+        },
+        "retiredArtifactIds": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/StableId"
+          },
+          "description": "Derived artifacts marked deleted (superseded by a user model or source document deleted)."
+        },
         "warnings": {
           "type": "array",
           "items": {
@@ -870,7 +939,7 @@
     },
     "PruneArtifactDataInput": {
       "type": "object",
-      "description": "Retention pruning of old artifact versions, their elements and runs of the extraction-agent. PLANNED (x-sandman-status planned, M5/T5.2): the skill is declared in the card's plannedSkills; until implemented an invocation fails with sandman.error code NOT_IMPLEMENTED (retryable false).",
+      "description": "Retention pruning of old artifact versions, their elements and runs of the extraction-agent. Dry run (default) deletes nothing and reports the counts; the audit trail is a Run with tool retention. Publishes sandman.retention.pruned.",
       "required": [
         "projectId"
       ],
@@ -886,7 +955,16 @@
         },
         "dryRun": {
           "type": "boolean",
-          "default": false
+          "default": true,
+          "description": "true: run the deletion in a transaction that is rolled back and report the counts."
+        },
+        "protectedContentHashes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "description": "Content hashes of artifact versions that an experiment manifest refers to; these versions are never removed."
         }
       },
       "additionalProperties": false
@@ -908,6 +986,17 @@
         "keptCount": {
           "type": "integer",
           "minimum": 0
+        },
+        "dryRun": {
+          "type": "boolean"
+        },
+        "removed": {
+          "type": "object",
+          "description": "Removed items per kind; removedCount is their sum.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
         },
         "warnings": {
           "type": "array",

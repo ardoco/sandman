@@ -1,0 +1,77 @@
+{
+  "name": "sandman-tlr-agent",
+  "description": "Recovers trace links between artifact versions using pluggable approaches (e.g. ArDoCo, LiSSA). Approach catalog: REST GET /v1/approaches.",
+  "version": "0.9.0",
+  "supportedInterfaces": [
+    {
+      "url": "http://tlr-agent:8080/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false,
+    "extensions": [
+      {
+        "uri": "https://sandman.invalid/a2a/extensions/skill-invocation/v1",
+        "description": "Skill id in message.metadata['sandman.skill']; input = one data part; result = task artifact 'result' with one data part; errors in status message metadata 'sandman.error'.",
+        "required": true,
+        "params": {
+          "skills": {
+            "recover-trace-links": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/RecoverTraceLinksInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/RecoverTraceLinksOutput"
+            }
+          },
+          "plannedSkills": {
+            "prune-trace-links": {
+              "inputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneTraceLinksInput",
+              "outputSchema": "https://sandman.invalid/contracts/skills.schema.json#/$defs/PruneTraceLinksOutput"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "securitySchemes": {
+    "bearer": {
+      "httpAuthSecurityScheme": {
+        "scheme": "Bearer",
+        "description": "SANDMAN service token"
+      }
+    }
+  },
+  "securityRequirements": [
+    {
+      "schemes": {
+        "bearer": {
+          "list": []
+        }
+      }
+    }
+  ],
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "recover-trace-links",
+      "name": "Recover trace links",
+      "description": "Runs the selected TLR approaches on source/target artifact versions and stores candidate links with provenance.",
+      "tags": [
+        "traceability"
+      ],
+      "inputModes": [
+        "application/json"
+      ],
+      "outputModes": [
+        "application/json"
+      ]
+    }
+  ]
+}

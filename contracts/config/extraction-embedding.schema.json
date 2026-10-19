@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/extraction-embedding.schema.json",
+  "title": "config/extraction/embedding.yaml",
+  "description": "Element embeddings written by the extraction-agent (T4.1b, KG schema 0.5.0). The embedding route comes from the project's llmPolicy (embed-default, embed-local).",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean"
+    },
+    "dimension": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Must equal the dimension of the vector index element_embedding in contracts/kg/init.cypher; longer vectors are cut and re-normalized."
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "properties": {
+          "label": {
+            "$ref": "https://sandman.invalid/contracts/common.schema.json#/$defs/ElementLabel"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "maxElementsPerRun": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Cost cap per skill call; elements beyond it are skipped with a warning."
+    },
+    "batchSize": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "concurrency": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxInputChars": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN orchestrator API
-  version: 0.7.0
+  version: 0.9.0
   description: |
     Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
     The query-service forwards in M0 only list/create/get workflows; cancel, retry, dead-event listing and replay are
@@ -58,8 +58,8 @@ paths:
               required: [type, projectId]
               properties:
                 type:
-                  enum: [full, extract, tlr, detect]
-                  description: full = extract all current versions, then tlr, then detect.
+                  enum: [full, extract, tlr, detect, prune, derive]
+                  description: full = extract all current versions, then tlr, then detect. prune = prune-trace-links, then prune-artifact-data (T5.2); params may carry keepVersionsPerArtifact and dryRun. derive = derive-architecture-model (T2.7), also when modelDerivation is disabled.
                 projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
                 params:
                   type: object
@@ -288,3 +288,10 @@ components:
                   error: { $ref: "../common.schema.json#/$defs/SkillError" }
                   startedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
                   endedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+                  activity:
+                    type: object
+                    description: Short current-activity text the agent reported while the step is RUNNING (A2A status message of the task, 0.8.0); absent if the agent reported none or the step is not running.
+                    required: [text, at]
+                    properties:
+                      text: { type: string, maxLength: 200 }
+                      at: { $ref: "../common.schema.json#/$defs/Timestamp" }

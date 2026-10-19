@@ -38,7 +38,8 @@ WHERE ($approach IS NULL OR l.approach = $approach) AND l.confidence >= $minConf
 MATCH (l)-[:SOURCE]->(s:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:CURRENT_VERSION]-(:Artifact),
       (l)-[:TARGET]->(t:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)<-[:CURRENT_VERSION]-(:Artifact)
 RETURN s.key AS sourceKey, t.key AS targetKey, l.linkType AS linkType, l.approach AS approach,
-       l.approachVersion AS approachVersion, l.confidence AS confidence, l.status AS status, l.runId AS runId
+       l.approachVersion AS approachVersion, l.confidence AS confidence, l.status AS status, l.runId AS runId,
+       l.reviewedBy AS reviewedBy, l.reviewedAt AS reviewedAt, l.reviewReason AS reviewReason
 ORDER BY sourceKey, targetKey, approach, approachVersion
 """
 TRACELINK_COLUMNS = [
@@ -50,6 +51,9 @@ TRACELINK_COLUMNS = [
     "confidence",
     "status",
     "run_id",
+    "reviewed_by",
+    "reviewed_at",
+    "review_reason",
 ]
 INCONSISTENCIES = """
 MATCH (i:Inconsistency {projectId: $projectId})
@@ -211,8 +215,8 @@ class Runner:
                           description=props.get("description", ""), involved=entries)  # fmt: skip
             if props.get("evidence"):
                 detail["evidence"] = json.loads(props["evidence"])
-            detail["history"] = [{k: h[k] for k in ("from", "to", "actor", "reason", "at") if h.get(k) is not None}
-                                 for h in item["history"]]  # fmt: skip
+            fields = ("from", "to", "actor", "reason", "cause", "at")
+            detail["history"] = [{k: h[k] for k in fields if h.get(k) is not None} for h in item["history"]]
             detail["allowedTransitions"] = USER_TRANSITIONS.get(props["status"], [])
             out.append(detail)
         return out
@@ -231,7 +235,9 @@ def inconsistencies_csv(items: list[dict[str, Any]]) -> str:
     cols = ["id", "type", "severity", "title", "status", "verification", "detector", "detectorVersion", "confidence",
             "createdAt", "updatedAt"]  # fmt: skip
     rows = [
-        [i.get(c, "") for c in cols] + [json.dumps(i[c], ensure_ascii=False) for c in ("involved", "history")]
+        [i.get(c, "") for c in cols]
+        + [next((h["cause"] for h in reversed(i["history"]) if "cause" in h), "")]
+        + [json.dumps(i[c], ensure_ascii=False) for c in ("involved", "history")]
         for i in items
     ]
-    return to_csv([*cols, "involved", "history"], rows)
+    return to_csv([*cols, "cause", "involved", "history"], rows)

@@ -2,13 +2,12 @@
 
 import asyncio
 import logging
-import math
 from collections.abc import Mapping
 from typing import Any
 
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction, unit_of_work
 from neo4j.exceptions import Neo4jError
-from neo4j.graph import Node, Path, Relationship
+from sandman_agent.graphview import jsonable
 from sandman_agent.kg import MemoryLimitError
 
 log = logging.getLogger(__name__)
@@ -18,31 +17,11 @@ class ScopeViolation(Exception):
     """A result contained data of another project."""
 
 
-def jsonable(v: Any) -> Any:
-    """Graph values as property maps plus _labels/_type (no internal ids); other values as JSON values."""
-    if isinstance(v, Node):
-        return {**{k: jsonable(x) for k, x in v.items()}, "_labels": sorted(v.labels)}
-    if isinstance(v, Relationship):
-        return {**{k: jsonable(x) for k, x in v.items()}, "_type": v.type}
-    if isinstance(v, Path):
-        return [
-            jsonable(x) for pair in zip(v.nodes, [*v.relationships, None], strict=False) for x in pair if x is not None
-        ]
-    if isinstance(v, Mapping):
-        return {str(k): jsonable(x) for k, x in v.items()}
-    if isinstance(v, list | tuple | set):
-        return [jsonable(x) for x in v]
-    if isinstance(v, bool | int | str) or v is None:
-        return v
-    if isinstance(v, float):
-        return v if math.isfinite(v) else None
-    return v.isoformat() if hasattr(v, "isoformat") else str(v)
-
-
 def check_scope(value: Any, project: str) -> None:
-    """Every map with a projectId must carry the requested project, at any depth."""
+    """Every map with a projectId, and every Project node, must belong to the requested project, at any depth."""
     if isinstance(value, dict):
-        if "projectId" in value and value["projectId"] != project:
+        foreign_project = "Project" in value.get("_labels", ()) and value.get("id") != project
+        if foreign_project or ("projectId" in value and value["projectId"] != project):
             log.error("scope violation", extra={"fields": {"event": "scope_violation", "projectId": project}})
             raise ScopeViolation("result contains data of another project")
         for x in value.values():
@@ -57,6 +36,10 @@ class Reader:
 
     def __init__(self, uri: str, user: str | None, password: str | None, driver: AsyncDriver | None = None) -> None:
         self._driver = driver or AsyncGraphDatabase.driver(uri, auth=(user, password or "") if user else None)
+
+    @property
+    def driver(self) -> AsyncDriver:
+        return self._driver
 
     async def close(self) -> None:
         await self._driver.close()

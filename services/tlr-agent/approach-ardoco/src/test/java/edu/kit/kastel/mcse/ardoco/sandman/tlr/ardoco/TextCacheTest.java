@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import java.time.Duration;
 import java.util.List;
@@ -60,7 +61,7 @@ class TextCacheTest {
                     List.of(),
                     null) {
                 @Override
-                TextDto annotateDto(List<String> lines, Provider provider, BooleanSupplier cancelled) {
+                public TextDto annotateDto(List<String> lines, Provider provider, BooleanSupplier cancelled) {
                     requests.incrementAndGet();
                     CountDownLatch in = entered;
                     if (in != null) {

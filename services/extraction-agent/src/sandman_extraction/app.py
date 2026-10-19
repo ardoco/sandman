@@ -41,8 +41,11 @@ from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from starlette.exceptions import HTTPException
 
 from sandman_extraction import documents, ingest
+from sandman_extraction.derive import DeriveConfig, DeriveSkill
+from sandman_extraction.embed import EmbedConfig
 from sandman_extraction.enrich import EnrichConfig
 from sandman_extraction.extract import ExtractSkill
+from sandman_extraction.prune import PruneSkill
 
 log = logging.getLogger(__name__)
 
@@ -83,6 +86,18 @@ class Service:
             self.contracts.load_config("extraction-enrichment", enrichment_file) if enrichment_raw else {}
         )
         self.enrichment_hash = sha256_hex(enrichment_raw)
+        embedding_file = config_dir / "extraction" / "embedding.yaml"
+        embedding_raw = embedding_file.read_bytes() if embedding_file.is_file() else b""
+        self.embedding = EmbedConfig.from_dict(
+            self.contracts.load_config("extraction-embedding", embedding_file) if embedding_raw else {}
+        )
+        self.embedding_hash = sha256_hex(embedding_raw)
+        derivation_file = config_dir / "extraction" / "model-derivation.yaml"
+        derivation_raw = derivation_file.read_bytes() if derivation_file.is_file() else b""
+        self.derivation = DeriveConfig.from_dict(
+            self.contracts.load_config("model-derivation", derivation_file) if derivation_raw else {}
+        )
+        self.derivation_hash = sha256_hex(derivation_raw)
         self.selector: ModelSelector | None = None
         if settings.llm_models_file and settings.llm_base_url and settings.llm_key:
             self.selector = ModelSelector(
@@ -114,8 +129,12 @@ class Service:
         """Logical chat route of the project's LLM policy."""
         return "chat-local" if policy == LOCAL_ONLY else "chat-default"
 
+    def embed_route(self, policy: str) -> str:
+        """Logical embedding route of the project's LLM policy."""
+        return "embed-local" if policy == LOCAL_ONLY else "embed-default"
+
     def route_model(self, route: str) -> str:
-        """Gateway model id a logical route maps to (part of the reuse key of enrichment results)."""
+        """Gateway model id a logical route maps to (part of the reuse key of enrichment and embedding results)."""
         return self.selector.routes.get(route, route) if self.selector else route
 
     def llm_client(self, policy: str) -> LlmClient:
@@ -233,6 +252,7 @@ def create_app(
     @app.post("/v1/projects/{projectId}/ingestions/check")
     async def check(projectId: ProjectId, manifest: ingest.Manifest, caller: Caller) -> dict[str, list[str]]:
         await project_or_404(projectId)
+        ingest.reject_reserved(manifest)
         return {"missing": ingest.missing_hashes(svc.store, projectId, manifest)}
 
     @app.post("/v1/projects/{projectId}/ingestions", status_code=201)
@@ -268,6 +288,7 @@ def create_app(
                     parsed = ingest.manifest_of(files)
                 except ValidationError as e:
                     raise HTTPException(400, f"archive: {e.errors()[0]['msg']}") from None
+            ingest.reject_reserved(parsed)
             ing_id = await ingest.ingest(svc.kg, svc.store, projectId, parsed, files, actor)
             ing = await ingest.load_ingestion(svc.kg, projectId, ing_id)
             assert ing is not None
@@ -286,5 +307,15 @@ def create_app(
 
     card = settings.contracts_dir / "agent-cards" / "extraction-agent.json"
     skill = ExtractSkill(svc, plugin_transport)
-    app.mount("/", serve(card, [skill], settings, events=svc, contracts=svc.contracts, status=svc.status))
+    app.mount(
+        "/",
+        serve(
+            card,
+            [skill, PruneSkill(svc), DeriveSkill(svc)],
+            settings,
+            events=svc,
+            contracts=svc.contracts,
+            status=svc.status,
+        ),
+    )
     return app

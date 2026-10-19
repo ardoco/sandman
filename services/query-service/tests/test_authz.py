@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from conftest import Env, service_headers
-from helpers import INC_ID, SPEC, WF_ID, validate, validate_problem, validate_projects
+from helpers import INC_ID, LINK_ID, SPEC, WF_ID, validate, validate_problem, validate_projects
 
 CALLERS = ["anonymous", "stranger", "viewer", "triager", "maintainer", "admin", "service", "plugin_stub",
            "plugin_other", "tok_max_viewer", "tok_beta", "tok_admin_restricted"]  # fmt: skip
@@ -95,6 +95,8 @@ OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
     "getInconsistency": ("read", "GET", f"/v1/inconsistencies/{INC_ID}", {}, {200}),
     "transitionInconsistency": ("triager", "POST", f"/v1/inconsistencies/{INC_ID}/transitions",
                                 {"json": {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "r"}}, {200}),
+    "reviewTraceLink": ("triager", "POST", f"/v1/projects/alpha/links/{LINK_ID}/review",
+                        {"json": {"status": "confirmed"}}, {200}),
     "listWorkflows": ("read", "GET", "/v1/projects/alpha/workflows", {}, {200}),
     "createWorkflow": ("maintainer", "POST", "/v1/projects/alpha/workflows", {"json": {"type": "full"}}, {202}),
     "getSchema": ("schema", "GET", "/v1/schema", {}, {200}),

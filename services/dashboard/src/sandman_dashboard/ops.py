@@ -1,5 +1,6 @@
 """Operator pages: workflows (list, detail, cancel), dead events (replay)."""
 
+import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -10,6 +11,7 @@ from starlette.exceptions import HTTPException
 
 from sandman_dashboard.events_view import EventViewer
 from sandman_dashboard.orchestrator import (
+    ACTIVE,
     CURSOR,
     PROJECT_ID,
     STATUSES,
@@ -50,6 +52,22 @@ def register(
 ) -> None:
     Session = session
 
+    async def with_steps(items: list[Any]) -> list[Any]:
+        # ponytail: one detail call per active workflow; a steps summary in the list API would avoid it
+        assert orchestrator is not None
+
+        async def one(w: Any) -> Any:
+            if not isinstance(w, dict) or w.get("status") not in ACTIVE:
+                return w
+            reply, _ = await attempt(orchestrator.get_workflow(w["id"]))
+            return (
+                {**w, "steps": reply.body["steps"]}
+                if reply and reply.ok and isinstance(reply.body, dict) and "steps" in reply.body
+                else w
+            )
+
+        return list(await asyncio.gather(*(one(w) for w in items)))
+
     async def workflow_list(
         request: Request, ctx: Any, message: str | None = None, error: bool = False
     ) -> HTMLResponse:
@@ -75,6 +93,7 @@ def register(
                 message, error = problem or UNREACHABLE, True
             else:
                 items, next_cursor = reply.body.get("items") or [], reply.body.get("nextCursor")
+                items = await with_steps(items)
             if dead_reply is not None and dead_reply.ok and isinstance(dead_reply.body, dict):
                 dead = dead_reply.body.get("items") or []
         return page(

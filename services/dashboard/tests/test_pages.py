@@ -156,5 +156,6 @@ async def test_graph_page_cypher_box_is_empty_with_placeholder_and_zoom_buttons(
     await env.login()
     text = (await env.http.get("/graph")).text
     assert re.search(r'<textarea id="cypher"[^>]*placeholder="MATCH[^>]*></textarea>', text)
-    assert 'id="zoom-in"' in text and "wheelSensitivity" not in (SRC / "static" / "graph.js").read_text()
-    assert ".__________cytoscape_container" in (SRC / "static" / "graph.css").read_text()
+    js = (SRC / "static" / "graph.js").read_text()
+    assert 'id="zoom-in"' in text and "wheelSensitivity" in js and "userZoomingEnabled: true" in js
+    assert "#fff" not in (SRC / "static" / "graph.css").read_text()

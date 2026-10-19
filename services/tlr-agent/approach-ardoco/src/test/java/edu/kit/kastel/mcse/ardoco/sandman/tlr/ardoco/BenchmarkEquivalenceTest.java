@@ -12,6 +12,8 @@ import edu.kit.kastel.mcse.ardoco.core.textproviderjson.dto.TextDto;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.A2aClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpProvider;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrContext;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.TlrInput;
@@ -104,6 +106,8 @@ class BenchmarkEquivalenceTest {
             System.out.printf(
                     "BENCHMARK %s: %d sentences, %d links, standalone %d ms, adapter %d ms%n",
                     c.name(), lines, adapter.size(), standaloneMs, (System.nanoTime() - start) / 1_000_000);
+            writeCsv(c, "standalone", standalone);
+            writeCsv(c, "adapter", adapter);
             assertEquals(standalone, adapter, c.name());
             if (c.required()) {
                 assertTrue(!adapter.isEmpty(), c.name());
@@ -135,7 +139,7 @@ class BenchmarkEquivalenceTest {
                         CorenlpClient.BACKOFF,
                         CorenlpClient.fromEnv().authorization()) {
                     @Override
-                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                    public TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
                         requests[0]++;
                         return super.request(text, eolonly, cancelled);
                     }
@@ -346,6 +350,7 @@ class BenchmarkEquivalenceTest {
                     () -> false,
                     LoggerFactory.getLogger(ArdocodeApproach.class),
                     JsonMapper.shared().createObjectNode());
+            ArdocodeApproach.clearCache();
             List<CandidateLink> links =
                     new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, calls)).recover(in, ctx);
             Map<String, Integer> sentence = new java.util.HashMap<>();
@@ -375,8 +380,31 @@ class BenchmarkEquivalenceTest {
                 () -> false,
                 LoggerFactory.getLogger(ArdocodeApproach.class),
                 JsonMapper.shared().createObjectNode());
+        ArdocodeApproach.clearCache();
         var first = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        ArdocodeApproach.clearCache();
         var second = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(first, second);
+        assertFalse(first.isEmpty());
+    }
+
+    @Test
+    void anUnchangedDocumentAndCodeModelSkipTheArdocoRun() throws Exception {
+        Path acm = CodeModels.acm("mediastore-code-model");
+        Case c = new Case("mediastore", "mediastore.txt", "-", "-", true);
+        TlrInput in = ardocodeInput(c, CodeModels.compilationUnits(acm).values());
+        var ctx = new TlrContext(
+                null,
+                store,
+                () -> false,
+                LoggerFactory.getLogger(ArdocodeApproach.class),
+                JsonMapper.shared().createObjectNode());
+        ArdocodeApproach.clearCache();
+        long before = ArdocodeApproach.runs();
+        var first = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(before + 1, ArdocodeApproach.runs());
+        var second = new ArdocodeApproach(CorenlpClient.fromEnv(), fakePlugin(acm, new int[1])).recover(in, ctx);
+        assertEquals(before + 1, ArdocodeApproach.runs());
         assertEquals(first, second);
         assertFalse(first.isEmpty());
     }
@@ -402,7 +430,7 @@ class BenchmarkEquivalenceTest {
                         CorenlpClient.BACKOFF,
                         CorenlpClient.fromEnv().authorization()) {
                     @Override
-                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                    public TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
                         requests[0]++;
                         return super.request(text, eolonly, cancelled);
                     }
@@ -418,6 +446,7 @@ class BenchmarkEquivalenceTest {
             TextCache.clear();
             fresh.add(new ArdocoApproach(counting).recover(both, ctx));
             TextCache.clear();
+            ArdocodeApproach.clearCache();
             fresh.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
         }
         assertEquals(fresh.get(0), fresh.get(2));
@@ -430,6 +459,7 @@ class BenchmarkEquivalenceTest {
         List<List<CandidateLink>> cached = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
             cached.add(new ArdocoApproach(counting).recover(both, ctx));
+            ArdocodeApproach.clearCache();
             cached.add(new ArdocodeApproach(counting, fakePlugin(acm, new int[1])).recover(both, ctx));
         }
         assertEquals(1, requests[0], "all four runs share one cache entry");
@@ -459,7 +489,7 @@ class BenchmarkEquivalenceTest {
                         CorenlpClient.BACKOFF,
                         CorenlpClient.fromEnv().authorization()) {
                     @Override
-                    TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
+                    public TextDto request(String text, boolean eolonly, java.util.function.BooleanSupplier cancelled) {
                         requests[0]++;
                         return super.request(text, eolonly, cancelled);
                     }
@@ -478,6 +508,23 @@ class BenchmarkEquivalenceTest {
     }
 
     private long standaloneSentences;
+
+    /** ardoco-sad-sam of sandman eval equal: header modelElementID,sentence; rows sorted by id, then sentence number. */
+    private static void writeCsv(Case c, String side, Set<String> links) throws IOException {
+        String dir = System.getProperty("SANDMAN_BENCHMARK_CSV_DIR", System.getenv("SANDMAN_BENCHMARK_CSV_DIR"));
+        if (dir == null || dir.isBlank()) {
+            return;
+        }
+        List<String[]> rows = new ArrayList<>();
+        links.forEach(l -> rows.add(l.split(" ", 2)));
+        rows.sort(java.util.Comparator.<String[], String>comparing(r -> r[1])
+                .thenComparingInt(r -> Integer.parseInt(r[0])));
+        StringBuilder csv = new StringBuilder("modelElementID,sentence\n");
+        rows.forEach(r -> csv.append(r[1]).append(',').append(r[0]).append('\n'));
+        String model = c.model().substring(c.model().lastIndexOf('/') + 1);
+        Path out = Files.createDirectories(Path.of(dir)).resolve(c.project() + "-" + model + "." + side + ".csv");
+        Files.writeString(out, csv.toString(), StandardCharsets.UTF_8);
+    }
 
     /** Swattr on the raw text with the provider's annotation of the raw text (no eolonly), as (1-based sentence, id). */
     private Set<String> standalone(Case c) throws IOException {

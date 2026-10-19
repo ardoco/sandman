@@ -20,7 +20,8 @@ Status values:
 1. Copy [`template.md`](template.md) to `NNNN-short-title.md` using the next free number (numbers are never reused).
 2. Fill in all sections; list only options that were actually considered.
 3. Add a row to the index below.
-4. Never rewrite an accepted decision; write a new ADR and mark the old one `superseded`. Exception before implementation starts (M0): decisions taken in a design review are added as dated entries in a final `Amendments` section of the affected ADR.
+4. Never rewrite an accepted decision; write a new ADR and mark the old one `superseded`. Exception before implementation starts (M0): decisions taken in a design review are added as dated entries in a final `Amendments` section of the affected ADR. After M0, a dated `Amendments` entry is allowed only for a clarification or a consequence that keeps the decision. A changed decision needs a new ADR that supersedes the old one.
+   - 2026-10-18 (review item R-009): this sentence documents the practice used since M0 and replaces silent in-place edits.
 
 ## Index
 

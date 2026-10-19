@@ -6,6 +6,7 @@ import io
 import json
 import os
 import re
+import statistics
 import sys
 import tarfile
 import time
@@ -16,6 +17,11 @@ from typing import Any
 
 import httpx
 import yaml
+
+from sandman_cli.evaluation import labeling, nlquery, stats
+from sandman_cli.evaluation.compare import compare, identical
+from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
+from sandman_cli.evaluation.perturb import build_mapping, rename
 
 DEFAULT_URL = "http://127.0.0.1:8080"
 CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
@@ -111,10 +117,38 @@ def ingest(http: httpx.Client, args: argparse.Namespace) -> int:
     return 0
 
 
+def _transitions(wf: dict[str, Any], seen: dict[str, str], started: float) -> None:
+    steps = wf.get("steps", [])
+    for i, st in enumerate(steps, 1):
+        state = (
+            f"{st['status']} attempt {st['attempts']}"
+            if st["status"] in ("RUNNING", "PENDING") and st["attempts"]
+            else st["status"]
+        )
+        if seen.get(st["id"]) != state and (state != "PENDING" or st["id"] in seen):
+            print(
+                f"[{time.monotonic() - started:5.0f}s] step {i}/{len(steps)} {st['skill']} ({st['agent']}): {state}",
+                file=sys.stderr,
+            )
+        seen[st["id"]] = state
+        text = (st.get("activity") or {}).get("text", "") if st["status"] == "RUNNING" else ""
+        if text and seen.get(st["id"] + "#activity") != text:
+            print(f"[{time.monotonic() - started:5.0f}s] step {i}/{len(steps)} {st['skill']}: {text}", file=sys.stderr)
+        seen[st["id"] + "#activity"] = text
+    if seen.get("") != wf["status"]:
+        print(f"[{time.monotonic() - started:5.0f}s] workflow {wf['status']}", file=sys.stderr)
+        seen[""] = wf["status"]
+
+
 def workflows(http: httpx.Client, args: argparse.Namespace) -> int:
     if args.wait:
-        deadline = time.monotonic() + args.timeout
-        while (wf := _ok(http.get(f"/v1/workflows/{args.wait}")).json())["status"] not in DONE:
+        started = time.monotonic()
+        deadline, seen = started + args.timeout, {}
+        while True:
+            wf = _ok(http.get(f"/v1/workflows/{args.wait}")).json()
+            _transitions(wf, seen, started)
+            if wf["status"] in DONE:
+                break
             if time.monotonic() > deadline:
                 raise SystemExit(f"sandman: timeout waiting for {args.wait} (status {wf['status']})")
             time.sleep(args.poll)
@@ -127,8 +161,84 @@ def workflows(http: httpx.Client, args: argparse.Namespace) -> int:
 
 
 def export(http: httpx.Client, args: argparse.Namespace) -> int:
+    if args.format in FORMATS:
+        if args.what != "tracelinks":
+            raise SystemExit(f"sandman: format {args.format} exists for tracelinks only")
+        rows = fetch_rows(
+            lambda body: _ok(http.post("/v1/query/cypher", json=body)).json(), args.project, args.approach
+        )
+        sys.stdout.write(write_links(args.format, rows_to_links(args.format, rows, args.code_root)))
+        return 0
     params = {"format": args.format} if args.format else {}
     sys.stdout.write(_ok(http.get(f"/v1/projects/{args.project}/export/{args.what}", params=params)).text)
+    return 0
+
+
+def eval_compare(args: argparse.Namespace) -> int:
+    fmt = args.format
+    report = compare(
+        read_file(fmt, args.gold),
+        read_file(fmt, args.a),
+        {str(p): read_file(fmt, p) for p in args.b},
+        args.published,
+        args.resamples,
+        args.seed,
+    )
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def eval_equal(args: argparse.Namespace) -> int:
+    result = identical(read_file(args.format, args.expected), read_file(args.format, args.actual))
+    print(json.dumps(result, indent=2))
+    return 0 if result["equal"] else 1
+
+
+def eval_pilot(args: argparse.Namespace) -> int:
+    runs = args.f1
+    sd = statistics.stdev(runs)
+    n, capped = stats.runs_needed(sd, len(runs), args.half_width)
+    print(json.dumps({"pilotRuns": len(runs), "mean": statistics.fmean(runs), "sd": sd, "runs": n, "capped": capped}))
+    return 0
+
+
+def eval_contamination(args: argparse.Namespace) -> int:
+    print(json.dumps(stats.contamination_verdict(args.original, args.perturbed), indent=2))
+    return 0
+
+
+def eval_perturb(args: argparse.Namespace) -> int:
+    names = [n.strip() for n in args.names.read_text(encoding="utf-8").splitlines() if n.strip()]
+    mapping = build_mapping(names, args.seed)
+    args.out.mkdir(parents=True, exist_ok=True)
+    for path in args.paths:
+        (args.out / path.name).write_text(rename(path.read_text(encoding="utf-8"), mapping), encoding="utf-8")
+    (args.out / "mapping.json").write_text(json.dumps(mapping, indent=2, sort_keys=True), encoding="utf-8")
+    return 0
+
+
+def eval_label_sample(args: argparse.Namespace) -> int:
+    findings = labeling.load_exports(p.read_text(encoding="utf-8") for p in args.export)
+    sheets, key = labeling.sample(findings, args.per_stratum, args.seed, args.detector or labeling.DETECTORS)
+    key["exports"] = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in args.export}
+    args.out.mkdir(parents=True, exist_ok=True)
+    for r, rows in sheets.items():
+        (args.out / f"rater-{r}.csv").write_text(labeling.write_sheet(rows), encoding="utf-8")
+    (args.out / "key.json").write_text(json.dumps(key, indent=2), encoding="utf-8")
+    print(json.dumps({"items": len(key["items"]), "strata": key["strata"]}, indent=2))
+    return 0
+
+
+def eval_label_score(args: argparse.Namespace) -> int:
+    key = json.loads(args.key.read_text(encoding="utf-8"))
+    try:
+        a, b = (labeling.read_sheet(p.read_text(encoding="utf-8"), key["items"]) for p in (args.a, args.b))
+        adj = args.adjudicated and labeling.read_sheet(args.adjudicated.read_text(encoding="utf-8"), key["items"], True)
+    except ValueError as e:
+        raise SystemExit(f"sandman: {e}") from e
+    if args.disagreements:
+        args.disagreements.write_text(labeling.disagreement_sheet(a, b), encoding="utf-8")
+    print(json.dumps(labeling.score(key, a, b, adj or None, args.resamples, args.seed), indent=2))
     return 0
 
 
@@ -154,14 +264,73 @@ def parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("export", parents=[common], help="export trace links or inconsistencies")
     s.add_argument("what", choices=["tracelinks", "inconsistencies"])
-    s.add_argument("--format", choices=["csv", "json"])
+    s.add_argument("--format", choices=["csv", "json", *FORMATS], help="benchmark formats: tracelinks only (T2.3)")
+    s.add_argument("--approach", help="benchmark formats: only links of this approach")
+    s.add_argument("--code-root", default="", help="ardoco-sad-code: path prefix removed from code paths")
     s.set_defaults(func=export)
+
+    s = sub.add_parser("eval", help="evaluation harness (experiments/PROTOCOL.md)")
+    ev = s.add_subparsers(required=True)
+    c = ev.add_parser("compare", help="metrics with CIs; differences, McNemar, Holm against other systems")
+    c.add_argument("--format", choices=list(FORMATS), required=True)
+    c.add_argument("--gold", type=Path, required=True)
+    c.add_argument("--a", type=Path, required=True, help="exported links of system A")
+    c.add_argument("--b", type=Path, action="append", default=[], help="exported links of another system (repeatable)")
+    c.add_argument("--published", type=float, help="published F1 of A: report delta with CI")
+    c.add_argument("--seed", type=int, default=stats.SEED)
+    c.add_argument("--resamples", type=int, default=stats.RESAMPLES)
+    c.set_defaults(func=eval_compare, offline=True)
+
+    e = ev.add_parser("equal", help="exact equality of two link sets (exit 1 if they differ)")
+    e.add_argument("--format", choices=list(FORMATS), required=True)
+    e.add_argument("--expected", type=Path, required=True)
+    e.add_argument("--actual", type=Path, required=True)
+    e.set_defaults(func=eval_equal, offline=True)
+
+    e = ev.add_parser("pilot", help="run count from pilot F1 values (protocol section 5)")
+    e.add_argument("--f1", type=float, action="append", required=True, help="F1 of one pilot run (repeat, at least 2)")
+    e.add_argument("--half-width", type=float, default=0.02)
+    e.set_defaults(func=eval_pilot, offline=True)
+
+    e = ev.add_parser("contamination", help="memorization verdict (protocol section 6)")
+    e.add_argument("--original", type=float, nargs="+", required=True)
+    e.add_argument("--perturbed", type=float, nargs="+", required=True)
+    e.set_defaults(func=eval_contamination, offline=True)
+
+    e = ev.add_parser("perturb", help="rename identifiers consistently in text files")
+    e.add_argument("--names", type=Path, required=True, help="file with one identifier per line")
+    e.add_argument("--out", type=Path, required=True)
+    e.add_argument("--seed", type=int, default=stats.SEED)
+    e.add_argument("paths", type=Path, nargs="+")
+    e.set_defaults(func=eval_perturb, offline=True)
+
+    e = ev.add_parser("label-sample", help="stratified blinded rater sheets from finding exports (T3.6)")
+    e.add_argument("--export", type=Path, action="append", required=True, help="export inconsistencies --format json")
+    e.add_argument("--detector", action="append", help=f"repeatable (default: {', '.join(labeling.DETECTORS)})")
+    e.add_argument("--per-stratum", type=int, default=30)
+    e.add_argument("--seed", type=int, default=stats.SEED)
+    e.add_argument("--out", type=Path, required=True, help="writes rater-a.csv, rater-b.csv, key.json")
+    e.set_defaults(func=eval_label_sample, offline=True)
+
+    e = ev.add_parser("label-score", help="kappa, disagreements and precision per stratum (T3.6)")
+    e.add_argument("--key", type=Path, required=True)
+    e.add_argument("--a", type=Path, required=True, help="labeled sheet of rater a")
+    e.add_argument("--b", type=Path, required=True, help="labeled sheet of rater b")
+    e.add_argument("--adjudicated", type=Path, help="filled disagreement sheet (item, label)")
+    e.add_argument("--disagreements", type=Path, help="write the adjudication sheet here")
+    e.add_argument("--seed", type=int, default=stats.SEED)
+    e.add_argument("--resamples", type=int, default=stats.RESAMPLES)
+    e.set_defaults(func=eval_label_score, offline=True)
+
+    nlquery.register(ev)
     return p
 
 
 def main(argv: Sequence[str] | None = None, transport: httpx.BaseTransport | None = None) -> int:
     p = parser()
     args = p.parse_args(argv)
+    if getattr(args, "offline", False):
+        return int(args.func(args))
     token = args.token_file.read_text().strip() if args.token_file else os.environ.get("SANDMAN_TOKEN", "")
     if not token:
         p.error("no token: set SANDMAN_TOKEN or pass --token-file")

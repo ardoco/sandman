@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-shadow</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
       <artifactId>sandman-tlr-approach-spi</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -24,6 +29,18 @@
       <groupId>io.github.ardoco</groupId>
       <artifactId>sandman-agent-lib-a2a</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-text</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-text</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.github.ardoco.tlr</groupId>

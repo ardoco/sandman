@@ -287,14 +287,16 @@ services:
       QUARKUS_OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}   # Quarkus ignores OTEL_*; check-env.sh rejects false without endpoint
       QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
+      SANDMAN_CORENLP_URL: http://corenlp-gateway:8080   # detector ardoco-id: only its own gateway token (T2.5)
+      SANDMAN_CORENLP_TOKEN_FILE: /run/secrets/corenlp_client_token_inconsistency-agent
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
     secrets: [memgraph_password, svc_tokens_verify, svc_token_inconsistency-agent, plugin_in_plugin-stubs,
-              llm_key_inconsistency, llm_key_inconsistency_local]
-    networks: [internal]
+              llm_key_inconsistency, llm_key_inconsistency_local, corenlp_client_token_inconsistency-agent]
+    networks: [internal, corenlp]               # corenlp: only to reach corenlp-gateway, no egress
     mem_limit: 5g
     depends_on:
       <<: *depends-core
@@ -314,6 +316,7 @@ services:
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
+      - ../experiments:/experiments:ro
       - ../data/logs:/logs
       - orchestrator-data:/data
     secrets: [memgraph_password, svc_tokens_verify, svc_token_orchestrator, llm_key_orchestrator]
@@ -341,6 +344,7 @@ services:
       SANDMAN_EXTRACTION_URL: http://extraction-agent:8000
       SANDMAN_INCONSISTENCY_URL: http://inconsistency-agent:8080
       SANDMAN_ORCHESTRATOR_URL: http://orchestrator:8000
+      SANDMAN_TLR_URL: http://tlr-agent:8080
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
@@ -530,7 +534,7 @@ networks:
   corenlp-local:
     internal: true          # corenlp-gateway <-> corenlp-provider only
   corenlp:
-    internal: true          # corenlp-gateway <-> its callers (tlr-agent, later inconsistency-agent) only
+    internal: true          # corenlp-gateway <-> its callers (tlr-agent, inconsistency-agent) only
 
 volumes:
   memgraph-data: {}
@@ -574,4 +578,4 @@ secrets:
   corenlp_credentials: { file: ./secrets/corenlp_credentials }              # remote mode, user:password; mounted only into corenlp-gateway
   corenlp_local_credentials: { file: ./secrets/corenlp_local_credentials }  # local mode, generated; corenlp-gateway and corenlp-provider
   corenlp_client_token_tlr-agent: { file: ./secrets/corenlp_client_token_tlr-agent }                    # caller token: corenlp-gateway and tlr-agent
-  corenlp_client_token_inconsistency-agent: { file: ./secrets/corenlp_client_token_inconsistency-agent }  # corenlp-gateway; mounted into inconsistency-agent when T3.1 uses CoreNLP
+  corenlp_client_token_inconsistency-agent: { file: ./secrets/corenlp_client_token_inconsistency-agent }  # caller token: corenlp-gateway and inconsistency-agent

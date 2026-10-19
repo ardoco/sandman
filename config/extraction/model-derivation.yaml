@@ -1,0 +1,6 @@
+# Derived architecture models, ExArch port (T2.7). The route comes from the project's llmPolicy: chat-default (cloud-allowed) or chat-local (local-only).
+maxInputChars: 120000         # a longer document text is skipped with a warning; the text is never cut
+maxTokens: 1024               # per LLM response
+seed: 42
+maxComponents: 100            # names after this count are dropped with a warning
+maxNameLength: 80             # longer names are dropped with a warning

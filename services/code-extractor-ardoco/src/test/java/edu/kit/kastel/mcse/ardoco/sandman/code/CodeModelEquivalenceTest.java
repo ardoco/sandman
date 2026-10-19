@@ -108,14 +108,19 @@ class CodeModelEquivalenceTest {
         for (String[] spec : new String[][] {
             {"teastore", "teastore-code-model", ""},
             {"teastore", "teastore-code-model-noimage", "services/tools.descartes.teastore.image/"},
-            {"mediastore", "mediastore-code-model", ""}
+            {"mediastore", "mediastore-code-model", ""},
+            {"teammates", "teammates-code-model", ""},
+            {"bigbluebutton", "bigbluebutton-code-model", "", "no-media"},
+            {"jabref", "jabref-code-model", "", "no-media"}
         }) {
             Path dir = BenchmarkCode.unpack(spec[0], tmp.resolve(spec[1]));
             ObjectNode request = JSON.createObjectNode();
             request.put("projectId", spec[0]);
             var current = request.putArray("currentArtifacts");
             for (String p : regularFiles(dir)) {
-                if (spec[2].isEmpty() || !p.startsWith(spec[2])) {
+                boolean media = spec.length > 3
+                        && p.matches("(?i).*\\.(flv|wav|mp[34]|ogg|webm|swf|gif|png|jpe?g|ico|sketch|pdf|zip|jar)$");
+                if ((spec[2].isEmpty() || !p.startsWith(spec[2])) && !media) {
                     current.addObject()
                             .put("path", p)
                             .put("storagePath", dir.resolve(p).toString());

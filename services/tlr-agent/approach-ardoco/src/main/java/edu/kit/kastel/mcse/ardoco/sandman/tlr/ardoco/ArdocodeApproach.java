@@ -17,6 +17,10 @@ import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
 import edu.kit.kastel.mcse.ardoco.core.data.DataRepository;
 import edu.kit.kastel.mcse.ardoco.core.execution.Ardoco;
 import edu.kit.kastel.mcse.ardoco.core.execution.runner.ArdocoRunner;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpUnavailableException;
+import edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.CandidateLink;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.KindPair;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.ScopeMode;
@@ -37,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicLong;
 import org.eclipse.collections.api.factory.SortedMaps;
 
 /**
@@ -58,8 +64,31 @@ public final class ArdocodeApproach implements TraceLinkApproach {
     /** Raise the +aN suffix when the mapping of ArDoCo results to links changes. */
     public static final String VERSION = "2.1.0+a1";
 
+    /**
+     * Links of a document as (sentence number, path) by CoreNLP identity, ACM hash and the sentences. ArDoCo is
+     * deterministic for these inputs (T2.1b), so a document that no change touched skips its run in the next call.
+     * Bounded LRU per JVM; a restart or a second replica starts empty.
+     */
+    private static final Map<String, List<Map.Entry<Integer, String>>> CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, List<Map.Entry<Integer, String>>> eldest) {
+                    return size() > 1024;
+                }
+            });
+
+    private static final AtomicLong RUNS = new AtomicLong();
+
     private final CorenlpClient corenlp;
     private final CodeModelClient codeModel;
+
+    static long runs() {
+        return RUNS.get();
+    }
+
+    static void clearCache() {
+        CACHE.clear();
+    }
 
     /** ServiceLoader entry: settings from the environment, read when the first run needs them. */
     public ArdocodeApproach() {
@@ -116,6 +145,14 @@ public final class ArdocodeApproach implements TraceLinkApproach {
 
     @Override
     public String environment(TlrContext ctx) {
+        try {
+            return environmentUnwrapped(ctx);
+        } catch (CorenlpUnavailableException e) {
+            throw new ApproachUnavailableException(e.getMessage(), e);
+        }
+    }
+
+    private String environmentUnwrapped(TlrContext ctx) {
         String provider = corenlp().provider(ctx.cancelled()).identity();
         try (CodeModelClient client = codeModel()) {
             return provider + ";codeModel=" + client.identity();
@@ -124,6 +161,14 @@ public final class ArdocodeApproach implements TraceLinkApproach {
 
     @Override
     public List<CandidateLink> recover(TlrInput in, TlrContext ctx) {
+        try {
+            return recoverUnwrapped(in, ctx);
+        } catch (CorenlpUnavailableException e) {
+            throw new ApproachUnavailableException(e.getMessage(), e);
+        }
+    }
+
+    private List<CandidateLink> recoverUnwrapped(TlrInput in, TlrContext ctx) {
         List<TlrInput.Version> docs = in.versions().stream()
                 .filter(v -> "architecture-doc".equals(v.kind()))
                 .sorted(Comparator.comparing(TlrInput.Version::id))
@@ -150,7 +195,7 @@ public final class ArdocodeApproach implements TraceLinkApproach {
         Path dir = null;
         try {
             dir = Files.createTempDirectory("ardocode-");
-            Path acmFile = null;
+            Acm acm = null;
             for (TlrInput.Version doc : docs) {
                 List<TlrInput.Element> sentences = SentenceRendering.sentences(in.sources(), doc.id());
                 if (sentences.isEmpty()) {
@@ -160,17 +205,27 @@ public final class ArdocodeApproach implements TraceLinkApproach {
                 if (ctx.cancelled().getAsBoolean()) {
                     throw new CancellationException("cancelled");
                 }
-                if (acmFile == null) {
-                    acmFile = fetchAcm(in, code, ctx, dir);
+                if (acm == null) {
+                    acm = fetchAcm(codeModel, in, code, ctx, dir);
                 }
                 SentenceRendering.assertHashes(sentences);
                 if (provider == null) {
                     provider = annotator.provider(ctx.cancelled());
                     ctx.log().info("ardocode: CoreNLP {}", provider.identity());
                 }
-                Text annotated = TextCache.annotate(annotator, provider, SentenceRendering.lines(sentences), ctx);
-                run(ctx, dir, acmFile, sentences, annotated, files)
-                        .forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));
+                String key = Ids.sha256Hex(String.join(
+                        "\0", provider.identity(), acm.sha(), String.join("\n", SentenceRendering.lines(sentences))));
+                List<Map.Entry<Integer, String>> pairs = CACHE.get(key);
+                if (pairs == null) {
+                    ctx.progress().accept("ardocode: annotating " + sentences.size() + " sentences with CoreNLP");
+                    Text annotated = TextCache.annotate(annotator, provider, SentenceRendering.lines(sentences), ctx);
+                    pairs = run(ctx, dir, acm.file(), sentences, annotated);
+                    CACHE.put(key, pairs);
+                } else {
+                    ctx.log()
+                            .info("ardocode: document version {} unchanged since a former run, links reused", doc.id());
+                }
+                toLinks(pairs, sentences, files).forEach(l -> links.put(l.sourceId() + ">" + l.targetId(), l));
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -182,18 +237,21 @@ public final class ArdocodeApproach implements TraceLinkApproach {
         return new ArrayList<>(links.values());
     }
 
-    private Path fetchAcm(TlrInput in, List<TlrInput.Version> code, TlrContext ctx, Path dir) throws IOException {
+    record Acm(Path file, String sha) {}
+
+    static Acm fetchAcm(CodeModelClient injected, TlrInput in, List<TlrInput.Version> code, TlrContext ctx, Path dir)
+            throws IOException {
         List<CodeModelClient.File> request = code.stream()
                 .map(v -> new CodeModelClient.File(
                         v.path(), ctx.artifacts().pathFor(v.storageUri()).toString()))
                 .toList();
         long start = System.nanoTime();
-        CodeModelClient plugin = codeModel();
+        CodeModelClient plugin = injected != null ? injected : CodeModelClient.fromEnv();
         tools.jackson.databind.JsonNode acm;
         try {
             acm = plugin.acm(in.projectId(), request, ctx.cancelled());
         } finally {
-            if (codeModel == null) {
+            if (injected == null) {
                 plugin.close(); // created from the environment for this call
             }
         }
@@ -206,22 +264,18 @@ public final class ArdocodeApproach implements TraceLinkApproach {
                         Files.size(file),
                         sha,
                         (System.nanoTime() - start) / 1_000_000);
-        return file;
+        return new Acm(file, sha);
     }
 
-    private List<CandidateLink> run(
-            TlrContext ctx,
-            Path dir,
-            Path acmFile,
-            List<TlrInput.Element> sentences,
-            Text annotated,
-            Map<String, TlrInput.Element> files)
+    private List<Map.Entry<Integer, String>> run(
+            TlrContext ctx, Path dir, Path acmFile, List<TlrInput.Element> sentences, Text annotated)
             throws IOException {
         Path run = Files.createTempDirectory(dir, "run-");
         Path textFile = run.resolve("text.txt");
         Files.writeString(textFile, SentenceRendering.text(SentenceRendering.lines(sentences)), StandardCharsets.UTF_8);
         ArdocoRuns.acquire(ctx);
         try {
+            RUNS.incrementAndGet();
             long start = System.nanoTime();
             ArdocoRuns.resetHeapPeak();
             var runner = new SadCodeRunner();
@@ -238,15 +292,14 @@ public final class ArdocodeApproach implements TraceLinkApproach {
                         Map.entry(tl.getFirstEndpoint().getSentence().getSentenceNumber(), pathOf((CodeCompilationUnit)
                                 tl.getSecondEndpoint())));
             }
-            List<CandidateLink> links = toLinks(pairs, sentences, files);
             ctx.log()
                     .info(
                             "ardocode run: {} sentences, {} links, {} ms, peak heap {} MiB",
                             sentences.size(),
-                            links.size(),
+                            pairs.size(),
                             (System.nanoTime() - start) / 1_000_000,
                             ArdocoRuns.peakHeapMiB());
-            return links;
+            return pairs;
         } finally {
             ArdocoRuns.LOCK.unlock();
         }

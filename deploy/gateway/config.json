@@ -458,9 +458,9 @@
       },
       {
         "id": "rl-heavy",
-        "request_max_limit": 300,
+        "request_max_limit": 1000,
         "request_reset_duration": "1m",
-        "token_max_limit": 2000000,
+        "token_max_limit": 100000000,
         "token_reset_duration": "1h"
       }
     ]

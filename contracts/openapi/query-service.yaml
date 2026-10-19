@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN query-service API (user and agent entry point)
-  version: 0.7.0
+  version: 0.9.0
   description: |
     The only user-facing API. Authenticates users (session cookie or personal API token) and services
     (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor only; roles are checked here and never forwarded (ADR-0013).
@@ -366,6 +366,7 @@ paths:
                 to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
                 expectedStatus: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
                 reason: { type: string, maxLength: 2000 }
+                cause: { $ref: "../common.schema.json#/$defs/TriageCause" }
               additionalProperties: false
       responses:
         "200":
@@ -376,7 +377,7 @@ paths:
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "409": { $ref: "shared.yaml#/components/responses/Conflict" }
         "422":
-          description: Transition not allowed
+          description: Transition not allowed, reason missing, or cause given for a transition to OPEN
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
@@ -528,7 +529,13 @@ paths:
                     description: rows are present unless mode is cypher-only (the Cypher is then returned without execution). cypher and params are present only for strategy cypher and for Cypher run by explore.
                     required: [strategy, attempts, warnings]
                     properties:
-                      answer: { type: string }
+                      answer:
+                        description: Short synthesized answer. Citations are written [[id]]. Absent when synthesis is not possible; a warning then says why.
+                        type: string
+                      citations:
+                        description: Ids cited in answer. Each is a string value of a returned row or an evidence key (R-032).
+                        type: array
+                        items: { type: string }
                       strategy:
                         description: Strategy that produced the answer (the resolved one when the request said auto).
                         enum: [cypher, graphrag, explore]
@@ -581,7 +588,57 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "409":
+          description: Strategy graphrag needs element embeddings and the project has none
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
         "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
+  /v1/projects/{projectId}/links/{linkId}/review:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+      - name: linkId
+        in: path
+        required: true
+        schema: { $ref: "../common.schema.json#/$defs/StableId" }
+    post:
+      summary: Forwarded to tlr-agent reviewLink with the actor; the link must belong to the project
+      operationId: reviewTraceLink
+      x-sandman-min-role: triager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { enum: [confirmed, rejected, candidate] }
+                reason: { type: string, maxLength: 2000 }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Link and all active links of its element pair updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status, reviewedLinkIds]
+                properties:
+                  id: { $ref: "../common.schema.json#/$defs/StableId" }
+                  status: { $ref: "../common.schema.json#/$defs/LinkStatus" }
+                  reviewedLinkIds: { type: array, items: { $ref: "../common.schema.json#/$defs/StableId" } }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+        "422":
+          description: Reject without reason
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
   /v1/projects/{projectId}/export/tracelinks:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"
@@ -604,7 +661,7 @@ paths:
           schema: { type: boolean, default: false }
       responses:
         "200":
-          description: Links (CSV columns source_key,target_key,link_type,approach,approach_version,confidence,status,run_id)
+          description: Links (CSV columns source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason; JSON members reviewedBy, reviewedAt, reviewReason are optional; benchmark formats are unchanged)
           content:
             text/csv:
               schema: { type: string }
@@ -623,11 +680,14 @@ paths:
                     confidence: { type: number }
                     status: { $ref: "../common.schema.json#/$defs/LinkStatus" }
                     runId: { $ref: "../common.schema.json#/$defs/RunId" }
+                    reviewedBy: { $ref: "../common.schema.json#/$defs/Actor" }
+                    reviewedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+                    reviewReason: { type: string }
   /v1/projects/{projectId}/export/inconsistencies:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"
     get:
-      summary: Export inconsistencies with status history
+      summary: Export inconsistencies with status history (CSV column cause = cause of the latest history entry that has one)
       operationId: exportInconsistencies
       x-sandman-min-role: viewer
       parameters:

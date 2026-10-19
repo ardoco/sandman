@@ -13,10 +13,14 @@
   <modules>
     <module>libs/java/agent-lib</module>
     <module>libs/java/agent-lib-a2a</module>
+    <module>libs/java/ardoco-text</module>
+    <module>libs/java/ardoco-shadow</module>
     <module>services/tlr-agent/approach-spi</module>
     <module>services/tlr-agent/approach-ardoco</module>
     <module>services/tlr-agent/approach-lissa</module>
     <module>services/tlr-agent</module>
+    <module>services/inconsistency-agent/detector-spi</module>
+    <module>services/inconsistency-agent/detector-ardoco</module>
     <module>services/inconsistency-agent</module>
     <module>services/code-extractor-ardoco</module>
   </modules>

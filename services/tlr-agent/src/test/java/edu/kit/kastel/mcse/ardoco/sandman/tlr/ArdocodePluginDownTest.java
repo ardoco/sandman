@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.KgClient;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.A2aClient;
-import edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.CorenlpProvider;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpProvider;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;

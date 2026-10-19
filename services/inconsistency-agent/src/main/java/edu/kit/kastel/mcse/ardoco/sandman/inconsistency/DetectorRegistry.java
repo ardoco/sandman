@@ -13,13 +13,16 @@ import java.util.ServiceLoader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Enabled detectors: ServiceLoader detectors switched on and HTTP plugins registered in config/inconsistency/plugins.yaml. */
 public final class DetectorRegistry {
 
+    private static final JsonMapper JSON = JsonMapper.shared();
     private static final Pattern DURATION = Pattern.compile("(\\d+)(ms|s|m|h)");
 
     private final Map<String, InconsistencyDetector> detectors = new LinkedHashMap<>();
+    private final Map<String, Map<String, Object>> params = new LinkedHashMap<>();
 
     public DetectorRegistry(List<InconsistencyDetector> enabled) {
         enabled.forEach(d -> detectors.put(d.id(), d));
@@ -31,12 +34,23 @@ public final class DetectorRegistry {
         Map<String, InconsistencyDetector> available = new LinkedHashMap<>();
         ServiceLoader.load(InconsistencyDetector.class).forEach(d -> available.put(d.id(), d));
         List<InconsistencyDetector> enabled = new java.util.ArrayList<>();
+        Map<String, Map<String, Object>> params = new LinkedHashMap<>();
         config.path("detectors").properties().forEach(e -> {
             if (e.getValue().path("enabled").asBoolean(false)) {
                 InconsistencyDetector d = available.get(e.getKey());
                 if (d == null) {
                     throw new ConfigException("unknown detector '" + e.getKey() + "' in " + pluginsYaml);
                 }
+                JsonNode given = e.getValue().path("params");
+                Map<String, Object> values = new LinkedHashMap<>();
+                given.properties().forEach(p -> {
+                    if (!d.paramKeys().contains(p.getKey())) {
+                        throw new ConfigException("detector '" + d.id() + "': unknown param '" + p.getKey() + "' in "
+                                + pluginsYaml + " (known: " + new java.util.TreeSet<>(d.paramKeys()) + ")");
+                    }
+                    values.put(p.getKey(), JSON.treeToValue(p.getValue(), Object.class));
+                });
+                params.put(d.id(), values);
                 enabled.add(d);
             }
         });
@@ -58,7 +72,9 @@ public final class DetectorRegistry {
                 throw new ConfigException("plugin '" + id + "': cannot read tokenFile: " + e, e);
             }
         }
-        return new DetectorRegistry(enabled);
+        DetectorRegistry registry = new DetectorRegistry(enabled);
+        registry.params.putAll(params);
+        return registry;
     }
 
     static Duration duration(String text) {
@@ -77,6 +93,10 @@ public final class DetectorRegistry {
 
     public List<InconsistencyDetector> all() {
         return List.copyOf(detectors.values());
+    }
+
+    public Map<String, Object> params(String id) {
+        return params.getOrDefault(id, Map.of());
     }
 
     public InconsistencyDetector get(String id) {

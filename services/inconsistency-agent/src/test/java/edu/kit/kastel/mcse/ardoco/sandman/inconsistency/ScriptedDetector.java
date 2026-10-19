@@ -10,6 +10,24 @@ final class ScriptedDetector implements InconsistencyDetector {
     volatile List<Finding> findings = List.of();
     volatile RuntimeException error;
     volatile Runnable onDetect = () -> {};
+    volatile ScopeMode mode = ScopeMode.PAIRWISE;
+    volatile String identity;
+    volatile DetectorContext seen;
+
+    @Override
+    public ScopeMode scopeMode() {
+        return mode;
+    }
+
+    @Override
+    public Set<String> paramKeys() {
+        return Set.of("p");
+    }
+
+    @Override
+    public String configIdentity(DetectorContext ctx) {
+        return identity;
+    }
 
     @Override
     public String id() {
@@ -28,6 +46,7 @@ final class ScriptedDetector implements InconsistencyDetector {
 
     @Override
     public List<Finding> detect(DetectionScope scope, DetectorContext ctx) {
+        seen = ctx;
         onDetect.run();
         if (error != null) {
             throw error;

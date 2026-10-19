@@ -1,0 +1,3575 @@
+{
+ "nl-bb-001": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    12
+   ]
+  ]
+ },
+ "nl-bb-002": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    12
+   ]
+  ]
+ },
+ "nl-bb-003": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Apps"
+   ],
+   [
+    "BBB web"
+   ],
+   [
+    "FSESL"
+   ],
+   [
+    "FreeSWITCH"
+   ],
+   [
+    "HTML5 Client"
+   ],
+   [
+    "HTML5 Server"
+   ],
+   [
+    "Presentation Conversion"
+   ],
+   [
+    "Recording Service"
+   ],
+   [
+    "Redis DB"
+   ],
+   [
+    "Redis PubSub"
+   ],
+   [
+    "WebRTC-SFU"
+   ],
+   [
+    "kurento"
+   ]
+  ]
+ },
+ "nl-bb-004": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Redis PubSub"
+   ]
+  ]
+ },
+ "nl-bb-005": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "WebRTC-SFU"
+   ],
+   [
+    "HTML5 Server"
+   ],
+   [
+    "Presentation Conversion"
+   ],
+   [
+    "BBB web"
+   ],
+   [
+    "FSESL"
+   ],
+   [
+    "Apps"
+   ]
+  ]
+ },
+ "nl-bb-006": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Apps"
+   ]
+  ]
+ },
+ "nl-bb-007": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Redis PubSub"
+   ],
+   [
+    "BBB web"
+   ]
+  ]
+ },
+ "nl-bb-008": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "FreeSWITCH"
+   ],
+   [
+    "Redis DB"
+   ],
+   [
+    "Redis PubSub"
+   ]
+  ]
+ },
+ "nl-bb-009": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Apps"
+   ],
+   [
+    "FSESL"
+   ],
+   [
+    "HTML5 Client"
+   ],
+   [
+    "Presentation Conversion"
+   ],
+   [
+    "Recording Service"
+   ],
+   [
+    "kurento"
+   ]
+  ]
+ },
+ "nl-bb-010": {
+  "columns": [
+   "client",
+   "provider"
+  ],
+  "rows": [
+   [
+    "Apps",
+    "Redis DB"
+   ],
+   [
+    "Apps",
+    "Redis PubSub"
+   ],
+   [
+    "BBB web",
+    "Redis PubSub"
+   ],
+   [
+    "FSESL",
+    "FreeSWITCH"
+   ],
+   [
+    "FSESL",
+    "Redis PubSub"
+   ],
+   [
+    "HTML5 Client",
+    "HTML5 Server"
+   ],
+   [
+    "HTML5 Server",
+    "Redis PubSub"
+   ],
+   [
+    "Presentation Conversion",
+    "BBB web"
+   ],
+   [
+    "Presentation Conversion",
+    "Redis PubSub"
+   ],
+   [
+    "Recording Service",
+    "Redis DB"
+   ],
+   [
+    "WebRTC-SFU",
+    "Redis PubSub"
+   ],
+   [
+    "kurento",
+    "WebRTC-SFU"
+   ]
+  ]
+ },
+ "nl-bb-011": {
+  "columns": [
+   "status",
+   "n"
+  ],
+  "rows": [
+   [
+    "candidate",
+    36
+   ],
+   [
+    "confirmed",
+    13
+   ]
+  ]
+ },
+ "nl-bb-012": {
+  "columns": [
+   "key",
+   "text"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/153db8771efa",
+    "We have extracted out the component that integrates with FreeSWITCH into it’s own application."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/3cb57c108a27",
+    "FreeSWITCH."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/430f7c290875",
+    "This allows others who are using voice conference systems other than FreeSWITCH to easily create their own integration."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032",
+    "Communication between apps and FreeSWITCH Event Socket Layer (fsels) uses messages through redis pubsub."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/c2e5e916e3ef",
+    "FreeSWITCH can also be integrated with VOIP providers so that users who are not able to join using the headset will be able to call in using their phone."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/d8c44f8b3293",
+    "We think FreeSWITCH is an amazing piece of software for handling audio."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e4d63cde1e6d",
+    "A user can join the voice conference (running in FreeSWITCH) from the BigBlueButton HTML5 client or through the phone."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/ed04ef7ba2e6",
+    "FreeSWITCH provides the voice conferencing capability in BigBlueButton."
+   ]
+  ]
+ },
+ "nl-bb-013": {
+  "columns": [
+   "key",
+   "text"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/3df542ac32c5",
+    "Frontends receive other DDP events including method calls to send events to akka-apps."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/6af1cf6f0a61",
+    "Below is a diagram of the different components of Apps Akka."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032",
+    "Communication between apps and FreeSWITCH Event Socket Layer (fsels) uses messages through redis pubsub."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/c18560e56cef",
+    "BigBlueButton Apps is the main application that pulls together the different applications to provide real-time collaboration in the meeting."
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/c2e7e8b84fc9",
+    "Apps akka."
+   ]
+  ]
+ },
+ "nl-bb-014": {
+  "columns": [
+   "key",
+   "name"
+  ],
+  "rows": [
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_kvWs4FkHEeyewPSmlgszyA",
+    "Recording Service"
+   ]
+  ]
+ },
+ "nl-bb-015": {
+  "columns": [
+   "id",
+   "type",
+   "severity",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_165e9fcbd5d8d8a197dd04a29d90c413",
+    "missing-model-element",
+    "info",
+    "Missing model element in sentence 45",
+    "OPEN"
+   ],
+   [
+    "inc_f53ae4ca8e4564cc9d3da082d8fec486",
+    "missing-model-element",
+    "info",
+    "Missing model element in sentence 75",
+    "OPEN"
+   ],
+   [
+    "inc_2ab20bef409832e4c09d5b693653aec7",
+    "missing-model-element",
+    "warning",
+    "Missing model element in sentence 55",
+    "OPEN"
+   ],
+   [
+    "inc_6e64dab3d0ab0149aa55328286e4150c",
+    "undocumented-model-element",
+    "warning",
+    "Undocumented model element: Recording Service",
+    "OPEN"
+   ],
+   [
+    "inc_a8e9ada2d26e1f15180dda63eccf4f30",
+    "missing-model-element",
+    "warning",
+    "Missing model element in sentence 35",
+    "REOPENED"
+   ]
+  ]
+ },
+ "nl-bb-016": {
+  "columns": [
+   "sourceKey",
+   "targetKey",
+   "linkType",
+   "approach",
+   "confidence",
+   "status"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/153db8771efa",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.65,
+    "candidate"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/3cb57c108a27",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.5,
+    "candidate"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/430f7c290875",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.5,
+    "candidate"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.65,
+    "candidate"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/c2e5e916e3ef",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.5,
+    "candidate"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/d8c44f8b3293",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.95,
+    "confirmed"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e4d63cde1e6d",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.8,
+    "candidate"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/ed04ef7ba2e6",
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q",
+    "documents",
+    "ardoco-sam",
+    0.8,
+    "candidate"
+   ]
+  ]
+ },
+ "nl-bb-017": {
+  "columns": [
+   "seq",
+   "revision",
+   "path",
+   "versionId"
+  ],
+  "rows": [
+   [
+    2,
+    "v2",
+    "benchmark/bigbluebutton/bigbluebutton.txt",
+    "ver_6b1f134affa9117f3cd330d7cd0bf322"
+   ],
+   [
+    2,
+    "v2",
+    "benchmark/bigbluebutton/pcm/bbb.repository",
+    "ver_4a9dca8be31c6fe73fb090ef1ac1026c"
+   ]
+  ]
+ },
+ "nl-bb-018": {
+  "columns": [
+   "type",
+   "n"
+  ],
+  "rows": [
+   [
+    "missing-model-element",
+    9
+   ],
+   [
+    "undocumented-model-element",
+    1
+   ]
+  ]
+ },
+ "nl-bb-019": {
+  "columns": [
+   "severity",
+   "n"
+  ],
+  "rows": [
+   [
+    "info",
+    3
+   ],
+   [
+    "warning",
+    7
+   ]
+  ]
+ },
+ "nl-bb-020": {
+  "columns": [
+   "detector",
+   "n"
+  ],
+  "rows": [
+   [
+    "ardoco-id",
+    7
+   ],
+   [
+    "artemis-id",
+    3
+   ]
+  ]
+ },
+ "nl-bb-021": {
+  "columns": [
+   "status",
+   "n"
+  ],
+  "rows": [
+   [
+    "ACCEPTED",
+    2
+   ],
+   [
+    "DEFERRED",
+    1
+   ],
+   [
+    "OPEN",
+    4
+   ],
+   [
+    "REJECTED",
+    1
+   ],
+   [
+    "REOPENED",
+    1
+   ],
+   [
+    "RESOLVED",
+    1
+   ]
+  ]
+ },
+ "nl-bb-022": {
+  "columns": [
+   "title"
+  ],
+  "rows": [
+   [
+    "Missing model element in sentence 40"
+   ]
+  ]
+ },
+ "nl-bb-023": {
+  "columns": [
+   "averageConfidence"
+  ],
+  "rows": [
+   [
+    0.7295918367346939
+   ]
+  ]
+ },
+ "nl-bb-024": {
+  "columns": [
+   "sentence",
+   "component"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/03d849a9594b",
+    "Redis DB"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/09f89a187333",
+    "HTML5 Server"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/0da418629f01",
+    "WebRTC-SFU"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/0da418629f01",
+    "kurento"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/109148f71af0",
+    "Redis DB"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/13a5009df7bc",
+    "HTML5 Server"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/27780a79da68",
+    "Redis PubSub"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/382b4ebea4e9",
+    "WebRTC-SFU"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/3df542ac32c5",
+    "Apps"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/4249b3a292f5",
+    "HTML5 Server"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/6af1cf6f0a61",
+    "Apps"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/6b821cae46de",
+    "Presentation Conversion"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032",
+    "Apps"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032",
+    "Redis PubSub"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b05d31d56dec",
+    "HTML5 Server"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b606b3f24d2f",
+    "HTML5 Server"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b63306e45eb0",
+    "HTML5 Client"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/bee3e8c8407b",
+    "BBB web"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/c8e8a141a0c5",
+    "FSESL"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/cb3869e4897b",
+    "HTML5 Server"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/d8c44f8b3293",
+    "FreeSWITCH"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e4d63cde1e6d",
+    "FreeSWITCH"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e8676f073c69",
+    "WebRTC-SFU"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/eb9a03ec0a5c",
+    "HTML5 Client"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/ed04ef7ba2e6",
+    "FreeSWITCH"
+   ]
+  ]
+ },
+ "nl-bb-025": {
+  "columns": [
+   "path",
+   "kind"
+  ],
+  "rows": [
+   [
+    "benchmark/bigbluebutton/bigbluebutton.txt",
+    "architecture-doc"
+   ],
+   [
+    "benchmark/bigbluebutton/pcm/bbb.repository",
+    "architecture-model"
+   ]
+  ]
+ },
+ "nl-bb-026": {
+  "columns": [
+   "path",
+   "versions"
+  ],
+  "rows": [
+   [
+    "benchmark/bigbluebutton/bigbluebutton.txt",
+    2
+   ],
+   [
+    "benchmark/bigbluebutton/pcm/bbb.repository",
+    2
+   ]
+  ]
+ },
+ "nl-bb-027": {
+  "columns": [
+   "concept",
+   "mentions"
+  ],
+  "rows": [
+   [
+    "FreeSWITCH",
+    8
+   ],
+   [
+    "Apps",
+    5
+   ],
+   [
+    "HTML5 Client",
+    5
+   ],
+   [
+    "Redis PubSub",
+    4
+   ],
+   [
+    "HTML5 Server",
+    3
+   ],
+   [
+    "Presentation Conversion",
+    2
+   ],
+   [
+    "Redis DB",
+    2
+   ],
+   [
+    "WebRTC-SFU",
+    2
+   ],
+   [
+    "kurento",
+    2
+   ],
+   [
+    "BBB web",
+    1
+   ],
+   [
+    "FSESL",
+    1
+   ]
+  ]
+ },
+ "nl-bb-028": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/03d849a9594b"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/109148f71af0"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/1e4cd6cfbe4d"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/246e6077c2ea"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/27780a79da68"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e95628f6c861"
+   ]
+  ]
+ },
+ "nl-bb-029": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/26ba146c57c5"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/430f7c290875"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/bb817c21ce1e"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e4d63cde1e6d"
+   ]
+  ]
+ },
+ "nl-bb-030": {
+  "columns": [
+   "id",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_6e64dab3d0ab0149aa55328286e4150c",
+    "Undocumented model element: Recording Service",
+    "OPEN"
+   ]
+  ]
+ },
+ "nl-bb-031": {
+  "columns": [
+   "approach",
+   "version"
+  ],
+  "rows": [
+   [
+    "ardoco-sam",
+    "0.1.0"
+   ]
+  ]
+ },
+ "nl-bb-032": {
+  "columns": [
+   "agent"
+  ],
+  "rows": [
+   [
+    "extraction-agent"
+   ],
+   [
+    "inconsistency-agent"
+   ],
+   [
+    "tlr-agent"
+   ]
+  ]
+ },
+ "nl-bb-033": {
+  "columns": [
+   "kind",
+   "n"
+  ],
+  "rows": [
+   [
+    "component",
+    12
+   ],
+   [
+    "file",
+    2
+   ],
+   [
+    "interface",
+    12
+   ],
+   [
+    "section",
+    1
+   ],
+   [
+    "sentence",
+    87
+   ]
+  ]
+ },
+ "nl-bb-034": {
+  "columns": [
+   "name",
+   "links"
+  ],
+  "rows": [
+   [
+    "HTML5 Server",
+    12
+   ]
+  ]
+ },
+ "nl-bb-035": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    46
+   ]
+  ]
+ },
+ "nl-bb-036": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    3
+   ]
+  ]
+ },
+ "nl-bb-037": {
+  "columns": [
+   "name",
+   "n"
+  ],
+  "rows": [
+   [
+    "Apps",
+    1
+   ],
+   [
+    "FreeSWITCH",
+    1
+   ],
+   [
+    "HTML5 Client",
+    1
+   ],
+   [
+    "HTML5 Server",
+    4
+   ],
+   [
+    "Presentation Conversion",
+    1
+   ],
+   [
+    "Redis DB",
+    1
+   ],
+   [
+    "Redis PubSub",
+    1
+   ],
+   [
+    "WebRTC-SFU",
+    2
+   ],
+   [
+    "kurento",
+    1
+   ]
+  ]
+ },
+ "nl-bb-038": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    87
+   ]
+  ]
+ },
+ "nl-bb-039": {
+  "columns": [
+   "name",
+   "clients"
+  ],
+  "rows": [
+   [
+    "Redis DB",
+    2
+   ],
+   [
+    "Redis PubSub",
+    6
+   ]
+  ]
+ },
+ "nl-bb-040": {
+  "columns": [
+   "name",
+   "lowest"
+  ],
+  "rows": [
+   [
+    "FSESL",
+    0.8
+   ],
+   [
+    "Redis DB",
+    0.8
+   ]
+  ]
+ },
+ "nl-bb-041": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/ac98db064f69"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/27780a79da68"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/bee3e8c8407b"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/dcb5289e8fe0"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e95628f6c861"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032"
+   ]
+  ]
+ },
+ "nl-bb-042": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/03d849a9594b"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/27780a79da68"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/109148f71af0"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e95628f6c861"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032"
+   ]
+  ]
+ },
+ "nl-bb-043": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/13a5009df7bc"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/09f89a187333"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b50d0aa9b540"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/96a77fca0157"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/359113c1a0e4"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/4249b3a292f5"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b05d31d56dec"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b606b3f24d2f"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/3ab24c3ebd9f"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/04247eca0e20"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/a7e94cce33ea"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/cb3869e4897b"
+   ]
+  ]
+ },
+ "nl-bb-044": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/382b4ebea4e9"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/b63306e45eb0"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/a7e94cce33ea"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/e8676f073c69"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/0da418629f01"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/a5b0666570f2"
+   ]
+  ]
+ },
+ "nl-bb-045": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_6sergFkHEeyewPSmlgszyA"
+   ]
+  ]
+ },
+ "nl-bb-046": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/413d9e6ad509"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/49122ef0ee5e"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/86ace42073f7"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/98a6c0ec41aa"
+   ]
+  ]
+ },
+ "nl-bb-047": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032"
+   ]
+  ]
+ },
+ "nl-bb-048": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/03d849a9594b"
+   ],
+   [
+    "art_a1a500bf8a37c610983d9083f46482e2#sec:/90d7f67b2032"
+   ]
+  ]
+ },
+ "nl-bb-049": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_XuNf4FkJEeyewPSmlgszyA"
+   ],
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q"
+   ],
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_6sergFkHEeyewPSmlgszyA"
+   ]
+  ]
+ },
+ "nl-bb-050": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_nwrCMFwPEeyiuNx_RO7j-Q"
+   ],
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_XuNf4FkJEeyewPSmlgszyA"
+   ],
+   [
+    "art_6f4adffa98764fd6fd6cc83114284417#_6sergFkHEeyewPSmlgszyA"
+   ]
+  ]
+ },
+ "nl-ms-001": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    14
+   ]
+  ]
+ },
+ "nl-ms-002": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    9
+   ]
+  ]
+ },
+ "nl-ms-003": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "AudioWatermarking"
+   ],
+   [
+    "Cache"
+   ],
+   [
+    "DB"
+   ],
+   [
+    "DownloadLoadBalancer"
+   ],
+   [
+    "Facade"
+   ],
+   [
+    "FileStorage"
+   ],
+   [
+    "MediaAccess"
+   ],
+   [
+    "MediaManagement"
+   ],
+   [
+    "Packaging"
+   ],
+   [
+    "ParallelWatermarking"
+   ],
+   [
+    "Reencoding"
+   ],
+   [
+    "TagWatermarking"
+   ],
+   [
+    "UserDBAdapter"
+   ],
+   [
+    "UserManagement"
+   ]
+  ]
+ },
+ "nl-ms-004": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "MediaAccess"
+   ]
+  ]
+ },
+ "nl-ms-005": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "DB"
+   ]
+  ]
+ },
+ "nl-ms-006": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "MediaManagement"
+   ]
+  ]
+ },
+ "nl-ms-007": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Facade"
+   ]
+  ]
+ },
+ "nl-ms-008": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "IMediaAccess"
+   ],
+   [
+    "IDownload"
+   ]
+  ]
+ },
+ "nl-ms-009": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "IFacade"
+   ]
+  ]
+ },
+ "nl-ms-010": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "IDownload"
+   ],
+   [
+    "IPackaging"
+   ],
+   [
+    "IMediaAccess"
+   ]
+  ]
+ },
+ "nl-ms-011": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "IMediaManagement"
+   ],
+   [
+    "IUserManagement"
+   ]
+  ]
+ },
+ "nl-ms-012": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "DB"
+   ],
+   [
+    "FileStorage"
+   ],
+   [
+    "Packaging"
+   ]
+  ]
+ },
+ "nl-ms-013": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "IFacade"
+   ]
+  ]
+ },
+ "nl-ms-014": {
+  "columns": [
+   "client",
+   "provider"
+  ],
+  "rows": [
+   [
+    "AudioWatermarking",
+    "AudioWatermarking"
+   ],
+   [
+    "AudioWatermarking",
+    "Cache"
+   ],
+   [
+    "AudioWatermarking",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "AudioWatermarking",
+    "MediaAccess"
+   ],
+   [
+    "AudioWatermarking",
+    "ParallelWatermarking"
+   ],
+   [
+    "AudioWatermarking",
+    "Reencoding"
+   ],
+   [
+    "AudioWatermarking",
+    "TagWatermarking"
+   ],
+   [
+    "Cache",
+    "AudioWatermarking"
+   ],
+   [
+    "Cache",
+    "Cache"
+   ],
+   [
+    "Cache",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "Cache",
+    "MediaAccess"
+   ],
+   [
+    "Cache",
+    "ParallelWatermarking"
+   ],
+   [
+    "Cache",
+    "Reencoding"
+   ],
+   [
+    "Cache",
+    "TagWatermarking"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "AudioWatermarking"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "Cache"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "MediaAccess"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "ParallelWatermarking"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "Reencoding"
+   ],
+   [
+    "DownloadLoadBalancer",
+    "TagWatermarking"
+   ],
+   [
+    "Facade",
+    "MediaManagement"
+   ],
+   [
+    "Facade",
+    "UserManagement"
+   ],
+   [
+    "MediaAccess",
+    "DB"
+   ],
+   [
+    "MediaAccess",
+    "FileStorage"
+   ],
+   [
+    "MediaManagement",
+    "AudioWatermarking"
+   ],
+   [
+    "MediaManagement",
+    "Cache"
+   ],
+   [
+    "MediaManagement",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "MediaManagement",
+    "MediaAccess"
+   ],
+   [
+    "MediaManagement",
+    "MediaAccess"
+   ],
+   [
+    "MediaManagement",
+    "Packaging"
+   ],
+   [
+    "MediaManagement",
+    "ParallelWatermarking"
+   ],
+   [
+    "MediaManagement",
+    "Reencoding"
+   ],
+   [
+    "MediaManagement",
+    "TagWatermarking"
+   ],
+   [
+    "ParallelWatermarking",
+    "AudioWatermarking"
+   ],
+   [
+    "ParallelWatermarking",
+    "Cache"
+   ],
+   [
+    "ParallelWatermarking",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "ParallelWatermarking",
+    "MediaAccess"
+   ],
+   [
+    "ParallelWatermarking",
+    "ParallelWatermarking"
+   ],
+   [
+    "ParallelWatermarking",
+    "Reencoding"
+   ],
+   [
+    "ParallelWatermarking",
+    "TagWatermarking"
+   ],
+   [
+    "Reencoding",
+    "AudioWatermarking"
+   ],
+   [
+    "Reencoding",
+    "Cache"
+   ],
+   [
+    "Reencoding",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "Reencoding",
+    "MediaAccess"
+   ],
+   [
+    "Reencoding",
+    "ParallelWatermarking"
+   ],
+   [
+    "Reencoding",
+    "Reencoding"
+   ],
+   [
+    "Reencoding",
+    "TagWatermarking"
+   ],
+   [
+    "TagWatermarking",
+    "AudioWatermarking"
+   ],
+   [
+    "TagWatermarking",
+    "Cache"
+   ],
+   [
+    "TagWatermarking",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "TagWatermarking",
+    "MediaAccess"
+   ],
+   [
+    "TagWatermarking",
+    "ParallelWatermarking"
+   ],
+   [
+    "TagWatermarking",
+    "Reencoding"
+   ],
+   [
+    "TagWatermarking",
+    "TagWatermarking"
+   ],
+   [
+    "UserDBAdapter",
+    "DB"
+   ],
+   [
+    "UserManagement",
+    "UserDBAdapter"
+   ]
+  ]
+ },
+ "nl-ms-015": {
+  "columns": [
+   "status",
+   "n"
+  ],
+  "rows": [
+   [
+    "candidate",
+    13
+   ],
+   [
+    "confirmed",
+    5
+   ]
+  ]
+ },
+ "nl-ms-016": {
+  "columns": [
+   "key",
+   "text"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/6b96738aef3f",
+    "One of the main components of Media Store is a server-side web front end, namely the Facade component, which delivers websites to the users and provides session management."
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/7be7397118b9",
+    "In addition, users can browse, download, and upload audio files using the Facade component."
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/89d2d01ca27a",
+    "To this end, the Facade component delivers the corresponding registration and log-in pages to users."
+   ]
+  ]
+ },
+ "nl-ms-017": {
+  "columns": [
+   "key",
+   "text"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4",
+    "When a user uploads an audio file, the MediaAccess component stores it at the predefined location."
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4",
+    "When a user requests files to download, the MediaAccess component fetches the associated meta-data from the Database."
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40",
+    "The MediaAccess component encapsulates database access for meta-data of audio files."
+   ]
+  ]
+ },
+ "nl-ms-018": {
+  "columns": [
+   "key",
+   "name"
+  ],
+  "rows": [
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_5LN7MLg2EeSNPorBlo7x9g",
+    "DB"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw",
+    "DownloadLoadBalancer"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw",
+    "AudioWatermarking"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2",
+    "ParallelWatermarking"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g",
+    "Cache"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_qxAiILg7EeSNPorBlo7x9g",
+    "FileStorage"
+   ]
+  ]
+ },
+ "nl-ms-019": {
+  "columns": [
+   "id",
+   "type",
+   "severity",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_1954e3301703df12f338c60987b8c66d",
+    "missing-model-element",
+    "info",
+    "Missing model element in sentence 15",
+    "OPEN"
+   ],
+   [
+    "inc_4550a3b6ac66ba7c104ff590571c5d75",
+    "undocumented-model-element",
+    "info",
+    "Undocumented model element: ParallelWatermarking",
+    "OPEN"
+   ],
+   [
+    "inc_9a0be7f50a351df8efda4218514586e2",
+    "missing-model-element",
+    "info",
+    "Missing model element in sentence 35",
+    "REOPENED"
+   ],
+   [
+    "inc_570397a237bd5239e5e3c1f006725b97",
+    "undocumented-model-element",
+    "warning",
+    "Undocumented model element: AudioWatermarking",
+    "OPEN"
+   ],
+   [
+    "inc_ab2c3598b9486f59059b1b41862864ec",
+    "undocumented-model-element",
+    "warning",
+    "Undocumented model element: DownloadLoadBalancer",
+    "REOPENED"
+   ],
+   [
+    "inc_e71216d4aae9c58a329d0fa6775ad519",
+    "missing-model-element",
+    "warning",
+    "Missing model element in sentence 10",
+    "OPEN"
+   ]
+  ]
+ },
+ "nl-ms-020": {
+  "columns": [
+   "sourceKey",
+   "targetKey",
+   "linkType",
+   "approach",
+   "confidence",
+   "status"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/6b96738aef3f",
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_st2Y0HDrEeSqnN80MQ2uGw",
+    "documents",
+    "ardoco-sam",
+    0.95,
+    "confirmed"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/7be7397118b9",
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_st2Y0HDrEeSqnN80MQ2uGw",
+    "documents",
+    "ardoco-sam",
+    0.65,
+    "candidate"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/89d2d01ca27a",
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_st2Y0HDrEeSqnN80MQ2uGw",
+    "documents",
+    "ardoco-sam",
+    0.8,
+    "candidate"
+   ]
+  ]
+ },
+ "nl-ms-021": {
+  "columns": [
+   "seq",
+   "revision",
+   "path",
+   "versionId"
+  ],
+  "rows": [
+   [
+    2,
+    "v2",
+    "benchmark/mediastore/mediastore.txt",
+    "ver_113617f0ac9db88e208dea2e29fd05fa"
+   ],
+   [
+    2,
+    "v2",
+    "benchmark/mediastore/pcm/ms.repository",
+    "ver_abae693a222bd5a62a73f2a222fe8e36"
+   ]
+  ]
+ },
+ "nl-ms-022": {
+  "columns": [
+   "type",
+   "n"
+  ],
+  "rows": [
+   [
+    "missing-model-element",
+    6
+   ],
+   [
+    "undocumented-model-element",
+    6
+   ]
+  ]
+ },
+ "nl-ms-023": {
+  "columns": [
+   "severity",
+   "n"
+  ],
+  "rows": [
+   [
+    "info",
+    4
+   ],
+   [
+    "warning",
+    8
+   ]
+  ]
+ },
+ "nl-ms-024": {
+  "columns": [
+   "detector",
+   "n"
+  ],
+  "rows": [
+   [
+    "ardoco-id",
+    8
+   ],
+   [
+    "artemis-id",
+    4
+   ]
+  ]
+ },
+ "nl-ms-025": {
+  "columns": [
+   "status",
+   "n"
+  ],
+  "rows": [
+   [
+    "ACCEPTED",
+    2
+   ],
+   [
+    "DEFERRED",
+    1
+   ],
+   [
+    "OPEN",
+    4
+   ],
+   [
+    "REJECTED",
+    2
+   ],
+   [
+    "REOPENED",
+    2
+   ],
+   [
+    "RESOLVED",
+    1
+   ]
+  ]
+ },
+ "nl-ms-026": {
+  "columns": [
+   "title"
+  ],
+  "rows": [
+   [
+    "Missing model element in sentence 20"
+   ],
+   [
+    "Undocumented model element: Cache"
+   ]
+  ]
+ },
+ "nl-ms-027": {
+  "columns": [
+   "title"
+  ],
+  "rows": [
+   [
+    "Missing model element in sentence 5"
+   ]
+  ]
+ },
+ "nl-ms-028": {
+  "columns": [
+   "averageConfidence"
+  ],
+  "rows": [
+   [
+    0.7416666666666667
+   ]
+  ]
+ },
+ "nl-ms-029": {
+  "columns": [
+   "sentence",
+   "component"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/345135596777",
+    "UserManagement"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/4a3559cd849b",
+    "Reencoding"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/662f224283cc",
+    "MediaManagement"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/6b96738aef3f",
+    "Facade"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409",
+    "TagWatermarking"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/89d2d01ca27a",
+    "Facade"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/8d8f9f715dbe",
+    "TagWatermarking"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4",
+    "MediaAccess"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4",
+    "MediaAccess"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40",
+    "MediaAccess"
+   ]
+  ]
+ },
+ "nl-ms-030": {
+  "columns": [
+   "path",
+   "kind"
+  ],
+  "rows": [
+   [
+    "benchmark/mediastore/mediastore.txt",
+    "architecture-doc"
+   ],
+   [
+    "benchmark/mediastore/pcm/ms.repository",
+    "architecture-model"
+   ]
+  ]
+ },
+ "nl-ms-031": {
+  "columns": [
+   "path",
+   "versions"
+  ],
+  "rows": [
+   [
+    "benchmark/mediastore/mediastore.txt",
+    2
+   ],
+   [
+    "benchmark/mediastore/pcm/ms.repository",
+    2
+   ]
+  ]
+ },
+ "nl-ms-032": {
+  "columns": [
+   "concept",
+   "mentions"
+  ],
+  "rows": [
+   [
+    "DB",
+    3
+   ],
+   [
+    "Facade",
+    3
+   ],
+   [
+    "MediaAccess",
+    3
+   ],
+   [
+    "MediaManagement",
+    3
+   ],
+   [
+    "UserDBAdapter",
+    3
+   ],
+   [
+    "TagWatermarking",
+    2
+   ],
+   [
+    "UserManagement",
+    2
+   ],
+   [
+    "Packaging",
+    1
+   ]
+  ]
+ },
+ "nl-ms-033": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/8d8f9f715dbe"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/bd96d30ea9cf"
+   ]
+  ]
+ },
+ "nl-ms-034": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/3103c30e4aad"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/67a9f19b3442"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/6a50a05cd73f"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/83e46db25041"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/bad248bc600e"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/f583015f65d2"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ffd88b7e89eb"
+   ]
+  ]
+ },
+ "nl-ms-035": {
+  "columns": [
+   "id",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_602bb34736bb3a6f0372abb7eace5614",
+    "Undocumented model element: Cache",
+    "ACCEPTED"
+   ]
+  ]
+ },
+ "nl-ms-036": {
+  "columns": [
+   "id",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_b93376a492db47fbc46b4fdd7ebb0310",
+    "Undocumented model element: DB",
+    "REJECTED"
+   ]
+  ]
+ },
+ "nl-ms-037": {
+  "columns": [
+   "approach",
+   "version"
+  ],
+  "rows": [
+   [
+    "ardoco-sam",
+    "0.1.0"
+   ]
+  ]
+ },
+ "nl-ms-038": {
+  "columns": [
+   "agent"
+  ],
+  "rows": [
+   [
+    "extraction-agent"
+   ],
+   [
+    "inconsistency-agent"
+   ],
+   [
+    "tlr-agent"
+   ]
+  ]
+ },
+ "nl-ms-039": {
+  "columns": [
+   "kind",
+   "n"
+  ],
+  "rows": [
+   [
+    "component",
+    14
+   ],
+   [
+    "file",
+    2
+   ],
+   [
+    "interface",
+    9
+   ],
+   [
+    "section",
+    1
+   ],
+   [
+    "sentence",
+    37
+   ]
+  ]
+ },
+ "nl-ms-040": {
+  "columns": [
+   "name",
+   "links"
+  ],
+  "rows": [
+   [
+    "Facade",
+    3
+   ],
+   [
+    "MediaAccess",
+    3
+   ],
+   [
+    "UserDBAdapter",
+    3
+   ],
+   [
+    "MediaManagement",
+    3
+   ]
+  ]
+ },
+ "nl-ms-041": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    20
+   ]
+  ]
+ },
+ "nl-ms-042": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    3
+   ]
+  ]
+ },
+ "nl-ms-043": {
+  "columns": [
+   "name",
+   "n"
+  ],
+  "rows": [
+   [
+    "Facade",
+    1
+   ],
+   [
+    "MediaAccess",
+    2
+   ],
+   [
+    "MediaManagement",
+    1
+   ],
+   [
+    "TagWatermarking",
+    1
+   ]
+  ]
+ },
+ "nl-ms-044": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    37
+   ]
+  ]
+ },
+ "nl-ms-045": {
+  "columns": [
+   "name",
+   "clients"
+  ],
+  "rows": [
+   [
+    "AudioWatermarking",
+    7
+   ],
+   [
+    "Cache",
+    7
+   ],
+   [
+    "DB",
+    2
+   ],
+   [
+    "DownloadLoadBalancer",
+    7
+   ],
+   [
+    "MediaAccess",
+    7
+   ],
+   [
+    "ParallelWatermarking",
+    7
+   ],
+   [
+    "Reencoding",
+    7
+   ],
+   [
+    "TagWatermarking",
+    7
+   ]
+  ]
+ },
+ "nl-ms-046": {
+  "columns": [
+   "name",
+   "lowest"
+  ],
+  "rows": [
+   [
+    "MediaAccess",
+    0.8
+   ],
+   [
+    "Reencoding",
+    0.8
+   ],
+   [
+    "TagWatermarking",
+    0.8
+   ]
+  ]
+ },
+ "nl-ms-047": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/662f224283cc"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/90a5b8553a35"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/881ff586f490"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/345135596777"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/8d8f9f715dbe"
+   ]
+  ]
+ },
+ "nl-ms-048": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/69a0d5d47c5f"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/4a3559cd849b"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/8d8f9f715dbe"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40"
+   ]
+  ]
+ },
+ "nl-ms-049": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/c4941186bc40"
+   ]
+  ]
+ },
+ "nl-ms-050": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/7be7397118b9"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/6b96738aef3f"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/89d2d01ca27a"
+   ]
+  ]
+ },
+ "nl-ms-051": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_o10-YHDrEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_9eK7YHDrEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_h_QpkLhEEeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_B5geQHDsEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_tBjC0HDpEeSqnN80MQ2uGw"
+   ]
+  ]
+ },
+ "nl-ms-052": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_o10-YHDrEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_9eK7YHDrEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_h_QpkLhEEeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_5LN7MLg2EeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_qxAiILg7EeSNPorBlo7x9g"
+   ]
+  ]
+ },
+ "nl-ms-053": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/9085afc72527"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/02b31e4ddb20"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/0111c96228b3"
+   ]
+  ]
+ },
+ "nl-ms-054": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_5LN7MLg2EeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_j5vZQLhEEeSNPorBlo7x9g"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_Fslt8OXSEeSa__lJ2-JCxw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_S-lawHDqEeSqnN80MQ2uGw2"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_qxAiILg7EeSNPorBlo7x9g"
+   ]
+  ]
+ },
+ "nl-ms-055": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/662f224283cc"
+   ]
+  ]
+ },
+ "nl-ms-056": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/a20fedcec3f4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/ae0125406eb4"
+   ],
+   [
+    "art_e0cfd865c44da97bc2510bcd0839515d#sec:/74cb4d17b409"
+   ]
+  ]
+ },
+ "nl-ms-057": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_p_EeYHDrEeSqnN80MQ2uGw"
+   ],
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_h_QpkLhEEeSNPorBlo7x9g"
+   ]
+  ]
+ },
+ "nl-ms-058": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_02cec5c0afbe0f5567bf363381b5c60a#_tBjC0HDpEeSqnN80MQ2uGw"
+   ]
+  ]
+ },
+ "nl-ts-001": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    11
+   ]
+  ]
+ },
+ "nl-ts-002": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    8
+   ]
+  ]
+ },
+ "nl-ts-003": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Auth"
+   ],
+   [
+    "DummyRecommender"
+   ],
+   [
+    "ImageProvider"
+   ],
+   [
+    "OrderBasedRecommender"
+   ],
+   [
+    "Persistence"
+   ],
+   [
+    "PopularityBasedRecommender"
+   ],
+   [
+    "PreprocessedSlopeOneRecommender"
+   ],
+   [
+    "Recommender"
+   ],
+   [
+    "Registry"
+   ],
+   [
+    "SlopeOneRecommender"
+   ],
+   [
+    "WebUI"
+   ]
+  ]
+ },
+ "nl-ts-004": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Persistence"
+   ]
+  ]
+ },
+ "nl-ts-005": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "Registry"
+   ]
+  ]
+ },
+ "nl-ts-006": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "WebUI"
+   ],
+   [
+    "Auth"
+   ]
+  ]
+ },
+ "nl-ts-007": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "CartActions"
+   ],
+   [
+    "ProductActions"
+   ]
+  ]
+ },
+ "nl-ts-008": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "AuthCart"
+   ],
+   [
+    "Persistence"
+   ],
+   [
+    "Recommender"
+   ],
+   [
+    "ImageProvider"
+   ]
+  ]
+ },
+ "nl-ts-009": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "DummyRecommender"
+   ],
+   [
+    "ImageProvider"
+   ],
+   [
+    "OrderBasedRecommender"
+   ],
+   [
+    "Persistence"
+   ],
+   [
+    "PopularityBasedRecommender"
+   ],
+   [
+    "PreprocessedSlopeOneRecommender"
+   ],
+   [
+    "SlopeOneRecommender"
+   ]
+  ]
+ },
+ "nl-ts-010": {
+  "columns": [
+   "name"
+  ],
+  "rows": [
+   [
+    "CartActions"
+   ],
+   [
+    "ProductActions"
+   ]
+  ]
+ },
+ "nl-ts-011": {
+  "columns": [
+   "client",
+   "provider"
+  ],
+  "rows": [
+   [
+    "Auth",
+    "Registry"
+   ],
+   [
+    "Recommender",
+    "DummyRecommender"
+   ],
+   [
+    "Recommender",
+    "OrderBasedRecommender"
+   ],
+   [
+    "Recommender",
+    "PopularityBasedRecommender"
+   ],
+   [
+    "Recommender",
+    "PreprocessedSlopeOneRecommender"
+   ],
+   [
+    "Recommender",
+    "SlopeOneRecommender"
+   ],
+   [
+    "Registry",
+    "Auth"
+   ],
+   [
+    "Registry",
+    "ImageProvider"
+   ],
+   [
+    "Registry",
+    "Persistence"
+   ],
+   [
+    "Registry",
+    "Recommender"
+   ],
+   [
+    "WebUI",
+    "Registry"
+   ]
+  ]
+ },
+ "nl-ts-012": {
+  "columns": [
+   "status",
+   "n"
+  ],
+  "rows": [
+   [
+    "candidate",
+    15
+   ],
+   [
+    "confirmed",
+    5
+   ]
+  ]
+ },
+ "nl-ts-013": {
+  "columns": [
+   "key",
+   "text"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/1cbfa48ab34a",
+    "Service instances register themselves at the registry on startup."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/378589e43d84",
+    "By limiting it to a single registry instance, it enables easy configuration of multiple parallel TeaStores with minimal configuration overhead."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/4805c27f909a",
+    "Every running instance of the TeaStore uses one single registry."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61676d8d14df",
+    "The Registry provides information about how many service instances are online for each service and where they are located."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/b918d06dc87c",
+    "The TeaStore consists of 5 replicatable services and a single Registry instance."
+   ]
+  ]
+ },
+ "nl-ts-014": {
+  "columns": [
+   "key",
+   "text"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/0ba5b15ccd27",
+    "The WebUI provides the TeaStore front-end using Servlets in combination with JSP files."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2",
+    "The WebUI service retrieves images from the Image Provider."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544",
+    "The Image Provider delivers images to the WebUI as base64 encoded strings to embed them in the final HTML."
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e",
+    "Images (with few exceptions) are not provides by the WebUi, but are retrieved from the Image Provider service instead."
+   ]
+  ]
+ },
+ "nl-ts-015": {
+  "columns": [
+   "key",
+   "name"
+  ],
+  "rows": [
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_YkXeIDVgEeqPG_FgW3bi6Q",
+    "SlopeOneRecommender"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_iaElgKpwEeqHXcsU55mirw",
+    "PreprocessedSlopeOneRecommender"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_kgbngDVgEeqPG_FgW3bi6Q",
+    "OrderBasedRecommender"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_ouzFYDVgEeqPG_FgW3bi6Q",
+    "DummyRecommender"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_raxjcDVgEeqPG_FgW3bi6Q",
+    "PopularityBasedRecommender"
+   ]
+  ]
+ },
+ "nl-ts-016": {
+  "columns": [
+   "id",
+   "type",
+   "severity",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_0a4fd46e9a7af77c42c42fe121f499e6",
+    "missing-model-element",
+    "info",
+    "Missing model element in sentence 15",
+    "OPEN"
+   ],
+   [
+    "inc_39ecaddcf37b2eea18e59ba48dfe0f56",
+    "missing-model-element",
+    "info",
+    "Missing model element in sentence 35",
+    "OPEN"
+   ],
+   [
+    "inc_ac9187116d67cb0a1549e052a95b604b",
+    "undocumented-model-element",
+    "warning",
+    "Undocumented model element: DummyRecommender",
+    "OPEN"
+   ],
+   [
+    "inc_ba9554f8d6b1523e87f9a73a452255c6",
+    "undocumented-model-element",
+    "warning",
+    "Undocumented model element: PreprocessedSlopeOneRecommender",
+    "REOPENED"
+   ],
+   [
+    "inc_d9e13c580f7bc0702abe5cd537e6731d",
+    "missing-model-element",
+    "warning",
+    "Missing model element in sentence 30",
+    "OPEN"
+   ]
+  ]
+ },
+ "nl-ts-017": {
+  "columns": [
+   "sourceKey",
+   "targetKey",
+   "linkType",
+   "approach",
+   "confidence",
+   "status"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/1cbfa48ab34a",
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q",
+    "documents",
+    "ardoco-sam",
+    0.8,
+    "candidate"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/378589e43d84",
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q",
+    "documents",
+    "ardoco-sam",
+    0.5,
+    "candidate"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/4805c27f909a",
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q",
+    "documents",
+    "ardoco-sam",
+    0.65,
+    "candidate"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61676d8d14df",
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q",
+    "documents",
+    "ardoco-sam",
+    0.95,
+    "confirmed"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/b918d06dc87c",
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q",
+    "documents",
+    "ardoco-sam",
+    0.95,
+    "confirmed"
+   ]
+  ]
+ },
+ "nl-ts-018": {
+  "columns": [
+   "seq",
+   "revision",
+   "path",
+   "versionId"
+  ],
+  "rows": [
+   [
+    2,
+    "v2",
+    "benchmark/teastore/pcm/teastore.repository",
+    "ver_100dda64fae1e3f28b6f25e7973c3505"
+   ],
+   [
+    2,
+    "v2",
+    "benchmark/teastore/teastore.txt",
+    "ver_abb149b0cddb8fe0cc7b466f4439319e"
+   ]
+  ]
+ },
+ "nl-ts-019": {
+  "columns": [
+   "type",
+   "n"
+  ],
+  "rows": [
+   [
+    "missing-model-element",
+    5
+   ],
+   [
+    "undocumented-model-element",
+    5
+   ]
+  ]
+ },
+ "nl-ts-020": {
+  "columns": [
+   "severity",
+   "n"
+  ],
+  "rows": [
+   [
+    "info",
+    3
+   ],
+   [
+    "warning",
+    7
+   ]
+  ]
+ },
+ "nl-ts-021": {
+  "columns": [
+   "detector",
+   "n"
+  ],
+  "rows": [
+   [
+    "ardoco-id",
+    7
+   ],
+   [
+    "artemis-id",
+    3
+   ]
+  ]
+ },
+ "nl-ts-022": {
+  "columns": [
+   "status",
+   "n"
+  ],
+  "rows": [
+   [
+    "ACCEPTED",
+    2
+   ],
+   [
+    "DEFERRED",
+    1
+   ],
+   [
+    "OPEN",
+    4
+   ],
+   [
+    "REJECTED",
+    1
+   ],
+   [
+    "REOPENED",
+    1
+   ],
+   [
+    "RESOLVED",
+    1
+   ]
+  ]
+ },
+ "nl-ts-023": {
+  "columns": [
+   "title"
+  ],
+  "rows": [
+   [
+    "Undocumented model element: PopularityBasedRecommender"
+   ]
+  ]
+ },
+ "nl-ts-024": {
+  "columns": [
+   "averageConfidence"
+  ],
+  "rows": [
+   [
+    0.7250000000000001
+   ]
+  ]
+ },
+ "nl-ts-025": {
+  "columns": [
+   "sentence",
+   "component"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/1cbfa48ab34a",
+    "Registry"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2",
+    "WebUI"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61676d8d14df",
+    "Registry"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c",
+    "Persistence"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c",
+    "Recommender"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/7252e32a9fbf",
+    "Persistence"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544",
+    "WebUI"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e",
+    "ImageProvider"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/b918d06dc87c",
+    "Registry"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/edbbec2fc714",
+    "Auth"
+   ]
+  ]
+ },
+ "nl-ts-026": {
+  "columns": [
+   "path",
+   "kind"
+  ],
+  "rows": [
+   [
+    "benchmark/teastore/pcm/teastore.repository",
+    "architecture-model"
+   ],
+   [
+    "benchmark/teastore/teastore.txt",
+    "architecture-doc"
+   ]
+  ]
+ },
+ "nl-ts-027": {
+  "columns": [
+   "path",
+   "versions"
+  ],
+  "rows": [
+   [
+    "benchmark/teastore/pcm/teastore.repository",
+    2
+   ],
+   [
+    "benchmark/teastore/teastore.txt",
+    2
+   ]
+  ]
+ },
+ "nl-ts-028": {
+  "columns": [
+   "concept",
+   "mentions"
+  ],
+  "rows": [
+   [
+    "Registry",
+    5
+   ],
+   [
+    "WebUI",
+    4
+   ],
+   [
+    "Persistence",
+    3
+   ],
+   [
+    "Auth",
+    2
+   ],
+   [
+    "Recommender",
+    2
+   ]
+  ]
+ },
+ "nl-ts-029": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/368cfaeaea52"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/37223a1c5e39"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61859c8d0bb5"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/6765d487cf01"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/bc872ed322e4"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/c884dd055a0d"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/d1c23d32066b"
+   ]
+  ]
+ },
+ "nl-ts-030": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/1c6d1c4fb99a"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/4762105b0dbd"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/5ac435a670ac"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/f5ab17540faf"
+   ]
+  ]
+ },
+ "nl-ts-031": {
+  "columns": [
+   "id",
+   "title",
+   "status"
+  ],
+  "rows": [
+   [
+    "inc_ac9187116d67cb0a1549e052a95b604b",
+    "Undocumented model element: DummyRecommender",
+    "OPEN"
+   ]
+  ]
+ },
+ "nl-ts-032": {
+  "columns": [
+   "approach",
+   "version"
+  ],
+  "rows": [
+   [
+    "ardoco-sam",
+    "0.1.0"
+   ]
+  ]
+ },
+ "nl-ts-033": {
+  "columns": [
+   "agent"
+  ],
+  "rows": [
+   [
+    "extraction-agent"
+   ],
+   [
+    "inconsistency-agent"
+   ],
+   [
+    "tlr-agent"
+   ]
+  ]
+ },
+ "nl-ts-034": {
+  "columns": [
+   "kind",
+   "n"
+  ],
+  "rows": [
+   [
+    "component",
+    11
+   ],
+   [
+    "file",
+    2
+   ],
+   [
+    "interface",
+    8
+   ],
+   [
+    "section",
+    1
+   ],
+   [
+    "sentence",
+    43
+   ]
+  ]
+ },
+ "nl-ts-035": {
+  "columns": [
+   "name",
+   "links"
+  ],
+  "rows": [
+   [
+    "Registry",
+    5
+   ]
+  ]
+ },
+ "nl-ts-036": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    27
+   ]
+  ]
+ },
+ "nl-ts-037": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    3
+   ]
+  ]
+ },
+ "nl-ts-038": {
+  "columns": [
+   "name",
+   "n"
+  ],
+  "rows": [
+   [
+    "Auth",
+    1
+   ],
+   [
+    "ImageProvider",
+    1
+   ],
+   [
+    "Persistence",
+    1
+   ],
+   [
+    "Registry",
+    2
+   ]
+  ]
+ },
+ "nl-ts-039": {
+  "columns": [
+   "n"
+  ],
+  "rows": [
+   [
+    43
+   ]
+  ]
+ },
+ "nl-ts-040": {
+  "columns": [
+   "name",
+   "clients"
+  ],
+  "rows": [
+   [
+    "Registry",
+    2
+   ]
+  ]
+ },
+ "nl-ts-041": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/f5ab17540faf"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/d1c23d32066b"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/8da214a59b59"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/fe3061969302"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/edbbec2fc714"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/7252e32a9fbf"
+   ]
+  ]
+ },
+ "nl-ts-042": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/8da214a59b59"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/7252e32a9fbf"
+   ]
+  ]
+ },
+ "nl-ts-043": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/d1c23d32066b"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/3877aa5854a2"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/89f444b79544"
+   ]
+  ]
+ },
+ "nl-ts-044": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_dhM6oDVXEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_YkXeIDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_kgbngDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_ouzFYDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_raxjcDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_iaElgKpwEeqHXcsU55mirw"
+   ]
+  ]
+ },
+ "nl-ts-045": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/61859c8d0bb5"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9ba68a80130c"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/bd63ddb6dd7b"
+   ]
+  ]
+ },
+ "nl-ts-046": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_YkXeIDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_kgbngDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_ouzFYDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_raxjcDVgEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_iaElgKpwEeqHXcsU55mirw"
+   ]
+  ]
+ },
+ "nl-ts-047": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/723250b3c79c"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/9f09405ba08e"
+   ],
+   [
+    "art_3a2a5e70e637e694e718cb1977cd4c52#sec:/edbbec2fc714"
+   ]
+  ]
+ },
+ "nl-ts-048": {
+  "columns": [
+   "key"
+  ],
+  "rows": [
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_bC13QDVWEeqPG_FgW3bi6Q"
+   ],
+   [
+    "art_fa4cba726c861b80d5b6a258cd8afa36#_yA04AKTKEeqKjI323B3R3w"
+   ]
+  ]
+ }
+}

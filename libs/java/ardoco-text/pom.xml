@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.github.ardoco</groupId>
+    <artifactId>sandman-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>sandman-ardoco-text</artifactId>
+  <name>Sentence rendering and CoreNLP gateway client shared by the TLR and inconsistency agents (T3.1, D3).</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-agent-lib</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- Compiled against the release; the consumer brings its own ArDoCo (release for TLR, pinned branch for ID). The text classes are identical in both (git diff v2.1.0 0d1f22b). -->
+    <dependency>
+      <groupId>io.github.ardoco.core</groupId>
+      <artifactId>common</artifactId>
+      <version>${ardoco.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco.core</groupId>
+      <artifactId>text-provider-json</artifactId>
+      <version>${ardoco.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- CorenlpProvider (Testcontainers) is shared with the tlr-agent, approach-ardoco and detector-ardoco tests. -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

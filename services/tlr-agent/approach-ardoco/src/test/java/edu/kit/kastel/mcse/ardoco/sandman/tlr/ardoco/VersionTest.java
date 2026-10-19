@@ -18,5 +18,6 @@ class VersionTest {
         assertNotNull(ardoco, "surefire passes ardoco.version");
         assertTrue(ArdocoApproach.VERSION.startsWith(ardoco + "+"), "ardoco " + ArdocoApproach.VERSION + HINT);
         assertTrue(ArdocodeApproach.VERSION.startsWith(ardoco + "+"), "ardocode " + ArdocodeApproach.VERSION + HINT);
+        assertTrue(TransarcApproach.VERSION.startsWith(ardoco + "+"), "transarc " + TransarcApproach.VERSION + HINT);
     }
 }

@@ -5,11 +5,14 @@ import io
 import json
 import re
 import tarfile
+from pathlib import Path
 from typing import Any
 
 import httpx
 from conftest import ADMIN_PASSWORD, Env
-from helpers import INC_ID, TS
+from helpers import INC_ID, LINK_ID, OTHER_LINK_ID, TS
+from sandman_agent.llm import ChatMessage, ChatResponse, Usage
+from sandman_agent.testing import ScriptedLlmClient
 
 
 def csrf_of(html: str) -> str:
@@ -169,11 +172,13 @@ async def test_data_is_escaped(env: Env) -> None:
     env.owner.detail_patch = {
         "title": evil, "description": evil, "evidence": {"x": evil},
         "involved": [{"role": evil, "element": element}],
-        "history": [{"from": "OPEN", "to": "REJECTED", "actor": "user:x", "reason": evil, "at": TS}],
+        "history": [{"from": "OPEN", "to": "REJECTED", "actor": "user:x", "reason": evil,
+                     "cause": "planned-change", "at": TS}],
     }  # fmt: skip
     await logged_in(env)
     page = (await env.http.get(f"/console/inconsistencies/{INC_ID}")).text
     assert evil not in page and "&lt;script&gt;alert(1)&lt;/script&gt;" in page
+    assert "planned-change" in page
     assert page.count("<script") == 1  # only the vendored htmx
     env.reader.result = (["x"], [[evil]])
     ask = await env.http.post(
@@ -189,16 +194,20 @@ async def test_transition_form_posts_with_csrf_and_shows_conflicts(env: Env) -> 
         "Change status" in page.text and 'value="ACCEPTED"' in page.text and f'name="csrf" value="{csrf}"' in page.text
     )
     path = f"/console/inconsistencies/{INC_ID}/transition"
-    fields = {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended"}
+    fields = {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended", "cause": "planned-change"}
     assert (await post(env, path, None, **fields)).status_code == 403
     assert (await post(env, path, "wrong", **fields)).status_code == 403
     assert not any(c["method"] == "POST" for c in env.owner.calls)
     missing = await post(env, path, csrf, to="REJECTED", expectedStatus="OPEN")
     assert missing.status_code == 400 and "reason is required" in missing.text
+    for to in ("ACCEPTED", "REJECTED", "DEFERRED"):
+        no_cause = await post(env, path, csrf, to=to, expectedStatus="OPEN", reason="r")
+        assert no_cause.status_code == 400 and "cause is required" in no_cause.text
+    assert not any(c["method"] == "POST" for c in env.owner.calls)
     done = await post(env, path, csrf, **fields)
     assert done.status_code == 303 and done.headers["location"] == f"/console/inconsistencies/{INC_ID}"
     sent = next(c for c in env.owner.calls if c["method"] == "POST")
-    assert json.loads(sent["body"]) == {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "intended"}
+    assert json.loads(sent["body"]) == fields
     assert sent["headers"]["x-sandman-actor"] == "user:tina" and "x-sandman-roles" not in sent["headers"]
     env.owner.transition_status = 409
     conflict = await post(env, path, csrf, **fields)
@@ -209,7 +218,13 @@ async def test_viewer_sees_no_transition_form_and_cannot_post(env: Env) -> None:
     csrf = await logged_in(env, "vic", {"alpha": "viewer"})
     assert "Change status" not in (await env.http.get(f"/console/inconsistencies/{INC_ID}")).text
     resp = await post(
-        env, f"/console/inconsistencies/{INC_ID}/transition", csrf, to="ACCEPTED", expectedStatus="OPEN", reason="r"
+        env,
+        f"/console/inconsistencies/{INC_ID}/transition",
+        csrf,
+        to="ACCEPTED",
+        expectedStatus="OPEN",
+        reason="r",
+        cause="intentional",
     )
     assert resp.status_code == 403
     assert (await env.http.get("/console/admin")).status_code == 403
@@ -366,3 +381,123 @@ async def test_administration(env: Env) -> None:
         await post(env, "/console/admin/users", csrf2, username="evil", password="long-enough-pw")
     ).status_code == 403
     assert env.store.get_user("evil") is None
+
+
+async def test_static_console_css_is_served(env: Env) -> None:
+    assert (await env.http.get("/static/console.css")).status_code == 200
+    assert 'class="auth card"' in (await env.http.get("/console/login")).text
+
+
+async def test_ask_strategy_answer_citations_and_escaping(env: Env) -> None:
+    csrf = await logged_in(env, "vic", {"alpha": "viewer"})
+    inc = "inc_" + "a" * 32
+    evil = "<script>alert(1)</script>"
+    env.reader.result = (["key", "name"], [["a#R1", evil], [inc, "x"]])
+
+    def msg(**d: Any) -> ChatResponse:
+        return ChatResponse(ChatMessage("assistant", json.dumps(d)), "stop", Usage(), "gw")
+
+    client = ScriptedLlmClient(
+        [
+            msg(
+                cypher="MATCH (r:Requirement {projectId: $projectId}) RETURN r.key AS key, r.name AS name",
+                explanation="",
+            ),
+            msg(answer=f"See [[a#R1]], [[{inc}]] {evil}", citations=["a#R1", inc]),
+        ]
+    )
+    env.app.state.service.nl.llm_factory = lambda policy: client
+    resp = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="cypher")
+    assert resp.status_code == 200 and '<option value="graphrag"' in resp.text
+    assert 'href="#row-0"' in resp.text and f'href="/console/inconsistencies/{inc}"' in resp.text
+    assert 'id="row-1"' in resp.text and "badge info" in resp.text and ">cypher<" in resp.text
+    assert evil not in resp.text and "&lt;script&gt;" in resp.text
+    bad = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="magic")
+    assert bad.status_code == 400
+    missing = await post(env, "/console/projects/alpha/ask", csrf, question="which requirements", strategy="explore")
+    assert missing.status_code == 501
+
+
+async def test_ask_auto_shows_classification_badge_with_escaped_reason(env: Env) -> None:
+    csrf = await logged_in(env, "vic", {"alpha": "viewer"})
+    nl = env.app.state.service.nl
+    nl.config["graphrag"]["enabled"] = True
+    evil = "<script>alert(1)</script>"
+
+    async def stub(who: Any, project: str, question: str, mode: str, execute: bool) -> dict[str, Any]:
+        return {
+            "columns": [],
+            "rows": [],
+            "truncated": False,
+            "elapsedMs": 0,
+            "strategy": "graphrag",
+            "attempts": [],
+            "warnings": [],
+        }
+
+    nl.strategies["graphrag"] = stub
+    verdict = json.dumps({"strategy": "graphrag", "confidence": 0.9, "reason": evil})
+    client = ScriptedLlmClient([ChatResponse(ChatMessage("assistant", verdict), "stop", Usage(), "gw")])
+    nl.llm_factory = lambda policy: client
+    resp = await post(env, "/console/projects/alpha/ask", csrf, question="where is payment handled", strategy="auto")
+    assert resp.status_code == 200 and "classified graphrag, confidence 0.9" in resp.text
+    assert evil not in resp.text and "&lt;script&gt;" in resp.text
+
+
+def test_console_templates_and_code_never_mark_text_safe() -> None:
+    root = Path(__file__).parents[1] / "src" / "sandman_query"
+    for path in [*root.glob("templates/*.html"), root / "console.py"]:
+        text = path.read_text(encoding="utf-8")
+        assert not re.search(r"\|\s*safe\b|\bMarkup\(|\bmark_safe\b|\bautoescape\s+false", text), path
+
+
+def link_row(link_id: str, approach: str, confidence: float, **extra: Any) -> dict[str, Any]:
+    return {"id": link_id, "approach": approach, "confidence": confidence, "status": "candidate",
+            "rationale": "<b>why</b>", "reviewedBy": None, "reviewedAt": None, "reviewReason": None,
+            "reviewOrigin": None, "sourceId": "el_s", "sourceKey": "req#1", "sourceName": "REQ-1",
+            "sourceText": "Cache media", "targetId": "el_t", "targetKey": "code#M", "targetName": "MediaCache",
+            "targetText": None} | extra  # fmt: skip
+
+
+async def test_links_page_groups_pairs_escapes_rationale_and_reviews(env: Env) -> None:
+    env.reader.link_rows = [
+        link_row(LINK_ID, "lissa", 0.6),
+        link_row("tl_" + "c" * 32, "stub-name-match", 0.9),
+        link_row("tl_" + "d" * 32, "explicit-reference", 1.0),
+    ]
+    csrf = await logged_in(env, "tina", {"alpha": "triager"})
+    page = await env.http.get("/console/projects/alpha/links")
+    assert page.status_code == 200 and "MediaCache" in page.text and "0.90" in page.text
+    assert "&lt;b&gt;why&lt;/b&gt;" in page.text and "<b>why</b>" not in page.text
+    assert page.text.count('<form method="post"') == 2  # logout + one pair
+    assert f"/links/{LINK_ID}/review" in page.text
+    path = f"/console/projects/alpha/links/{LINK_ID}/review"
+    assert (await post(env, path, None, status="confirmed")).status_code == 403
+    no_reason = await post(env, path, csrf, status="rejected")
+    assert no_reason.status_code == 400 and "reason is required" in no_reason.text
+    assert not any(c["method"] == "POST" for c in env.owner.calls)
+    done = await post(env, path, csrf, status="rejected", reason="wrong")
+    assert done.status_code == 303 and done.headers["location"] == "/console/projects/alpha/links"
+    sent = next(c for c in env.owner.calls if c["method"] == "POST")
+    assert sent["path"] == f"/v1/links/{LINK_ID}/review" and json.loads(sent["body"]) == {
+        "status": "rejected",
+        "reason": "wrong",
+    }
+    assert sent["headers"]["x-sandman-actor"] == "user:tina"
+    env.owner.link_problem = 409
+    conflict = await post(env, path, csrf, status="confirmed")
+    assert conflict.status_code == 409 and "explicit-reference" in conflict.text
+    assert (
+        await post(env, f"/console/projects/alpha/links/{OTHER_LINK_ID}/review", csrf, status="confirmed")
+    ).status_code == 404
+
+
+async def test_viewer_sees_links_without_review_buttons(env: Env) -> None:
+    env.reader.link_rows = [link_row(LINK_ID, "lissa", 0.6, status="rejected", reviewedBy="user:bob")]
+    csrf = await logged_in(env, "vic", {"alpha": "viewer"})
+    page = await env.http.get("/console/projects/alpha/links")
+    assert "user:bob" in page.text and "Confirm" not in page.text
+    assert (
+        await post(env, f"/console/projects/alpha/links/{LINK_ID}/review", csrf, status="confirmed")
+    ).status_code == 403
+    assert (await env.http.get("/console/projects/alpha/links?status=confirmed")).text.count("MediaCache") == 0

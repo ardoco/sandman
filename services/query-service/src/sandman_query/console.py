@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import io
 import json
+import re
 import secrets
 import stat
 import tarfile
@@ -19,9 +20,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from starlette.datastructures import FormData, UploadFile
 from starlette.exceptions import HTTPException
 
+from sandman_query import graph_console
 from sandman_query.auth import LEVEL, Principal
 from sandman_query.service import Service, WorkflowBody, new_token, valid_project, valid_username
 from sandman_query.store import Exists
+from sandman_query.synthesis import MARKER
 
 TEMPLATES = jinja2.Environment(
     loader=jinja2.FileSystemLoader(Path(__file__).parent / "templates"),
@@ -30,6 +33,7 @@ TEMPLATES = jinja2.Environment(
 LOGIN_CSRF = "sandman_login_csrf"
 STATUSES = ["OPEN", "REOPENED", "DEFERRED", "ACCEPTED", "REJECTED", "RESOLVED"]
 REASON_REQUIRED = {"ACCEPTED", "REJECTED", "DEFERRED"}
+CAUSES = ["extraction-error", "link-error", "detector-error", "artifact-inconsistency", "planned-change", "intentional"]
 KINDS = ["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
 MAX_FILES = 20000
 DEFAULT_RULES = "\n".join(
@@ -59,6 +63,45 @@ def parse(resp: Response) -> Any:
             resp.status_code, (data or {}).get("detail") or (data or {}).get("title") or "request failed"
         )
     return data
+
+
+STRATEGIES = ("auto", "cypher", "graphrag", "explore")
+INCONSISTENCY_ID = re.compile(r"^inc_[0-9a-f]{32}$")
+
+
+def answer_parts(answer: str, rows: list[list[str]]) -> list[tuple[str, str | None]]:
+    """(text, link) pairs; link is set for the [[id]] citations (finding page or evidence row), text is autoescaped."""
+    parts: list[tuple[str, str | None]] = []
+    last = 0
+    for m in MARKER.finditer(answer):
+        parts.append((answer[last : m.start()], None))
+        ident = m.group(1)
+        row = next((i for i, r in enumerate(rows) if ident in r), None)
+        link = f"/console/inconsistencies/{ident}" if INCONSISTENCY_ID.match(ident) else None
+        parts.append((ident, link or (f"#row-{row}" if row is not None else None)))
+        last = m.end()
+    return [*parts, (answer[last:], None)]
+
+
+def link_pairs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One entry per element pair: approaches, best confidence, status, reviewer (explicit-reference: no review)."""
+    pairs: dict[tuple[str, str], dict[str, Any]] = {}
+    for r in rows:
+        pair = pairs.setdefault((r["sourceId"], r["targetId"]), {
+            "source": {"key": r["sourceKey"], "name": r["sourceName"], "excerpt": (r["sourceText"] or "")[:160]},
+            "target": {"key": r["targetKey"], "name": r["targetName"], "excerpt": (r["targetText"] or "")[:160]},
+            "links": [], "status": "candidate", "reviewer": None, "reviewable": None,
+        })  # fmt: skip
+        pair["links"].append(r)
+        if r["approach"] != "explicit-reference":
+            pair["reviewable"] = pair["reviewable"] or r["id"]
+            if r["status"] != "candidate" or pair["status"] == "candidate":
+                pair["status"], pair["reviewer"] = r["status"], r.get("reviewedBy")
+    out = list(pairs.values())
+    for pair in out:
+        pair["confidence"] = max(link["confidence"] for link in pair["links"])
+        pair["approaches"] = sorted({link["approach"] for link in pair["links"]})
+    return out
 
 
 def cell(value: Any) -> str:
@@ -283,7 +326,10 @@ def build_router(svc: Service) -> APIRouter:
         d = parse(await svc.inconsistency_response(ctx.who, iid, "getInconsistency"))
         evidence = json.dumps(d["evidence"], indent=2, ensure_ascii=False) if d.get("evidence") else ""
         can = ctx.who.level(d["projectId"]) >= LEVEL["triager"]
-        return render(ctx, "inconsistency.html", status, d=d, evidence=evidence, can_transition=can, **extra)
+        ev = await svc.evidence(d["projectId"], d)
+        return render(
+            ctx, "inconsistency.html", status, d=d, evidence=evidence, ev=ev, can_transition=can, causes=CAUSES, **extra
+        )
 
     @router.get("/inconsistencies/{iid}")
     async def inconsistency(iid: str, ctx: Ctx = Session) -> HTMLResponse:
@@ -297,6 +343,10 @@ def build_router(svc: Service) -> APIRouter:
             body["reason"] = reason
         if body["to"] in REASON_REQUIRED and "reason" not in body:
             return await detail_page(ctx, iid, 400, message=f"A reason is required for {body['to']}.", error=True)
+        if (cause := text(data, "cause")) and body["to"] != "OPEN":
+            body["cause"] = cause
+        if body["to"] in REASON_REQUIRED and "cause" not in body:
+            return await detail_page(ctx, iid, 400, message=f"A cause is required for {body['to']}.", error=True)
         resp = await svc.transition(ctx.who, iid, json.dumps(body).encode())
         if resp.status_code == 200:
             return redirect(f"/console/inconsistencies/{iid}")
@@ -306,6 +356,42 @@ def build_router(svc: Service) -> APIRouter:
         else:
             message = problem.get("detail") or problem.get("title") or "The transition failed."
         return await detail_page(ctx, iid, resp.status_code, message=message, error=True)
+
+    LINK_STATUSES = ["candidate", "confirmed", "rejected"]
+
+    async def links_page(ctx: Ctx, project: str, query: Any, status: int = 200, **extra: Any) -> HTMLResponse:
+        readable(ctx, "exportTraceLinks", project)
+        f = {k: query.get(k, "") for k in ("artifactId", "approach", "status", "minConfidence")}
+        try:
+            minimum = float(f["minConfidence"] or 0)
+        except ValueError:
+            minimum = 0.0
+        pairs = link_pairs(await svc.link_rows(project, f["approach"], f["artifactId"]))
+        pairs = [p for p in pairs if (not f["status"] or p["status"] == f["status"]) and p["confidence"] >= minimum]
+        return render(ctx, "links.html", status, project=project, pairs=pairs, f=f, statuses=LINK_STATUSES,
+                      can_review=ctx.who.level(project) >= LEVEL["triager"], **extra)  # fmt: skip
+
+    @router.get("/projects/{project}/links")
+    async def links(project: str, request: Request, ctx: Ctx = Session) -> HTMLResponse:
+        return await links_page(ctx, project, request.query_params)
+
+    @router.post("/projects/{project}/links/{lid}/review")
+    async def review_link(project: str, lid: str, request: Request, ctx: Ctx = Session) -> Response:
+        data = await form(request, ctx)
+        readable(ctx, "reviewTraceLink", project)
+        body = {"status": text(data, "status")}
+        if reason := text(data, "reason"):
+            body["reason"] = reason
+        if body["status"] == "rejected" and "reason" not in body:
+            return await links_page(ctx, project, {}, 400, message="A reason is required to reject a link.", error=True)
+        if not re.fullmatch(r"[a-z]+_[0-9a-f]{32}", lid):
+            raise HTTPException(404, "not found")
+        resp = await svc.review_link(ctx.who, project, lid, json.dumps(body).encode())
+        if resp.status_code == 200:
+            return redirect(f"/console/projects/{project}/links")
+        problem = json.loads(resp.body) if resp.body else {}
+        message = problem.get("detail") or problem.get("title") or "The review failed."
+        return await links_page(ctx, project, {}, resp.status_code, message=message, error=True)
 
     # -------------------------------------------------------------- upload
 
@@ -352,21 +438,27 @@ def build_router(svc: Service) -> APIRouter:
     async def ask_page(project: str, ctx: Ctx = Session) -> HTMLResponse:
         readable(ctx, "queryNl", project)
         return render(
-            ctx, "ask.html", project=project, question="", result=None, intents=", ".join(svc.intents.supported())
-        )
+            ctx, "ask.html", project=project, question="", strategy="auto", strategies=STRATEGIES, result=None,
+            intents=", ".join(svc.intents.supported()),
+        )  # fmt: skip
 
     @router.post("/projects/{project}/ask")
     async def ask(project: str, request: Request, ctx: Ctx = Session) -> HTMLResponse:
         readable(ctx, "queryNl", project)
         data = await form(request, ctx)
         question = text(data, "question")
-        base = {"project": project, "question": question, "intents": ", ".join(svc.intents.supported())}
+        strategy = text(data, "strategy") or "auto"
+        base = {"project": project, "question": question, "strategy": strategy, "strategies": STRATEGIES,
+                "intents": ", ".join(svc.intents.supported())}  # fmt: skip
         try:
-            result = await svc.runner.nl(ctx.who, svc.intents, project, question, "answer", True)
+            if strategy not in STRATEGIES:
+                raise HTTPException(400, "unknown strategy")
+            result = await svc.nl.answer(ctx.who, project, question, strategy, "answer", True)
         except HTTPException as e:
             return render(ctx, "ask.html", e.status_code, result=None, message=str(e.detail), error=True, **base)
         rows = [[cell(v) for v in row] for row in result["rows"]]
-        return render(ctx, "ask.html", result=result, rows=rows, **base)
+        parts = answer_parts(result["answer"], rows) if result.get("answer") else []
+        return render(ctx, "ask.html", result=result, rows=rows, parts=parts, **base)
 
     # ----------------------------------------------------------- workflows
 
@@ -487,4 +579,5 @@ def build_router(svc: Service) -> APIRouter:
         store.delete_member(text(data, "project"), text(data, "username"))
         return redirect("/console/admin")
 
+    graph_console.mount(router, svc, ctx_dep, render)
     return router

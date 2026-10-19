@@ -1,5 +1,6 @@
 import asyncio
 import json
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -142,8 +143,19 @@ async def test_status_reports_working_while_a_skill_runs(settings: Settings, con
     assert (await http.get("/v1/status", headers=headers)).json()["state"] == "idle"
 
 
-async def test_planned_skill_is_rejected_not_implemented(settings: Settings, contracts: Contracts) -> None:
-    _, client = setup(settings, contracts, Recover())
+async def test_planned_skill_is_rejected_not_implemented(
+    settings: Settings, contracts: Contracts, tmp_path: Path
+) -> None:
+    card = json.loads(CARD.read_text())
+    params = card["capabilities"]["extensions"][0]["params"]
+    params["plannedSkills"] = {"prune-trace-links": params["skills"].pop("prune-trace-links")}
+    planned_card = tmp_path / "card.json"
+    planned_card.write_text(json.dumps(card))
+    bus = InMemoryEventBus(contracts, "tlr-agent")
+    client = A2aClient(
+        TOKENS["orchestrator"],
+        transport=httpx.ASGITransport(app=serve(planned_card, [Recover()], settings, events=bus, contracts=contracts)),
+    )
     task = await client.submit(URL, "prune-trace-links", {})
     done = await wait(client, task.task_id)
     assert (
@@ -237,3 +249,30 @@ async def test_eviction_never_drops_pending_entries(
     for snap in snaps:
         await wait(client, snap.task_id)
     assert len(skill.seen) == 2
+
+
+async def test_progress_text_reaches_the_caller_and_is_throttled(settings: Settings, contracts: Contracts) -> None:
+    started, release = asyncio.Event(), asyncio.Event()
+
+    class Talk(Recover):
+        async def run(self, ctx: SkillContext, input: dict[str, Any]) -> SkillResult:
+            await ctx.progress("annotating 1/3")
+            await ctx.progress("annotating 2/3")
+            started.set()
+            await release.wait()
+            return await super().run(ctx, input)
+
+    bus = InMemoryEventBus(contracts, "tlr-agent")
+    app = serve(CARD, [Talk()], settings, events=bus, contracts=contracts)
+    client = A2aClient(TOKENS["orchestrator"], transport=httpx.ASGITransport(app=app))
+    task = await client.submit(URL, "recover-trace-links", INPUT)
+    await started.wait()
+    for _ in range(100):
+        snap = await client.get(URL, task.task_id)
+        if snap.activity:
+            break
+        await asyncio.sleep(0.01)
+    assert snap.state == "TASK_STATE_WORKING" and snap.activity == "annotating 1/3"
+    release.set()
+    done = await wait(client, task.task_id)
+    assert done.state == "TASK_STATE_COMPLETED" and done.activity is None

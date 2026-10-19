@@ -1,0 +1,59 @@
+name: sandman-ingest
+description: Upload a project snapshot to a SANDMAN instance and optionally wait for the workflow.
+inputs:
+  url:
+    description: Base URL of the SANDMAN instance.
+    required: true
+  token:
+    description: Personal API token with the maintainer role. Pass a repository secret.
+    required: true
+  project:
+    description: Project id.
+    required: true
+  path:
+    description: Directory to ingest. It may hold a sandman.yaml with kind rules.
+    default: "."
+  mode:
+    description: "full (the directory is the complete state) or partial (files changed since base)."
+    default: full
+  base:
+    description: Base commit for partial mode, for example github.event.before.
+    default: ""
+  revision:
+    description: Source revision. Default is the commit SHA.
+    default: ${{ github.sha }}
+  wait:
+    description: Wait until the workflow ends. The step fails unless the status is SUCCEEDED.
+    default: "true"
+  timeout:
+    description: Seconds to wait for the workflow.
+    default: "600"
+outputs:
+  ingestion-id:
+    description: Id of the ingestion.
+    value: ${{ steps.run.outputs.ingestion-id }}
+  workflow-id:
+    description: Id of the started workflow. Empty if the ingestion changed nothing.
+    value: ${{ steps.run.outputs.workflow-id }}
+  status:
+    description: Workflow status, STARTED (not waited) or none (nothing changed).
+    value: ${{ steps.run.outputs.status }}
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      with:
+        python-version: "3.13"
+    - id: run
+      shell: bash
+      run: ${{ github.action_path }}/run.sh
+      env:
+        SANDMAN_URL: ${{ inputs.url }}
+        SANDMAN_TOKEN: ${{ inputs.token }}
+        SANDMAN_PROJECT: ${{ inputs.project }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_BASE: ${{ inputs.base }}
+        INPUT_REVISION: ${{ inputs.revision }}
+        INPUT_WAIT: ${{ inputs.wait }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}

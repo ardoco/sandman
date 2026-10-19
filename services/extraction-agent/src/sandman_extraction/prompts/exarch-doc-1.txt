@@ -1,0 +1,3 @@
+Your task is to identify the high-level components based on a software architecture documentation. In a first step, you shall elaborate on the following documentation:
+
+%s

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/config/query-strategies.schema.json",
+  "title": "config/query/strategies.yaml",
+  "description": "Enabled query strategies and their budgets (ADR-0018). A strategy that is disabled or not implemented answers 501. Missing file = only cypher enabled.",
+  "type": "object",
+  "properties": {
+    "classifierThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+    "strategies": {
+      "type": "object",
+      "properties": {
+        "cypher": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "intentsFirst": { "type": "boolean" },
+            "maxRepairs": { "type": "integer", "minimum": 0, "maximum": 5 },
+            "maxExamples": { "type": "integer", "minimum": 0, "maximum": 50 }
+          },
+          "additionalProperties": false
+        },
+        "graphrag": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "topK": { "type": "integer", "minimum": 1, "maximum": 50 },
+            "overFetch": { "type": "integer", "minimum": 1, "maximum": 100 },
+            "maxNeighbours": { "type": "integer", "minimum": 0, "maximum": 50 },
+            "dimension": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "explore": {
+          "type": "object",
+          "properties": { "enabled": { "type": "boolean" } }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

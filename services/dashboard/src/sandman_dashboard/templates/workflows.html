@@ -14,18 +14,19 @@
 </form>
 <div class="scroll">
 <table>
-<thead><tr><th>Workflow</th><th>Project</th><th>Status</th><th>Trigger</th><th>Created</th><th>Updated</th></tr></thead>
+<thead><tr><th>Workflow</th><th>Project</th><th>Status</th><th>Progress</th><th>Trigger</th><th>Created</th><th>Updated</th></tr></thead>
 <tbody>
 {% for w in items %}
 <tr>
   <td><a href="/workflows/{{ w.id }}">{{ w.id }}</a></td>
   <td>{{ w.projectId }}</td>
   <td class="status-{{ w.status }}">{{ w.status }}</td>
+  <td>{% set p = w | progress %}{% if p.total %}{{ p.finished }}/{{ p.total }} <progress class="progress" max="100" value="{{ p.percent }}"></progress>{% if p.current %} {{ p.current.skill }}{% if p.current.activity %}: {{ p.current.activity }}{% endif %}{% endif %}{% endif %}</td>
   <td>{{ w.trigger.kind }}{% if w.trigger.eventType %} {{ w.trigger.eventType }}{% endif %}{% if w.trigger.actor %} ({{ w.trigger.actor }}){% endif %}</td>
   <td>{{ w.createdAt }}</td><td>{{ w.updatedAt | ago }}</td>
 </tr>
 {% else %}
-<tr><td colspan="6">No workflows.</td></tr>
+<tr><td colspan="7">No workflows.</td></tr>
 {% endfor %}
 </tbody>
 </table>

@@ -161,7 +161,7 @@ async def test_replay_and_404(env: Env, orch: FakeOrchestrator, caplog: pytest.L
     assert (await env.http.post("/dead-events/replay", data={"eventId": "evt/1", "csrf": "bad"})).status_code == 403
     resp = await env.http.post("/dead-events/replay", data={"eventId": "evt/1", "csrf": token})
     assert "replay requested" in resp.text
-    assert orch.requests[-3].url.raw_path == b"/v1/dead-events/evt%2F1/replay"
+    assert orch.requests[-4].url.raw_path == b"/v1/dead-events/evt%2F1/replay"
     orch.replay_status = 404
     resp = await env.http.post("/dead-events/replay", data={"eventId": "evt/1", "csrf": token})
     assert "replay failed: not found" in resp.text and SERVICE_TOKEN not in resp.text
@@ -224,3 +224,68 @@ async def test_secrets_in_step_data_are_redacted(env: Env, orch: FakeOrchestrato
     await env.login()
     text = (await env.http.get(f"/workflows/{WF}")).text
     assert SERVICE_TOKEN not in text and ADMIN_PASSWORD not in text and "[redacted]" in text
+
+
+def _steps(*statuses: str) -> list[dict[str, Any]]:
+    return [
+        {**STEP, "id": f"s{i}", "status": st, "error": None, "startedAt": "2026-10-08T10:00:00Z",
+         "endedAt": "2026-10-08T10:00:05Z" if st == "SUCCEEDED" else None}
+        for i, st in enumerate(statuses)
+    ]  # fmt: skip
+
+
+def test_progress_running_stalled_and_failed() -> None:
+    from sandman_dashboard.progress import progress
+
+    now = datetime(2026, 10, 8, 10, 30, tzinfo=UTC)
+    p = progress(workflow(WF, "RUNNING", steps=_steps("SUCCEEDED", "RUNNING", "PENDING")), now)
+    assert (p["finished"], p["total"], p["position"], p["percent"]) == (1, 3, 2, 33)
+    assert p["current"]["elapsed"] == "30 min 00 s" and p["stalled"] and p["since_update"] == "29 min 55 s"
+    fresh = progress(workflow(WF, "RUNNING", updatedAt="2026-10-08T10:29:00Z", steps=_steps("RUNNING")), now)
+    assert not fresh["stalled"]
+    retry = _steps("PENDING")
+    assert (
+        progress(workflow(WF, "RUNNING", steps=retry), now)["current"]["retry"]
+        and not progress(workflow(WF, "RUNNING", steps=retry), now)["stalled"]
+    )
+    err = {"code": "TIMEOUT", "message": "tlr timed out", "retryable": True}
+    failed = progress(workflow(WF, "FAILED", steps=[{**_steps("FAILED")[0], "error": err}]), now)
+    assert (
+        failed["failed"]["problem"] == "The step took too long. (TIMEOUT: tlr timed out)" and failed["current"] is None
+    )
+    assert progress(workflow(WF, "SUCCEEDED", steps=[]), now)["percent"] == 0
+
+
+@pytest.mark.parametrize("status", ["PENDING", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED", "BLOCKED"])
+async def test_detail_renders_timeline_per_state(env: Env, orch: FakeOrchestrator, status: str) -> None:
+    await env.login()
+    orch.workflows[WF] = workflow(WF, status, steps=_steps("SUCCEEDED", status))
+    text = (await env.http.get(f"/fragments/workflows/{WF}")).text
+    assert "Step details" in text and 'class="timeline"' in text and f"status-{status}" in text
+    assert ("every 5s" in text) == (status in ("PENDING", "RUNNING"))
+    assert ("Step 2 of 2" in text) == (status in ("PENDING", "RUNNING"))
+
+
+async def test_list_shows_progress_of_active_workflow(env: Env, orch: FakeOrchestrator) -> None:
+    await env.login()
+    orch.workflows[WF] = workflow(WF, "RUNNING", steps=_steps("SUCCEEDED", "RUNNING"))
+    text = (await env.http.get("/workflows")).text
+    assert "<th>Progress</th>" in text and "1/2" in text
+
+
+async def test_activity_text_is_shown_when_present_and_escaped(env: Env, orch: FakeOrchestrator) -> None:
+    await env.login()
+    steps = _steps("SUCCEEDED", "RUNNING")
+    steps[1]["activity"] = {"text": "annotating <b>120</b>/300", "at": "2026-10-08T10:00:09Z"}
+    orch.workflows[WF] = workflow(WF, "RUNNING", steps=steps)
+    detail = (await env.http.get(f"/fragments/workflows/{WF}")).text
+    assert detail.count("annotating &lt;b&gt;120&lt;/b&gt;/300") == 2 and "<b>120</b>" not in detail
+    assert "annotating &lt;b&gt;120&lt;/b&gt;/300" in (await env.http.get("/workflows")).text
+
+
+async def test_no_activity_renders_as_before(env: Env, orch: FakeOrchestrator) -> None:
+    await env.login()
+    orch.workflows[WF] = workflow(WF, "RUNNING", steps=_steps("SUCCEEDED", "RUNNING"))
+    detail = (await env.http.get(f"/fragments/workflows/{WF}")).text
+    assert "<em>" not in detail and "Step 2 of 2" in detail
+    assert ": </td>" not in (await env.http.get("/workflows")).text

@@ -62,6 +62,22 @@ async def test_tracelinks_updated_detects_source_and_target_artifacts(env: Env) 
     assert f'"scopeArtifactIds": ["{aid(1)}", "{aid(3)}"]' in step["input_json"]
 
 
+async def test_tracelink_reviewed_detects_source_and_target_artifacts(env: Env) -> None:
+    data = {
+        "projectId": "mini",
+        "linkIds": ["tl_" + "a" * 32],
+        "status": "rejected",
+        "actor": "user:alice",
+        "at": "2026-10-19T10:00:00Z",
+        "sourceVersionIds": [vid(1)],
+        "targetVersionIds": [vid(3)],
+    }
+    await env.orch.handle(event("sandman.tracelink.reviewed", data))
+    [step] = pending(env)
+    assert step["skill"] == DETECT
+    assert f'"scopeArtifactIds": ["{aid(1)}", "{aid(3)}"]' in step["input_json"]
+
+
 async def test_debounce_merges_three_extractions_into_one_tlr_step(env: Env) -> None:
     env.with_rules(debounce=10)
     for n in (1, 2, 3):
@@ -136,3 +152,10 @@ def test_shipped_rules_link_a_changed_code_version_to_the_documents_without_an_a
     doc, code = Version("ver_doc", "art_doc", "architecture-doc"), Version("ver_code", "art_code", "code")
     [step] = tlr_steps("p", [code], [doc, code], rules)
     assert step.input == {"projectId": "p", "sourceVersionIds": ["ver_doc"], "targetVersionIds": ["ver_code"]}
+
+
+def test_retention_loaded_from_repository_config() -> None:
+    rules = Rules.load(Path(__file__).parents[3] / "config/orchestrator/rules.yaml", Contracts(DEFAULT_CONTRACTS_DIR))
+    r = rules.retention
+    assert (r.enabled, r.interval, r.keep, r.dry_run) == (True, 86400.0, 20, True)
+    assert rules.timeouts["prune-trace-links"] == 1800.0

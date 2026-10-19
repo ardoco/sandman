@@ -6,6 +6,7 @@
 <p>Status <strong>{{ d.status }}</strong>, severity {{ d.severity }}, type {{ d.type }}, detector {{ d.detector }}{% if d.detectorVersion %} {{ d.detectorVersion }}{% endif %}{% if d.confidence is defined %}, confidence {{ d.confidence }}{% endif %}, verification {{ d.verification or "none" }}</p>
 <p>{{ d.description }}</p>
 {% if evidence %}<h2>Evidence</h2><pre>{{ evidence }}</pre>{% endif %}
+{% include "evidence.html" %}
 <h2>Involved</h2>
 <table>
 <tr><th>Role</th><th>What</th><th>Location</th><th>Excerpt</th></tr>
@@ -22,11 +23,10 @@
 {% else %}<tr><td colspan="4">-</td></tr>{% endfor %}
 </table>
 <h2>History</h2>
-<table>
-<tr><th>When</th><th>Change</th><th>Actor</th><th>Reason</th></tr>
-{% for h in d.history %}<tr><td>{{ h.at }}</td><td>{{ h.from }} -&gt; {{ h.to }}</td><td>{{ h.actor }}</td><td>{{ h.reason or "" }}</td></tr>
-{% else %}<tr><td colspan="4">-</td></tr>{% endfor %}
-</table>
+<ol class="timeline">
+{% for h in d.history %}<li class="step"><strong>{{ h.from or "(new)" }} -&gt; {{ h.to }}</strong> <span class="muted">{{ h.at }}, {{ h.actor }}</span>{% if h.cause %}<br><span class="badge">{{ h.cause }}</span>{% endif %}{% if h.reason %}<br>{{ h.reason }}{% endif %}</li>
+{% else %}<li class="step muted">No status change.</li>{% endfor %}
+</ol>
 {% if can_transition and d.allowedTransitions %}
 <h2>Change status</h2>
 <form method="post" action="/console/inconsistencies/{{ d.id }}/transition">
@@ -34,6 +34,8 @@
   <input type="hidden" name="expectedStatus" value="{{ d.status }}">
   <label>New status
     <select name="to">{% for s in d.allowedTransitions %}<option value="{{ s }}">{{ s }}</option>{% endfor %}</select></label>
+  <label>Cause (required for ACCEPTED, REJECTED, DEFERRED; optional for RESOLVED)
+    <select name="cause"><option value="" selected></option>{% for c in causes %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select></label>
   <label>Reason (required for ACCEPTED, REJECTED, DEFERRED) <textarea name="reason" maxlength="2000"></textarea></label>
   <button>Change status</button>
 </form>

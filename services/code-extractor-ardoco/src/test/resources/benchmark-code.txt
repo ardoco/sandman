@@ -5,6 +5,8 @@
 code teastore   https://codeload.github.com/ArDoCo/TeaStore/tar.gz/bdc49020a55cfa97eaabbb25744fefbc2697defa    89e30059833e3e814021f29b5c735c6ddd0acb96fca921ff1d67701284887862
 code mediastore https://codeload.github.com/ArDoCo/MediaStore3/tar.gz/94c398fa02b3d6b8d71517522a7206d37ed3a9af b719907724c7cd6c2b5c5a65f6581eee017432c53d03b9801df09a25503ac39d
 code teammates  https://codeload.github.com/ArDoCo/teammates/tar.gz/b24519a2af9e17b2bc9c025e87e4cf60009c425d   15846297adb1d601bcc816b996f4831177e73ee0fe68cb2cc23c62100f568956
+code bigbluebutton https://codeload.github.com/ArDoCo/bigbluebutton/tar.gz/8fa2507d6c3865a9850004fd6fefd09738e68406 c931b2e3c0748b9e23150d86ceac59df9c7f9ef8e0f94a301bea1ca756a724bb
+code jabref https://codeload.github.com/ArDoCo/jabref/tar.gz/6269698cae437610ec79c38e6dd611eef7e88afe 0d9406e4deee75e1d212e5a884233dc02c0979decf1e46afb937b27162011ff0
 # ACM committed in the Benchmark (2024 extractor, no line numbers): reported against, never asserted.
 acm  teastore   https://raw.githubusercontent.com/ArDoCo/Benchmark/e60ddb2676358048131178c925e86a5b33ec38f2/teastore/model_2022/code/codeModel.acm     a7f61a59021f4fefaa71f8e6d38497db2869523bbfbfb79df2736eec88bc99fb
 acm  mediastore https://raw.githubusercontent.com/ArDoCo/Benchmark/e60ddb2676358048131178c925e86a5b33ec38f2/mediastore/model_2016/code/codeModel.acm d28f90d72d11f63fcfd408ae7d527066e614cefa2a33697368ae891a1f62c842

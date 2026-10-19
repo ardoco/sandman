@@ -17,6 +17,16 @@
   <dependencies>
     <dependency>
       <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-inconsistency-detector-spi</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-inconsistency-detector-ardoco</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
       <artifactId>sandman-agent-lib-a2a</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -38,10 +48,61 @@
       <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-ardoco-text</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-inconsistency-detector-ardoco</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit5</artifactId>
+      <version>${archunit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <configuration>
+              <rules>
+                <!-- R-030: LangChain4j comes in through ArDoCo's model-provider (detector-ardoco); other frameworks stay banned. -->
+                <bannedDependencies>
+                  <excludes combine.self="override">
+                    <exclude>org.springframework.ai</exclude>
+                    <exclude>org.bsc.langgraph4j</exclude>
+                    <exclude>org.eclipse.jdt</exclude>
+                    <exclude>com.microsoft.onnxruntime</exclude>
+                    <exclude>io.github.ardoco:magika</exclude>
+                  </excludes>
+                </bannedDependencies>
+                <requireReleaseDeps combine.self="override">
+                  <message>No snapshot dependencies except the pinned ArDoCo branch build (scripts/ardoco-id-bootstrap.sh).</message>
+                  <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+                  <excludes>
+                    <exclude>io.github.ardoco:*</exclude>
+                    <exclude>io.github.ardoco.*:*</exclude>
+                  </excludes>
+                </requireReleaseDeps>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>io.quarkus.platform</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>

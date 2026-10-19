@@ -161,7 +161,11 @@ components:
       natural language or as database queries that are always confined to one project. A natural language question
       can use one of several strategies: translation into a database query, a search by meaning over the element
       texts, or a step by step exploration of the graph. You can pick a strategy, or let the service choose one and
-      show its choice. Today five fixed question patterns work; the strategies follow. Without it nobody could use the results.
+      show its choice. Today five fixed question patterns work, and other questions go to a language model that
+      writes a database query. The search by meaning and the exploration exist but are switched off by default.
+      The console also has a graph explorer: it draws the graph of a project, expands neighbours, finds paths
+      and exports the picture. Triagers review trace links and give a cause when they decide on a finding.
+      Without it nobody could use the results.
     planned: M4
     flow: Receives requests from the front door, reads the knowledge graph, and forwards uploads and workflow commands to the agents.
   dashboard:
@@ -169,8 +173,8 @@ components:
     title: System overview dashboard
     summary: An admin-only page that shows whether all parts of the system are healthy.
     details: >-
-      It shows service status, running workflows, the event stream, resource usage and
-      project statistics. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
+      It shows service status, running workflows, the event stream, resource usage,
+      project statistics and a graph page with the same layout as the console graph explorer. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
     flow: Reads status pages of all services, the message bus and resource data; changes nothing.
   document-converter:
     zone: ingest
@@ -197,12 +201,13 @@ components:
     details: >-
       Trace link recovery (TLR) connects artifacts of different kinds automatically, so nobody has to maintain
       the links by hand. The agent runs one or more approaches and stores each result as a trace link with
-      confidence and origin. Today a simple name matching demo approach, two ArDoCo approaches and the research
-      approach LiSSA are active. ArDoCo links architecture documents to architecture models and to source code.
+      confidence and origin. Today a simple name matching demo approach, the ArDoCo approaches, the research
+      approach TransArC and the research approach LiSSA are active. TransArC is the default for links from
+      documents to code. If a project has no architecture model, the system derives one from the
+      documentation with a language model. ArDoCo links architecture documents to architecture models and to source code.
       LiSSA links requirements to source code. It ranks the code files for each requirement by embedding
       similarity and asks a language model to confirm each candidate pair. All model calls go through the
       gateway, so they are budgeted and recorded.
-    planned: M2
     flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
   inconsistency-agent:
     zone: analysis
@@ -210,10 +215,11 @@ components:
     summary: Detects places where documentation, models, requirements and code disagree or are missing something.
     details: >-
       It runs detectors over the elements and trace links and stores each finding in the graph. People then set
-      a status (open, accepted, false positive, resolved), and the agent keeps this history when a later version
-      of the project shows the same problem again. Today only a demo detector is active (requirement without any
-      trace link). Detectors from ArDoCo and further plugin detectors follow.
-    planned: M3
+      a status (open, accepted, rejected, deferred, resolved) and a cause, and the agent keeps this history when a later version
+      of the project shows the same problem again. Today a demo detector (requirement without any trace link) and
+      the ArDoCo detector are active. The ArDoCo detector reports model components that the documentation does
+      not mention and sentences that name entities missing in the model. A detector that uses a language
+      model exists but is switched off by default.
     flow: Starts after trace link recovery, reads elements and links, calls detector plugins, and writes findings to the graph.
   orchestrator:
     zone: analysis
@@ -354,6 +360,23 @@ components:
       Trace link and inconsistency agents are written in Java so they can reuse the Java research code of
       ArDoCo and LiSSA directly. This library gives them the shared basics.
     flow: Included in the Java services at build time. It is not a running service.
+  ardoco-text:
+    zone: libs
+    title: ArDoCo text support
+    summary: Shared code that prepares document text for ArDoCo.
+    details: >-
+      It cuts a document into one sentence per line and sends the text to the CoreNLP service for language
+      analysis. The trace link agent and the inconsistency agent both use it, so both give ArDoCo the same input.
+    flow: Included in the Java services at build time. It is not a running service.
+  ardoco-shadow:
+    zone: libs
+    title: ArDoCo speed-up
+    summary: A faster copy of one ArDoCo class for the code model.
+    details: >-
+      The ArDoCo code model computes the same values again for every word. This library replaces that class
+      with a version that computes them once and returns copies. The trace link agent loads it instead of the
+      original, so the results stay the same and the code approaches run faster.
+    flow: Included in the trace link agent at build time. It is not a running service.
   agent-lib-a2a:
     zone: libs
     title: Java A2A glue

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Trace links of {{ project }}{% endblock %}
+{% block body %}
+<h1>Trace links of {{ project }}</h1>
+<p><a href="/console/projects/{{ project }}/inconsistencies">Inconsistencies</a></p>
+<form method="get">
+  <label>Artifact id <input name="artifactId" value="{{ f.artifactId }}"></label>
+  <label>Approach <input name="approach" value="{{ f.approach }}"></label>
+  <label>Status
+    <select name="status"><option value="">any</option>
+    {% for s in statuses %}<option value="{{ s }}" {% if s == f.status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></label>
+  <label>Minimum confidence <input name="minConfidence" value="{{ f.minConfidence }}" size="4"></label>
+  <button>Filter</button>
+</form>
+<table>
+<tr><th>Source</th><th>Target</th><th>Approaches</th><th>Best confidence</th><th>Agree</th><th>Status</th><th>Reviewer</th>{% if can_review %}<th>Review</th>{% endif %}</tr>
+{% for p in pairs %}
+<tr>
+  <td>{{ p.source.name }}<br><small class="muted">{{ p.source.excerpt }}</small></td>
+  <td>{{ p.target.name }}<br><small class="muted">{{ p.target.excerpt }}</small></td>
+  <td>{{ p.approaches | join(", ") }}</td>
+  <td>{{ "%.2f" | format(p.confidence) }}</td>
+  <td>{{ p.approaches | length }}</td>
+  <td><span class="badge">{{ p.status }}</span></td>
+  <td>{{ p.reviewer or "" }}</td>
+  {% if can_review %}<td>
+  {% if p.reviewable %}
+  <form method="post" action="/console/projects/{{ project }}/links/{{ p.reviewable }}/review">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input name="reason" maxlength="2000" placeholder="Reason (required to reject)">
+    <button name="status" value="confirmed">Confirm</button>
+    <button name="status" value="rejected">Reject</button>
+    <button name="status" value="candidate">Reset</button>
+  </form>
+  {% else %}<span class="muted">not reviewable</span>{% endif %}
+  </td>{% endif %}
+</tr>
+<tr><td colspan="{{ 8 if can_review else 7 }}"><details><summary>Rationale</summary>
+  <ul>{% for l in p.links %}<li><strong>{{ l.approach }}</strong> ({{ "%.2f" | format(l.confidence) }}): {{ l.rationale or "no rationale" }}</li>{% endfor %}</ul>
+  {% for l in p.links %}{% if l.reviewReason %}<p>Review reason: {{ l.reviewReason }}{% if l.reviewOrigin == "carried-over" %} (carried over){% endif %}</p>{% endif %}{% endfor %}
+</details></td></tr>
+{% else %}
+<tr><td colspan="{{ 8 if can_review else 7 }}">Nothing found.</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

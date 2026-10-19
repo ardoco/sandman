@@ -1,0 +1,53 @@
+{% if ev is none %}
+<p class="muted">The evidence could not be read from the knowledge graph. Try again later.</p>
+{% else %}
+<h2>Sentences and elements</h2>
+<div class="stack">
+{% for it in ev["items"] %}{% set e = it.element %}
+<div class="card">
+  <p><span class="badge">{{ e.label }}</span> <strong>{{ e.name }}</strong> <span class="badge {{ 'ok' if it.state == 'current' else 'warn' if it.state == 'changed' else 'bad' }}">{{ it.state }}</span> <span class="muted">{{ it.role }}</span></p>
+  <dl class="kv">
+    <dt>Document</dt><dd>{{ e.artifactPath or "-" }}</dd>
+    {% if it.section is not none %}<dt>Section</dt><dd>{{ it.section or "(before the first heading)" }}</dd>{% endif %}
+    {% if it.sentence %}<dt>Sentence</dt><dd>{{ it.sentence }}</dd>{% endif %}
+    {% set cur = it.current %}
+    {% if cur and cur.startLine is not none %}<dt>Lines</dt><dd>{{ cur.startLine }}{% if cur.endLine is not none and cur.endLine != cur.startLine %}-{{ cur.endLine }}{% endif %}</dd>
+    {% elif e.startLine is defined %}<dt>Lines</dt><dd>{{ e.startLine }}{% if e.endLine is defined and e.endLine != e.startLine %}-{{ e.endLine }}{% endif %}</dd>{% endif %}
+    <dt>Key</dt><dd><small>{{ e.key }}</small></dd>
+    {% set dr, cr = it.detectedRevision, it.currentRevision %}
+    <dt>Revision at detection</dt><dd>{{ (dr.revision or dr.id) if dr else "-" }}</dd>
+    <dt>Revision now</dt><dd>{{ (cr.revision or cr.id) if cr else "removed" }}</dd>
+  </dl>
+  {% if it.state == "gone" %}
+  <p class="muted">The element is no longer current. Text at detection:</p>
+  <pre>{{ it.detectedText or "" }}</pre>
+  {% elif it.state == "changed" %}
+  <p class="muted">The element changed after detection. Text now:</p>
+  <pre>{{ cur.text or "" }}</pre>
+  <p class="muted">Text at detection:</p>
+  <pre>{{ it.detectedText or "" }}</pre>
+  {% else %}
+  <pre>{{ cur.text or it.detectedText or "" }}</pre>
+  {% endif %}
+</div>
+{% else %}<p class="muted">No involved element.</p>{% endfor %}
+</div>
+
+<h2>Trace links of these elements</h2>
+<table class="table">
+<tr><th>Approach</th><th>Type</th><th>Confidence</th><th>Status</th><th>Active</th><th>Source</th><th>Target</th></tr>
+{% for l in ev["links"] %}
+<tr><td>{{ l.approach }}</td><td>{{ l.linkType }}</td><td>{{ l.confidence }}</td><td>{{ l.status }}</td><td>{{ "yes" if l.active else "no" }}</td>
+<td>{{ l.sourceName }} <small>{{ l.sourceKey }}</small></td><td>{{ l.targetName }} <small>{{ l.targetKey }}</small></td></tr>
+{% else %}<tr><td colspan="7">No trace link ends at these elements.</td></tr>{% endfor %}
+</table>
+{% if ev["more_links"] %}<p class="muted">More links exist. The table shows the first {{ ev["links"] | length }}.</p>{% endif %}
+
+<h2>Detection</h2>
+{% set runs = ev["runs"] %}
+<dl class="kv">
+  <dt>First detected</dt><dd>{{ runs[0].at if runs else d.createdAt }}{% if runs and runs[0].tool %} <span class="muted">({{ runs[0].tool }} {{ runs[0].toolVersion or "" }})</span>{% endif %}</dd>
+  <dt>Last detected</dt><dd>{{ runs[-1].at if runs else d.updatedAt }}{% if runs and runs[-1].tool %} <span class="muted">({{ runs[-1].tool }} {{ runs[-1].toolVersion or "" }})</span>{% endif %}</dd>
+  <dt>Detections</dt><dd>{{ runs | length }}</dd>
+</dl>
+{% endif %}

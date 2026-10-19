@@ -1,11 +1,11 @@
 # SANDMAN – Stage 2: Contracts and Repository
 
-Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.7.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
+Status: revision 4 (Stage 4 review decisions and the system overview dashboard incorporated; contract version 0.9.0) · Date: 2026-10-06 · Builds on [Stage 1](stage-1-analysis-architecture.md) (revision 4) and the [ADRs](../adr/README.md).
 
 ## 0. Summary of key decisions
 
 1. **Contracts are files, not prose.** `contracts/` holds JSON Schemas (common types, events, skill I/O incl. plugin skills), A2A Agent Cards, OpenAPI 3.1 documents for every REST API, the KG schema contract and init script, and language-neutral conformance vectors. All files are validated in CI (Section 1.8); stubs and final implementations are tested against the same files.
-2. **One contract version (0.7.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`, 0.4.0 added planned operations, config schemas, lifecycle table, idempotency vectors and `Element.references`, 0.5.0 added `Run.mixedModels`, the `SchemaVersion` node and the optional manifest for archive-only uploads (a partial ingestion: no deletions), 0.6.0 added the optional approach `scopeMode` (R-022), 0.6.1 clarified that a whole-project `tracelinks.updated` event also lists the version ids whose links changed, 0.7.0 added the optional plugin skill `sandman.plugin.code-model` (`PluginCodeModelInput`/`PluginCodeModelOutput`, T2.6); the KG schema carries its own version, 0.4.0).
+2. **One contract version (0.9.0) for the whole system**, semantic versioning: additive changes → minor, breaking → major plus new event type/skill id suffix (before 1.0, breaking changes bump the minor version; 0.2.0 applied the review decisions, 0.3.0 added `GET /v1/status`, 0.4.0 added planned operations, config schemas, lifecycle table, idempotency vectors and `Element.references`, 0.5.0 added `Run.mixedModels`, the `SchemaVersion` node and the optional manifest for archive-only uploads (a partial ingestion: no deletions), 0.6.0 added the optional approach `scopeMode` (R-022), 0.6.1 clarified that a whole-project `tracelinks.updated` event also lists the version ids whose links changed, 0.7.0 added the optional plugin skill `sandman.plugin.code-model` (`PluginCodeModelInput`/`PluginCodeModelOutput`, T2.6), 0.8.0 added the optional `activity` (`text`, `at`) of a running workflow step: the agent reports a short text as A2A task status message and the orchestrator copies it; 0.9.0 implemented the planned skills `prune-trace-links` and `prune-artifact-data` (optional `protectedContentHashes`, output `dryRun` and `removed`, `dryRun` default true), added the event `sandman.retention.pruned` and the `retention` section of the orchestrator rules (T5.2); the KG schema carries its own version, 0.6.0: 0.5.0 added `Element.embedding`, `Element.embeddingModel` and the vector index `element_embedding` (T4.1b); 0.6.0 added `Artifact.origin`, `ArtifactVersion.derivedFrom`, `ArtifactVersion.derivationRunId`, `Element.inferred` and the reserved path prefix `.sandman/` for derived architecture models (T2.7); T2.7 also added the skill `derive-architecture-model`, the `modelDerivation` rules section and `config/extraction/model-derivation.yaml`).
 3. **Monorepo**: uv workspace (Python 3.13) and Maven multi-module build (Java 21, Quarkus for A2A servers) side by side; root-level contracts; one Compose file.
 4. **Docker:** multi-stage images with the repository root as build context (libraries and contracts are copied in); non-root runtime users; the ArDoCo inconsistency branch is built from a pinned commit inside the Java image build.
 5. **Reference Compose file** [deploy/docker-compose.yml](../deploy/docker-compose.yml) with three networks (internal without egress, egress, edge with only a reverse proxy), health-gated startup, per-service file secrets, memory limits, the `llm-replay` proxy, profiles `obs`, `local-llm`, `stubs`, and a dev overlay. Validated with `docker compose config`.
@@ -34,11 +34,12 @@ Status: revision 4 (Stage 4 review decisions and the system overview dashboard i
 
 ### 1.2 Conventions
 
-- **Versioning:** contract version `0.7.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
+- **Versioning:** contract version `0.9.0` in schema descriptions and OpenAPI `info.version`. Payload changes are additive only within a major version; consumers ignore unknown members where the schema allows it (outputs) and producers never send unknown members (`additionalProperties: false` on inputs).
 - **Ids:** `stableId(prefix, parts…)` (deterministic, see vectors) for everything that must be idempotent; `run_`/`wf_` ids are random. Element keys `artifactId#localKey` are stable across versions.
 - **Errors:** REST → RFC 9457 problem details; A2A → task state `TASK_STATE_FAILED`/`TASK_STATE_REJECTED` with `SkillError` in status message metadata `sandman.error` (`code`, `message`, `retryable`).
 - **Auth headers:** `Authorization: Bearer <service token>` between services; each service holds only its own token, receivers verify against hashes. User identity only via `X-Sandman-Actor` from the query-service and via `sandman.actor` A2A metadata from the orchestrator (trusted forwarders). Owners reject these headers from other callers with 403. Owners call plugins with the plugin's inbound token.
 - **Time:** ISO-8601 UTC strings everywhere.
+- **Activity text (0.8.0):** while a task works, an agent may set a short text (max 200 characters, at most one update per 2 s) as text part of the task status message (`TASK_STATE_WORKING`). The orchestrator stores the last text on the running step (`activity`). Agents without it keep working.
 
 ### 1.3 A2A skill invocation (SANDMAN convention on A2A 1.0, JSON-RPC binding)
 
@@ -253,7 +254,7 @@ sandman/
 
 Further languages (ADR-0017, on demand): TypeScript on Node.js LTS with npm workspaces (`package-lock.json`), Go modules, Rust Cargo workspace (`Cargo.lock`); each kit has its own CI job (lint, tests, conformance vectors, Testcontainers) and a framework guard (no LangChain.js/LangGraph.js/LlamaIndex/Mastra, LangChainGo/Eino, langchain-rust/rig).
 
-ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…`) in one pass (`spikes/T0.12/bootstrap.sh`) — in the Docker build stage and via `make ardoco` for local development — with `named-architecture-entity-recognition` 2.1.0 from Maven Central (the script patches the branch's two `2.1.0-SNAPSHOT` references until the branch switches upstream).
+ArDoCo dependency: released artifacts (`io.github.ardoco:*`, 2.0.1) from Maven Central for TLR; the inconsistency-detection branch `feature/make-inconsistency-great-again` is built from a pinned commit (`0d1f22b…`) in one pass (`scripts/ardoco-id-bootstrap.sh`) — in the Docker build stage and via `make ardoco` for local development — with `named-architecture-entity-recognition` 2.1.0 from Maven Central (the script patches the branch's two `2.1.0-SNAPSHOT` references until the branch switches upstream).
 
 ### 2.3 CI outline (GitHub Actions)
 
@@ -301,7 +302,7 @@ Java services (example: inconsistency-agent):
 
 ```dockerfile
 FROM maven:3.9-eclipse-temurin-21 AS ardoco
-COPY spikes/T0.12/bootstrap.sh /bootstrap.sh
+COPY scripts/ardoco-id-bootstrap.sh /bootstrap.sh
 # one-pass build of the pinned ArDoCo branch against named-architecture-entity-recognition 2.1.0 (Maven Central);
 # pinned commit and Maven repository location are set in the script (adapted for the image in T0.11)
 RUN sh /bootstrap.sh
@@ -412,7 +413,7 @@ General rules for all stubs: real HTTP/A2A servers serving the real Agent Cards 
 
 | | |
 |---|---|
-| Stub behavior | Real: auth (users, roles, tokens), admin endpoints, forwarding, raw Cypher with validation and read transactions, schema endpoint, exports, console pages. Stubbed: NL endpoint maps 5 regex intents (`untraced requirements`, `links of <name>`, `open inconsistencies`, `components without documentation`, `what changed since <revision>`) to fixed Cypher templates; other questions → 422 with explanation. `strategy` (`auto`\|`cypher`\|`graphrag`\|`explore`) is accepted; `auto` and `cypher` use the intents, `graphrag` and `explore` answer 501 (ADR-0018). |
+| Stub behavior | Real: auth (users, roles, tokens), admin endpoints, forwarding, raw Cypher with validation and read transactions, schema endpoint, exports, console pages. Stubbed: NL endpoint maps 5 regex intents (`untraced requirements`, `links of <name>`, `open inconsistencies`, `components without documentation`, `what changed since <revision>`) to fixed Cypher templates; other questions → 422 with explanation. `strategy` (`auto`\|`cypher`\|`graphrag`\|`explore`) is accepted; `auto` and `cypher` use the intents, `graphrag` and `explore` answer 501 (ADR-0018). From T4.1: strategy `cypher` asks the LLM for questions without an intent (guard, bounded repair); a disabled strategy in `strategies.yaml` answers 501. |
 | Configuration | `config/query/intents.yaml`, `examples.yaml` (empty in stub; later with a `strategy` label per question), `strategies.yaml` (enabled strategies, budgets, classifier threshold; schema in `contracts/config/`). |
 | Finalized when | LLM NL-to-Cypher with validation/repair reaches ≥ 80 % execution accuracy on the held-out example split (target to be confirmed in Stage 3); security test suite (write/admin queries rejected; read transaction blocks writes with validation disabled) green; authorization matrix tests green; strategies `graphrag` and `explore` and `auto` selection meet the targets of ADR-0018 (Confirmation) and pass the same security suite. |
 

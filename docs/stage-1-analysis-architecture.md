@@ -106,7 +106,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 | NFR-10 | Persistence: KG, event log, workflow state, artifact store and gateway data survive restarts and can be backed up. |
 | NFR-11 | Extensibility: new TLR approaches and inconsistency detectors are added without changing contracts or the orchestrator. |
 | NFR-12 | Local models (Ollama/vLLM) are usable through the same gateway (confidential artifacts). |
-| NFR-13 | Free/open-source components only; licenses compatible with distributing the repository under AGPL-3.0. |
+| NFR-13 | Free/open-source components only; licenses compatible with distributing the repository under AGPL-3.0. Exception (ADR-0014, amended 2026-10-18): Memgraph Community (BSL 1.1) runs as a separate service from the official image. The repository does not redistribute it. |
 | NFR-14 | Testability: LLM-dependent behavior can be tested offline (mock LLM, record/replay). |
 | NFR-15 | Simplicity: single-server research prototype; target size per project ≤ ~5 000 artifacts/files, ≤ ~200 000 KG nodes (assumption A-6). |
 | NFR-16 | Architecture decisions are documented as ADRs (`adr/`). |
@@ -419,6 +419,7 @@ Version pinned: **A2A spec 1.0.x**, JSON-RPC 2.0 binding over HTTP (most widely 
 | Agent | Skill id | Input → output (summary) |
 |---|---|---|
 | extraction-agent | `extract-artifact-versions` | `{projectId, artifactVersionIds[], options?}` → `{runId, elementCount, explicitLinkCount, pluginRuns[]}` |
+| extraction-agent | `derive-architecture-model` | `{projectId}` → `{derivedVersionIds[], retiredArtifactIds[], warnings[]}` |
 | tlr-agent | `recover-trace-links` | `{projectId, sourceVersionIds[], targetVersionIds[], approaches?[], params?}` → `{runs:[{runId, approach, linkCount}]}` |
 | inconsistency-agent | `detect-inconsistencies` | `{projectId, scopeArtifactIds?[], detectors?[]}` → `{runId, newIds, reopenedIds, autoResolvedIds, stillOpenCount}` |
 | extraction plugin (plugged-in service; HTTP variant `POST /v1/extract` in the contract, not yet called) | `sandman.plugin.extract` | `{projectId, llmPolicy, artifacts:[{artifactVersionId, path, kind, format, storagePath, contentHash}], context:{currentArtifacts[]}}` → `{elements[], relations[], explicitReferences[], warnings[]}` (owner writes) |
@@ -882,11 +883,13 @@ Rule table (prototype; config file `config/orchestrator/rules.yaml`, evaluated i
 | `ingestion.completed` | only deletions | `inconsistency-agent/detect-inconsistencies {scopeArtifactIds = deletedArtifactIds}` (deleted artifacts resolve their findings, 4.3 step 4) | debounce 10 s per project |
 | `extraction.completed` | a kind pair configured for TLR involves the extracted artifacts | `tlr-agent/recover-trace-links {changed versions × counterpart current versions, project approaches}` | debounce 10 s per project, union of changed versions |
 | `extraction.completed` | no TLR kind pair involves the extracted artifacts | `inconsistency-agent/detect-inconsistencies {scopeArtifactIds = artifacts of the extracted versions}` | debounce 10 s per project |
+| `extraction.completed` | the changed versions contain a user (`origin` not `derived`) `architecture-doc` or `architecture-model` version, and `modelDerivation` is enabled for the project | `extraction-agent/derive-architecture-model {projectId}` (derives models for documents without a user model; retires derived models that a user model supersedes) | debounce 10 s per project; derived versions never start this rule |
+| `ingestion.completed` | `deletedArtifactIds` not empty | `extraction-agent/derive-architecture-model {projectId}` (retires derived models of deleted documents) | debounce 10 s per project |
 | `tracelinks.updated` | – | `inconsistency-agent/detect-inconsistencies {scopeArtifactIds = artifacts of the source and target versions}` | debounce 10 s per project |
 | schedule (later) | – | `prune` workflow (retention, 4.2) | – |
 | `inconsistencies.updated` | – | close workflow; nothing else (console reads KG) | – |
 | `inconsistency.status.changed` | – | audit log only | – |
-| REST `POST /v1/workflows {type, projectId, params}` | – | run the named pipeline (`full`, `extract`, `tlr`, `detect`) | `force=true` bypasses idempotency |
+| REST `POST /v1/workflows {type, projectId, params}` | – | run the named pipeline (`full`, `extract`, `tlr`, `detect`, `derive`) | `force=true` bypasses idempotency |
 
 Workflow state model: a `workflow` groups steps caused by one root event or manual trigger (`correlationid` propagates through A2A metadata and events). Step states: `PENDING → RUNNING → SUCCEEDED | FAILED | CANCELED | BLOCKED`; a step becomes `SUCCEEDED` when its completion event (`causationid` = `messageId` of the A2A request) arrives, and `FAILED`/`CANCELED` from `GetTask` polling or timeouts. Workflow state is derived from steps. Version ids are resolved to artifact ids by a KG read (the orchestrator's only KG access).
 

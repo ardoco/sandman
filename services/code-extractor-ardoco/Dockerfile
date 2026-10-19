@@ -7,6 +7,8 @@ COPY services/tlr-agent/approach-spi/pom.xml services/tlr-agent/approach-spi/pom
 COPY services/tlr-agent/approach-ardoco/pom.xml services/tlr-agent/approach-ardoco/pom.xml
 COPY services/tlr-agent/approach-lissa/pom.xml services/tlr-agent/approach-lissa/pom.xml
 COPY services/inconsistency-agent/pom.xml services/inconsistency-agent/pom.xml
+COPY services/inconsistency-agent/detector-spi/pom.xml services/inconsistency-agent/detector-spi/pom.xml
+COPY services/inconsistency-agent/detector-ardoco/pom.xml services/inconsistency-agent/detector-ardoco/pom.xml
 COPY services/code-extractor-ardoco services/code-extractor-ardoco
 COPY contracts contracts
 RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl services/code-extractor-ardoco -am package -DskipTests

@@ -29,8 +29,8 @@ ESCAPES = set("\\'\"bBfFnNrRtT")
 SYMBOLS2 = {"<=", ">=", "<>", "!=", "=~", ".."}
 SYMBOLS1 = set("()[]{},:;.|+-*/%^=<>")
 IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
-NUMBER = re.compile(r"0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
-PARAM_RE = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*|\d+)")
+NUMBER = re.compile(r"0[xX][0-9a-fA-F]+|[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?")
+PARAM_RE = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*|[0-9]+)")
 
 
 class GuardError(Exception):
@@ -71,7 +71,7 @@ def tokenize(src: str) -> list[Tok]:
             assert m
             out.append(Tok("name", m.group(), i, m.end()))
             i = m.end()
-        elif c.isdigit():
+        elif c in "0123456789":
             m = NUMBER.match(src, i)
             assert m
             out.append(Tok("num", m.group(), i, m.end()))
@@ -138,6 +138,8 @@ class Part:
 
 class Parser:
     def __init__(self, src: str, scoped: bool) -> None:
+        if len(src) > MAX_LENGTH:
+            raise GuardError(f"query longer than {MAX_LENGTH} characters")
         self.src, self.scoped = src, scoped
         self.toks = tokenize(src)
         self.i = 0
@@ -224,8 +226,6 @@ class Parser:
     # ------------------------------------------------------------------- query
 
     def query(self) -> Checked:
-        if len(self.src) > MAX_LENGTH:
-            raise GuardError(f"query longer than {MAX_LENGTH} characters")
         has_limit = self.single_query(top=True)
         while self.accept_kw("UNION"):
             self.accept_kw("ALL")

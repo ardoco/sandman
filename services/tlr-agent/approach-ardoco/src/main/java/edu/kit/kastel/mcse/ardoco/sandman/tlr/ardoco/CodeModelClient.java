@@ -1,6 +1,7 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.A2aClient;
+import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.ApproachUnavailableException;
 import io.opentelemetry.context.Context;
 import java.io.IOException;

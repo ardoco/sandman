@@ -14,20 +14,35 @@ from sandman_agent.config import DEFAULT_CONTRACTS_DIR, Settings
 from sandman_agent.contracts import Contracts
 from sandman_agent.testing import InMemoryEventBus
 from sandman_orchestrator.orchestrator import Orchestrator
-from sandman_orchestrator.rules import DETECT, EXTRACT, TLR, KindPair, Rules, Version
+from sandman_orchestrator.rules import (
+    DERIVE,
+    DETECT,
+    EXTRACT,
+    PRUNE_DATA,
+    PRUNE_LINKS,
+    TLR,
+    KindPair,
+    ModelDerivation,
+    Retention,
+    Rules,
+    Version,
+)
 
 TOKENS = {"orchestrator": "orch-token", "query-service": "qs-token", "dashboard": "dash-token", "tlr-agent": "tlr"}
 VERIFY = {name: hashlib.sha256(token.encode()).hexdigest() for name, token in TOKENS.items()}
 AGENTS = {"extraction-agent": "http://extraction-agent:8000", "tlr-agent": "http://tlr-agent:8080",
           "inconsistency-agent": "http://inconsistency-agent:8080"}  # fmt: skip
-CARDS = {EXTRACT: "extraction-agent", TLR: "tlr-agent", DETECT: "inconsistency-agent"}
+CARDS = {EXTRACT: "extraction-agent", TLR: "tlr-agent", DETECT: "inconsistency-agent",
+         PRUNE_LINKS: "tlr-agent", PRUNE_DATA: "extraction-agent", DERIVE: "extraction-agent"}  # fmt: skip
 RULES = Rules(
     debounce=0,
-    timeouts={EXTRACT: 5, TLR: 5, DETECT: 5},
+    timeouts={EXTRACT: 5, TLR: 5, DETECT: 5, PRUNE_LINKS: 5, PRUNE_DATA: 5, DERIVE: 5},
     poll_initial=0.02,
     poll_max=0.05,
     backoff=(0.01,),
     kind_pairs=(KindPair("requirements", "code", ("stub-name-match",)),),
+    retention=Retention(enabled=False),
+    model_derivation=ModelDerivation(enabled=False),
 )
 RUN = "run_" + "0" * 32
 
@@ -57,6 +72,9 @@ class FakeGraph:
     async def current(self, project_id: str) -> list[Version]:
         return list(self.known)
 
+    async def projects(self) -> list[str]:
+        return ["mini"]
+
 
 def output_and_event(skill: str, input: dict[str, Any]) -> SkillResult:
     p = input["projectId"]
@@ -70,6 +88,14 @@ def output_and_event(skill: str, input: dict[str, Any]) -> SkillResult:
         event = {"projectId": p, "sourceVersionIds": input["sourceVersionIds"],
                  "targetVersionIds": input["targetVersionIds"], "runs": runs}  # fmt: skip
         return SkillResult({"runs": runs}, "sandman.tracelinks.updated", event)
+    if skill in (PRUNE_LINKS, PRUNE_DATA):
+        scope = "trace-links" if skill == PRUNE_LINKS else "artifact-data"
+        keep, dry = input.get("keepVersionsPerArtifact", 20), input.get("dryRun", True)
+        event = {"projectId": p, "scope": scope, "runId": RUN, "dryRun": dry, "keepVersionsPerArtifact": keep,
+                 "removedCount": 0}  # fmt: skip
+        if "protectedContentHashes" in input:
+            event["protectedContentHashes"] = input["protectedContentHashes"]
+        return SkillResult({"runId": RUN, "removedCount": 0, "dryRun": dry}, "sandman.retention.pruned", event)
     lists: dict[str, Any] = {"newIds": [], "reopenedIds": [], "autoResolvedIds": [], "stillOpenCount": 0}
     out = {"runId": RUN, "status": "completed", **lists, "detectorRuns": []}
     event = {"projectId": p, "runId": RUN, "status": "completed", **lists}
@@ -79,7 +105,7 @@ def output_and_event(skill: str, input: dict[str, Any]) -> SkillResult:
 
 
 class FakeSkill:
-    """Runs a script of behaviors per call: 'ok', 'hang' (until cancelled or released) or a SkillError."""
+    """Script per call: 'ok', 'hang' (until cancelled or released), 'talk' (activity, then hang) or SkillError."""
 
     def __init__(self, id: str) -> None:
         self.id = id
@@ -96,7 +122,9 @@ class FakeSkill:
         action = self.script.pop(0) if self.script else "ok"
         if isinstance(action, SkillError):
             raise action
-        if action == "hang":
+        if action == "talk":
+            await ctx.progress("annotating sentences 1/3")
+        if action in ("hang", "talk"):
             cancel = asyncio.create_task(ctx.cancelled.wait())
             await asyncio.wait([cancel, asyncio.create_task(self.release.wait())], return_when="FIRST_COMPLETED")
             if ctx.cancelled.is_set():
@@ -145,7 +173,13 @@ class Env:
         name = CARDS[skill]
         settings = Settings(service_name=name, service_verify=VERIFY)
         card = DEFAULT_CONTRACTS_DIR / "agent-cards" / f"{name}.json"
-        self.router.apps[name] = serve(card, [self.skills[skill]], settings, events=self.bus, contracts=self.contracts)
+        self.router.apps[name] = serve(
+            card,
+            [self.skills[k] for k, v in CARDS.items() if v == name],
+            settings,
+            events=self.bus,
+            contracts=self.contracts,
+        )
 
     def new_orchestrator(self, db: str | Path, rules: Rules = RULES) -> Orchestrator:
         a2a = A2aClient(TOKENS["orchestrator"], transport=self.router)
@@ -169,8 +203,10 @@ def event(type: str, data: dict[str, Any], causation: str | None = None, id: str
                  causation_id=causation)  # fmt: skip
 
 
-def ingestion(created: list[str] = (), deleted: list[str] = (), reactivated: list[str] = (), **kw: Any) -> Event:  # type: ignore[assignment]
-    data = {"projectId": "mini", "ingestionId": "ing_" + "a" * 32, "seq": 1, "mode": "full", "actor": "user:alice",
+def ingestion(
+    created: list[str] = (), deleted: list[str] = (), reactivated: list[str] = (), actor: str = "user:alice", **kw: Any
+) -> Event:  # type: ignore[assignment]
+    data = {"projectId": "mini", "ingestionId": "ing_" + "a" * 32, "seq": 1, "mode": "full", "actor": actor,
             "createdVersionIds": list(created), "reactivatedVersionIds": list(reactivated),
             "deletedArtifactIds": list(deleted), "unchangedCount": 0}  # fmt: skip
     return event("sandman.ingestion.completed", data, **kw)

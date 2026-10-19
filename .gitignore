@@ -364,3 +364,13 @@ __marimo__/
 
 # Generated site (make site)
 site/dist/
+
+/out/
+/actual.csv
+/*-live.csv
+
+# local live-run artifacts
+/experiments/live/
+
+# T5.3 backup archives
+backups/

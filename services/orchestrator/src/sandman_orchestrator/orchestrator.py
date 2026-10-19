@@ -21,6 +21,7 @@ from sandman_orchestrator.rules import SKILL_AGENT, Graph, Rules, StepSpec, manu
 log = logging.getLogger(__name__)
 
 ACTIVE = ("PENDING", "RUNNING")
+ACTIVITY_MAX = 200
 MAX_DELIVER = 5  # EventConsumer.config().max_deliver
 
 
@@ -64,6 +65,7 @@ class Orchestrator:
         self.db.row_factory = sqlite3.Row
         self._migrate()
         self.wake = asyncio.Event()
+        self._next_schedule = 0.0
 
     def _migrate(self) -> None:
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
@@ -145,7 +147,7 @@ class Orchestrator:
         )
         self._touch(step["workflow_id"])
         trigger = json.loads(self._workflow(step["workflow_id"])["trigger_json"])
-        if trigger["kind"] == "manual" and trigger.get("type") != "full":
+        if trigger["kind"] == "manual" and trigger.get("type") not in ("full", "prune"):
             return False
         return str(step["workflow_id"])
 
@@ -342,9 +344,30 @@ class Orchestrator:
             except TimeoutError:
                 pass
 
+    async def schedule_retention(self) -> None:
+        """Start a prune workflow per enabled project when the last one is older than the interval."""
+        retention = self.rules.retention
+        if not retention.enabled or self.clock() < self._next_schedule:
+            return
+        self._next_schedule = self.clock() + 60
+        for project in await self.graph.projects():
+            enabled, _, _ = retention.project(project)
+            last = self.db.execute(
+                "SELECT max(created_at) FROM workflows WHERE project_id = ? "
+                "AND json_extract(trigger_json, '$.type') = 'prune'",
+                (project,),
+            ).fetchone()[0]
+            if not enabled or (last and datetime.fromisoformat(last).timestamp() + retention.interval > self.clock()):
+                continue
+            try:
+                await self.trigger("prune", project, {}, "system:retention-scheduler")
+            except Exception:
+                log.exception("scheduled prune failed", extra={"fields": {"project": project}})
+
     async def tick(self) -> None:
         """Start due steps (pipeline lock per project, per-agent limit), then poll due running steps.
         ponytail: submits and polls run sequentially; a hanging agent delays others by the HTTP timeout (30 s)."""
+        await self.schedule_retention()
         now = self.clock()
         running = self.db.execute("SELECT project_id, agent FROM steps WHERE status = 'RUNNING'").fetchall()
         locked = {r["project_id"] for r in running}
@@ -392,7 +415,8 @@ class Orchestrator:
                 self.db.execute("INSERT INTO messages VALUES (?, ?)", (message_id, step_id))
             self.db.execute(
                 "UPDATE steps SET status = 'RUNNING', attempts = attempts + 1, a2a_task_id = NULL, attempt_at = ?, "
-                "started_at = coalesce(started_at, ?), next_poll_at = ? WHERE id = ?",
+                "started_at = coalesce(started_at, ?), next_poll_at = ?, activity_text = NULL, activity_at = NULL "
+                "WHERE id = ?",
                 (now, self.iso(now), now + self.rules.poll_initial, step_id),
             )
             self._touch(step["workflow_id"])
@@ -465,6 +489,11 @@ class Orchestrator:
         else:
             interval = min(self.rules.poll_max, max(self.rules.poll_initial, now - step["attempt_at"]))
             with self.db:
+                text = (snap.activity or "")[:ACTIVITY_MAX]
+                if text and text != step["activity_text"]:
+                    self.db.execute(
+                        "UPDATE steps SET activity_text = ?, activity_at = ? WHERE id = ?", (text, self.iso(), step_id)
+                    )
                 self.db.execute("UPDATE steps SET next_poll_at = ? WHERE id = ?", (now + interval, step_id))
 
     async def _cancel_task(self, step: sqlite3.Row) -> None:
@@ -523,6 +552,8 @@ class Orchestrator:
             "result": json.loads(s["result_json"] or "null"), "error": json.loads(s["error_json"] or "null"),
             "startedAt": s["started_at"], "endedAt": s["ended_at"],
         }  # fmt: skip
+        if s["status"] == "RUNNING" and s["activity_text"]:
+            step["activity"] = {"text": s["activity_text"], "at": s["activity_at"]}
         return {k: v for k, v in step.items() if v is not None}
 
     def get_workflow(self, wf_id: str) -> dict[str, Any] | None:

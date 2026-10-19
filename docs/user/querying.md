@@ -4,17 +4,17 @@ All queries are read-only and confined to one project. Any project role (`viewer
 
 ## Ask (console)
 
-**Ask** on the project row (`/console/projects/<id>/ask`) answers a few fixed questions. There is no language model behind it today; the text is matched against five patterns (case-insensitive, a trailing `?` is ignored) and mapped to a fixed Cypher query. The page shows the Cypher and the result table.
+**Ask** on the project row (`/console/projects/<id>/ask`) answers a few fixed questions first. The text is matched against five patterns (case-insensitive, a trailing `?` is ignored) and mapped to a fixed Cypher query. The page shows the Cypher and the result table.
 
 | Question | Returns |
 |---|---|
 | `untraced requirements` (also `show`, `list`, `which`, `the` in front) | requirements without any active trace link: key, name, text |
 | `links of <name>` or `links for <name>` | active links of the element with that name or full key: source key, target key, link type, approach, confidence, status |
 | `open inconsistencies` | findings in `OPEN` or `REOPENED`: id, type, severity, title, status |
-| `components without documentation` | model components with no active `documents` link. The only approach today (`stub-name-match`) creates `relates` links, so this lists all components |
+| `components without documentation` | model components with no active `documents` link. The approach `stub-name-match` creates `relates` links only, so a component linked only by it still appears |
 | `what changed since <revision>` | versions activated by ingestions after the latest one with that `--revision`: ingestion number, revision, path, version id |
 
-`<name>` is the element's name: for a requirement its title (`links of Cache media files`), for code `MediaCache`. A requirement id alone (`REQ-1`) does not match; use the title or the full key (`art_...#REQ-1`, see the `key` column). Any other question goes to the LLM (strategy `cypher`), which writes one read-only Cypher query. The query passes the scope guard; if it fails, the model gets the error and tries again (at most twice). The response lists all `attempts`. Without a configured LLM, other questions answer `question not understood (M0 stub, no LLM)` and list the supported intents (`id`s from `config/query/intents.yaml`). Strategies `graphrag` and `explore`, and a disabled `cypher`, answer 501 (`config/query/strategies.yaml`).
+`<name>` is the element's name: for a requirement its title (`links of Cache media files`), for code `MediaCache`. A requirement id alone (`REQ-1`) does not match; use the title or the full key (`art_...#REQ-1`, see the `key` column). Any other question goes to the LLM (strategy `cypher`), which writes one read-only Cypher query. The query passes the scope guard; if it fails, the model gets the error and tries again (at most twice). The response lists all `attempts`. Without a configured LLM, other questions answer `question not understood (M0 stub, no LLM)` and list the supported intents (`id`s from `config/query/intents.yaml`). The strategies `graphrag` and `explore` exist, but `config/query/strategies.yaml` disables them. A disabled strategy answers 501. The Ask page has a strategy selector (`auto`, `cypher`, `graphrag`, `explore`). It shows the resolved strategy, the classification, the evidence and the steps.
 
 The same through the API; `mode: "cypher-only"` returns the Cypher without running it:
 
@@ -128,7 +128,8 @@ Base URL `http://127.0.0.1:8080`, header `Authorization: Bearer <token>` ([proje
 |---|---|
 | `GET /v1/projects` (projects you can read, with your role) | any |
 | `GET /v1/projects/{id}/inconsistencies`, `GET /v1/inconsistencies/{id}` | viewer |
-| `POST /v1/inconsistencies/{id}/transitions` | triager |
+| `POST /v1/inconsistencies/{id}/transitions` (body member `cause`) | triager |
+| `POST /v1/projects/{id}/links/{linkId}/review` | triager |
 | `GET /v1/projects/{id}/workflows`, `GET /v1/workflows/{id}` | viewer |
 | `POST /v1/projects/{id}/workflows` | maintainer |
 | `POST /v1/projects/{id}/ingestions/check`, `POST /v1/projects/{id}/ingestions` | maintainer |
@@ -147,7 +148,7 @@ uv run sandman export --project demo inconsistencies > findings.json
 uv run sandman export --project demo inconsistencies --format csv
 ```
 
-- `tracelinks`: current links only, rejected ones excluded. CSV (default) columns: `source_key,target_key,link_type,approach,approach_version,confidence,status,run_id`. JSON uses camelCase members. The REST endpoint also accepts `approach`, `minConfidence` (0 to 1) and `includeRejected=true`.
-- `inconsistencies`: all findings of the project with involved elements and status history; JSON by default. CSV has one row per finding, with `involved` and `history` as JSON cells.
+- `tracelinks`: current links only, rejected ones excluded. CSV (default) columns: `source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason`. The review columns are empty for links without a review ([trace-links-and-findings.md](trace-links-and-findings.md#review-trace-links)). JSON uses camelCase members. The REST endpoint also accepts `approach`, `minConfidence` (0 to 1) and `includeRejected=true`.
+- `inconsistencies`: all findings of the project with involved elements and status history; JSON by default. CSV has one row per finding, with the column `cause` (the cause of the latest history entry that has one) and `involved` and `history` as JSON cells.
 
 Keys in the export are `art_<id>#<local key>`; map them to paths with the Cypher above.

@@ -7,8 +7,10 @@ A workflow is the processing that follows a change: extract elements, recover tr
 An ingestion that created or reactivated versions, or deleted artifacts, produces one workflow with these steps (trigger kind `event`):
 
 1. `extract-artifact-versions` (extraction agent) for the new and reactivated versions.
-2. `recover-trace-links` (TLR agent) for each configured kind pair, changed versions against the project's current counterparts. The shipped pairs (`config/orchestrator/rules.yaml`) are `requirements` to `code` and `architecture-doc` to `architecture-model`, both with the `stub-name-match` approach.
+2. `recover-trace-links` (TLR agent) for each configured kind pair, changed versions against the project's current counterparts. The shipped pairs (`config/orchestrator/rules.yaml`) are `requirements` to `code`, `architecture-doc` to `architecture-model`, `architecture-doc` to `code` and `architecture-model` to `code`. Every enabled approach of `config/tlr/approaches.yaml` that supports a pair runs for it.
 3. `detect-inconsistencies` (inconsistency agent) for the affected artifacts. After a deletion it runs for the deleted artifacts too, so their findings resolve.
+
+If a project has an architecture document but no architecture model, a derivation step first creates a [derived model](derived-models.md). A trace link review by a triager starts a new detection step for the affected artifacts ([trace-links-and-findings.md](trace-links-and-findings.md#review-trace-links)).
 
 Link-recovery and detection steps that are still waiting are merged when new work for the same project arrives (debounce `debounceSeconds`, 10 seconds). The mini example takes about 25 seconds from upload to `SUCCEEDED`. An ingestion that changes nothing starts no workflow.
 

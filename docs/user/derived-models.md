@@ -22,7 +22,7 @@ Sandman never sends the text of a `local-only` project to a cloud route.
 
 ## See a derived model
 
-1. Run `sandman artifacts list --project <id>` or query the artifacts of the project.
+1. Query the artifacts of the project with Cypher ([querying.md](querying.md)) or in the graph explorer.
 2. Find the artifacts with a path that starts with `.sandman/derived/exarch/`.
 3. Read the file. Each line has the form `Name::Name`.
 

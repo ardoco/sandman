@@ -6,8 +6,8 @@ A user has one role per project, plus an optional global `admin` flag. Roles are
 
 | Role | Can additionally |
 |---|---|
-| `viewer` | list the project, read findings, workflows, trace links; run queries and exports |
-| `triager` | change the triage status of findings |
+| `viewer` | list the project, read findings, workflows, trace links; run queries and exports; open the graph explorer |
+| `triager` | change the triage status of findings (with a cause); confirm, reject or reset trace links |
 | `maintainer` | upload artifacts (`sandman ingest`, console upload), trigger workflows |
 | global `admin` | manage users, create projects, assign project roles; acts as `maintainer` in every project |
 
@@ -34,7 +34,7 @@ curl -X PUT "$SANDMAN_URL/v1/admin/projects/demo/members/alice" -H "Authorizatio
 ## Projects
 
 Projects are created through the API only (admin), see [getting-started.md](getting-started.md):
-`PUT /v1/admin/projects/{projectId}` with `{"name": "...", "llmPolicy": "cloud-allowed" | "local-only"}`. Project ids match `^[a-z0-9][a-z0-9-]{1,62}$`. The console page **Projects** lists the projects you can read, with your role, finding counts per status, the number of findings that are new or reopened since your last visit to the project's findings page, and the status of the latest workflow. Links lead to findings, **Ask**, **Workflows** and (for maintainers and admins) **Upload**.
+`PUT /v1/admin/projects/{projectId}` with `{"name": "...", "llmPolicy": "cloud-allowed" | "local-only"}`. Project ids match `^[a-z0-9][a-z0-9-]{1,62}$`. The console page **Projects** lists the projects you can read, with your role, finding counts per status, the number of findings that are new or reopened since your last visit to the project's findings page, and the status of the latest workflow. Links lead to findings, **Links** (trace links and their review), **Ask**, **Graph** (graph explorer), **Workflows** and (for maintainers and admins) **Upload**. A viewer sees the links page without review buttons.
 
 ## Personal API tokens
 
@@ -49,12 +49,14 @@ Console: **Tokens** (`/console/tokens`). Fields:
 | Max role (optional) | caps the token's role: `viewer`, `triager` or `maintainer`; the effective role is the lower of your role and the cap |
 | Expires (optional) | ISO timestamp such as `2027-01-01T00:00:00Z` |
 
-The secret (`sdm_...`) is shown once; only its hash is stored. The table lists name, project, cap, creation, expiry and last use, with **Revoke**. A token that is restricted (project or cap) cannot create or revoke tokens and cannot act as admin. Use a restricted token for CI jobs: for example project `demo`, cap `maintainer`.
+The secret (`sdm_...`) is shown once; only its hash is stored. The table lists name, project, cap, creation, expiry and last use, with **Revoke**. A token that is restricted (project or cap) cannot create or revoke tokens and cannot act as admin. A token with the cap `viewer` cannot review links or change the status of findings. Use a restricted token for CI jobs: for example project `demo`, cap `maintainer`.
 
 ```sh
 curl -H "Authorization: Bearer $SANDMAN_TOKEN" http://127.0.0.1:8080/v1/auth/me
 ```
 
 Tokens also work via `POST /v1/auth/tokens` (body `name`, `projectId`, `maxRole`, `expiresAt`), `GET /v1/auth/tokens` and `DELETE /v1/auth/tokens/{tokenId}`.
+
+Caution: In the graph explorer and in `POST /v1/query/cypher`, users without the global `admin` flag cannot see nodes with the labels `Run` and `Ingestion`. A statement that names these labels is refused ([querying.md](querying.md#cypher-box)).
 
 Failures to expect: `401` for an unknown, revoked or expired token or a disabled user; `403 password change required` when the token's owner has not yet changed their initial password.

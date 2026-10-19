@@ -10,7 +10,7 @@ SANDMAN ingests a project snapshot (requirements, documentation, architecture mo
 
 ## Status
 
-The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the ArDoCo and LiSSA trace link approaches, the ArDoCo code extraction plugin, the system dashboard, and record/replay of LLM calls for reproducible runs. Natural language queries currently answer a fixed set of question patterns. The query strategies `graphrag`, `explore` and automatic selection are planned ([ADR-0018](adr/0018-query-strategies.md)).
+The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the trace link approaches ArDoCo, LiSSA and TransArC (default for document to code, with architecture models derived from documentation when a project has none), the ArDoCo code extraction plugin and the ArDoCo inconsistency detector. Triagers review trace links and give a cause for each triage decision. The console has a graph explorer. The dashboard shows the system for admins. Retention prune, backup and restore, and the GitHub Action for ingestion exist. LLM calls can be recorded and replayed for reproducible runs. Natural language queries answer fixed question patterns first and use the LLM strategy `cypher` otherwise. The strategies `graphrag` and `explore` exist, but `config/query/strategies.yaml` disables them ([ADR-0018](adr/0018-query-strategies.md)). Planned: the change impact report (T6.3) and the LLM detector `artemis-id`, which is disabled by default. See [the plan](docs/stage-3-implementation-plan.md).
 
 ## Components
 
@@ -19,11 +19,12 @@ The walking skeleton runs end to end: upload, extraction, trace link recovery, i
 - `services/code-extractor-ardoco` (Java): ArDoCo code extraction plugin
 - `services/tlr-agent`, `services/inconsistency-agent` (Java, Quarkus): traceability link recovery and inconsistency detection agents
 - `services/orchestrator` (Python): rule-based orchestrator
-- `services/query-service` (Python): API and console
-- `services/dashboard` (Python): admin system overview
+- `services/query-service` (Python): API and console (projects, findings with triage causes, trace links with review, ask, graph explorer, upload, workflows, tokens, administration)
+- `services/dashboard` (Python): admin system overview (services, projects, graph page, gateway, workflows, events, history, resources)
 - `services/llm-replay` (Python): OpenAI-compatible record/replay proxy
-- `libs/python/sandman-agent`, `libs/java/agent-lib` (+ `agent-lib-a2a`): agent libraries
-- `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`)
+- `libs/python/sandman-agent`, `libs/java/agent-lib` (+ `agent-lib-a2a`): agent libraries; `sandman_agent.graphview` is the graph conversion shared by console and dashboard
+- `actions/sandman-ingest`: GitHub Action that ingests a repository and waits for the workflow
+- `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`, `eval`)
 - `tests/plugin-stubs`, `tests/e2e`, `tests/conformance`: plugin stubs, end-to-end and conformance tests
 - `deploy/`: Docker Compose stack, edge proxy, LLM gateway config, CoreNLP gateway and provider, secret generation
 
@@ -43,7 +44,7 @@ uv run sandman workflows --project demo
 uv run sandman export --project demo tracelinks
 ```
 
-`make e2e` runs the walking skeleton with plugin stubs, dashboard and replay determinism tests against the stack in replay mode (first build about 6 min). It changes the bootstrap admin password to the one in `deploy/secrets/e2e_admin_password`.
+`make e2e` runs the walking skeleton with plugin stubs, the link review and triage cause test, dashboard and replay determinism tests against the stack in replay mode (first build about 6 min). It changes the bootstrap admin password to the one in `deploy/secrets/e2e_admin_password`.
 
 Optional compose profiles: `stubs`, `dashboard` (system overview on :8090), `obs` (Grafana on :3001), `resources` (cAdvisor), `local-llm` (Ollama container for the `local-only` routes; `make models` pulls the models).
 

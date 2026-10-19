@@ -82,6 +82,16 @@
         "REOPENED"
       ]
     },
+    "TriageCause": {
+      "enum": [
+        "extraction-error",
+        "link-error",
+        "detector-error",
+        "artifact-inconsistency",
+        "planned-change",
+        "intentional"
+      ]
+    },
     "Severity": {
       "enum": [
         "info",

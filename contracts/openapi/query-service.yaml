@@ -366,6 +366,7 @@ paths:
                 to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
                 expectedStatus: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
                 reason: { type: string, maxLength: 2000 }
+                cause: { $ref: "../common.schema.json#/$defs/TriageCause" }
               additionalProperties: false
       responses:
         "200":
@@ -376,7 +377,7 @@ paths:
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "409": { $ref: "shared.yaml#/components/responses/Conflict" }
         "422":
-          description: Transition not allowed
+          description: Transition not allowed, reason missing, or cause given for a transition to OPEN
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
@@ -639,7 +640,7 @@ paths:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"
     get:
-      summary: Export inconsistencies with status history
+      summary: Export inconsistencies with status history (CSV column cause = cause of the latest history entry that has one)
       operationId: exportInconsistencies
       x-sandman-min-role: viewer
       parameters:

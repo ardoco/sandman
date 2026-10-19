@@ -130,6 +130,7 @@
         "to": { "$ref": "common.schema.json#/$defs/InconsistencyStatus" },
         "actor": { "$ref": "common.schema.json#/$defs/Actor" },
         "reason": { "type": "string" },
+        "cause": { "$ref": "common.schema.json#/$defs/TriageCause" },
         "at": { "$ref": "common.schema.json#/$defs/Timestamp" }
       },
       "additionalProperties": false

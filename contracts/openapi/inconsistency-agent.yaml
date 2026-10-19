@@ -120,6 +120,9 @@ paths:
                   type: string
                   maxLength: 2000
                   description: Required for ACCEPTED, REJECTED and DEFERRED.
+                cause:
+                  $ref: "../common.schema.json#/$defs/TriageCause"
+                  description: Optional. Not allowed for a transition to OPEN. The console requires it for ACCEPTED, REJECTED and DEFERRED.
               additionalProperties: false
       responses:
         "200":
@@ -132,7 +135,7 @@ paths:
         "404": { $ref: "shared.yaml#/components/responses/NotFound" }
         "409": { $ref: "shared.yaml#/components/responses/Conflict" }
         "422":
-          description: Transition not allowed from the current status, or reason missing
+          description: Transition not allowed from the current status, reason missing, or cause given for a transition to OPEN
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
@@ -217,6 +220,7 @@ components:
                   to: { $ref: "../common.schema.json#/$defs/InconsistencyStatus" }
                   actor: { $ref: "../common.schema.json#/$defs/Actor" }
                   reason: { type: string }
+                  cause: { $ref: "../common.schema.json#/$defs/TriageCause" }
                   at: { $ref: "../common.schema.json#/$defs/Timestamp" }
             allowedTransitions:
               type: array

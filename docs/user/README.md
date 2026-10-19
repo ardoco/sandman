@@ -49,6 +49,6 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 | Trace links | `explicit-reference` (built in), `stub-name-match` (token overlap, for pipeline checks), `ardoco` (document to model), `transarc` (document to code, default), `lissa` (requirements to code), `ardocode` (document to code, off by default); review by triagers; derived architecture models ([derived-models.md](derived-models.md)) | further approaches |
 | Findings | `stub-untraced` (requirement without active link), `ardoco-id` (model elements missing in the documentation, sentences with entities missing in the model); triage with a cause; evidence view | LLM-based detection `artemis-id` (disabled in `config/inconsistency/plugins.yaml`) |
 | Natural language questions | five fixed question patterns; other questions go to the LLM strategy `cypher`. The strategies `graphrag` and `explore` exist but are disabled in `config/query/strategies.yaml` | enabling them by default |
-| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins | change impact report |
+| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion | LLM ranking of the impact |
 
 The stub components exist to exercise the pipeline end to end. Treat their links and findings as demonstration data, not as analysis results.

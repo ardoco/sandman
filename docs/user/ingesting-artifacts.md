@@ -192,6 +192,7 @@ jobs:
 | `revision` | default: the commit SHA |
 | `wait` | `true` (default): wait for the workflow and fail unless it is `SUCCEEDED` |
 | `timeout` | seconds to wait (default 600) |
+| `impact-summary` | `true` (default): if `wait` is `true` and the workflow succeeded, write the change impact report to the job summary. The report lists at most 50 affected elements |
 
 Outputs: `ingestion-id`, `workflow-id` (empty if nothing changed) and `status` (`SUCCEEDED`, `FAILED`, `CANCELED`, `BLOCKED`, `STARTED` without waiting, `none` if nothing changed).
 

@@ -2,22 +2,32 @@ package edu.kit.kastel.mcse.ardoco.sandman.inconsistency.ardoco;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.net.httpserver.HttpServer;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelFormat;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmAccess;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmClient;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Settings;
+import edu.kit.kastel.mcse.ardoco.sandman.inconsistency.DetectionScope;
+import edu.kit.kastel.mcse.ardoco.sandman.inconsistency.DetectorContext;
+import edu.kit.kastel.mcse.ardoco.sandman.inconsistency.Finding;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 /** Artemis on MediaStore against a stub gateway: no provider credential, no OpenAI call, no disk cache. */
 class ArtemisRunnerTest {
@@ -40,6 +50,7 @@ class ArtemisRunnerTest {
     private final List<String> auth = new CopyOnWriteArrayList<>();
     private final List<String> paths = new CopyOnWriteArrayList<>();
     private final List<String> models = new CopyOnWriteArrayList<>();
+    private volatile int failStatus;
 
     @BeforeEach
     void startStub() throws Exception {
@@ -49,6 +60,11 @@ class ArtemisRunnerTest {
             auth.add(ex.getRequestHeaders().getFirst("Authorization"));
             paths.add(ex.getRequestURI().getPath());
             models.add(body.replaceAll("(?s).*\"model\"\\s*:\\s*\"([^\"]*)\".*", "$1"));
+            if (failStatus != 0) {
+                ex.sendResponseHeaders(failStatus, -1);
+                ex.close();
+                return;
+            }
             String json;
             if (ex.getRequestURI().getPath().endsWith("/embeddings")) {
                 int dim = Math.floorMod(body.hashCode(), 64);
@@ -108,6 +124,86 @@ class ArtemisRunnerTest {
         assertTrue(auth.stream().allMatch("Bearer vk-test"::equals));
         assertTrue(models.stream().allMatch(m -> m.equals("gpt-chat") || m.equals("emb-model")), models.toString());
         assertFalse(Files.exists(Path.of(".cache-llm")), "no disk cache");
+    }
+
+    @Test
+    void localOnlyUsesTheLocalKeyAndLocalRoutes() {
+        var access = new LlmAccess(
+                "http://127.0.0.1:" + server.getAddress().getPort(),
+                "vk-local",
+                Map.of("chat-default", "gpt-chat", "chat-local", "local-chat", "embed-local", "local-emb"),
+                true);
+        ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, new LlmClient(access, "t"), access);
+
+        assertFalse(paths.isEmpty());
+        assertTrue(auth.stream().allMatch("Bearer vk-local"::equals), auth.toString());
+        assertTrue(models.stream().allMatch(m -> m.equals("local-chat") || m.equals("local-emb")), models.toString());
+        assertTrue(models.contains("local-emb"));
+    }
+
+    @Test
+    void missingLocalKeyFailsTheRun(@TempDir Path tmp) throws Exception {
+        Path modelsFile = tmp.resolve("models.yaml");
+        Files.writeString(modelsFile, "routes: {chat-local: local-chat, embed-local: local-emb}\n");
+        Files.writeString(tmp.resolve("cloud"), "cloud-key");
+        Map<String, String> env = Map.of(
+                "SANDMAN_SERVICE_NAME",
+                "inconsistency-agent",
+                "SANDMAN_LLM_BASE_URL",
+                "http://127.0.0.1:1",
+                "SANDMAN_LLM_MODELS_FILE",
+                modelsFile.toString(),
+                "SANDMAN_LLM_KEY_FILE",
+                tmp.resolve("cloud").toString());
+        var detector = new ArtemisIdDetector(policy -> LlmAccess.forPolicy(Settings.fromEnv(env), policy));
+        var ctx = new DetectorContext(
+                null, LlmAccess.LOCAL_ONLY, "http://q", Map.of(), new ArtifactStore(tmp.resolve("store")), () -> false);
+        var scope = new DetectionScope("p", null, true);
+
+        assertThrows(LlmAccess.PolicyException.class, () -> detector.detectWithWarnings(scope, ctx));
+        assertTrue(paths.isEmpty());
+    }
+
+    @Test
+    void gatewayErrorFailsTheRun() {
+        failStatus = 500;
+        var access = access();
+        var client = new LlmClient(access, "t", Duration.ofMillis(1), Duration.ofSeconds(5));
+
+        assertThrows(RuntimeException.class, () -> ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, client, access));
+    }
+
+    @Test
+    void sameAnswersGiveSameFingerprints() {
+        var access = access();
+        var client = new LlmClient(access, "t");
+        var first = fingerprints(client, access);
+        var second = fingerprints(client, access);
+
+        assertFalse(first.isEmpty());
+        assertEquals(first, second);
+    }
+
+    private List<String> fingerprints(LlmClient client, LlmAccess access) {
+        var raw = IdRunner.extract(ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, client, access));
+        var sentences =
+                List.of(new Mapping.Sentence("d#s1"), new Mapping.Sentence("d#s2"), new Mapping.Sentence("d#s3"));
+        Map<String, Mapping.ModelEl> byId = new java.util.HashMap<>();
+        raw.models().forEach(m -> byId.put(m.modelId(), new Mapping.ModelEl("m#" + m.modelId(), m.name(), false)));
+        return Mapping.map(List.of(new Mapping.RunResult("d", "m", sentences, byId, raw))).stream()
+                .map(f -> Ids.fingerprint(
+                        f.type(),
+                        ArtemisIdDetector.ID,
+                        f.involved().stream().map(Finding.Involved::elementKey).toList()))
+                .toList();
+    }
+
+    @Test
+    void artemisIdStaysDisabledInTheShippedConfig() throws Exception {
+        var node = new YAMLMapper().readTree(Files.readString(Path.of("../../../config/inconsistency/plugins.yaml")));
+        var entry = node.path("detectors").path("artemis-id");
+        assertFalse(entry.isMissingNode());
+        assertFalse(entry.path("enabled").asBoolean(true));
     }
 
     @Test

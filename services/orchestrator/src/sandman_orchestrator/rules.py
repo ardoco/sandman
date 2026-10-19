@@ -248,7 +248,7 @@ async def plan(event: Event, graph: Graph, rules: Rules) -> list[StepSpec]:
         specs = [*specs, detect(project, unlinked)] if unlinked else specs
         user_input = any(v.kind in DERIVE_INPUT_KINDS and v.origin != "derived" for v in changed)
         return [*specs, derive(project)] if user_input and rules.model_derivation.project(project) else specs
-    if event.type == "sandman.tracelinks.updated":
+    if event.type in ("sandman.tracelinks.updated", "sandman.tracelink.reviewed"):
         versions = await graph.versions(project, [*d["sourceVersionIds"], *d["targetVersionIds"]])
         return [detect(project, (v.artifact_id for v in versions))] if versions else []
     if event.type == "sandman.retention.pruned" and d["scope"] == "trace-links":

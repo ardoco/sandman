@@ -62,6 +62,22 @@ async def test_tracelinks_updated_detects_source_and_target_artifacts(env: Env) 
     assert f'"scopeArtifactIds": ["{aid(1)}", "{aid(3)}"]' in step["input_json"]
 
 
+async def test_tracelink_reviewed_detects_source_and_target_artifacts(env: Env) -> None:
+    data = {
+        "projectId": "mini",
+        "linkIds": ["tl_" + "a" * 32],
+        "status": "rejected",
+        "actor": "user:alice",
+        "at": "2026-10-19T10:00:00Z",
+        "sourceVersionIds": [vid(1)],
+        "targetVersionIds": [vid(3)],
+    }
+    await env.orch.handle(event("sandman.tracelink.reviewed", data))
+    [step] = pending(env)
+    assert step["skill"] == DETECT
+    assert f'"scopeArtifactIds": ["{aid(1)}", "{aid(3)}"]' in step["input_json"]
+
+
 async def test_debounce_merges_three_extractions_into_one_tlr_step(env: Env) -> None:
     env.with_rules(debounce=10)
     for n in (1, 2, 3):

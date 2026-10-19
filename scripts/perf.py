@@ -9,6 +9,8 @@ Starts the scratch compose project `sandman-perf` (never `sandman`): Memgraph on
 3. Memgraph: seeded KG (experiments/nlquery/seed_kg.py data, cloned per project id) up to `--kg-nodes` nodes, memory and
    snapshot size per step, latency of the NL benchmark Cypher queries over bolt and a few queries over the HTTP path.
 Container memory comes from `docker stats` (sampled every 3 s). Output: JSON file and a table; exit 1 if a budget fails.
+The four time items of the ingest are judged per unit (documents, pairs, changed files) next to the absolute limit. A
+workflow that is not SUCCEEDED fails the run.
 """
 
 import argparse
@@ -73,6 +75,15 @@ BUDGET: dict[str, tuple[str, float]] = {  # id -> (unit, limit); keep equal to d
     "snapshot-time": ("s", 60),
     "container-memory": ("% of mem_limit", 85),
 }
+# Per-unit budgets (F-2): id -> (unit, units of a workload). The limit is the absolute limit divided by the units of the
+# reference workload (1 000 files); a run is judged on its own counts.
+REF_DELTA = 100
+PER_UNIT: dict[str, tuple[str, Any]] = {
+    "ingest-e2e": ("s/document", lambda c: c["documents"]),
+    "ingest-tlr": ("s/(document+pair)", lambda c: c["documents"] + c["pairs"]),
+    "detection": ("s/pair", lambda c: c["pairs"]),
+    "incremental-e2e": ("s/changed file", lambda c: c["delta"]),
+}
 NOUNS = ["Billing", "Catalog", "Media", "Order", "Auth", "Search", "Report", "Cache", "Queue", "Store", "Mail", "Audit"]
 ADJ = ["Core", "Edge", "Smart", "Fast", "Safe", "Open", "Live", "Deep", "Flat", "Warm"]
 VERBS = ["stores", "validates", "forwards", "caches", "indexes", "renders", "signs", "archives", "schedules"]
@@ -99,10 +110,22 @@ def percentile(values: list[float], q: float) -> float:
     return ordered[min(len(ordered) - 1, math.ceil(q * len(ordered)) - 1)]
 
 
+def file_mix(files: int) -> tuple[int, ...]:
+    """Requirements, architecture documents, models, XML files and tests of a project of `files` files."""
+    return tuple(max(1, round(files * f)) for f in (0.04, 0.20, 0.01, 0.05, 0.10))
+
+
+def count_workload(paths: list[Path], root: Path, delta: int) -> dict[str, int]:
+    """Documents, models, pairs (document x model) and changed files of a generated project."""
+    docs = sum(p.relative_to(root).parts[0] == "docs" for p in paths)
+    models = sum(p.relative_to(root).parts[0] == "model" for p in paths)
+    return {"documents": docs, "models": models, "pairs": docs * models, "delta": delta}
+
+
 def generate(out: Path, files: int, seed: int = 20261018) -> list[Path]:
     """Deterministic synthetic project: requirements, architecture docs, PCM models, config XML, Java code and tests."""
     rng = random.Random(seed)
-    n_req, n_doc, n_model, n_xml, n_test = (max(1, round(files * f)) for f in (0.04, 0.20, 0.01, 0.05, 0.10))
+    n_req, n_doc, n_model, n_xml, n_test = file_mix(files)
     n_main = files - n_req - n_doc - n_model - n_xml - n_test
     comps = [f"{a}{b}" for a in ADJ for b in NOUNS][: max(8, files // 12)]
     reqs = [f"REQ-{i}" for i in range(1, n_req * 8 + 1)]
@@ -448,12 +471,37 @@ def evaluate(result: dict[str, Any]) -> list[dict[str, Any]]:
     mem = result.get("containers", {})
     if mem:
         values["container-memory"] = max(round(100 * v["peakMiB"] / v["limitMiB"], 1) for v in mem.values())
+    work = result.get("workload")
+    ref_docs, ref_models = file_mix(1000)[1:3]
+    ref = {"documents": ref_docs, "models": ref_models, "pairs": ref_docs * ref_models, "delta": REF_DELTA}
     rows = []
     for key, (unit, limit) in BUDGET.items():
         value = values.get(key)
         verdict = "NOT RUN" if value is None else ("PASS" if value <= limit else "FAIL")
-        rows.append({"id": key, "unit": unit, "limit": limit, "value": value, "verdict": verdict})
+        row: dict[str, Any] = {"id": key, "unit": unit, "limit": limit, "value": value, "verdict": verdict}
+        if key in PER_UNIT and work:
+            label, units = PER_UNIT[key]
+            per_limit = round(limit / units(ref), 4)
+            per_value = None if value is None else round(value / units(work), 4)
+            per_verdict = "NOT RUN" if per_value is None else ("PASS" if per_value <= per_limit else "FAIL")
+            row["absoluteVerdict"] = verdict
+            row["verdict"] = per_verdict
+            row["perUnit"] = {"unit": label, "limit": per_limit, "value": per_value, "verdict": per_verdict}
+        rows.append(row)
     return rows
+
+
+def workflow_failures(result: dict[str, Any]) -> list[str]:
+    """Workflows of the ingest phases that did not end with SUCCEEDED (a timeout counts)."""
+    bad = []
+    for name in ("ingest", "incremental"):
+        phase = result.get(name)
+        if phase and phase["timedOut"]:
+            bad.append(f"{name}: timed out")
+        for w in (phase or {}).get("workflows", []):
+            if w["status"] != "SUCCEEDED":
+                bad.append(f"{name}: {w['status']}")
+    return bad
 
 
 def table(rows: list[dict[str, Any]]) -> str:
@@ -462,6 +510,13 @@ def table(rows: list[dict[str, Any]]) -> str:
         f"{r['id']:26} {r['limit']:>8} {'-' if r['value'] is None else r['value']:>10}  {r['unit']:16} {r['verdict']}"
         for r in rows
     ]
+    for r in rows:
+        if "perUnit" in r:
+            u = r["perUnit"]
+            lines.append(
+                f"  per unit {r['id']:17} {u['limit']:>8} {'-' if u['value'] is None else u['value']:>10}  "
+                f"{u['unit']:16} {u['verdict']} (absolute {r['limit']} s: {r['absoluteVerdict']})"
+            )
     return "\n".join(lines)
 
 
@@ -507,7 +562,7 @@ def main(argv: list[str] | None = None) -> int:
         stack = e2e.Stack(project="perf")
         known: set[str] = set()
         src = tmp / "project"
-        generate(src, args.files)
+        result["workload"] = count_workload(generate(src, args.files), src, args.delta)
         result["ingest"] = ingest_phase(stack, src, "perf-1", known, args.timeout)
         if args.delta:
             rng = random.Random(1)
@@ -536,10 +591,17 @@ def main(argv: list[str] | None = None) -> int:
         shutil.rmtree(tmp, ignore_errors=True)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         result["budget"] = evaluate(result)
+        result["workflowFailures"] = workflow_failures(result)
         args.out.write_text(json.dumps(result, indent=1) + "\n")
     print(table(result["budget"]))
     print(f"result: {args.out}")
-    return 1 if result["oomKilled"] or any(r["verdict"] == "FAIL" for r in result["budget"]) else 0
+    if result["workflowFailures"]:
+        print("workflows not SUCCEEDED: " + "; ".join(result["workflowFailures"]))
+    return (
+        1
+        if result["oomKilled"] or result["workflowFailures"] or any(r["verdict"] == "FAIL" for r in result["budget"])
+        else 0
+    )
 
 
 if __name__ == "__main__":

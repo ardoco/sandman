@@ -462,34 +462,201 @@ class RecoverTraceLinksTest {
         assertTrue(activeLinks().stream().anyMatch(l -> "tl_explicit".equals(l.get("id"))));
     }
 
+    private HttpResponse<String> review(String linkId, String token, String actor, String body) throws Exception {
+        var request = HttpRequest.newBuilder(url.resolve("/v1/links/" + linkId + "/review"))
+                .header("Authorization", "Bearer " + token)
+                .POST(HttpRequest.BodyPublishers.ofString(body));
+        if (actor != null) {
+            request.header("X-Sandman-Actor", actor);
+        }
+        return HttpClient.newHttpClient().send(request.build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> review(String linkId, String body) throws Exception {
+        return review(linkId, TestBeans.TOKENS.get("query-service"), "user:alice", body);
+    }
+
+    private void link(String id, String approach, boolean active, String source, String target) {
+        kg.write(
+                "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
+                        + "CREATE (:TraceLink {id: $id, projectId: $p, approach: $a, active: $active, linkType: 'x', "
+                        + "status: 'candidate'})-[:SOURCE]->(s) "
+                        + "WITH t MATCH (l:TraceLink {id: $id}) CREATE (l)-[:TARGET]->(t)",
+                Map.of("id", id, "p", PROJECT, "a", approach, "active", active, "s", source, "t", target));
+    }
+
+    private Map<String, Object> linkRow(String id) {
+        return kg.read("MATCH (l:TraceLink {id: $id}) RETURN properties(l) AS l", Map.of("id", id)).stream()
+                .map(r -> (Map<String, Object>) r.get("l"))
+                .findFirst()
+                .orElseThrow();
+    }
+
     @Test
-    void plannedReviewEndpointAnswers501AndActorFromNonForwarderIs403() throws Exception {
-        HttpClient http = HttpClient.newHttpClient();
-        URI uri = url.resolve("/v1/links/tl_" + "0".repeat(32) + "/review");
-        var body = HttpRequest.BodyPublishers.ofString("{\"status\":\"confirmed\"}");
-        var qs = http.send(
-                HttpRequest.newBuilder(uri)
-                        .header("Authorization", "Bearer " + TestBeans.TOKENS.get("query-service"))
-                        .header("X-Sandman-Actor", "user:alice")
-                        .POST(body)
-                        .build(),
-                HttpResponse.BodyHandlers.ofString());
-        assertEquals(501, qs.statusCode());
-        JsonNode problem = JsonMapper.shared().readTree(qs.body());
-        assertEquals(501, problem.get("status").asInt());
-        assertEquals("Not Implemented", problem.get("title").asString());
-        var orch = http.send(
-                HttpRequest.newBuilder(uri)
-                        .header("Authorization", "Bearer " + TestBeans.TOKENS.get("orchestrator"))
-                        .header("X-Sandman-Actor", "user:alice")
-                        .POST(body)
-                        .build(),
-                HttpResponse.BodyHandlers.discarding());
-        assertEquals(403, orch.statusCode());
+    void reviewAppliesToElementPairAcrossApproachesButNotExplicitOrOtherPairs() throws Exception {
+        link("tl_" + "1".repeat(32), "lissa", true, REQ, MEDIA);
+        link("tl_" + "2".repeat(32), "stub-name-match", true, REQ, MEDIA);
+        link("tl_" + "3".repeat(32), "explicit-reference", true, REQ, MEDIA);
+        link("tl_" + "4".repeat(32), "lissa", true, REQ, USER);
+        link("tl_" + "5".repeat(32), "lissa", false, REQ, MEDIA);
+        var response = review("tl_" + "1".repeat(32), "{\"status\":\"rejected\",\"reason\":\"wrong\"}");
+        assertEquals(200, response.statusCode(), response.body());
+        assertEquals(
+                List.of("tl_" + "1".repeat(32), "tl_" + "2".repeat(32)),
+                JsonMapper.shared()
+                        .readTree(response.body())
+                        .get("reviewedLinkIds")
+                        .valueStream()
+                        .map(JsonNode::asString)
+                        .toList());
+        var reviewed = linkRow("tl_" + "2".repeat(32));
+        assertEquals("rejected", reviewed.get("status"));
+        assertEquals("user:alice", reviewed.get("reviewedBy"));
+        assertEquals("wrong", reviewed.get("reviewReason"));
+        assertEquals("user", reviewed.get("reviewOrigin"));
+        for (String other : List.of("3", "4", "5")) {
+            assertEquals("candidate", linkRow("tl_" + other.repeat(32)).get("status"));
+            assertFalse(linkRow("tl_" + other.repeat(32)).containsKey("reviewedAt"));
+        }
+        assertEquals(1, events.events.size());
+        var event = events.events.get(0);
+        assertEquals("sandman.tracelink.reviewed", event.type());
+        contracts.validate("events.schema.json#/$defs/TracelinkReviewed", event.data());
+        assertEquals(SRC_VERSION, event.data().get("sourceVersionIds").get(0).asString());
+        assertEquals(TGT_VERSION, event.data().get("targetVersionIds").get(0).asString());
+
+        assertEquals(
+                200,
+                review("tl_" + "1".repeat(32), "{\"status\":\"candidate\"}").statusCode());
+        var reset = linkRow("tl_" + "2".repeat(32));
+        assertEquals("candidate", reset.get("status"));
+        assertFalse(reset.containsKey("reviewedAt"));
+        assertFalse(reset.containsKey("reviewOrigin"));
+    }
+
+    @Test
+    void reviewErrorsAndAuthorization() throws Exception {
+        link("tl_" + "1".repeat(32), "lissa", true, REQ, MEDIA);
+        link("tl_" + "2".repeat(32), "explicit-reference", true, REQ, USER);
+        link("tl_" + "3".repeat(32), "lissa", false, REQ, USER);
+        assertEquals(
+                404,
+                review("tl_" + "9".repeat(32), "{\"status\":\"confirmed\"}").statusCode());
+        assertEquals(
+                409,
+                review("tl_" + "2".repeat(32), "{\"status\":\"confirmed\"}").statusCode());
+        assertEquals(
+                409,
+                review("tl_" + "3".repeat(32), "{\"status\":\"confirmed\"}").statusCode());
+        assertEquals(
+                422, review("tl_" + "1".repeat(32), "{\"status\":\"rejected\"}").statusCode());
+        assertEquals(
+                422,
+                review("tl_" + "1".repeat(32), "{\"status\":\"rejected\",\"reason\":\" \"}")
+                        .statusCode());
+        assertEquals(
+                400, review("tl_" + "1".repeat(32), "{\"status\":\"maybe\"}").statusCode());
+        assertEquals(
+                400,
+                review("tl_" + "1".repeat(32), "{\"status\":\"confirmed\",\"x\":1}")
+                        .statusCode());
+        assertEquals(
+                400,
+                review(
+                                "tl_" + "1".repeat(32),
+                                TestBeans.TOKENS.get("query-service"),
+                                null,
+                                "{\"status\":\"confirmed\"}")
+                        .statusCode());
+        assertEquals(
+                403,
+                review(
+                                "tl_" + "1".repeat(32),
+                                TestBeans.TOKENS.get("orchestrator"),
+                                "user:alice",
+                                "{\"status\":\"confirmed\"}")
+                        .statusCode());
         assertEquals(
                 401,
-                http.send(HttpRequest.newBuilder(uri).POST(body).build(), HttpResponse.BodyHandlers.discarding())
+                HttpClient.newHttpClient()
+                        .send(
+                                HttpRequest.newBuilder(url.resolve("/v1/links/tl_" + "1".repeat(32) + "/review"))
+                                        .POST(HttpRequest.BodyPublishers.ofString("{\"status\":\"confirmed\"}"))
+                                        .build(),
+                                HttpResponse.BodyHandlers.discarding())
                         .statusCode());
+        assertEquals("candidate", linkRow("tl_" + "1".repeat(32)).get("status"));
+        assertTrue(events.events.isEmpty());
+    }
+
+    private static final String OLD_SRC = "el_old_src";
+    private static final String OLD_TGT = "el_old_tgt";
+
+    private void reviewedOld(String id, String linkType, String reviewedAt, String status, String srcHash) {
+        kg.write(
+                "MERGE (s:Element {id: $os}) SET s.projectId = $p, s.key = 'req#REQ-1', s.contentHash = $srcHash "
+                        + "MERGE (t:Element {id: $ot}) SET t.projectId = $p, t.key = 'code#MediaCache', t.contentHash = 'h-tgt' "
+                        + "CREATE (l:TraceLink {id: $id, projectId: $p, approach: 'lissa', active: false, linkType: $lt, "
+                        + "status: $status, reviewedBy: 'user:' + $id, reviewedAt: $at, reviewReason: 'r', "
+                        + "reviewOrigin: 'user'}) CREATE (l)-[:SOURCE]->(s) CREATE (l)-[:TARGET]->(t)",
+                Map.of(
+                        "os",
+                        OLD_SRC,
+                        "ot",
+                        OLD_TGT,
+                        "p",
+                        PROJECT,
+                        "srcHash",
+                        srcHash,
+                        "id",
+                        id,
+                        "lt",
+                        linkType,
+                        "status",
+                        status,
+                        "at",
+                        reviewedAt));
+    }
+
+    private Map<String, Object> activateNewLink(String linkType) {
+        kg.write(
+                "MATCH (s:Element {id: $s}) SET s.contentHash = 'h-src' "
+                        + "WITH s MATCH (t:Element {id: $t}) SET t.contentHash = 'h-tgt' "
+                        + "CREATE (r:Run {id: 'run_new', projectId: $p}) "
+                        + "CREATE (l:TraceLink {id: 'tl_new', projectId: $p, approach: 'lissa', active: false, "
+                        + "linkType: $lt, status: 'candidate'}) "
+                        + "CREATE (l)-[:SOURCE]->(s) CREATE (l)-[:TARGET]->(t) CREATE (r)-[:PRODUCED]->(l)",
+                Map.of("s", REQ, "t", MEDIA, "p", PROJECT, "lt", linkType));
+        new LinkStore(kg).finish("run_new", PROJECT, "lissa", List.of(SRC_VERSION), List.of(TGT_VERSION));
+        return linkRow("tl_new");
+    }
+
+    @Test
+    void activationCarriesOverTheLatestReviewOfTheSameKeyAndContentHash() {
+        reviewedOld("tl_old1", "x", "2026-01-01T00:00:00Z", "confirmed", "h-src");
+        reviewedOld("tl_old2", "x", "2026-02-01T00:00:00Z", "rejected", "h-src");
+        var carried = activateNewLink("x");
+        assertEquals(true, carried.get("active"));
+        assertEquals("rejected", carried.get("status"));
+        assertEquals("user:tl_old2", carried.get("reviewedBy"));
+        assertEquals("2026-02-01T00:00:00Z", carried.get("reviewedAt"));
+        assertEquals("carried-over", carried.get("reviewOrigin"));
+    }
+
+    @Test
+    void activationDoesNotCarryOverWhenContentHashDiffers() {
+        reviewedOld("tl_old1", "x", "2026-01-01T00:00:00Z", "confirmed", "h-changed");
+        var changed = activateNewLink("x");
+        assertEquals("candidate", changed.get("status"));
+        assertFalse(changed.containsKey("reviewedAt"));
+    }
+
+    @Test
+    void activationDoesNotCarryOverAcrossLinkTypes() {
+        reviewedOld("tl_old1", "other", "2026-01-01T00:00:00Z", "confirmed", "h-src");
+        var other = activateNewLink("x");
+        assertEquals("candidate", other.get("status"));
+        assertFalse(other.containsKey("reviewedAt"));
     }
 
     @Test

@@ -37,6 +37,10 @@ class Reader:
     def __init__(self, uri: str, user: str | None, password: str | None, driver: AsyncDriver | None = None) -> None:
         self._driver = driver or AsyncGraphDatabase.driver(uri, auth=(user, password or "") if user else None)
 
+    @property
+    def driver(self) -> AsyncDriver:
+        return self._driver
+
     async def close(self) -> None:
         await self._driver.close()
 

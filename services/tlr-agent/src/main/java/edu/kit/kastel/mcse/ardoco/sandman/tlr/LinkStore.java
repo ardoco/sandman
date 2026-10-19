@@ -16,6 +16,19 @@ public final class LinkStore {
     /** Links of the extraction-agent (R-006): never superseded, deactivated or pruned by the tlr-agent. */
     static final String EXPLICIT_REFERENCE = "explicit-reference";
 
+    private static final String REVIEW_FIELDS = "SET x.status = $status, x.reviewedBy = $actor, x.reviewedAt = $now, "
+            + "x.reviewReason = $reason, x.reviewOrigin = 'user' ";
+    private static final String CARRY_OVER = "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink {active: true}) "
+            + "WHERE x.reviewedAt IS NULL AND x.approach <> $explicit "
+            + "MATCH (x)-[:SOURCE]->(s:Element), (x)-[:TARGET]->(t:Element) "
+            + "MATCH (o:TraceLink {projectId: $projectId, linkType: x.linkType}) WHERE o.reviewedAt IS NOT NULL "
+            + "MATCH (o)-[:SOURCE]->(:Element {key: s.key, contentHash: s.contentHash}), "
+            + "(o)-[:TARGET]->(:Element {key: t.key, contentHash: t.contentHash}) "
+            + "WITH x, o ORDER BY o.reviewedAt DESC "
+            + "WITH x, head(collect(o)) AS best "
+            + "SET x.status = best.status, x.reviewedBy = best.reviewedBy, x.reviewedAt = best.reviewedAt, "
+            + "x.reviewReason = best.reviewReason, x.reviewOrigin = 'carried-over'";
+
     private final KgClient kg;
 
     private static String now() {
@@ -135,20 +148,24 @@ public final class LinkStore {
                 "targetVersionIds", targetVersionIds,
                 "now", now(),
                 "explicit", EXPLICIT_REFERENCE);
-        kg.writeTx(tx -> tx.run(
-                        "MATCH (r:Run {id: $runId}) "
-                                + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
-                                + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), "
-                                + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
-                                + "WHERE sv.id IN $sourceVersionIds AND tv.id IN $targetVersionIds "
-                                + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
-                                + "SET old.active = false "
-                                + "WITH count(*) AS superseded "
-                                + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
-                                + "WITH count(*) AS activated "
-                                + "MATCH (r:Run {id: $runId}) SET r.status = 'completed', r.endedAt = $now",
-                        params)
-                .consume());
+        kg.writeTx(tx -> {
+            tx.run(
+                            "MATCH (r:Run {id: $runId}) "
+                                    + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
+                                    + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), "
+                                    + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
+                                    + "WHERE sv.id IN $sourceVersionIds AND tv.id IN $targetVersionIds "
+                                    + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
+                                    + "SET old.active = false "
+                                    + "WITH count(*) AS superseded "
+                                    + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
+                                    + "WITH count(*) AS activated "
+                                    + "MATCH (r:Run {id: $runId}) SET r.status = 'completed', r.endedAt = $now",
+                            params)
+                    .consume();
+            tx.run(CARRY_OVER, params).consume();
+            return null;
+        });
     }
 
     /** Version ids at the two ends of links that a whole-project run added or retired. */
@@ -204,8 +221,63 @@ public final class LinkStore {
                                     + "MATCH (r:Run {id: $runId}) SET r.status = 'completed', r.endedAt = $now",
                             params)
                     .consume();
+            tx.run(CARRY_OVER, params).consume();
             return new Changed(sources, targets);
         });
+    }
+
+    /** The link with the ids of its endpoint elements, or empty if unknown. */
+    public java.util.Optional<LinkRow> link(String id) {
+        return kg
+                .read(
+                        "MATCH (l:TraceLink {id: $id})-[:SOURCE]->(s:Element), (l)-[:TARGET]->(t:Element) "
+                                + "RETURN l.projectId AS projectId, l.active AS active, l.approach AS approach, "
+                                + "s.id AS sourceId, t.id AS targetId",
+                        Map.of("id", id))
+                .stream()
+                .findFirst()
+                .map(r -> new LinkRow(
+                        (String) r.get("projectId"),
+                        Boolean.TRUE.equals(r.get("active")),
+                        (String) r.get("approach"),
+                        (String) r.get("sourceId"),
+                        (String) r.get("targetId")));
+    }
+
+    public record LinkRow(String projectId, boolean active, String approach, String sourceId, String targetId) {}
+
+    /** A reviewed element pair: the changed link ids and the versions of the two elements. */
+    public record Reviewed(List<String> linkIds, String sourceVersionId, String targetVersionId) {}
+
+    /**
+     * Sets the review (or, for status candidate, removes it) on every active link of the element pair except
+     * explicit-reference links, in one transaction.
+     */
+    public Reviewed review(LinkRow link, String status, String actor, String reason) {
+        boolean reset = "candidate".equals(status);
+        Map<String, Object> params = new HashMap<>();
+        params.put("s", link.sourceId());
+        params.put("t", link.targetId());
+        params.put("status", status);
+        params.put("actor", actor);
+        params.put("reason", reason);
+        params.put("now", now());
+        params.put("explicit", EXPLICIT_REFERENCE);
+        String set = reset
+                ? "SET x.status = 'candidate' REMOVE x.reviewedBy, x.reviewedAt, x.reviewReason, x.reviewOrigin "
+                : REVIEW_FIELDS;
+        var rows = kg.write(
+                "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
+                        + "MATCH (x:TraceLink {active: true})-[:SOURCE]->(s), (x)-[:TARGET]->(t) "
+                        + "WHERE x.approach <> $explicit "
+                        + set
+                        + "WITH x, s, t MATCH (s)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), (t)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
+                        + "RETURN x.id AS id, sv.id AS sv, tv.id AS tv ORDER BY id",
+                params);
+        return new Reviewed(
+                rows.stream().map(r -> (String) r.get("id")).toList(),
+                (String) rows.get(0).get("sv"),
+                (String) rows.get(0).get("tv"));
     }
 
     /** Startup: links of disabled approaches must not stay active. */

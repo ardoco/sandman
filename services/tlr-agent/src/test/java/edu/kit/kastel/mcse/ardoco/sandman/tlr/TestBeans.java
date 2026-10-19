@@ -85,6 +85,7 @@ final class TestBeans {
     @Singleton // no client proxy: tests read the list directly
     static class Events implements EventSink {
         final List<Event> events = new CopyOnWriteArrayList<>();
+        volatile boolean fail;
 
         @Inject
         Contracts contracts;
@@ -92,6 +93,9 @@ final class TestBeans {
         @Override
         public Event publish(
                 String type, String subject, JsonNode data, String correlationId, String causationId, String eventId) {
+            if (fail) {
+                throw new IllegalStateException("publish down");
+            }
             Event event = Event.build(contracts, "tlr-agent", type, subject, data, correlationId, causationId, eventId);
             events.add(event);
             return event;

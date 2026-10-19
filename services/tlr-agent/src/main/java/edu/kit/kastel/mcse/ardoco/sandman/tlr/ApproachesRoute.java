@@ -44,7 +44,15 @@ public class ApproachesRoute {
     @Inject
     EventSink events;
 
+    private final java.util.concurrent.ScheduledExecutorService retryTimer =
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread thread = new Thread(r, "review-event-retry");
+                thread.setDaemon(true);
+                return thread;
+            });
+
     void routes(@Observes Router router) {
+        retryTimer.scheduleWithFixedDelay(this::retryPending, 30, 30, java.util.concurrent.TimeUnit.SECONDS);
         router.post("/v1/links/:linkId/review").handler(BodyHandler.create()).blockingHandler(this::review);
         router.get("/v1/approaches").handler(rc -> {
             if (server.authenticate(rc.request().getHeader("Authorization")) == null) {
@@ -115,8 +123,13 @@ public class ApproachesRoute {
             problem(rc, 422, "Unprocessable Entity", "reason required for rejected");
         } else {
             var reviewed = store.review(
-                    link.get(), status.asString(), actor, "candidate".equals(status.asString()) ? null : reason);
-            publish(link.get().projectId(), reviewed, status.asString(), actor, reason);
+                    link.get(),
+                    status.asString(),
+                    actor,
+                    "candidate".equals(status.asString()) ? null : reason,
+                    r -> eventData(link.get().projectId(), r, status.asString(), actor, reason)
+                            .toString());
+            retryPending();
             ObjectNode out =
                     JsonMapper.shared().createObjectNode().put("id", id).put("status", status.asString());
             reviewed.linkIds().forEach(out.putArray("reviewedLinkIds")::add);
@@ -124,7 +137,8 @@ public class ApproachesRoute {
         }
     }
 
-    private void publish(String project, LinkStore.Reviewed reviewed, String status, String actor, String reason) {
+    private static ObjectNode eventData(
+            String project, LinkStore.Reviewed reviewed, String status, String actor, String reason) {
         ObjectNode data = JsonMapper.shared().createObjectNode().put("projectId", project);
         reviewed.linkIds().forEach(data.putArray("linkIds")::add);
         data.put("status", status).put("actor", actor);
@@ -134,11 +148,25 @@ public class ApproachesRoute {
         data.put("at", Instant.now().truncatedTo(ChronoUnit.SECONDS).toString());
         data.putArray("sourceVersionIds").add(reviewed.sourceVersionId());
         data.putArray("targetVersionIds").add(reviewed.targetVersionId());
+        return data;
+    }
+
+    /** Publishes the stored review events with their stable id; a failed publish stays stored for the next run. */
+    synchronized void retryPending() {
+        LinkStore store = new LinkStore(kg);
         try {
-            events.publish("sandman.tracelink.reviewed", project, data, null, null, null);
+            for (var pending : store.pendingEvents()) {
+                events.publish(
+                        "sandman.tracelink.reviewed",
+                        pending.projectId(),
+                        JsonMapper.shared().readTree(pending.data()),
+                        null,
+                        null,
+                        pending.id());
+                store.deletePending(pending.id());
+            }
         } catch (RuntimeException e) {
-            // ponytail: the review stays committed; add an outbox if review events must not be lost
-            LOG.error("publishing review of {} failed", reviewed.linkIds(), e);
+            LOG.error("publishing pending review events failed, retrying later", e);
         }
     }
 

@@ -18,6 +18,8 @@ public final class LinkStore {
 
     private static final String REVIEW_FIELDS = "SET x.status = $status, x.reviewedBy = $actor, x.reviewedAt = $now, "
             + "x.reviewReason = $reason, x.reviewOrigin = 'user' ";
+    private static final String RESET_FIELDS =
+            "SET x.status = 'candidate' REMOVE x.reviewedBy, x.reviewedAt, x.reviewReason, x.reviewOrigin ";
     private static final String CARRY_OVER = "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink {active: true}) "
             + "WHERE x.reviewedAt IS NULL AND x.approach <> $explicit "
             + "MATCH (x)-[:SOURCE]->(s:Element), (x)-[:TARGET]->(t:Element) "
@@ -251,9 +253,16 @@ public final class LinkStore {
 
     /**
      * Sets the review (or, for status candidate, removes it) on every active link of the element pair except
-     * explicit-reference links, in one transaction.
+     * explicit-reference links. A reset also clears the review on every older link of the same keys and content
+     * hashes, so that no review from before the reset is carried over. The event to publish is stored as a pending
+     * event in the same transaction.
      */
-    public Reviewed review(LinkRow link, String status, String actor, String reason) {
+    public Reviewed review(
+            LinkRow link,
+            String status,
+            String actor,
+            String reason,
+            java.util.function.Function<Reviewed, String> pendingEvent) {
         boolean reset = "candidate".equals(status);
         Map<String, Object> params = new HashMap<>();
         params.put("s", link.sourceId());
@@ -263,22 +272,56 @@ public final class LinkStore {
         params.put("reason", reason);
         params.put("now", now());
         params.put("explicit", EXPLICIT_REFERENCE);
-        String set = reset
-                ? "SET x.status = 'candidate' REMOVE x.reviewedBy, x.reviewedAt, x.reviewReason, x.reviewOrigin "
-                : REVIEW_FIELDS;
-        var rows = kg.write(
-                "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
-                        + "MATCH (x:TraceLink {active: true})-[:SOURCE]->(s), (x)-[:TARGET]->(t) "
-                        + "WHERE x.approach <> $explicit "
-                        + set
-                        + "WITH x, s, t MATCH (s)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), (t)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
-                        + "RETURN x.id AS id, sv.id AS sv, tv.id AS tv ORDER BY id",
-                params);
-        return new Reviewed(
-                rows.stream().map(r -> (String) r.get("id")).toList(),
-                (String) rows.get(0).get("sv"),
-                (String) rows.get(0).get("tv"));
+        params.put("pendingId", java.util.UUID.randomUUID().toString());
+        params.put("projectId", link.projectId());
+        String set = reset ? RESET_FIELDS : REVIEW_FIELDS;
+        return kg.writeTx(tx -> {
+            var rows = tx.run(
+                            "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
+                                    + "MATCH (x:TraceLink {active: true})-[:SOURCE]->(s), (x)-[:TARGET]->(t) "
+                                    + "WHERE x.approach <> $explicit "
+                                    + set
+                                    + "WITH x, s, t MATCH (s)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), (t)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
+                                    + "RETURN x.id AS id, sv.id AS sv, tv.id AS tv ORDER BY id",
+                            params)
+                    .list();
+            if (reset) {
+                tx.run(
+                                "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
+                                        + "MATCH (x:TraceLink {projectId: $projectId})-[:SOURCE]->(:Element {key: s.key, contentHash: s.contentHash}), "
+                                        + "(x)-[:TARGET]->(:Element {key: t.key, contentHash: t.contentHash}) "
+                                        + "WHERE x.reviewedAt IS NOT NULL AND x.approach <> $explicit "
+                                        + RESET_FIELDS,
+                                params)
+                        .consume();
+            }
+            var reviewed = new Reviewed(
+                    rows.stream().map(r -> r.get("id").asString()).toList(),
+                    rows.get(0).get("sv").asString(),
+                    rows.get(0).get("tv").asString());
+            params.put("data", pendingEvent.apply(reviewed));
+            tx.run("CREATE (:PendingEvent {id: $pendingId, projectId: $projectId, data: $data})", params)
+                    .consume();
+            return reviewed;
+        });
     }
+
+    /** Events whose publish failed or has not been confirmed, oldest first. */
+    public List<PendingEvent> pendingEvents() {
+        return kg
+                .read(
+                        "MATCH (p:PendingEvent) RETURN p.id AS id, p.projectId AS projectId, p.data AS data ORDER BY id",
+                        Map.of())
+                .stream()
+                .map(r -> new PendingEvent((String) r.get("id"), (String) r.get("projectId"), (String) r.get("data")))
+                .toList();
+    }
+
+    public void deletePending(String id) {
+        kg.write("MATCH (p:PendingEvent {id: $id}) DELETE p", Map.of("id", id));
+    }
+
+    public record PendingEvent(String id, String projectId, String data) {}
 
     /** Startup: links of disabled approaches must not stay active. */
     public void deactivate(java.util.Collection<String> approaches) {

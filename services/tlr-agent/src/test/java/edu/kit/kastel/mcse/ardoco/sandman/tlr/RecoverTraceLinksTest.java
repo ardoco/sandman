@@ -79,11 +79,15 @@ class RecoverTraceLinksTest {
     @Inject
     Beans beans;
 
+    @Inject
+    ApproachesRoute route;
+
     final List<A2aClient> clients = new ArrayList<>();
 
     @BeforeEach
     void seed() {
         events.events.clear();
+        events.fail = false;
         kg.write("MATCH (n) DETACH DELETE n", Map.of());
         kg.write("CREATE (:Project {id: $p, llmPolicy: 'cloud-allowed'})", Map.of("p", PROJECT));
         artifact("requirements", SRC_VERSION, Map.of(REQ, List.of("Requirement", "Cache media files", "req#REQ-1")));
@@ -532,6 +536,41 @@ class RecoverTraceLinksTest {
         assertEquals("candidate", reset.get("status"));
         assertFalse(reset.containsKey("reviewedAt"));
         assertFalse(reset.containsKey("reviewOrigin"));
+    }
+
+    @Test
+    void failedReviewEventPublishIsRetriedAndTheReviewStaysCommitted() throws Exception {
+        link("tl_" + "1".repeat(32), "lissa", true, REQ, MEDIA);
+        events.fail = true;
+        var response = review("tl_" + "1".repeat(32), "{\"status\":\"confirmed\"}");
+        assertEquals(200, response.statusCode(), response.body());
+        assertEquals("confirmed", linkRow("tl_" + "1".repeat(32)).get("status"));
+        assertEquals(0, events.events.size());
+        assertEquals(1, new LinkStore(kg).pendingEvents().size());
+        route.retryPending();
+        assertEquals(0, events.events.size());
+        events.fail = false;
+        route.retryPending();
+        assertEquals(1, events.events.size());
+        assertEquals("sandman.tracelink.reviewed", events.events.get(0).type());
+        assertEquals(0, new LinkStore(kg).pendingEvents().size());
+    }
+
+    @Test
+    void resetClearsReviewsOnOlderLinksSoTheyAreNotCarriedOver() throws Exception {
+        kg.write(
+                "MATCH (s:Element {id: $s}) SET s.contentHash = 'h-src' "
+                        + "WITH s MATCH (t:Element {id: $t}) SET t.contentHash = 'h-tgt'",
+                Map.of("s", REQ, "t", MEDIA));
+        reviewedOld("tl_old1", "x", "2026-01-01T00:00:00Z", "confirmed", "h-src");
+        link("tl_" + "1".repeat(32), "lissa", true, REQ, MEDIA);
+        assertEquals(
+                200,
+                review("tl_" + "1".repeat(32), "{\"status\":\"candidate\"}").statusCode());
+        assertFalse(linkRow("tl_old1").containsKey("reviewedAt"));
+        var next = activateNewLink("x");
+        assertEquals("candidate", next.get("status"));
+        assertFalse(next.containsKey("reviewedAt"));
     }
 
     @Test

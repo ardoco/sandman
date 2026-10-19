@@ -266,7 +266,10 @@ async def test_tracelink_export(mg: Env) -> None:
     base = "/v1/projects/alpha/export/tracelinks"
     resp = await mg.http.get(base, headers=h)
     lines = resp.text.splitlines()
-    assert lines[0] == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id"
+    assert (
+        lines[0]
+        == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason"
+    )
     rows = sorted(line.split(",")[1:7] for line in lines[1:])
     assert [(r[0].split("#")[1], r[1], r[2]) for r in rows] == [
         ("C1", "documents", "explicit"),

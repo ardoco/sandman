@@ -10,7 +10,7 @@ from typing import Any
 
 import httpx
 from conftest import ADMIN_PASSWORD, Env
-from helpers import INC_ID, TS
+from helpers import INC_ID, LINK_ID, OTHER_LINK_ID, TS
 from sandman_agent.llm import ChatMessage, ChatResponse, Usage
 from sandman_agent.testing import ScriptedLlmClient
 
@@ -449,3 +449,55 @@ def test_console_templates_and_code_never_mark_text_safe() -> None:
     for path in [*root.glob("templates/*.html"), root / "console.py"]:
         text = path.read_text(encoding="utf-8")
         assert not re.search(r"\|\s*safe\b|\bMarkup\(|\bmark_safe\b|\bautoescape\s+false", text), path
+
+
+def link_row(link_id: str, approach: str, confidence: float, **extra: Any) -> dict[str, Any]:
+    return {"id": link_id, "approach": approach, "confidence": confidence, "status": "candidate",
+            "rationale": "<b>why</b>", "reviewedBy": None, "reviewedAt": None, "reviewReason": None,
+            "reviewOrigin": None, "sourceId": "el_s", "sourceKey": "req#1", "sourceName": "REQ-1",
+            "sourceText": "Cache media", "targetId": "el_t", "targetKey": "code#M", "targetName": "MediaCache",
+            "targetText": None} | extra  # fmt: skip
+
+
+async def test_links_page_groups_pairs_escapes_rationale_and_reviews(env: Env) -> None:
+    env.reader.link_rows = [
+        link_row(LINK_ID, "lissa", 0.6),
+        link_row("tl_" + "c" * 32, "stub-name-match", 0.9),
+        link_row("tl_" + "d" * 32, "explicit-reference", 1.0),
+    ]
+    csrf = await logged_in(env, "tina", {"alpha": "triager"})
+    page = await env.http.get("/console/projects/alpha/links")
+    assert page.status_code == 200 and "MediaCache" in page.text and "0.90" in page.text
+    assert "&lt;b&gt;why&lt;/b&gt;" in page.text and "<b>why</b>" not in page.text
+    assert page.text.count('<form method="post"') == 2  # logout + one pair
+    assert f"/links/{LINK_ID}/review" in page.text
+    path = f"/console/projects/alpha/links/{LINK_ID}/review"
+    assert (await post(env, path, None, status="confirmed")).status_code == 403
+    no_reason = await post(env, path, csrf, status="rejected")
+    assert no_reason.status_code == 400 and "reason is required" in no_reason.text
+    assert not any(c["method"] == "POST" for c in env.owner.calls)
+    done = await post(env, path, csrf, status="rejected", reason="wrong")
+    assert done.status_code == 303 and done.headers["location"] == "/console/projects/alpha/links"
+    sent = next(c for c in env.owner.calls if c["method"] == "POST")
+    assert sent["path"] == f"/v1/links/{LINK_ID}/review" and json.loads(sent["body"]) == {
+        "status": "rejected",
+        "reason": "wrong",
+    }
+    assert sent["headers"]["x-sandman-actor"] == "user:tina"
+    env.owner.link_problem = 409
+    conflict = await post(env, path, csrf, status="confirmed")
+    assert conflict.status_code == 409 and "explicit-reference" in conflict.text
+    assert (
+        await post(env, f"/console/projects/alpha/links/{OTHER_LINK_ID}/review", csrf, status="confirmed")
+    ).status_code == 404
+
+
+async def test_viewer_sees_links_without_review_buttons(env: Env) -> None:
+    env.reader.link_rows = [link_row(LINK_ID, "lissa", 0.6, status="rejected", reviewedBy="user:bob")]
+    csrf = await logged_in(env, "vic", {"alpha": "viewer"})
+    page = await env.http.get("/console/projects/alpha/links")
+    assert "user:bob" in page.text and "Confirm" not in page.text
+    assert (
+        await post(env, f"/console/projects/alpha/links/{LINK_ID}/review", csrf, status="confirmed")
+    ).status_code == 403
+    assert (await env.http.get("/console/projects/alpha/links?status=confirmed")).text.count("MediaCache") == 0

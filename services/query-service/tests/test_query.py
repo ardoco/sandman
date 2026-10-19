@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 import yaml
 from conftest import Env, service_headers
-from helpers import validate, validate_shared
+from helpers import LINK_ID, OTHER_LINK_ID, validate, validate_shared
 from neo4j.exceptions import ClientError
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.contracts import ContractError, Contracts
@@ -184,7 +184,10 @@ async def test_exports_with_empty_graph(env: Env) -> None:
     h = env.token("alice")
     csv_resp = await env.http.get("/v1/projects/alpha/export/tracelinks", headers=h)
     assert csv_resp.headers["content-type"].startswith("text/csv")
-    assert csv_resp.text == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id\n"
+    assert csv_resp.text == (
+        "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,"
+        "reviewed_by,reviewed_at,review_reason\n"
+    )
     assert env.reader.queries[-1][1] == {
         "projectId": "alpha",
         "approach": None,
@@ -408,3 +411,20 @@ def test_inconsistencies_csv_has_cause_column() -> None:
     header, first, second = list(csv.reader(io.StringIO(inconsistencies_csv([item, other]))))
     assert header[-3:] == ["cause", "involved", "history"]
     assert first[-3] == "planned-change" and second[-3] == ""
+
+
+async def test_review_forwards_with_actor_and_checks_project(env: Env) -> None:
+    env.user("tina", {"alpha": "triager", "beta": "triager"})
+    h = env.token("tina")
+    url = "/v1/projects/alpha/links/{}/review"
+    resp = await env.http.post(url.format(LINK_ID), headers=h, json={"status": "confirmed"})
+    assert resp.status_code == 200
+    validate("/v1/projects/{projectId}/links/{linkId}/review", "post", 200, resp.json())
+    sent = env.owner.calls[-1]
+    assert sent["path"] == f"/v1/links/{LINK_ID}/review" and sent["headers"]["x-sandman-actor"] == "user:tina"
+    assert json.loads(sent["body"]) == {"status": "confirmed"}
+    calls = len(env.owner.calls)
+    other = await env.http.post(url.format(OTHER_LINK_ID), headers=h, json={"status": "confirmed"})
+    assert other.status_code == 404 and len(env.owner.calls) == calls
+    env.owner.link_problem = 409
+    assert (await env.http.post(url.format(LINK_ID), headers=h, json={"status": "confirmed"})).status_code == 409

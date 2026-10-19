@@ -21,6 +21,8 @@ TOKENS = {
     "plugin:other": "other-token",
 }
 INC_ID = "inc_" + "a" * 32
+LINK_ID = "tl_" + "a" * 32
+OTHER_LINK_ID = "tl_" + "b" * 32
 OTHER_INC_ID = "inc_" + "b" * 32
 WF_ID = "wf_" + "c" * 32
 TS = "2026-10-06T12:00:00Z"
@@ -64,6 +66,8 @@ class FakeReader:
         ]
         self.result: tuple[list[str], list[list[Any]]] = (["n"], [[1]])
         self.gate: asyncio.Event | None = None  # blocks run() until set
+        self.link_projects = {LINK_ID: "alpha", OTHER_LINK_ID: "beta"}
+        self.link_rows: list[dict[str, Any]] = []
 
     async def close(self) -> None:
         pass
@@ -79,6 +83,11 @@ class FakeReader:
             return ["p"], [[p] for p in self.projects]
         if cypher.startswith("/* evidence"):
             return [], []
+        if cypher.startswith("MATCH (l:TraceLink {id: $id"):
+            return ["id"], [[params["id"]]] if self.link_projects.get(params["id"]) == params["p"] else []
+        if cypher.startswith("/* console:links"):
+            columns = list(self.link_rows[0]) if self.link_rows else []
+            return columns, [list(r.values()) for r in self.link_rows]
         if cypher.lstrip().startswith(("MATCH (l:TraceLink", "MATCH (i:Inconsistency", "MATCH (a:Artifact {")):
             return [], []  # exports
         columns, rows = self.result
@@ -96,6 +105,7 @@ class FakeOwner:
     calls: list[dict[str, Any]] = field(default_factory=list)
     inconsistencies: dict[str, str] = field(default_factory=lambda: {INC_ID: "alpha", OTHER_INC_ID: "beta"})
     transition_status: int = 200
+    link_problem: int | None = None
     force_status: int | None = None  # every response gets this status
     items: list[dict[str, Any]] = field(default_factory=list)
     detail_patch: dict[str, Any] = field(default_factory=dict)
@@ -127,6 +137,12 @@ class FakeOwner:
             return ok({"ingestionId": "ing_" + "1" * 32, "projectId": parts[2], "seq": 1, "mode": "full",
                        "createdVersionIds": [], "reactivatedVersionIds": [], "deletedArtifactIds": [],
                        "unchangedCount": 0, "createdAt": TS}, 201)  # fmt: skip
+        if parts[:2] == ["v1", "links"] and method == "POST":
+            if self.link_problem:
+                return Response(json.dumps({"type": "about:blank", "title": "Conflict", "status": self.link_problem,
+                                            "detail": "explicit-reference links are not reviewed"}),
+                                self.link_problem, media_type="application/problem+json")  # fmt: skip
+            return ok({"id": parts[2], "status": json.loads(body)["status"], "reviewedLinkIds": [parts[2]]})
         if parts[:2] == ["v1", "inconsistencies"]:
             project = self.inconsistencies.get(parts[2])
             if project is None:

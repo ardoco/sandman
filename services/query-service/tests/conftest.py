@@ -26,7 +26,12 @@ from helpers import TOKENS, FakeOwner, FakeReader  # noqa: E402
 
 ADMIN_PASSWORD = "bootstrap-password"
 FAST = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
-OWNERS = {"extraction-agent": "http://ext", "inconsistency-agent": "http://inc", "orchestrator": "http://orch"}
+OWNERS = {
+    "extraction-agent": "http://ext",
+    "inconsistency-agent": "http://inc",
+    "orchestrator": "http://orch",
+    "tlr-agent": "http://tlr",
+}
 
 
 def _docker_available() -> bool:

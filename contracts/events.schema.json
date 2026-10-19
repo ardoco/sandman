@@ -17,6 +17,7 @@
             "sandman.ingestion.completed",
             "sandman.extraction.completed",
             "sandman.tracelinks.updated",
+            "sandman.tracelink.reviewed",
             "sandman.inconsistencies.updated",
             "sandman.inconsistency.status.changed",
             "sandman.retention.pruned"
@@ -38,6 +39,8 @@
           "then": { "required": ["causationid"], "properties": { "data": { "$ref": "#/$defs/ExtractionCompleted" } } } },
         { "if": { "properties": { "type": { "const": "sandman.tracelinks.updated" } } },
           "then": { "required": ["causationid"], "properties": { "data": { "$ref": "#/$defs/TracelinksUpdated" } } } },
+        { "if": { "properties": { "type": { "const": "sandman.tracelink.reviewed" } } },
+          "then": { "properties": { "data": { "$ref": "#/$defs/TracelinkReviewed" } } } },
         { "if": { "properties": { "type": { "const": "sandman.inconsistencies.updated" } } },
           "then": { "required": ["causationid"], "properties": { "data": { "$ref": "#/$defs/InconsistenciesUpdated" } } } },
         { "if": { "properties": { "type": { "const": "sandman.inconsistency.status.changed" } } },
@@ -102,6 +105,22 @@
         "sourceVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
         "targetVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" } },
         "runs": { "$ref": "skills.schema.json#/$defs/RecoverTraceLinksOutput/properties/runs" }
+      },
+      "additionalProperties": false
+    },
+    "TracelinkReviewed": {
+      "type": "object",
+      "description": "A user confirmed, rejected or reset the trace links of one element pair. linkIds are the changed links; sourceVersionIds and targetVersionIds are the versions of their endpoints.",
+      "required": ["projectId", "linkIds", "status", "actor", "at", "sourceVersionIds", "targetVersionIds"],
+      "properties": {
+        "projectId": { "$ref": "common.schema.json#/$defs/ProjectId" },
+        "linkIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" }, "minItems": 1 },
+        "status": { "$ref": "common.schema.json#/$defs/LinkStatus" },
+        "actor": { "$ref": "common.schema.json#/$defs/Actor" },
+        "reason": { "type": "string" },
+        "at": { "$ref": "common.schema.json#/$defs/Timestamp" },
+        "sourceVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" }, "minItems": 1 },
+        "targetVersionIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/StableId" }, "minItems": 1 }
       },
       "additionalProperties": false
     },

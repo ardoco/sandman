@@ -7,7 +7,8 @@
 # 0.5.0 (additive): Element.embedding, Element.embeddingModel (internal), vector index element_embedding (init.cypher), SchemaVersion 2 (T4.1b, V-43).
 # 0.6.0 (additive): Artifact.origin, ArtifactVersion.derivedFrom, derivationRunId, Element.inferred, reserved path prefix .sandman/ (T2.7).
 # 0.7.0 (additive): StatusChange.cause (TriageCause, user transitions only; T6.2).
-version: 0.7.0
+# 0.8.0 (additive): TraceLink.reviewedBy, reviewedAt, reviewReason, reviewOrigin (T6.1).
+version: 0.8.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -132,6 +133,10 @@ nodes:
       status: { type: string, required: true, enum: [candidate, confirmed, rejected] }
       active: { type: boolean, required: true, description: "See conventions.active_facts. Detection, console, exports and NL queries use active links only." }
       rationale: { type: string, required: false }
+      reviewedBy: { type: string, required: false, description: "user:<name>; set with a user review, absent after a reset." }
+      reviewedAt: { type: string, required: false }
+      reviewReason: { type: string, required: false, description: "At most 2000 characters; required for rejected." }
+      reviewOrigin: { type: string, required: false, enum: [user, carried-over], description: "carried-over = copied at activation from an earlier reviewed link of the same element pair (same key and contentHash at both ends, same linkType)." }
       runId: { type: string, required: true }
       createdAt: { type: string, required: true }
 

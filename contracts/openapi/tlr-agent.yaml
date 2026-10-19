@@ -38,8 +38,7 @@ paths:
     post:
       summary: Confirm or reject a trace link (user review, sets TraceLink.status)
       operationId: reviewLink
-      x-sandman-status: planned
-      description: Planned (later milestone, Stage 1 §6 human in the loop). Answers 501 until implemented. Requires X-Sandman-Actor from the query-service (other callers 403).
+      description: Review applies to the element pair (all active links with the same source and target element, except explicit-reference). Requires X-Sandman-Actor from the query-service (other callers 403). 404 unknown link, 409 inactive or explicit-reference link, 422 reject without reason. Publishes sandman.tracelink.reviewed.
       parameters:
         - $ref: "shared.yaml#/components/parameters/Actor"
       requestBody:
@@ -60,13 +59,20 @@ paths:
             application/json:
               schema:
                 type: object
-                required: [id, status]
+                required: [id, status, reviewedLinkIds]
                 properties:
                   id: { $ref: "../common.schema.json#/$defs/StableId" }
                   status: { $ref: "../common.schema.json#/$defs/LinkStatus" }
+                  reviewedLinkIds: { type: array, items: { $ref: "../common.schema.json#/$defs/StableId" } }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "404": { $ref: "shared.yaml#/components/responses/NotFound" }
-        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+        "422":
+          description: Reject without reason
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
 components:
   securitySchemes:
     serviceToken:

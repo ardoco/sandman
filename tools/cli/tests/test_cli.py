@@ -157,7 +157,8 @@ def test_scan_skips_symlinks(tmp_path: Path) -> None:
 def test_workflows_wait_reports_step_transitions_on_stderr(capsys: pytest.CaptureFixture[str]) -> None:
     def wf(status: str, *steps: tuple[str, int]) -> dict[str, Any]:
         return {"id": WF, "status": status, "steps": [
-            {"id": f"s{i}", "agent": "a", "skill": k, "status": st, "attempts": int(st != "PENDING")} for i, (k, st) in enumerate(steps)
+            {"id": f"s{i}", "agent": "a", "skill": k, "status": st, "attempts": int(st != "PENDING")}
+            for i, (k, st) in enumerate(steps)
         ]}  # fmt: skip
 
     states = iter([

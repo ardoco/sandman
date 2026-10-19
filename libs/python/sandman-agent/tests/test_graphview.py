@@ -37,7 +37,7 @@ def service(scoped: list[bool], bound: list[dict[str, Any]]) -> GraphService:
         bound.append(params)
         return ["x"], [[1]]
 
-    graph.run = run  # type: ignore[method-assign]
+    graph.run = run  # type: ignore[method-assign, assignment]
     return graph
 
 

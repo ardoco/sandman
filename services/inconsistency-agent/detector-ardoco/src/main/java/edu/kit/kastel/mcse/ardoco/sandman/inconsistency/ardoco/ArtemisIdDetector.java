@@ -41,7 +41,7 @@ public final class ArtemisIdDetector implements InconsistencyDetector {
         this(policy -> LlmAccess.forPolicy(Settings.fromEnv(), policy));
     }
 
-    ArtemisIdDetector(Function<String, LlmAccess> access) {
+    public ArtemisIdDetector(Function<String, LlmAccess> access) {
         this.access = access;
     }
 

@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import re
+import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,7 +20,7 @@ from sandman_agent.auth import PLUGIN_PREFIX
 from sandman_agent.contracts import Contracts
 from starlette.exceptions import HTTPException
 
-from sandman_query import __version__
+from sandman_query import __version__, impact
 from sandman_query.auth import (
     LEVEL,
     Principal,
@@ -289,6 +290,42 @@ class Service:
         )  # fmt: skip
         return relay(resp)
 
+    async def ingestion_impact(
+        self, who: Principal, project: str, ingestion: str, depth: int, limit: int
+    ) -> dict[str, Any] | None:
+        doc = await impact.report(self.reader, project, ingestion, depth, limit)
+        if doc is None:
+            return None
+        created, has_changes = doc.pop("createdAt"), doc.pop("hasChanges")
+        status = await self.ingestion_workflow_status(who, project, ingestion, created, has_changes, doc["warnings"])
+        return {k: doc[k] for k in ("ingestionId", "seq", "sourceRevision") if k in doc} | {
+            "workflowStatus": status, "complete": status not in IN_FLIGHT, **{
+                k: doc[k] for k in ("changed", "affected", "truncated", "warnings")}}  # fmt: skip
+
+    async def ingestion_workflow_status(
+        self, who: Principal, project: str, ingestion: str, created: str, has_changes: bool, warnings: list[str]
+    ) -> str:
+        """Status of the workflow started by the ingestion event; none if there is none (yet) and none is due."""
+        if not has_changes:
+            return "none"
+        event = str(uuid.uuid5(uuid.NAMESPACE_URL, ingestion))
+        try:
+            resp = await self.forward(
+                "orchestrator", "GET", "/v1/workflows", who, project,
+                params=[("projectId", project), ("limit", "500")],
+            )  # fmt: skip
+            items = resp.json()["items"] if resp.status_code == 200 else None
+        except (HTTPException, ValueError, KeyError):
+            items = None
+        if items is None:
+            warnings.append("The workflow status is unknown; links may be missing.")
+            return "unknown"
+        for w in items:
+            if w["trigger"].get("eventId") == event:
+                return str(w["status"])
+        age = (datetime.now(UTC) - datetime.fromisoformat(created)).total_seconds()
+        return "PENDING" if age < WORKFLOW_GRACE_SECONDS else "none"
+
     async def link_rows(self, project: str, approach: str | None, artifact: str | None) -> list[dict[str, Any]]:
         return await self.reader.rows(
             _LINKS, {"p": project, "approach": approach or None, "artifact": artifact or None}
@@ -308,6 +345,8 @@ class Service:
 
 
 EVIDENCE_LINKS = 30
+IN_FLIGHT = {"PENDING", "RUNNING", "unknown"}
+WORKFLOW_GRACE_SECONDS = 120
 _LINK_OF_PROJECT = "MATCH (l:TraceLink {id: $id, projectId: $p}) RETURN l.id AS id"
 _LINKS = """/* console:links */
 MATCH (l:TraceLink {projectId: $p, active: true})-[:SOURCE]->(s:Element)<-[:HAS_ELEMENT]-(:ArtifactVersion)

@@ -381,6 +381,19 @@ def create_app(
         svc.check(who, "queryNl", body.projectId)
         return await svc.nl.answer(who, body.projectId, body.question, body.strategy, body.mode, body.execute)
 
+    @app.get("/v1/projects/{projectId}/ingestions/{ingestionId}/impact")
+    async def ingestion_impact(
+        projectId: ProjectId,
+        ingestionId: Annotated[str, PathParam(pattern=r"^ing_[0-9a-f]{32}$")],
+        who: Annotated[Principal, access("getIngestionImpact")],
+        depth: Annotated[int, Query(ge=1, le=4)] = 2,
+        limit: Annotated[int, Query(ge=1, le=1000)] = 200,
+    ) -> Response:
+        doc = await svc.ingestion_impact(who, projectId, ingestionId, depth, limit)
+        if doc is None:
+            return problem(404, "Not Found", f"ingestion {ingestionId} not found")
+        return JSONResponse(doc)
+
     @app.get("/v1/projects/{projectId}/export/tracelinks")
     async def export_tracelinks(
         projectId: ProjectId,

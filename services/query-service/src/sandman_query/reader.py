@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction, unit_of_work
@@ -11,6 +11,9 @@ from sandman_agent.graphview import jsonable
 from sandman_agent.kg import MemoryLimitError
 
 log = logging.getLogger(__name__)
+
+
+TxRows = Callable[[str, Mapping[str, Any]], Awaitable[list[dict[str, Any]]]]
 
 
 class ScopeViolation(Exception):
@@ -70,3 +73,16 @@ class Reader:
     async def rows(self, cypher: str, params: Mapping[str, Any], timeout: float = 10.0) -> list[dict[str, Any]]:
         columns, rows = await self.run(cypher, params, timeout)
         return [dict(zip(columns, r, strict=True)) for r in rows]
+
+    async def transaction[T](self, work: Callable[[TxRows], Awaitable[T]], timeout: float = 30.0) -> T:
+        """Runs work in one read transaction; work gets a function (cypher, params) -> rows as dicts."""
+
+        async def unit(tx: AsyncManagedTransaction) -> T:
+            async def rows(cypher: str, params: Mapping[str, Any]) -> list[dict[str, Any]]:
+                result = await tx.run(cypher, dict(params))  # type: ignore[arg-type]
+                return [{k: jsonable(v) for k, v in record.items()} async for record in result]
+
+            return await work(rows)
+
+        async with asyncio.timeout(timeout), self._driver.session() as session:
+            return await session.execute_read(unit_of_work(timeout=timeout)(unit))

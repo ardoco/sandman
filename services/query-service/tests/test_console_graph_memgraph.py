@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 from conftest import Env, build_env
+from neo4j import AsyncGraphDatabase
 from sandman_agent.ids import stable_id
 from test_console import logged_in
 from test_memgraph import seed
@@ -110,3 +111,65 @@ async def test_page_lists_artifacts_and_only_visible_labels(mg: Env) -> None:
 async def test_no_role_is_forbidden(mg: Env) -> None:
     await logged_in(mg, "mia", {"beta": "viewer"})
     assert (await get(mg, "alpha", "start")).status_code == 403
+
+
+async def post_query(env: Env, csrf: str, cypher: str) -> Any:
+    return await env.http.post(
+        "/console/projects/alpha/graph/query", json={"cypher": cypher}, headers={"x-csrf-token": csrf}
+    )
+
+
+async def bulk(url: str, count: int) -> None:
+    driver = AsyncGraphDatabase.driver(url)
+    async with driver.session() as s:
+        await s.run(
+            "UNWIND range(1, $n) AS i CREATE (:Element:Requirement {projectId: 'alpha', id: 'bulk' + i, i: i})",
+            n=count,
+        )
+    await driver.close()
+
+
+async def test_start_caps_at_500_nodes_and_unknown_filters_give_422(mg: Env, memgraph: str) -> None:
+    await bulk(memgraph, 600)
+    await logged_in(mg, "mia", {"alpha": "viewer"})
+    body = (await get(mg, "alpha", "start", labels="Requirement")).json()
+    assert len(nodes_of(body)) == 500 and body["truncated"] is True
+    base = "/console/projects/alpha/graph/start"
+    assert (await mg.http.get(base, params={"labels": "NoSuchLabel"})).status_code == 422
+    assert (await mg.http.get(base, params={"types": "NO_SUCH_TYPE"})).status_code == 422
+
+
+async def test_scope_corpus_is_rejected(mg: Env) -> None:
+    csrf = await logged_in(mg, "mia", {"alpha": "viewer"})
+    for cypher in (
+        "MATCH (n) RETURN n",
+        "MATCH (n:Requirement {projectId: $projectId}) RETURN n UNION MATCH (m:Requirement) RETURN m",
+        "MATCH (a:Requirement {projectId: $projectId}) OPTIONAL MATCH (b:Requirement) RETURN a, b",
+        "MATCH (a:Requirement {projectId: $projectId}) RETURN [(x:Requirement) | x] AS everything",
+    ):
+        resp = await post_query(mg, csrf, cypher)
+        assert resp.status_code == 422, (cypher, resp.text)
+
+
+async def test_cartesian_product_and_timeout_show_messages(mg: Env, memgraph: str) -> None:
+    await bulk(memgraph, 3000)
+    csrf = await logged_in(mg, "mia", {"alpha": "viewer"})
+    graph = mg.app.state.service.graph
+    graph.memory_limit = "5 MB"
+    big = await post_query(
+        mg,
+        csrf,
+        "MATCH (a:Requirement {projectId: $projectId}), (b:Requirement {projectId: $projectId}) "
+        "WITH a, b ORDER BY a.i + b.i RETURN count(*) AS c",
+    )
+    assert big.status_code == 422 and "memory limit" in big.json()["error"], big.text
+    graph.memory_limit = "100 MB"
+    original = graph.run
+
+    async def quick(cypher: str, params: Any, timeout: float = 1.0, max_rows: int | None = None) -> Any:
+        return await original(cypher, params, 1.0, max_rows)
+
+    graph.run = quick
+    slow = "RETURN size([x IN range(1, 40000) WHERE size([y IN range(1, 40000) WHERE y = x]) = 0]) AS c"
+    resp = await post_query(mg, csrf, slow)
+    assert resp.status_code == 422 and "timed out" in resp.json()["error"], resp.text

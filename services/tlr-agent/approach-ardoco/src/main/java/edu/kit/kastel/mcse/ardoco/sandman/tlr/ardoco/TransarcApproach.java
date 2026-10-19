@@ -4,27 +4,27 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import edu.kit.kastel.mcse.ardoco.core.api.PreprocessingData;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ArchitectureModel;
 import edu.kit.kastel.mcse.ardoco.core.api.models.CodeModel;
-import edu.kit.kastel.mcse.ardoco.core.api.models.architecture.ArchitectureItem;
-import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItem;
 import edu.kit.kastel.mcse.ardoco.core.api.models.CodeModelWithCompilationUnits;
 import edu.kit.kastel.mcse.ardoco.core.api.models.Metamodel;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelFormat;
 import edu.kit.kastel.mcse.ardoco.core.api.models.ModelStates;
+import edu.kit.kastel.mcse.ardoco.core.api.models.architecture.ArchitectureItem;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeCompilationUnit;
+import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItem;
 import edu.kit.kastel.mcse.ardoco.core.api.output.ArdocoResult;
-import edu.kit.kastel.mcse.ardoco.core.api.stage.codetraceability.CodeTraceabilityState;
 import edu.kit.kastel.mcse.ardoco.core.api.stage.codetraceability.ArchitectureCodeTraceLink;
-import edu.kit.kastel.mcse.ardoco.core.data.DataRepository;
-import edu.kit.kastel.mcse.ardoco.core.pipeline.AbstractExecutionStage;
-import edu.kit.kastel.mcse.ardoco.core.pipeline.agent.Informant;
-import edu.kit.kastel.mcse.ardoco.core.pipeline.agent.PipelineAgent;
+import edu.kit.kastel.mcse.ardoco.core.api.stage.codetraceability.CodeTraceabilityState;
 import edu.kit.kastel.mcse.ardoco.core.api.text.Text;
 import edu.kit.kastel.mcse.ardoco.core.common.IdentifierProvider;
 import edu.kit.kastel.mcse.ardoco.core.common.JsonHandling;
 import edu.kit.kastel.mcse.ardoco.core.common.util.CommonUtilities;
 import edu.kit.kastel.mcse.ardoco.core.common.util.DataRepositoryHelper;
+import edu.kit.kastel.mcse.ardoco.core.data.DataRepository;
 import edu.kit.kastel.mcse.ardoco.core.execution.Ardoco;
 import edu.kit.kastel.mcse.ardoco.core.execution.runner.ArdocoRunner;
+import edu.kit.kastel.mcse.ardoco.core.pipeline.AbstractExecutionStage;
+import edu.kit.kastel.mcse.ardoco.core.pipeline.agent.Informant;
+import edu.kit.kastel.mcse.ardoco.core.pipeline.agent.PipelineAgent;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpClient;
 import edu.kit.kastel.mcse.ardoco.sandman.ardocotext.CorenlpUnavailableException;
@@ -53,10 +53,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -272,8 +272,8 @@ public final class TransarcApproach implements TraceLinkApproach {
             long start = System.nanoTime();
             ArdocoRuns.resetHeapPeak();
             var runner = new TransarcRunner();
-            String samKey = Ids.sha256Hex(String.join(
-                    "\0", VERSION, format.name(), Ids.sha256Hex(Files.readAllBytes(modelFile)), acm.sha()));
+            String samKey = Ids.sha256Hex(
+                    String.join("\0", VERSION, format.name(), Ids.sha256Hex(Files.readAllBytes(modelFile)), acm.sha()));
             runner.setUp(
                     textFile.toFile(),
                     new ArchitectureConfiguration(modelFile.toFile(), format),
@@ -386,11 +386,14 @@ public final class TransarcApproach implements TraceLinkApproach {
 
         private SamCodeStage(DataRepository repository, String key) {
             super(
-                    List.of(new PipelineAgent(
-                            List.of(new CachedArCoTL(repository, key)), "InitialCodeTraceabilityAgent", repository) {
-                        @Override
-                        protected void initializeState() {}
-                    }),
+                    List.of(
+                            new PipelineAgent(
+                                    List.of(new CachedArCoTL(repository, key)),
+                                    "InitialCodeTraceabilityAgent",
+                                    repository) {
+                                @Override
+                                protected void initializeState() {}
+                            }),
                     "SamCodeTraceabilityLinkRecovery",
                     repository);
         }
@@ -410,7 +413,8 @@ public final class TransarcApproach implements TraceLinkApproach {
         }
     }
 
-    // ponytail: copy of ArCoTLInformant.process for ArDoCo 2.1.0 plus the SAM_CODE lookup (guard: TransarcEquivalenceTest).
+    // ponytail: copy of ArCoTLInformant.process for ArDoCo 2.1.0 plus the SAM_CODE lookup (guard:
+    // TransarcEquivalenceTest).
     private static final class CachedArCoTL extends Informant {
 
         private final String key;

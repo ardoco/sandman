@@ -17,7 +17,7 @@ from openapi_spec_validator import validate as validate_openapi
 from openapi_spec_validator.readers import read_from_filename
 from referencing import Registry, Resource
 
-SCHEMAS = ["common.schema.json", "skills.schema.json", "events.schema.json"]
+SCHEMAS = ["common.schema.json", "skills.schema.json", "events.schema.json", "knowledge.schema.json"]
 SEP = "\x1f"
 
 
@@ -109,6 +109,13 @@ def main(contracts: Path) -> list[str]:
         i = c["input"]
         parts = [i["approach"], i["approachVersion"], i["configHash"], i["sourceId"], i["targetId"]]
         check(errors, f"traceLinkId {i['approach']}", stable_id("tl", parts) == c["expected"])
+        if "linkEntry" in c:
+            canonical = rfc8785.dumps(c["linkEntry"]).decode()
+            check(
+                errors,
+                "traceLinkId user-declared configHash",
+                canonical == c["linkEntryCanonical"] and sha(canonical) == i["configHash"],
+            )
         if "configSource" in c:
             canonical = rfc8785.dumps(c["configSource"]["explicitReferences"]).decode()
             check(

@@ -95,6 +95,8 @@ paths:
         The manifest part is optional for archive-only uploads: without it the server hashes every regular
         file of the archive, and treats the upload as a partial ingestion (mode partial, no kindRules, no
         sourceRevision, no deletions): it adds or updates the archived files and retires no artifact. Without a manifest the archive part is required (400 otherwise).
+        An archive entry `sandman-knowledge.yaml` is validated against `contracts/knowledge.schema.json` before any blob is stored.
+        An invalid file answers 400 `INVALID_INPUT: sandman-knowledge.yaml: <JSON pointer>: <message>` with the JSON pointer of the first error, and no ingestion is created.
       operationId: createIngestion
       parameters:
         - $ref: "shared.yaml#/components/parameters/Actor"

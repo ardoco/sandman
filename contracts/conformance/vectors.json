@@ -532,7 +532,7 @@
     ]
   },
   "traceLinkId": {
-    "rule": "'tl_' + first 32 hex chars of sha256(UTF-8(approach, approachVersion, configHash, sourceId, targetId joined by U+001F)) = stableId('tl', [...]) with the per-version Element ids. configHash of a TLR approach = sha256(JCS(effective params of the approach)); of explicit-reference = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)); sourceId = referenced Requirement, targetId = referring element.",
+    "rule": "'tl_' + first 32 hex chars of sha256(UTF-8(approach, approachVersion, configHash, sourceId, targetId joined by U+001F)) = stableId('tl', [...]) with the per-version Element ids. configHash of a TLR approach = sha256(JCS(effective params of the approach)); of explicit-reference = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)); sourceId = referenced Requirement, targetId = referring element; of user-declared (approachVersion '1') = sha256(JCS({source, target, type})) of the link entry of sandman-knowledge.yaml with the references as written, sourceId and targetId = the resolved per-version Element ids.",
     "cases": [
       {
         "input": {
@@ -562,6 +562,18 @@
           }
         },
         "configCanonical": "{\"patterns\":[\"REQ-\\\\d+\",\"FR-\\\\d+\"]}"
+      },
+      {
+        "input": {
+          "approach": "user-declared",
+          "approachVersion": "1",
+          "configHash": "400595211024586f5e3aad1746db67abb98d98e09fb17f3ed0b6a1cc6b16947a",
+          "sourceId": "el_0123456789abcdef0123456789abcdef",
+          "targetId": "el_fedcba9876543210fedcba9876543210"
+        },
+        "expected": "tl_469f8693f088504fa82e84fa29e5184f",
+        "linkEntry": {"source": "docs/architecture.md#sec:overview","target": "src/main/java/org/example/Facade.java#org.example.Facade","type": "documents"},
+        "linkEntryCanonical": "{\"source\":\"docs/architecture.md#sec:overview\",\"target\":\"src/main/java/org/example/Facade.java#org.example.Facade\",\"type\":\"documents\"}"
       }
     ]
   },

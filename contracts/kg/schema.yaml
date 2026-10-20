@@ -9,7 +9,8 @@
 # 0.7.0 (additive): StatusChange.cause (TriageCause, user transitions only; T6.2).
 # 0.8.0 (additive): TraceLink.reviewedBy, reviewedAt, reviewReason, reviewOrigin (T6.1).
 # 0.9.0 (additive): Element label Decision, Element.decisionStatus, decisionDate (T7.1).
-version: 0.9.0
+# 0.10.0 (additive): Element.aliases, TraceLink approach user-declared written by the extraction-agent (T7.2).
+version: 0.10.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -19,8 +20,8 @@ conventions:
   keys: "Element.key = artifactId + '#' + localKey, stable across versions. TextUnit localKeys are content-based (see labels.TextUnit), so inserting text does not change other keys."
   fingerprint: "sha256 hex of UTF-8(type, detector id without version, involved keys sorted byte-wise by UTF-8; joined by U+001F). Involved key = Element.key, or sourceKey + '->' + targetKey for a TraceLink (contracts/conformance/vectors.json)."
   evidence_hash: "Inconsistency.evidenceHash = sha256 hex of UTF-8(pairs joined by U+001F); pairs = the set of 'key=contentHash' strings of all involved Elements (for an involved TraceLink: of both endpoint Elements; duplicates removed), sorted byte-wise by UTF-8 (vectors evidenceHash). Element.contentHash is required, so no pair is ever incomplete."
-  reserved_paths: "The path prefix .sandman/ is reserved for artifacts derived by the system (Artifact.origin = derived). Intake rejects every manifest path under .sandman/ with INVALID_INPUT. A full snapshot never deletes a derived artifact. Derived architecture models: path .sandman/derived/exarch/<source doc path>.components, format component-listing, one line Name::Name per component."
-  derivations: "Idempotency keys (contracts/conformance/vectors.json; JCS = RFC 8785, sha256 = lowercase hex of UTF-8). Run.inputKey = sha256(JCS({input, tool, configHash} + promptIds when the tool uses prompts)), input = the skill input as received, tool = extractor/approach/detector id or the plugin's config id, configHash per tool kind (conventions below). Orchestrator actionKey = sha256(JCS({agent, skill, input, triggerId})). Ingestion id: ing_ = stableId(projectId, decimal seq). TraceLink id: tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId) with the ids of the per-version elements; for approach explicit-reference: approachVersion from the extractor ('0'), configHash = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)), sourceId = referenced Requirement, targetId = referring element. configHash of a TLR approach = sha256(JCS(effective params of that approach)); of other tools = sha256 of the config file. Plugin identity: Run.tool = config id of the plugin (config/extraction/plugins.yaml, config/inconsistency/plugins.yaml), Run.toolVersion = version from the plugin's Agent Card or manifest."
+  reserved_paths: "The path prefix .sandman/ is reserved for artifacts derived by the system (Artifact.origin = derived). Intake rejects every manifest path under .sandman/ with INVALID_INPUT. A full snapshot never deletes a derived artifact. Derived architecture models: path .sandman/derived/exarch/<source doc path>.components, format component-listing, one line Name::Name per component. The root path sandman-knowledge.yaml has kind other and format sandman-knowledge. Kind rules do not apply to it."
+  derivations: "Idempotency keys (contracts/conformance/vectors.json; JCS = RFC 8785, sha256 = lowercase hex of UTF-8). Run.inputKey = sha256(JCS({input, tool, configHash} + promptIds when the tool uses prompts)), input = the skill input as received, tool = extractor/approach/detector id or the plugin's config id, configHash per tool kind (conventions below). Orchestrator actionKey = sha256(JCS({agent, skill, input, triggerId})). Ingestion id: ing_ = stableId(projectId, decimal seq). TraceLink id: tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId) with the ids of the per-version elements; for approach explicit-reference: approachVersion from the extractor ('0'), configHash = sha256(JCS(explicitReferences member of config/extraction/plugins.yaml)), sourceId = referenced Requirement, targetId = referring element. for approach user-declared: approachVersion '1', configHash = sha256(JCS({source, target, type})) of the link entry with the references as written in sandman-knowledge.yaml, sourceId and targetId = ids of the resolved per-version elements. configHash of a TLR approach = sha256(JCS(effective params of that approach)); of other tools = sha256 of the config file. Plugin identity: Run.tool = config id of the plugin (config/extraction/plugins.yaml, config/inconsistency/plugins.yaml), Run.toolVersion = version from the plugin's Agent Card or manifest."
 
 nodes:
   Project:
@@ -109,6 +110,7 @@ nodes:
       decisionStatus: { type: string, required: false, enum: [proposed, accepted, rejected, deprecated, superseded, unknown], description: "Decision only." }
       decisionDate: { type: string, required: false, description: "Decision only; ISO-8601 date." }
       inferred: { type: boolean, required: false, description: "ModelElement only: true when the element belongs to a derived artifact version (ArtifactVersion.derivedFrom set); absent = false." }
+      aliases: { type: string, required: false, description: "JSON string, array of names. Alias elements only (kind alias, from sandman-knowledge.yaml)." }
       references: { type: string, required: false, description: "JSON string, array of {text, linkType}: unresolved explicit-reference texts found in the element (explicitReferences patterns or plugin explicitReferences), written with the element and re-resolved against the current Requirements after every ingestion (R-014). Absent when the element has none." }
       embedding: { type: list, required: false, internal: true, description: "Embedding vector (float list, 768 dimensions = vector index element_embedding); only for the labels and kinds of config/extraction/embedding.yaml, written by the extraction-agent after extraction. Not for prompts or answers. Search is vector_search.search('element_embedding', k, $vector) with a post-filter on projectId." }
       embeddingModel: { type: string, required: false, internal: true, description: "Gateway model id that produced embedding (e.g. openai/text-embedding-3-small); a different id means re-embed." }
@@ -124,7 +126,7 @@ nodes:
 
   TraceLink:
     owner: tlr-agent
-    co_owner: "extraction-agent writes links with approach = explicit-reference only"
+    co_owner: "extraction-agent writes links with approach = explicit-reference or user-declared only"
     description: Candidate or confirmed trace link between two elements, produced by one approach.
     properties:
       id: { type: string, required: true, description: "tl_ = stableId(approach, approachVersion, configHash, sourceId, targetId); see conventions.derivations (also for explicit-reference)" }

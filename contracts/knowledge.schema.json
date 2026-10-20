@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sandman.invalid/contracts/knowledge.schema.json",
+  "title": "SANDMAN user-declared knowledge file",
+  "description": "Content of sandman-knowledge.yaml at the repository root after YAML parsing (T7.2). Intake also enforces: file at most 1 MiB, no YAML anchors or aliases, unique element ids, and every decl: reference names an element of the file. Contract version 0.9.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "elements": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+          },
+          "label": {
+            "$ref": "common.schema.json#/$defs/ElementLabel"
+          },
+          "kind": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,31}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        }
+      }
+    },
+    "aliases": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "element",
+          "names"
+        ],
+        "properties": {
+          "element": {
+            "$ref": "#/$defs/ElementRef"
+          },
+          "names": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "target",
+          "type"
+        ],
+        "properties": {
+          "source": {
+            "$ref": "#/$defs/ElementRef"
+          },
+          "target": {
+            "$ref": "#/$defs/ElementRef"
+          },
+          "type": {
+            "$ref": "common.schema.json#/$defs/LinkType"
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ElementRef": {
+      "type": "string",
+      "maxLength": 1000,
+      "pattern": "^(decl:[a-z0-9][a-z0-9-]{0,63}|[^#\\s][^#]*#[^\\s].*)$",
+      "description": "'<artifact path>#<localKey>' or 'decl:<id>'."
+    }
+  }
+}

@@ -79,6 +79,22 @@ Element mapping of `sandman.plugin.extract` (`label` is `CodeUnit` for kind `cod
 
 A method belongs to the innermost type that lists it (ArDoCo lists the methods of a nested type again in the outer type). `DEPENDS_ON` goes from a file to the files of its imports that are current artifacts. A file that ArDoCo does not recognize as Java or shell code gets only its file element and a warning. ArDoCo 2.1.0 does not resolve `extends` and `implements`, so no type-level `DEPENDS_ON` is returned yet. Raise the `+cN` suffix of the card version when the mapping changes.
 
+## Core detector `model-code`
+
+The detector `model-code` runs in the inconsistency-agent. It needs no plugin. It compares architecture components and code files through the active trace links.
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `modelKinds` | `[architecture-model]` | Artifact kinds of model elements. |
+| `codeKinds` | `[code]` | Artifact kinds of code files. Kind `test` is not in the default. |
+| `modelElementKinds` | `[component]` | Element kinds checked for code. |
+| `codeElementKinds` | `[file]` | Element kinds checked for a model element. |
+| `excludeGlobs` | `["**/package-info.java", "**/module-info.java"]` | Code paths that never give a finding. |
+| `linkApproaches` | `all` | `all` or a list of approach ids whose links count. |
+| `maxFindingsPerType` | `500` | Cap per finding type. A warning reports a cut. |
+
+A link to a type or method counts for its file. A rejected link does not count. If the project has no model-code link, the detector reports no finding and one warning. The evaluation is in `docs/tasks/T7.3-model-code-inconsistency-detector.md`.
+
 ## Registering
 
 ```yaml

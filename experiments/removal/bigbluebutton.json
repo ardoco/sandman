@@ -1,0 +1,105 @@
+{
+  "agreement": {
+    "expectedAgreement": 0.5277777777777778,
+    "expectedFindings": 36,
+    "findingSetJaccard": 0.8712121212121212
+  },
+  "baseline": {
+    "code-without-model-element": 286,
+    "model-element-without-code": 1
+  },
+  "baselineAgreement": {
+    "code-without-model-element": {
+      "f1": 0.9360967184801382,
+      "gold": 293,
+      "precision": 0.9475524475524476,
+      "predicted": 286,
+      "recall": 0.9249146757679181
+    },
+    "model-element-without-code": {
+      "f1": 1.0,
+      "gold": 1,
+      "precision": 1.0,
+      "predicted": 1,
+      "recall": 1.0
+    }
+  },
+  "components": 12,
+  "files": 562,
+  "full": {
+    "code-without-model-element": {
+      "f1": 0.625,
+      "f1Ci": [
+        0.42857142857142855,
+        0.7777777777777778
+      ],
+      "fn": 18,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.45454545454545453,
+      "tp": 15
+    },
+    "model-element-without-code": {
+      "f1": 0.0,
+      "f1Ci": [
+        0.0,
+        0.0
+      ],
+      "fn": 3,
+      "fp": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tp": 0
+    }
+  },
+  "goldComponents": 11,
+  "links": 379,
+  "mode": "full",
+  "project": "bigbluebutton",
+  "runs": 20,
+  "sample": [
+    "code:_yGgUMFkHEeyewPSmlgszyA",
+    "code:_2BgxMFkHEeyewPSmlgszyA",
+    "code:_0e5u8FkHEeyewPSmlgszyA",
+    "model:_RDHFIFwPEeyiuNx_RO7j-Q",
+    "model:_9wZIcFkHEeyewPSmlgszyA",
+    "model:_4yx-8FkHEeyewPSmlgszyA"
+  ],
+  "seed": 42,
+  "simulated": {
+    "code-without-model-element": {
+      "f1": 0.961783439490446,
+      "f1Ci": [
+        0.9381107491856677,
+        0.98125
+      ],
+      "fn": 1,
+      "fp": 11,
+      "precision": 0.9320987654320988,
+      "recall": 0.993421052631579,
+      "tp": 151
+    },
+    "model-element-without-code": {
+      "f1": 0.625,
+      "f1Ci": [
+        0.3076923076923077,
+        0.8421052631578948
+      ],
+      "fn": 6,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.45454545454545453,
+      "tp": 5
+    }
+  },
+  "skipped": [
+    {
+      "id": "model:_0e5u8FkHEeyewPSmlgszyA",
+      "reason": "expected finding in baseline"
+    },
+    {
+      "id": "model:_yGgUMFkHEeyewPSmlgszyA",
+      "reason": "expected finding in baseline"
+    }
+  ]
+}

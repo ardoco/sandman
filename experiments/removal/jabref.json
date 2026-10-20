@@ -1,0 +1,101 @@
+{
+  "agreement": {
+    "expectedAgreement": 0.9532267613972765,
+    "expectedFindings": 1689,
+    "findingSetJaccard": 0.6487712255115463
+  },
+  "baseline": {
+    "code-without-model-element": 44,
+    "model-element-without-code": 0
+  },
+  "baselineAgreement": {
+    "code-without-model-element": {
+      "f1": 0.9887640449438202,
+      "gold": 45,
+      "precision": 1.0,
+      "predicted": 44,
+      "recall": 0.9777777777777777
+    },
+    "model-element-without-code": {
+      "f1": 0.0,
+      "gold": 0,
+      "precision": 0.0,
+      "predicted": 0,
+      "recall": 0.0
+    }
+  },
+  "components": 6,
+  "files": 2000,
+  "full": {
+    "code-without-model-element": {
+      "f1": 0.9760242792109257,
+      "f1Ci": [
+        0.9703997558742753,
+        0.9809725158562368
+      ],
+      "fn": 78,
+      "fp": 1,
+      "precision": 0.9993784959602238,
+      "recall": 0.9537366548042705,
+      "tp": 1608
+    },
+    "model-element-without-code": {
+      "f1": 0.0,
+      "f1Ci": [
+        0.0,
+        0.0
+      ],
+      "fn": 3,
+      "fp": 1,
+      "precision": 0.0,
+      "recall": 0.0,
+      "tp": 0
+    }
+  },
+  "goldComponents": 6,
+  "links": 1956,
+  "mode": "full",
+  "project": "jabref",
+  "runs": 11,
+  "sample": [
+    "code:_NUdtEEl4Ee243f2e4VWs6w",
+    "code:_Coy0kEl4Ee243f2e4VWs6w",
+    "code:_MFIzMEl4Ee243f2e4VWs6w",
+    "model:_He3LoEl4Ee243f2e4VWs6w",
+    "model:_EBiwMEl4Ee243f2e4VWs6w",
+    "model:_Coy0kEl4Ee243f2e4VWs6w"
+  ],
+  "seed": 42,
+  "simulated": {
+    "code-without-model-element": {
+      "f1": 0.9994879672299027,
+      "f1Ci": [
+        0.9987189341532154,
+        1.0
+      ],
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.9994879672299027,
+      "recall": 0.9994879672299027,
+      "tp": 1952
+    },
+    "model-element-without-code": {
+      "f1": 0.8333333333333334,
+      "f1Ci": [
+        0.6,
+        1.0
+      ],
+      "fn": 1,
+      "fp": 1,
+      "precision": 0.8333333333333334,
+      "recall": 0.8333333333333334,
+      "tp": 5
+    }
+  },
+  "skipped": [
+    {
+      "id": "model:_KsOfgEl4Ee243f2e4VWs6w",
+      "reason": "expected finding in baseline"
+    }
+  ]
+}

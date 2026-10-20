@@ -3,7 +3,7 @@ detectors:
   stub-untraced: { enabled: true }
   ardoco-id: { enabled: true, params: { textKinds: [architecture-doc], modelKinds: [architecture-model], linkApproaches: all } }   # T3.1
   artemis-id: { enabled: false, params: { textKinds: [architecture-doc], modelKinds: [architecture-model] } }   # T3.2, LLM via gateway
-  model-code: { enabled: false, params: { modelKinds: [architecture-model], codeKinds: [code], linkApproaches: all } }   # T7.3
+  model-code: { enabled: true, params: { modelKinds: [architecture-model], codeKinds: [code], linkApproaches: all } }   # T7.3
 plugins:
   - id: detect-stub
     transport: http                       # POST /v1/detect, GET /manifest

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from fakes import Env, aid, event, ingestion, vid
+from sandman_agent import stable_id
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.contracts import Contracts
 from sandman_orchestrator.rules import DETECT, EXTRACT, TLR, Rules, Version, seconds, tlr_steps
@@ -37,6 +38,14 @@ async def test_deletion_only_ingestion_detects_deleted_artifacts(env: Env) -> No
     [step] = pending(env)
     assert step["skill"] == DETECT
     assert step["input_json"] == f'{{"projectId": "mini", "scopeArtifactIds": ["{aid(1)}"]}}'
+
+
+async def test_knowledge_file_change_detects_the_whole_project(env: Env) -> None:
+    knowledge = stable_id("art", "mini", "sandman-knowledge.yaml")
+    env.orch.graph.known.append(Version(vid(6), knowledge, "other"))
+    await env.orch.handle(extraction(6))
+    [step] = pending(env)
+    assert step["skill"] == DETECT and step["input_json"] == '{"projectId": "mini"}'
 
 
 async def test_extraction_links_changed_x_counterparts(env: Env) -> None:

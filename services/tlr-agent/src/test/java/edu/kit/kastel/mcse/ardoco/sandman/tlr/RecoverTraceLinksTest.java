@@ -341,6 +341,49 @@ class RecoverTraceLinksTest {
     }
 
     @Test
+    void decisionMentionLinksDecisionToNamedComponentAndFile() throws Exception {
+        String docVersion = Ids.stableId("ver", "adr");
+        String modelVersion = Ids.stableId("ver", "model");
+        String decision = Ids.stableId("el", docVersion, "file");
+        String component = Ids.stableId("el", modelVersion, "cm-1");
+        String file = Ids.stableId("el", TGT_VERSION, "src/main/java/mini/Store.java");
+        kg.write(
+                "CREATE (:Artifact {id: 'art_adr', projectId: $p, kind: 'architecture-doc'})-[:HAS_VERSION]->"
+                        + "(v:ArtifactVersion {id: $dv, projectId: $p})-[:HAS_ELEMENT]->(:Element:Decision "
+                        + "{id: $d, projectId: $p, key: 'adr#file', kind: 'decision', name: 'Use CacheManager', "
+                        + "text: 'Use CacheManager. Change src/main/java/mini/Store.java.'})",
+                Map.of("p", PROJECT, "dv", docVersion, "d", decision));
+        artifact(
+                "architecture-model",
+                modelVersion,
+                Map.of(component, List.of("ModelElement", "CacheManager", "m#cm-1")));
+        kg.write(
+                "MATCH (v:ArtifactVersion {id: $v}) CREATE (v)-[:HAS_ELEMENT]->(:Element:CodeUnit "
+                        + "{id: $id, projectId: $p, key: 'code#src/main/java/mini/Store.java', kind: 'file', "
+                        + "name: 'Store.java'})",
+                Map.of("v", TGT_VERSION, "id", file, "p", PROJECT));
+        kg.write("MATCH (e:Element {id: $id}) SET e.kind = 'component'", Map.of("id", component));
+
+        var in = JsonMapper.shared()
+                .readTree("{\"projectId\":\"" + PROJECT + "\",\"sourceVersionIds\":[\"" + docVersion
+                        + "\"],\"targetVersionIds\":[\"" + modelVersion + "\",\"" + TGT_VERSION
+                        + "\"],\"approaches\":[\"decision-mention\"]}");
+        var done = run(in);
+
+        assertEquals("TASK_STATE_COMPLETED", done.state(), String.valueOf(done.error()));
+        var active = kg.read(
+                "MATCH (l:TraceLink {approach: 'decision-mention', active: true})-[:SOURCE]->(:Decision), "
+                        + "(l)-[:TARGET]->(t:Element) RETURN t.id AS target, l.confidence AS confidence, "
+                        + "l.linkType AS type ORDER BY confidence",
+                Map.of());
+        assertEquals(
+                List.of(
+                        Map.of("target", component, "confidence", 0.8, "type", "relates"),
+                        Map.of("target", file, "confidence", 1.0, "type", "relates")),
+                active);
+    }
+
+    @Test
     void sameInputTwiceKeepsOneActiveLink() throws Exception {
         var in = input(",\"approaches\":[\"" + STUB + "\"]");
         run(in);

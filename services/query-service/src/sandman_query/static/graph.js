@@ -47,8 +47,10 @@
     el.textContent = text || "";
     el.className = error ? "error" : "";
   }
+  var FIXED_HUES = { Decision: 45 };
   function hue(labels) {
     var key = (labels && labels[labels.length - 1]) || "";
+    if (key in FIXED_HUES) { return FIXED_HUES[key]; }
     var h = 0;
     for (var i = 0; i < key.length; i++) { h = (h * 31 + key.charCodeAt(i)) % 360; }
     return h;

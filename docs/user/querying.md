@@ -57,7 +57,7 @@ Your own parameter names `projectId`, `cypher` and `timeout` are reserved. Witho
 
 `GET /v1/schema` returns the schema contract (`contracts/kg/schema.yaml`). The parts you need most:
 
-- Nodes: `Project`, `Ingestion`, `Artifact` (`path`, `kind`, `format`, `deletedAt`), `ArtifactVersion` (`contentHash`, `sourceRevision`, `ingestedAt`), `Element` with one of the labels `Requirement`, `TextUnit`, `ModelElement`, `CodeUnit`, `TestCase` (`key`, `kind`, `name`, `text`, `startLine`, `endLine`), `TraceLink`, `Inconsistency`, `StatusChange`, `Run`.
+- Nodes: `Project`, `Ingestion`, `Artifact` (`path`, `kind`, `format`, `deletedAt`), `ArtifactVersion` (`contentHash`, `sourceRevision`, `ingestedAt`), `Element` with one of the labels `Requirement`, `TextUnit`, `ModelElement`, `CodeUnit`, `TestCase`, `Decision` (`key`, `kind`, `name`, `text`, `startLine`, `endLine`; `Decision` also has `decisionStatus` and `decisionDate`), `TraceLink`, `Inconsistency`, `StatusChange`, `Run`.
 - An element is current when `(:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(element)`. A trace link is current when `active = true` and both ends are current elements. Use these two patterns; queries on all versions also return old and deleted data.
 - Links: `(link)-[:SOURCE]->(element)`, `(link)-[:TARGET]->(element)`. Findings: `(:Inconsistency)-[:INVOLVES]->(element or link)`, `-[:HAS_STATUS_CHANGE]->(:StatusChange)`.
 - Element keys have the form `art_<artifact id>#<local key>`; resolve the artifact to its path through the `Artifact` node.

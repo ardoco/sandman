@@ -1,9 +1,11 @@
 """Console graph explorer: page, access control, CSRF and hidden labels (no graph database)."""
 
 import re
+from pathlib import Path
 from typing import Any
 
 from conftest import Env
+from sandman_agent.graphview import schema_names
 from sandman_query.graph_console import HIDDEN_LABELS, hidden_in
 from test_console import logged_in
 
@@ -96,3 +98,8 @@ async def test_missing_graph_answers_503_and_the_page_shows_the_reason(env: Env)
 def test_hidden_in_finds_nested_labels() -> None:
     assert hidden_in([{"a": {"_labels": ["Run"]}}], ["Run"])
     assert not hidden_in([{"_labels": ["Element"]}, 1, "Run"], ["Run"])
+
+
+def test_schema_label_filter_lists_decision() -> None:
+    labels, _ = schema_names(Path(__file__).resolve().parents[3] / "contracts")
+    assert "Decision" in labels

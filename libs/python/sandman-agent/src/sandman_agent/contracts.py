@@ -8,7 +8,7 @@ import yaml
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
-SCHEMA_FILES = ("common.schema.json", "skills.schema.json", "events.schema.json")
+SCHEMA_FILES = ("common.schema.json", "skills.schema.json", "events.schema.json", "knowledge.schema.json")
 
 
 class ContractError(Exception):

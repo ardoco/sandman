@@ -1,0 +1,12 @@
+version: 1
+elements:
+  - id: password-hasher
+    label: ModelElement
+    kind: component
+    name: Password Hasher
+    text: Component that hashes user passwords before storage.
+links:
+  - source: decl:password-hasher
+    target: requirements/requirements.md#REQ-3
+    type: satisfies
+    rationale: The hasher stores passwords in encrypted form.

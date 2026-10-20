@@ -11,6 +11,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | [getting-started.md](getting-started.md) | install, generate secrets, start the stack, first login |
 | [projects-and-access.md](projects-and-access.md) | users, roles, projects, personal API tokens |
 | [ingesting-artifacts.md](ingesting-artifacts.md) | prepare a repository, run `sandman ingest`, understand versions, limits and partial runs; ingest from GitHub Actions |
+| [knowledge-file.md](knowledge-file.md) | declare elements, aliases and trace links in `sandman-knowledge.yaml` |
 | [workflows.md](workflows.md) | follow and trigger the processing that follows an ingestion |
 | [querying.md](querying.md) | ask questions, run Cypher, explore the graph in the console, call the REST API, export |
 | [trace-links-and-findings.md](trace-links-and-findings.md) | read and review trace links, read inconsistency findings, triage them with a cause |

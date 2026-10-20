@@ -4,12 +4,12 @@ import json
 import tarfile
 from email.parser import BytesParser
 from email.policy import HTTP
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import httpx
 import pytest
-from sandman_cli.__main__ import build_manifest, kind_of, kind_rule, main, scan
+from sandman_cli.__main__ import ADR_RULES, build_manifest, kind_of, kind_rule, main, scan
 
 MINI = Path(__file__).resolve().parents[3] / "tests" / "e2e" / "fixtures" / "mini"
 RULES = [
@@ -41,6 +41,33 @@ def test_kind_rule_matching() -> None:
     assert kind_of("src/x/a.java", [kind_rule("src/*.java=code")]) == "other"  # '*' stays in one segment
     with pytest.raises(Exception):  # noqa: B017 - argparse type error
         kind_rule("src/**=binary")
+
+
+@pytest.mark.parametrize(
+    ("path", "fmt"),
+    [
+        ("adr/0001-x.md", "adr"),
+        ("docs/adr/sub/0002-y.md", "adr"),
+        ("docs/adr/0002-y.md", "adr"),
+        ("docs/decisions/a/b.md", "adr"),
+        ("services/x/adr/0003-z.md", "adr"),
+        ("adr/README.md", "markdown"),
+        ("adr/template.md", "markdown"),
+        ("docs/adr/index.md", "markdown"),
+        ("docs/decisions/sub/README.md", "markdown"),
+        ("services/x/adr/README.md", "markdown"),
+        ("services/x/adr/notes.md", None),
+    ],
+)
+def test_default_adr_rules(path: str, fmt: str | None) -> None:
+    rule = next((r for r in ADR_RULES if PurePosixPath(path).full_match(r["glob"])), None)
+    assert (rule or {}).get("format") == fmt
+
+
+def test_adr_rules_come_after_user_rules() -> None:
+    user = [kind_rule("adr/**=other")]
+    assert kind_of("adr/0001-x.md", user + ADR_RULES) == "other"
+    assert kind_of("adr/0001-x.md", ADR_RULES) == "architecture-doc"
 
 
 def test_manifest_of_mini_s1() -> None:
@@ -85,7 +112,7 @@ def test_ingest_uploads_only_missing_files(capsys: pytest.CaptureFixture[str]) -
     check, upload = requests
     assert (check.method, check.url.path) == ("POST", "/v1/projects/mini/ingestions/check")
     manifest = json.loads(check.content)
-    assert len(manifest["files"]) == 5 and manifest["kindRules"] == RULES  # rules from s2/sandman.yaml
+    assert len(manifest["files"]) == 5 and manifest["kindRules"] == RULES + ADR_RULES  # rules from s2/sandman.yaml
     assert upload.url.path == "/v1/projects/mini/ingestions"
     parts = multipart(upload)
     assert json.loads(parts["manifest"]) == manifest
@@ -115,7 +142,10 @@ def test_ingest_without_missing_files_sends_manifest_only(tmp_path: Path) -> Non
     assert main(argv, server(requests, [])) == 0
     parts = multipart(requests[1])
     assert set(parts) == {"manifest"}
-    assert json.loads(parts["manifest"])["kindRules"] == [{"glob": "*.md", "kind": "architecture-doc"}]
+    assert json.loads(parts["manifest"])["kindRules"] == [
+        {"glob": "*.md", "kind": "architecture-doc"},
+        *ADR_RULES,
+    ]
 
 
 def test_workflows_wait_polls_until_done(capsys: pytest.CaptureFixture[str]) -> None:

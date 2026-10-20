@@ -26,6 +26,15 @@ from sandman_cli.evaluation.perturb import build_mapping, rename
 DEFAULT_URL = "http://127.0.0.1:8080"
 CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
 KINDS = ("requirements", "architecture-doc", "architecture-model", "code", "test", "other")
+ADR_FOLDERS = ("adr", "docs/adr/**", "docs/decisions/**", "**/adr")
+ADR_RULES = [
+    {"glob": f"{folder}/{name}", "kind": "architecture-doc", "format": "markdown"}
+    for folder in ADR_FOLDERS
+    for name in ("README.md", "index.md", "template.md")
+] + [
+    {"glob": glob, "kind": "architecture-doc", "format": "adr"}
+    for glob in ("adr/*.md", "docs/adr/**/*.md", "docs/decisions/**/*.md", "**/adr/[0-9][0-9][0-9][0-9]-*.md")
+]
 DONE = {"SUCCEEDED", "FAILED", "CANCELED", "BLOCKED"}  # BLOCKED waits for a user action
 
 
@@ -99,8 +108,10 @@ def ingest(http: httpx.Client, args: argparse.Namespace) -> int:
     if not files:
         raise SystemExit(f"sandman: no files in {root}")
     config = root / CONFIG
-    rules = args.kind_rule + (
-        (yaml.safe_load(config.read_text()) or {}).get("kindRules", []) if config.is_file() else []
+    rules = (
+        args.kind_rule
+        + ((yaml.safe_load(config.read_text()) or {}).get("kindRules", []) if config.is_file() else [])
+        + ADR_RULES
     )
     manifest = build_manifest(files, args.mode, args.revision, rules)
     kinds = Counter(kind_of(rel, rules) for rel in files)

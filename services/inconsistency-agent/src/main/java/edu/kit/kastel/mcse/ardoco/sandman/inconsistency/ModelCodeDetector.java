@@ -128,7 +128,7 @@ public final class ModelCodeDetector implements InconsistencyDetector {
                             "The model element has no active, non-rejected link to a code unit.",
                             null,
                             List.of(Finding.Involved.element((String) r.get("key"), "subject")),
-                            Map.of("inferredModel", inferred, "linkApproaches", all ? "all" : approaches));
+                            evidence(inferred, all ? "all" : approaches));
                 })
                 .toList();
         findings.addAll(cap(modelFindings, MODEL_WITHOUT_CODE, max, warnings));
@@ -156,6 +156,13 @@ public final class ModelCodeDetector implements InconsistencyDetector {
                 .toList();
         findings.addAll(cap(codeFindings, CODE_WITHOUT_MODEL, max, warnings));
         return new Detection(findings, warnings);
+    }
+
+    private static Map<String, Object> evidence(boolean inferred, Object approaches) {
+        Map<String, Object> evidence = new LinkedHashMap<>();
+        evidence.put("inferredModel", inferred);
+        evidence.put("linkApproaches", approaches);
+        return evidence;
     }
 
     private static List<Finding> cap(List<Finding> found, String type, int max, List<String> warnings) {

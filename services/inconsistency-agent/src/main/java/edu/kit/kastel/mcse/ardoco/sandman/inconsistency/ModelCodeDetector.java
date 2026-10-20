@@ -136,10 +136,10 @@ public final class ModelCodeDetector implements InconsistencyDetector {
         Map<String, Object> codeParams = new LinkedHashMap<>(base);
         codeParams.put("codeKinds", strings(params.get("codeKinds"), List.of("code")));
         codeParams.put("codeElementKinds", strings(params.get("codeElementKinds"), List.of("file")));
-        List<PathMatcher> excluded = strings(params.get("excludeGlobs"), List.of("**/package-info.java", "**/module-info.java"))
-                .stream()
-                .map(g -> FileSystems.getDefault().getPathMatcher("glob:" + g))
-                .toList();
+        List<PathMatcher> excluded =
+                strings(params.get("excludeGlobs"), List.of("**/package-info.java", "**/module-info.java")).stream()
+                        .map(g -> FileSystems.getDefault().getPathMatcher("glob:" + g))
+                        .toList();
         var codeFindings = ctx.kg().read(CODE_QUERY, codeParams).stream()
                 .map(r -> (String) r.get("key"))
                 .sorted()

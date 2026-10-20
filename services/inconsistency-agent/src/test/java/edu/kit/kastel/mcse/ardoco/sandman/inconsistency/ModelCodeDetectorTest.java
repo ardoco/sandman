@@ -162,8 +162,7 @@ class ModelCodeDetectorTest {
         code(codeArt, "src/A.java", "file");
         var d = run(Map.of());
         assertEquals(List.of(), d.findings());
-        assertEquals(
-                List.of("model-code: no model-code links; enable transarc or declare links (T7.2)"), d.warnings());
+        assertEquals(List.of("model-code: no model-code links; enable transarc or declare links (T7.2)"), d.warnings());
     }
 
     @Test

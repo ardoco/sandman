@@ -4,10 +4,18 @@ on:
   push:
     branches: [main]
     paths:
-      - "deploy/**"
-      - "contracts/**"
-      - "services/**"
-      - "libs/**"
+      - "deploy/docker-compose.yml"
+      - "contracts/agent-cards/**"
+      - "contracts/openapi/**"
+      - "services/*/README.md"
+      - "services/*/Dockerfile"
+      - "services/*/pyproject.toml"
+      - "services/*/pom.xml"
+      - "libs/*/*/README.md"
+      - "libs/*/*/pyproject.toml"
+      - "libs/*/*/pom.xml"
+      - "tests/plugin*/README.md"
+      - "tests/plugin*/pyproject.toml"
       - "docs/**"
       - "adr/**"
       - "site/**"

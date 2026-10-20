@@ -40,7 +40,8 @@ def _element_query(label: LiteralString) -> LiteralString:
         "SET n:" + label + " "
         "SET n.key = e.key, n.projectId = $pid, n.kind = e.kind, n.name = e.name, n.qualifiedName = e.qualifiedName, "
         "n.text = e.text, n.sentenceIndex = e.sentenceIndex, n.startLine = e.startLine, "
-        "n.endLine = e.endLine, n.contentHash = e.contentHash, n.references = e.references, n.inferred = e.inferred "
+        "n.endLine = e.endLine, n.decisionStatus = e.decisionStatus, n.decisionDate = e.decisionDate, "
+        "n.contentHash = e.contentHash, n.references = e.references, n.inferred = e.inferred "
         "MERGE (v)-[:HAS_ELEMENT]->(n) MERGE (r)-[:PRODUCED]->(n)"
     )
 
@@ -49,7 +50,7 @@ def _relation_query(rel: LiteralString) -> LiteralString:
     return "UNWIND $rels AS x MATCH (s:Element {id: x.s}), (t:Element {id: x.t}) MERGE (s)-[:" + rel + "]->(t)"
 
 
-LABELS: tuple[LiteralString, ...] = ("Requirement", "TextUnit", "ModelElement", "CodeUnit", "TestCase")
+LABELS: tuple[LiteralString, ...] = ("Requirement", "TextUnit", "ModelElement", "CodeUnit", "TestCase", "Decision")
 RELATIONS: tuple[LiteralString, ...] = ("CONTAINS", "DEPENDS_ON", "PROVIDES", "REQUIRES")
 ELEMENT_QUERIES = {label: _element_query(label) for label in LABELS}
 RELATION_QUERIES = {rel: _relation_query(rel) for rel in RELATIONS}
@@ -401,6 +402,7 @@ class ExtractSkill:
                 "id": stable_id("el", vid, key), "key": f"{art}#{key}", "kind": e["kind"], "name": e["name"],
                 "qualifiedName": e.get("qualifiedName"), "text": e.get("text"), "startLine": e.get("startLine"),
                 "endLine": e.get("endLine"), "sentenceIndex": e.get("sentenceIndex"),
+                "decisionStatus": e.get("decisionStatus"), "decisionDate": e.get("decisionDate"),
                 "contentHash": sha256_hex(e.get("text") or e["name"]), "inferred": e.get("inferred"),
                 "references": canonical_json(stored[key]).decode() if key in stored else None,
             })  # fmt: skip

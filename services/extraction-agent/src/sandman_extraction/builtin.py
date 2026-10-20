@@ -3,7 +3,7 @@
 from pathlib import PurePosixPath
 from typing import Any
 
-from sandman_extraction import models, requirements, text
+from sandman_extraction import decisions, models, requirements, text
 from sandman_extraction.stub import FILE_KEY, LABEL_BY_KIND, stub_elements
 
 TOOL, TOOL_VERSION = "builtin-extractor", "2"
@@ -43,6 +43,8 @@ def extract(
     fmt = fmt or FORMAT_BY_SUFFIX.get(PurePosixPath(path).suffix.lower())
     if kind == "requirements":
         return requirements.extract(path, content, fmt, [] if warnings is None else warnings), []
+    if fmt == "adr":
+        return decisions.extract(path, content, [] if warnings is None else warnings), []
     if fmt in TEXT_FORMATS:
         elements = text.extract(path, content)
         elements[0]["label"] = LABEL_BY_KIND[kind]

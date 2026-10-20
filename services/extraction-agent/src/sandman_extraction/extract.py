@@ -41,7 +41,7 @@ def _element_query(label: LiteralString) -> LiteralString:
         "SET n.key = e.key, n.projectId = $pid, n.kind = e.kind, n.name = e.name, n.qualifiedName = e.qualifiedName, "
         "n.text = e.text, n.sentenceIndex = e.sentenceIndex, n.startLine = e.startLine, "
         "n.endLine = e.endLine, n.decisionStatus = e.decisionStatus, n.decisionDate = e.decisionDate, "
-        "n.contentHash = e.contentHash, n.references = e.references, n.inferred = e.inferred "
+        "n.contentHash = e.contentHash, n.aliases = e.aliases, n.references = e.references, n.inferred = e.inferred "
         "MERGE (v)-[:HAS_ELEMENT]->(n) MERGE (r)-[:PRODUCED]->(n)"
     )
 
@@ -403,7 +403,8 @@ class ExtractSkill:
                 "qualifiedName": e.get("qualifiedName"), "text": e.get("text"), "startLine": e.get("startLine"),
                 "endLine": e.get("endLine"), "sentenceIndex": e.get("sentenceIndex"),
                 "decisionStatus": e.get("decisionStatus"), "decisionDate": e.get("decisionDate"),
-                "contentHash": sha256_hex(e.get("text") or e["name"]), "inferred": e.get("inferred"),
+                "contentHash": e.get("contentHash") or sha256_hex(e.get("text") or e["name"]),
+                "aliases": e.get("aliases"), "inferred": e.get("inferred"),
                 "references": canonical_json(stored[key]).decode() if key in stored else None,
             })  # fmt: skip
         ids = [stable_id("el", vid, k) for k in unique]

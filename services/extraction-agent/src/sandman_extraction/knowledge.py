@@ -4,7 +4,11 @@ from typing import Any
 
 import yaml
 from sandman_agent import ContractError, Contracts
+from sandman_agent.ids import canonical_json, sha256_hex
 
+from sandman_extraction.stub import FILE_KEY, stub_elements
+
+FORMAT = "sandman-knowledge"
 SCHEMA = "knowledge.schema.json"
 MAX_BYTES = 1024**2
 DECL = "decl:"
@@ -55,3 +59,37 @@ def validate(content: bytes, contracts: Contracts) -> dict[str, Any]:
                 if ref.startswith(DECL) and ref[len(DECL) :] not in declared:
                     raise KnowledgeError(f"/{section}/{i}/{key}: unknown element {ref}")
     return data
+
+
+def alias_key(reference: str) -> str:
+    """localKey of the alias element of one aliased element reference."""
+    return "alias:" + sha256_hex(reference)[:12]
+
+
+def aliases_by_reference(data: dict[str, Any]) -> dict[str, list[str]]:
+    """Names per aliased element reference; entries for the same element are merged."""
+    merged: dict[str, list[str]] = {}
+    for entry in data.get("aliases", []):
+        names = merged.setdefault(entry["element"], [])
+        names.extend(n for n in entry["names"] if n not in names)
+    return merged
+
+
+def extract(path: str, content: bytes) -> list[dict[str, Any]]:
+    """File element, one element per declared element and one alias element per aliased element."""
+    data = parse(content)
+    if not isinstance(data, dict):
+        raise KnowledgeError("/: not a mapping")
+    elements = stub_elements(path, "other", content)
+    for entry in data.get("elements", []):
+        elements.append(
+            {"localKey": DECL + entry["id"], "label": entry["label"], "kind": entry["kind"], "name": entry["name"],
+             "text": entry.get("text"), "parent": FILE_KEY, "contentHash": sha256_hex(canonical_json(entry))}
+        )  # fmt: skip
+    for reference, names in aliases_by_reference(data).items():
+        elements.append(
+            {"localKey": alias_key(reference), "label": "TextUnit", "kind": "alias", "name": names[0],
+             "aliases": canonical_json(names).decode(), "parent": FILE_KEY,
+             "contentHash": sha256_hex(canonical_json({"element": reference, "names": names}))}
+        )  # fmt: skip
+    return elements

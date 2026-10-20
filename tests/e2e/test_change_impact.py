@@ -76,6 +76,6 @@ def test_decision_is_linked_and_listed_when_the_named_file_changes(
     known = {w["id"] for w in stack.workflows()}
     fourth = stack.ingest("s4", "s4", capsys)
     stack.wait_workflow(known)
-    body = impact(stack, fourth["ingestionId"]).json()
-    assert any(c["artifactPath"].endswith("MediaCache.java") and c["change"] == "modified" for c in body["changed"])
+    body = impact(stack, fourth["ingestionId"], depth=3).json()
+    assert {c["artifactPath"] for c in body["changed"]} == {"src/main/java/mini/MediaCache.java"}, body["changed"]
     assert any(a["label"] == "Decision" and a["artifactPath"] == "adr/0001-use-memgraph.md" for a in body["affected"])

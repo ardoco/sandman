@@ -74,6 +74,7 @@ e2e: secrets        ## walking skeleton, dashboard and replay determinism: stack
 	SANDMAN_E2E=1 uv run pytest tests/e2e/test_change_impact.py -q
 	SANDMAN_E2E=1 uv run pytest tests/e2e/test_kg_migrate.py -q
 	SANDMAN_E2E=1 $(DETERMINISM)
+	SANDMAN_E2E=1 uv run pytest tests/e2e/test_decision_impact.py -q
 
 record-cassettes: secrets  ## record tests/cassettes/walking-skeleton (same test sequence as e2e, so replay has no misses) against the remote Ollama (SELFHOSTED_LLM_URL) and regenerate the golden KG export
 	deploy/check-env.sh

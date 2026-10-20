@@ -104,7 +104,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **M7** | | | | |
 | T7.1 | Architectural decision extraction: ADR/MADR files to `Decision` elements (additive schema), links to model and code elements | M | M1, M2 || [T7.1](tasks/T7.1-decision-extraction.md) (open, spec ready) |
 | T7.2 | User-declared knowledge file `sandman-knowledge.yaml` (elements, aliases, links with approach `user-declared`), schema-validated at ingest | M | M1, M2 || [T7.2](tasks/T7.2-user-declared-knowledge.md) (open, spec ready) |
-| T7.3 | Model–code inconsistency detector (model element without code, code without model element); later LLM documentation–code contradictions (Q-6); removal-protocol evaluation | M | T2.7, T3.1 || [T7.3](tasks/T7.3-model-code-inconsistency-detector.md) (open, spec ready) |
+| T7.3 | Model–code inconsistency detector (model element without code, code without model element); later LLM documentation–code contradictions (Q-6); removal-protocol evaluation | M | T2.7, T3.1 || [T7.3](tasks/T7.3-model-code-inconsistency-detector.md) (done with deviations) |
 | T7.4 | Time-aware queries: optional `asOf` (ingestion or source revision) for all strategies of ADR-0018, bounded by retention | M | M4, T5.2 | |
 | T7.5 | Resolution suggestions and clarification questions for open inconsistencies (LLM, schema-validated, recorded, off by default, severity ≥ warning, never writes artifacts) | M | T3.4, T6.2 | |
 | T7.6 | Grounding checks: LLM-produced facts must cite existing KG elements; cross-approach agreement count as trust signal | S | M4 | |

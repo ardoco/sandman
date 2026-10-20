@@ -52,3 +52,27 @@ def test_second_ingestion_reports_changed_requirement_and_linked_elements(
     assert impact(stack, second["ingestionId"], who="alice").status_code == 200
     other = stack.users["carol"].get(f"/v1/projects/e2e-other/ingestions/{second['ingestionId']}/impact")
     assert other.status_code in (403, 404)
+
+
+def test_decision_is_linked_and_listed_when_the_named_file_changes(
+    stack: Stack, capsys: pytest.CaptureFixture[str]
+) -> None:
+    decisions = stack.rows(
+        "MATCH (d:Decision {projectId: $projectId})<-[:HAS_ELEMENT]-(:ArtifactVersion)"
+        "<-[:CURRENT_VERSION]-(a:Artifact) "
+        "RETURN a.path, d.name, d.decisionStatus, d.decisionDate"
+    )
+    assert decisions == [["adr/0001-use-memgraph.md", "Keep media files in the MediaCache", "accepted", "2026-10-06"]]
+    linked = stack.rows(
+        "MATCH (t:TraceLink {projectId: $projectId, approach: 'decision-mention', active: true})"
+        "-[:SOURCE]->(:Decision), "
+        "(t)-[:TARGET]->(g) RETURN g.name, labels(g)"
+    )
+    assert {row[0] for row in linked} >= {"MediaCache", "MediaCache.java"}, linked
+
+    known = {w["id"] for w in stack.workflows()}
+    third = stack.ingest("s3", "s3", capsys)
+    stack.wait_workflow(known)
+    body = impact(stack, third["ingestionId"]).json()
+    assert any(c["artifactPath"].endswith("MediaCache.java") and c["change"] == "modified" for c in body["changed"])
+    assert any(a["label"] == "Decision" and a["artifactPath"] == "adr/0001-use-memgraph.md" for a in body["affected"])

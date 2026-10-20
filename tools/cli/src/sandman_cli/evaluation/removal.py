@@ -177,14 +177,14 @@ def simulate(setup: Setup, links: set[Link], baseline: set[Finding], run: Mappin
     return detect(comps, files, kept) - baseline
 
 
-def counts(runs: Sequence[Mapping], reported: Mapping[str, set[Finding]], resamples: int, seed: int) -> dict:
+def counts(runs: Sequence[Mapping], reported: Mapping[str, set[Finding]], resamples: int) -> dict:
     out = {}
     for kind in TYPES:
         gold = {(r["id"], f) for r in runs for f in r["expected"] if f[0] == kind}
         predicted = {(r["id"], f) for r in runs for f in reported[r["id"]] if f[0] == kind}
         m = stats.link_metrics(predicted, gold)
         tp = len(predicted & gold)
-        ci = stats.f1_ci(predicted, gold, resamples, seed) if gold | predicted else [0.0, 0.0]
+        ci = stats.f1_ci(predicted, gold, resamples) if gold | predicted else [0.0, 0.0]
         out[kind] = {"tp": tp, "fp": len(predicted) - tp, "fn": len(gold) - tp, **m, "f1Ci": ci}
     return out
 
@@ -289,7 +289,7 @@ def evaluate(
         "baselineAgreement": baseline_agreement(setup, links, baseline),
         "runs": len(runs),
         "skipped": skipped,
-        "simulated": counts(runs, simulated, resamples, seed),
+        "simulated": counts(runs, simulated, resamples),
     }
     if mode == "full":
         assert cmd and text
@@ -300,7 +300,7 @@ def evaluate(
             comps, files, _ = state_after(setup, links, r)
             full[r["id"]] = detect(comps, files, tlr[r["id"]]) - baseline
         result["sample"] = [r["id"] for r in chosen]
-        result["full"] = counts(chosen, full, resamples, seed)
+        result["full"] = counts(chosen, full, resamples)
         result["agreement"] = agreement(chosen, simulated, full)
     return result
 

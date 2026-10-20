@@ -64,6 +64,7 @@ class PruneTraceLinksTest {
             }
             link(project, "stale", "e1", "e6", false, "proposed", "tlr-x");
             link(project, "explicit", "e1", "e6", false, "proposed", "explicit-reference");
+            link(project, "declared", "e3", "e6", false, "confirmed", "user-declared");
             link(project, "involved", "e2", "e6", false, "proposed", "tlr-x");
             link(project, "active", "e3", "e6", true, "proposed", "tlr-x");
             link(project, "confirmed", "e4", "e6", false, "confirmed", "tlr-x");
@@ -138,12 +139,18 @@ class PruneTraceLinksTest {
                 2,
                 result.get("removedCount").asInt() - result.at("/removed/runs").asInt());
         assertEquals(
-                Set.of(P + "-explicit", P + "-involved", P + "-active", P + "-confirmed", P + "-rejected"),
+                Set.of(
+                        P + "-explicit",
+                        P + "-declared",
+                        P + "-involved",
+                        P + "-active",
+                        P + "-confirmed",
+                        P + "-rejected"),
                 ids("TraceLink", P));
         assertEquals(
                 Set.of(),
                 ids("Run", P).stream().filter(i -> i.equals(P + "-run")).collect(Collectors.toSet()));
-        assertEquals(7, ids("TraceLink", "other").size());
+        assertEquals(8, ids("TraceLink", "other").size());
         assertEquals(1, ids("Run", "other").size());
         JsonNode second = prune(",\"keepVersionsPerArtifact\":1,\"dryRun\":false");
         assertEquals(0, second.at("/removed/links").asInt());

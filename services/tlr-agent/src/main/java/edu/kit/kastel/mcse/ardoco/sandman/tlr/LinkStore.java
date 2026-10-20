@@ -16,12 +16,16 @@ public final class LinkStore {
     /** Links of the extraction-agent (R-006): never superseded, deactivated or pruned by the tlr-agent. */
     static final String EXPLICIT_REFERENCE = "explicit-reference";
 
+    static final String USER_DECLARED = "user-declared";
+    /** Approaches written by the extraction-agent; this agent never retires, reviews or prunes them. */
+    static final List<String> EXTRACTION_OWNED = List.of(EXPLICIT_REFERENCE, USER_DECLARED);
+
     private static final String REVIEW_FIELDS = "SET x.status = $status, x.reviewedBy = $actor, x.reviewedAt = $now, "
             + "x.reviewReason = $reason, x.reviewOrigin = 'user' ";
     private static final String RESET_FIELDS =
             "SET x.status = 'candidate' REMOVE x.reviewedBy, x.reviewedAt, x.reviewReason, x.reviewOrigin ";
     private static final String CARRY_OVER = "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink {active: true}) "
-            + "WHERE x.reviewedAt IS NULL AND x.approach <> $explicit "
+            + "WHERE x.reviewedAt IS NULL AND NOT (x.approach IN $explicit) "
             + "MATCH (x)-[:SOURCE]->(s:Element), (x)-[:TARGET]->(t:Element) "
             + "MATCH (o:TraceLink {projectId: $projectId, linkType: x.linkType}) WHERE o.reviewedAt IS NOT NULL "
             + "MATCH (o)-[:SOURCE]->(:Element {key: s.key, contentHash: s.contentHash}), "
@@ -149,7 +153,7 @@ public final class LinkStore {
                 "sourceVersionIds", sourceVersionIds,
                 "targetVersionIds", targetVersionIds,
                 "now", now(),
-                "explicit", EXPLICIT_REFERENCE);
+                "explicit", EXTRACTION_OWNED);
         kg.writeTx(tx -> {
             tx.run(
                             "MATCH (r:Run {id: $runId}) "
@@ -157,7 +161,7 @@ public final class LinkStore {
                                     + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), "
                                     + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
                                     + "WHERE sv.id IN $sourceVersionIds AND tv.id IN $targetVersionIds "
-                                    + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit "
+                                    + "AND NOT (r)-[:PRODUCED]->(old) AND NOT (old.approach IN $explicit) "
                                     + "SET old.active = false "
                                     + "WITH count(*) AS superseded "
                                     + "MATCH (:Run {id: $runId})-[:PRODUCED]->(x:TraceLink) SET x.active = true "
@@ -189,13 +193,13 @@ public final class LinkStore {
                                 .sorted()
                                 .toList(),
                 "now", now(),
-                "explicit", EXPLICIT_REFERENCE);
+                "explicit", EXTRACTION_OWNED);
         String retired = "MATCH (r:Run {id: $runId}) "
                 + "MATCH (old:TraceLink {projectId: $projectId, approach: $approach, active: true})"
                 + "-[:SOURCE]->(:Element)<-[:HAS_ELEMENT]-(sv:ArtifactVersion)<-[:HAS_VERSION]-(sa:Artifact), "
                 + "(old)-[:TARGET]->(:Element)<-[:HAS_ELEMENT]-(tv:ArtifactVersion)<-[:HAS_VERSION]-(ta:Artifact) "
                 + "WHERE sa.kind + '>' + ta.kind IN $pairs "
-                + "AND NOT (r)-[:PRODUCED]->(old) AND old.approach <> $explicit ";
+                + "AND NOT (r)-[:PRODUCED]->(old) AND NOT (old.approach IN $explicit) ";
         return kg.writeTx(tx -> {
             Set<String> sources = new java.util.TreeSet<>();
             Set<String> targets = new java.util.TreeSet<>();
@@ -271,7 +275,7 @@ public final class LinkStore {
         params.put("actor", actor);
         params.put("reason", reason);
         params.put("now", now());
-        params.put("explicit", EXPLICIT_REFERENCE);
+        params.put("explicit", EXTRACTION_OWNED);
         params.put("pendingId", java.util.UUID.randomUUID().toString());
         params.put("projectId", link.projectId());
         String set = reset ? RESET_FIELDS : REVIEW_FIELDS;
@@ -279,7 +283,7 @@ public final class LinkStore {
             var rows = tx.run(
                             "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
                                     + "MATCH (x:TraceLink {active: true})-[:SOURCE]->(s), (x)-[:TARGET]->(t) "
-                                    + "WHERE x.approach <> $explicit "
+                                    + "WHERE NOT (x.approach IN $explicit) "
                                     + set
                                     + "WITH x, s, t MATCH (s)<-[:HAS_ELEMENT]-(sv:ArtifactVersion), (t)<-[:HAS_ELEMENT]-(tv:ArtifactVersion) "
                                     + "RETURN x.id AS id, sv.id AS sv, tv.id AS tv ORDER BY id",
@@ -290,7 +294,7 @@ public final class LinkStore {
                                 "MATCH (s:Element {id: $s}), (t:Element {id: $t}) "
                                         + "MATCH (x:TraceLink {projectId: $projectId})-[:SOURCE]->(:Element {key: s.key, contentHash: s.contentHash}), "
                                         + "(x)-[:TARGET]->(:Element {key: t.key, contentHash: t.contentHash}) "
-                                        + "WHERE x.reviewedAt IS NOT NULL AND x.approach <> $explicit "
+                                        + "WHERE x.reviewedAt IS NOT NULL AND NOT (x.approach IN $explicit) "
                                         + RESET_FIELDS,
                                 params)
                         .consume();
@@ -326,8 +330,8 @@ public final class LinkStore {
     /** Startup: links of disabled approaches must not stay active. */
     public void deactivate(java.util.Collection<String> approaches) {
         kg.write(
-                "MATCH (l:TraceLink {active: true}) WHERE l.approach IN $approaches AND l.approach <> $explicit "
+                "MATCH (l:TraceLink {active: true}) WHERE l.approach IN $approaches AND NOT (l.approach IN $explicit) "
                         + "SET l.active = false",
-                Map.of("approaches", List.copyOf(approaches), "explicit", EXPLICIT_REFERENCE));
+                Map.of("approaches", List.copyOf(approaches), "explicit", EXTRACTION_OWNED));
     }
 }

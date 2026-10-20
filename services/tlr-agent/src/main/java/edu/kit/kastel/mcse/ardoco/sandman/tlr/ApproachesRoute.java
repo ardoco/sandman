@@ -119,6 +119,8 @@ public class ApproachesRoute {
             problem(rc, 409, "Conflict", "link " + id + " is not active");
         } else if (LinkStore.EXPLICIT_REFERENCE.equals(link.get().approach())) {
             problem(rc, 409, "Conflict", "explicit-reference links are not reviewed");
+        } else if (LinkStore.USER_DECLARED.equals(link.get().approach())) {
+            problem(rc, 409, "Conflict", "user-declared links are not reviewed; change sandman-knowledge.yaml");
         } else if ("rejected".equals(status.asString()) && reason == null) {
             problem(rc, 422, "Unprocessable Entity", "reason required for rejected");
         } else {

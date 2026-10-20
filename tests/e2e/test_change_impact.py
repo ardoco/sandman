@@ -57,6 +57,9 @@ def test_second_ingestion_reports_changed_requirement_and_linked_elements(
 def test_decision_is_linked_and_listed_when_the_named_file_changes(
     stack: Stack, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    known = {w["id"] for w in stack.workflows()}
+    stack.ingest("s3", "s3", capsys)
+    stack.wait_workflow(known)
     decisions = stack.rows(
         "MATCH (d:Decision {projectId: $projectId})<-[:HAS_ELEMENT]-(:ArtifactVersion)"
         "<-[:CURRENT_VERSION]-(a:Artifact) "
@@ -71,8 +74,8 @@ def test_decision_is_linked_and_listed_when_the_named_file_changes(
     assert {row[0] for row in linked} >= {"MediaCache", "MediaCache.java"}, linked
 
     known = {w["id"] for w in stack.workflows()}
-    third = stack.ingest("s3", "s3", capsys)
+    fourth = stack.ingest("s4", "s4", capsys)
     stack.wait_workflow(known)
-    body = impact(stack, third["ingestionId"]).json()
+    body = impact(stack, fourth["ingestionId"]).json()
     assert any(c["artifactPath"].endswith("MediaCache.java") and c["change"] == "modified" for c in body["changed"])
     assert any(a["label"] == "Decision" and a["artifactPath"] == "adr/0001-use-memgraph.md" for a in body["affected"])

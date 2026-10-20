@@ -11,10 +11,6 @@ public class MediaCache {
         entries.put(name, content);
     }
 
-    public int size() {
-        return entries.size();
-    }
-
     public byte[] get(String name) {
         return entries.get(name);
     }

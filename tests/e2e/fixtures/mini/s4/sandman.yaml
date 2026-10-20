@@ -1,0 +1,7 @@
+# Kind rules for `sandman ingest` (first matching glob wins; unmatched files are 'other'). Not ingested itself.
+kindRules:
+  - { glob: "requirements/**", kind: requirements }
+  - { glob: "docs/**", kind: architecture-doc }
+  - { glob: "model/**", kind: architecture-model }
+  - { glob: "src/test/**", kind: test }
+  - { glob: "src/main/**", kind: code }

@@ -2179,6 +2179,7 @@ name = "sandman-cli"
 version = "0.1.0"
 source = { editable = "tools/cli" }
 dependencies = [
+    { name = "defusedxml" },
     { name = "httpx" },
     { name = "pyyaml" },
     { name = "sandman-agent" },
@@ -2186,6 +2187,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "sandman-agent", editable = "libs/python/sandman-agent" },

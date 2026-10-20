@@ -8,7 +8,8 @@
 # 0.6.0 (additive): Artifact.origin, ArtifactVersion.derivedFrom, derivationRunId, Element.inferred, reserved path prefix .sandman/ (T2.7).
 # 0.7.0 (additive): StatusChange.cause (TriageCause, user transitions only; T6.2).
 # 0.8.0 (additive): TraceLink.reviewedBy, reviewedAt, reviewReason, reviewOrigin (T6.1).
-version: 0.8.0
+# 0.9.0 (additive): Element label Decision, Element.decisionStatus, decisionDate (T7.1).
+version: 0.9.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -91,6 +92,7 @@ nodes:
       ModelElement: "Architecture model element (kind: component, interface, connector, ...); localKey = model id (XMI/PCM id)."
       CodeUnit: "Code element (kind: file, package, type, method, ...)."
       TestCase: "Test element (kind: test-class, test-method)."
+      Decision: "Architectural decision record (kind: decision); one per ADR/MADR file; localKey = `file`. Sections and sentences of the file are TextUnit children (CONTAINS)."
     properties:
       id: { type: string, required: true, description: "el_ = stableId(artifactVersionId, localKey)" }
       key: { type: string, required: true, description: "artifactId#localKey, stable across versions" }
@@ -104,6 +106,8 @@ nodes:
       endLine: { type: integer, required: false }
       sentenceIndex: { type: integer, required: false, description: "0-based sentence number within the document (TextUnit sentences); not part of the key." }
       contentHash: { type: string, required: true, description: "sha256 hex of the element's content as defined by its extractor (built-in: text, else name). Enters Inconsistency.evidenceHash." }
+      decisionStatus: { type: string, required: false, enum: [proposed, accepted, rejected, deprecated, superseded, unknown], description: "Decision only." }
+      decisionDate: { type: string, required: false, description: "Decision only; ISO-8601 date." }
       inferred: { type: boolean, required: false, description: "ModelElement only: true when the element belongs to a derived artifact version (ArtifactVersion.derivedFrom set); absent = false." }
       references: { type: string, required: false, description: "JSON string, array of {text, linkType}: unresolved explicit-reference texts found in the element (explicitReferences patterns or plugin explicitReferences), written with the element and re-resolved against the current Requirements after every ingestion (R-014). Absent when the element has none." }
       embedding: { type: list, required: false, internal: true, description: "Embedding vector (float list, 768 dimensions = vector index element_embedding); only for the labels and kinds of config/extraction/embedding.yaml, written by the extraction-agent after extraction. Not for prompts or answers. Search is vector_search.search('element_embedding', k, $vector) with a post-filter on projectId." }

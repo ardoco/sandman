@@ -79,8 +79,10 @@ class TransarcEquivalenceTest {
                     "sandman",
                     "benchmark-code",
                     c.project() + "-code-model.acm");
+            if (c.required()) {
+                CodeModels.acm(c.project() + "-code-model");
+            }
             if (!Files.isRegularFile(acm)) {
-                assertFalse(c.required(), "required case without code model " + acm);
                 excluded.add(c.project() + ": no code model " + acm);
                 continue;
             }

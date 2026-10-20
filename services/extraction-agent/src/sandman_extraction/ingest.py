@@ -279,6 +279,12 @@ async def ingest(
             "DELETE c SET a.deletedAt = $now CREATE (g)-[:DELETED]->(a)",
             g=ing_id, ids=deleted, now=props["createdAt"],
         )  # fmt: skip
+        if stable_id("art", project_id, KNOWLEDGE_PATH) in deleted:
+            await rows(
+                tx,
+                "MATCH (l:TraceLink {projectId: $p, approach: 'user-declared', active: true}) SET l.active = false",
+                p=project_id,
+            )
         return ing_id
 
     return await kg.write_tx(apply)

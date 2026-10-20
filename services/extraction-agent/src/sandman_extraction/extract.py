@@ -17,9 +17,9 @@ from sandman_agent import A2aPluginClient, PluginError, RunRecorder, SkillContex
 from sandman_agent.ids import canonical_json, sha256_hex
 from sandman_agent.kg import now
 
-from sandman_extraction import builtin, documents, embed, enrich, models
+from sandman_extraction import builtin, documents, embed, enrich, knowledge, models
 from sandman_extraction.bounds import add_warnings
-from sandman_extraction.ingest import rows
+from sandman_extraction.ingest import KNOWLEDGE_PATH, rows
 from sandman_extraction.stub import stub_elements
 
 if TYPE_CHECKING:
@@ -31,6 +31,7 @@ SKILL = "extract-artifact-versions"
 TOOL, TOOL_VERSION = "stub-extractor", "0"
 APPROACH, APPROACH_VERSION = "explicit-reference", "0"
 LINK_BATCH = 5000
+DECLARED, DECLARED_VERSION = "user-declared", "1"
 
 
 def _element_query(label: LiteralString) -> LiteralString:
@@ -372,6 +373,9 @@ class ExtractSkill:
         )  # fmt: skip
         if holds_requirements:  # R-014: only a changed (or emptied) requirements artifact moves link endpoints
             link_count += await self._re_resolve(pid, run_id)
+        declared, declared_warnings = await self._resolve_declared(pid, run_id)
+        link_count += declared
+        warnings.extend(dict.fromkeys(declared_warnings))
         return {"runId": run_id, "status": status, "elementCount": element_count, "explicitLinkCount": link_count,
                 "pluginRuns": summaries} | ({"warnings": warnings} if warnings else {})  # fmt: skip
 
@@ -443,18 +447,28 @@ class ExtractSkill:
 
         return await self.service.kg.write_tx(work)
 
-    async def _activate(self, tx: AsyncManagedTransaction, pid: str, rid: str, links: list[dict[str, Any]]) -> int:
+    async def _activate(
+        self,
+        tx: AsyncManagedTransaction,
+        pid: str,
+        rid: str,
+        links: list[dict[str, Any]],
+        approach: str = APPROACH,
+        version: str = APPROACH_VERSION,
+        status: str = "candidate",
+    ) -> int:
         created = await rows(
             tx,
             "MATCH (r:Run {id: $rid}) UNWIND $links AS x "
             "MATCH (s:Element {id: x.source}), (t:Element {id: x.target}) "
             "MERGE (l:TraceLink {id: x.id}) ON CREATE SET l.projectId = $pid, l.linkType = x.linkType, "
-            "l.confidence = 1.0, l.approach = $approach, l.approachVersion = $version, l.configHash = $configHash, "
-            "l.status = 'candidate', l.runId = $rid, l.createdAt = $now "
+            "l.confidence = 1.0, l.approach = $approach, l.approachVersion = $version, "
+            "l.configHash = coalesce(x.configHash, $configHash), l.status = $status, l.rationale = x.rationale, "
+            "l.runId = $rid, l.createdAt = $now "
             "WITH r, s, t, l, coalesce(l.active, false) AS was "
             "SET l.active = true MERGE (l)-[:SOURCE]->(s) MERGE (l)-[:TARGET]->(t) MERGE (r)-[:PRODUCED]->(l) "
             "RETURN sum(CASE WHEN was THEN 0 ELSE 1 END) AS n",
-            rid=rid, links=links, pid=pid, approach=APPROACH, version=APPROACH_VERSION,
+            rid=rid, links=links, pid=pid, approach=approach, version=version, status=status,
             configHash=self.service.explicit_hash, now=now(),
         )  # fmt: skip
         return int(created[0]["n"]) if created else 0
@@ -503,3 +517,77 @@ class ExtractSkill:
                         for i in range(0, len(missing), LINK_BATCH)])  # fmt: skip
 
         return await kg.write_tx(work)
+
+    async def _resolve_declared(self, pid: str, rid: str) -> tuple[int, list[str]]:
+        """User-declared links of the current knowledge file against current elements; writes only the difference."""
+        kg = self.service.kg
+        warnings: list[str] = []
+        desired: dict[str, dict[str, Any]] = {}
+        current = await kg.read(
+            "MATCH (a:Artifact {projectId: $p, path: $path})-[:CURRENT_VERSION]->(v) "
+            "RETURN a.id AS art, v.id AS vid, v.storageUri AS uri",
+            p=pid, path=KNOWLEDGE_PATH,
+        )  # fmt: skip
+        if current:
+            art, uri = current[0]["art"], current[0]["uri"]
+            try:
+                data = knowledge.parse(await asyncio.to_thread(read_stored, self.service, uri))
+            except knowledge.KnowledgeError as e:
+                data = {}
+                warnings.append(f"knowledge: {e}")
+            entries = [
+                {"source": knowledge.alias_key(ref), "target": ref, "type": "relates", "alias": True}
+                for ref in knowledge.aliases_by_reference(data)
+            ] + data.get("links", [])
+
+            def key(ref: str, alias: bool = False) -> str:
+                if alias or ref.startswith(knowledge.DECL):
+                    return f"{art}#{ref}"
+                path, _, local = ref.partition("#")
+                return f"{stable_id('art', pid, path)}#{local}"
+
+            refs = {key(x["source"], x.get("alias", False)) for x in entries} | {key(x["target"]) for x in entries}
+
+            ids = {
+                r["key"]: r["id"]
+                for r in await kg.read(
+                    "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(v)-[:HAS_ELEMENT]->(e:Element) "
+                    "WHERE e.key IN $keys RETURN e.key AS key, e.id AS id",
+                    p=pid, keys=sorted(refs),
+                )
+            }  # fmt: skip
+            for x in entries:
+                src, tgt = ids.get(key(x["source"], x.get("alias", False))), ids.get(key(x["target"]))
+                missing = [r for r, i in ((x["source"], src), (x["target"], tgt)) if i is None]
+                if missing:
+                    warnings.extend(
+                        f"knowledge: unresolved {r}" for r in missing if not x.get("alias") or r == x["target"]
+                    )
+                    continue
+                config = sha256_hex(canonical_json({"source": x["source"], "target": x["target"], "type": x["type"]}))
+                lid = stable_id("tl", DECLARED, DECLARED_VERSION, config, src, tgt)
+                desired[lid] = {"id": lid, "source": src, "target": tgt, "linkType": x["type"], "configHash": config,
+                                "rationale": x.get("rationale")}  # fmt: skip
+        active = {
+            r["id"]
+            for r in await kg.read(
+                "MATCH (l:TraceLink {projectId: $p, approach: $a, active: true}) RETURN l.id AS id ORDER BY l.id",
+                p=pid,
+                a=DECLARED,
+            )  # fmt: skip
+        }
+        stale = sorted(active - desired.keys())
+        missing_links = [desired[i] for i in sorted(desired.keys() - active)]
+        if not stale and not missing_links:
+            return 0, warnings
+
+        async def work(tx: AsyncManagedTransaction) -> int:
+            for i in range(0, len(stale), LINK_BATCH):
+                await rows(
+                    tx, "MATCH (l:TraceLink) WHERE l.id IN $ids SET l.active = false", ids=stale[i : i + LINK_BATCH]
+                )
+            return sum([await self._activate(tx, pid, rid, missing_links[i : i + LINK_BATCH], DECLARED,
+                                             DECLARED_VERSION, "confirmed")
+                        for i in range(0, len(missing_links), LINK_BATCH)])  # fmt: skip
+
+        return await kg.write_tx(work), warnings

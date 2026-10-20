@@ -67,3 +67,11 @@ def test_workflow_not_succeeded_is_reported() -> None:
     seconds = {"e2e": 1, "recover-trace-links": 1, "detect-inconsistencies": 1}
     assert workflow_failures(_result(200, 20, seconds)) == []
     assert workflow_failures(_result(200, 20, seconds, "FAILED")) == ["ingest: FAILED", "incremental: FAILED"]
+
+
+def test_impact_budget_uses_the_max_of_the_repetitions() -> None:
+    result = _result(200, 20, {"e2e": 10})
+    result["incremental"] = {**result["incremental"], "impact": {"maxSeconds": 2.5}}
+    assert {r["id"]: r["verdict"] for r in evaluate(result)}["impact-depth2"] == "FAIL"
+    result["incremental"]["impact"]["maxSeconds"] = 0.4
+    assert {r["id"]: r["verdict"] for r in evaluate(result)}["impact-depth2"] == "PASS"

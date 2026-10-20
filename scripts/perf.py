@@ -66,6 +66,7 @@ BUDGET: dict[str, tuple[str, float]] = {  # id -> (unit, limit); keep equal to d
     "ingest-tlr": ("s", 480),
     "detection": ("s", 120),
     "incremental-e2e": ("s", 300),
+    "impact-depth2": ("s", 2),
     "query-bolt-p50": ("ms", 20),
     "query-bolt-p95": ("ms", 250),
     "query-http-p95": ("ms", 1000),
@@ -318,6 +319,7 @@ def ingest_phase(stack: Any, root: Path, label: str, known: set[str], timeout: f
     result: dict[str, Any] = {
         "uploadSeconds": round(upload, 2),
         "endToEndSeconds": round(total, 2),
+        "ingestionId": ingestion["ingestionId"],
         "createdVersions": len(ingestion["createdVersionIds"]),
         "workflows": [],
     }
@@ -435,6 +437,26 @@ def http_latency(stack: Any, reps: int) -> dict[str, Any]:
     }
 
 
+def impact_latency(stack: Any, ingestion_id: str, reps: int) -> dict[str, Any]:
+    samples = []
+    for _ in range(reps):
+        started = time.perf_counter()
+        resp = stack.users["alice"].get(
+            f"/v1/projects/{stack.project}/ingestions/{ingestion_id}/impact", params={"depth": 2}
+        )
+        samples.append(time.perf_counter() - started)
+        assert resp.status_code == 200, resp.text
+    doc = resp.json()
+    return {
+        "samples": reps,
+        "medianSeconds": round(statistics.median(samples), 3),
+        "maxSeconds": round(max(samples), 3),
+        "changed": len(doc["changed"]),
+        "affected": len(doc["affected"]),
+        "truncated": doc["truncated"],
+    }
+
+
 def oom_killed() -> list[str]:
     with docker_api() as api:
         return [
@@ -457,6 +479,8 @@ def evaluate(result: dict[str, Any]) -> list[dict[str, Any]]:
         }
     if inc:
         values["incremental-e2e"] = inc["endToEndSeconds"]
+        if "impact" in inc:
+            values["impact-depth2"] = inc["impact"]["maxSeconds"]
     if kg:
         last = kg["steps"][-1]
         values |= {
@@ -564,11 +588,13 @@ def main(argv: list[str] | None = None) -> int:
         src = tmp / "project"
         result["workload"] = count_workload(generate(src, args.files), src, args.delta)
         result["ingest"] = ingest_phase(stack, src, "perf-1", known, args.timeout)
+        result["ingest"]["impact"] = impact_latency(stack, result["ingest"]["ingestionId"], args.reps)
         if args.delta:
             rng = random.Random(1)
             for path in rng.sample(sorted(src.glob("src/main/java/**/*.java")), args.delta):
-                path.write_text(path.read_text() + "// rev 2\n")
+                path.write_text(path.read_text().rstrip()[:-1] + "    public int extra(int x) { return x; }\n}\n")
             result["incremental"] = ingest_phase(stack, src, "perf-2", known, args.timeout)
+            result["incremental"]["impact"] = impact_latency(stack, result["incremental"]["ingestionId"], args.reps)
         with connect(BOLT) as driver:
             steps = [{"copies": 0, **storage_info(driver)}]
             steps += seed_clones(driver, args.kg_nodes, steps[0]["vertices"])

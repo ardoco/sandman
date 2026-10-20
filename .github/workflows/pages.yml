@@ -3,6 +3,7 @@ name: pages
 on:
   push:
     branches: [main]
+    tags: ["M*"]
     paths:
       - "deploy/docker-compose.yml"
       - "contracts/agent-cards/**"

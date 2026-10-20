@@ -48,9 +48,7 @@ def _date(value: Any) -> str | None:
 def _body(elements: list[dict[str, Any]], names: tuple[str, ...]) -> list[str]:
     """Own text of the sections with these names, without the heading line."""
     return [
-        s["text"].partition("\n")[2].strip()
-        for s in elements
-        if s["kind"] == "section" and s["name"].lower() in names
+        s["text"].partition("\n")[2].strip() for s in elements if s["kind"] == "section" and s["name"].lower() in names
     ]
 
 

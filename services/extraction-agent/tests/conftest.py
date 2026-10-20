@@ -33,6 +33,7 @@ URL = "http://extraction-agent:8000"
 TOKENS = {"orchestrator": "orch-token", "query-service": "query-token", "cli": "cli-token"}
 KIND_RULES = [
     {"glob": "requirements/**", "kind": "requirements", "format": "markdown"},
+    {"glob": "adr/**", "kind": "architecture-doc", "format": "adr"},
     {"glob": "docs/**", "kind": "architecture-doc"},
     {"glob": "model/**", "kind": "architecture-model"},
     {"glob": "src/test/**", "kind": "test"},

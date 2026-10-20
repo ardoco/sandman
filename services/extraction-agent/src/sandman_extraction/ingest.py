@@ -13,10 +13,12 @@ from typing import Any, Literal, LiteralString
 
 from neo4j import AsyncManagedTransaction
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sandman_agent import ArtifactStore, EventSink, KgClient, stable_id
+from sandman_agent import ArtifactStore, Contracts, EventSink, KgClient, stable_id
 from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
 from starlette.exceptions import HTTPException
+
+from sandman_extraction import knowledge
 
 MAX_FILES = 20_000
 MAX_ENTRY_BYTES = 256 * 1024**2
@@ -24,6 +26,8 @@ SPECIAL_MODES = (stat.S_IFLNK, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFIFO, stat.S_
 _DRIVE = re.compile(r"^[A-Za-z]:")
 INGESTION_COMPLETED = "sandman.ingestion.completed"
 RESERVED_PREFIX = ".sandman/"
+KNOWLEDGE_PATH = "sandman-knowledge.yaml"
+KNOWLEDGE_FORMAT = "sandman-knowledge"
 Kind = Literal["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
 
 
@@ -174,11 +178,13 @@ async def ingest(
     actor: str,
     derived: Mapping[str, tuple[str, str]] | None = None,
     retire: Sequence[str] = (),
+    contracts: Contracts | None = None,
 ) -> str:
     """Store blobs and apply the manifest in one transaction; return the ingestion id.
 
     Only the internal derivation passes `derived` (path -> source version id, derivation run id) and `retire`
-    (artifact ids to mark deleted). A full snapshot never deletes an artifact with origin derived.
+    (artifact ids to mark deleted). A full snapshot never deletes an artifact with origin derived. An archive entry
+    KNOWLEDGE_PATH is validated first when `contracts` is given (the HTTP route always gives it).
     """
     derived = derived or {}
     wanted = {f.path: f.sha256 for f in manifest.files}
@@ -190,6 +196,11 @@ async def ingest(
     unknown = set(missing_hashes(store, project_id, manifest)) - {wanted[p] for p in archive}
     if unknown:
         raise HTTPException(422, f"archive lacks content for {len(unknown)} unknown hashes")
+    if contracts is not None and KNOWLEDGE_PATH in archive:
+        try:
+            knowledge.validate(archive[KNOWLEDGE_PATH], contracts)
+        except knowledge.KnowledgeError as e:
+            raise HTTPException(400, f"INVALID_INPUT: {KNOWLEDGE_PATH}: {e}") from None
     for data in archive.values():
         store.put(project_id, data)
 
@@ -221,7 +232,7 @@ async def ingest(
             if now_current == ver and now_source == source:
                 unchanged += 1
                 continue
-            kind, fmt = manifest.kind_of(f.path)
+            kind, fmt = ("other", KNOWLEDGE_FORMAT) if f.path == KNOWLEDGE_PATH else manifest.kind_of(f.path)
             uri = f"artifact://{project_id}/{f.sha256}"
             size = store.path_for(uri).stat().st_size
             items.append({"art": art, "ver": ver, "path": f.path, "kind": kind, "format": fmt, "hash": f.sha256,

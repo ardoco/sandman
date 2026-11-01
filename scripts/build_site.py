@@ -1,5 +1,6 @@
 """Generate the component site (site/dist: index.html + components.json) from repo sources."""
 
+import ast
 import json
 import re
 import shutil
@@ -18,6 +19,7 @@ DOC_GLOBS = ["docs/tasks/*.md", "adr/*.md"]
 MAX_PER_DOC = 5
 PLAN = ROOT / "docs/stage-3-implementation-plan.md"
 META = ROOT / "site/src/components.yaml"
+MAX_FILES = 60
 TEXT_FIELDS = ("zone", "title", "summary", "details", "flow")
 
 
@@ -176,6 +178,133 @@ def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> li
     return problems
 
 
+def repo_files() -> list[str]:
+    try:
+        out = subprocess.run(
+            ["git", "ls-files", "-co", "--exclude-standard"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return sorted(
+            p.relative_to(ROOT).as_posix() for p in ROOT.rglob("*") if p.is_file() and "target" not in p.parts
+        )
+    return sorted(set(out.splitlines()))
+
+
+def file_role(rel: str) -> str | None:
+    parts = rel.split("/")
+    if "test" in parts[:-1] or "tests" in parts[:-1]:
+        return "tests"
+    if "src" in parts[:-1] and "__pycache__" not in parts:
+        return "source"
+    if parts[-1] in ("Dockerfile", "pyproject.toml", "pom.xml") or parts[-1].endswith(
+        (".toml", ".yaml", ".yml", ".json")
+    ):
+        return "config"
+    return "docs" if parts[-1].endswith(".md") and parts[-1] != "THIRD-PARTY.md" else None
+
+
+def file_entry(path: str, root: str, **extra) -> dict:
+    rel = path[len(root) :].lstrip("/") if root and path.startswith(root) else path
+    kind = Path(path).suffix.lstrip(".") or Path(path).name.lower()
+    return {"path": path, "url": url(path), "kind": kind, "dir": "/".join(rel.split("/")[:-1][:2]) or ".", **extra}
+
+
+def test_count(path: str) -> int:
+    text = (ROOT / path).read_text(errors="replace")
+    return len(re.findall(r"def test_|@Test\b", text))
+
+
+def python_modules(sources: list[str]) -> list[dict]:
+    out = []
+    for p in sources:
+        if not p.endswith(".py") or p.endswith("__init__.py") or "/src/" not in p:
+            continue
+        try:
+            doc = ast.get_docstring(ast.parse((ROOT / p).read_text())) or ""
+        except (SyntaxError, ValueError):
+            doc = ""
+        mod = Path(p).relative_to(p.split("/src/")[0] + "/src").with_suffix("").as_posix().replace("/", ".")
+        out.append({"kind": "module", "name": mod, "description": doc.strip().split("\n")[0], "path": p, "url": url(p)})
+    return out
+
+
+def internals(c: dict, name: str, roots: list[str], allfiles: list[str]) -> dict:
+    groups: dict[str, list[dict]] = {k: [] for k in ("source", "tests", "config", "docs")}
+    srcs = []
+    for root in roots:
+        for p in allfiles:
+            if not p.startswith(root + "/"):
+                continue
+            role = file_role(p[len(root) + 1 :])
+            if role:
+                groups[role].append(
+                    file_entry(
+                        p,
+                        root,
+                        **({"count": test_count(p)} if role == "tests" and p.endswith((".py", ".java")) else {}),
+                    )
+                )
+            if role == "source":
+                srcs.append(p)
+    features = []
+    card = ROOT / f"contracts/agent-cards/{name}.json"
+    spec = ROOT / f"contracts/openapi/{name}.yaml"
+    if card.exists():
+        cp = card.relative_to(ROOT).as_posix()
+        features += [
+            {
+                "kind": "skill",
+                "name": s.get("name") or s.get("id", ""),
+                "description": first_paragraph(s.get("description", "")),
+                "path": cp,
+                "url": url(cp),
+            }
+            for s in json.loads(card.read_text()).get("skills", [])
+        ]
+        groups["config"].append(file_entry(cp, "", kind="agent-card"))
+    if spec.exists():
+        sp = spec.relative_to(ROOT).as_posix()
+        for route, ops in (yaml.safe_load(spec.read_text()).get("paths") or {}).items():
+            for method, op in sorted((ops or {}).items()):
+                if method in ("get", "put", "post", "delete", "patch", "head", "options") and isinstance(op, dict):
+                    features.append(
+                        {
+                            "kind": "operation",
+                            "name": f"{method.upper()} {route}",
+                            "description": " ".join(str(op.get("summary", "")).split()),
+                            "path": sp,
+                            "url": url(sp),
+                        }
+                    )
+        groups["config"].append(file_entry(sp, "", kind="openapi"))
+    groups["config"].append(file_entry("deploy/docker-compose.yml", "", kind="compose"))
+    if name.startswith("plugin"):
+        groups["docs"].append(file_entry("docs/plugins.md", "", kind="md"))
+    seen = {e["path"] for e in groups["docs"]}
+    for ln in c["links"]:
+        if re.match(r"(docs|adr)/", ln["path"]) and ln["path"] not in seen:
+            seen.add(ln["path"])
+            groups["docs"].append(file_entry(ln["path"], "", kind="md"))
+    features += python_modules(srcs)
+    features.sort(key=lambda f: (f["kind"], f["name"]))
+    tests = sorted(groups["tests"], key=lambda e: e["path"])
+    truncated = {}
+    for k, v in groups.items():
+        v.sort(key=lambda e: e["path"])
+        if len(v) > MAX_FILES:
+            truncated[k] = len(v) - MAX_FILES
+            groups[k] = v[:MAX_FILES]
+    return {
+        "roots": roots,
+        "files": groups,
+        "features": features,
+        "tests": [e for e in tests if "count" in e][:MAX_FILES],
+        "testCount": sum(e.get("count", 0) for e in tests),
+        "truncated": truncated,
+        "compose": {"image": c["image"], "profiles": c["profiles"], "networks": c["networks"]},
+    }
+
+
 def build() -> dict:
     compose_path = ROOT / "deploy/docker-compose.yml"
     compose = yaml.safe_load(compose_path.read_text())
@@ -236,8 +365,14 @@ def build() -> dict:
                     c["links"].append(link(f, f"{rel}/{f}"))
             comps[d.name] = c
 
+    allfiles = repo_files()
     for c in comps.values():
         c["links"] += doc_links(c["name"])
+        n = c["name"]
+        roots = [r for r in (f"services/{n}", f"tests/{n}") if any(p.startswith(r + "/") for p in allfiles)]
+        if c["kind"] != "service":
+            roots = [f"libs/{c['kind'].split()[0]}/{n}"]
+        c["internals"] = internals(c, n, roots, allfiles)
 
     edges: dict[tuple[str, str], str] = {}
     for name, svc in services.items():
@@ -286,6 +421,7 @@ def main(out: Path) -> None:
     data = build()
     (out / "components.json").write_text(json.dumps(data, indent=1) + "\n")
     shutil.copy(ROOT / "site/src/index.html", out / "index.html")
+    shutil.copytree(ROOT / "site/src/fonts", out / "fonts", dirs_exist_ok=True)
     print(f"{len(data['components'])} components, {len(data['edges'])} edges -> {out}")
 
 

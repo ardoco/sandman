@@ -5,77 +5,114 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SANDMAN Architecture Map</title>
 <style>
-:root{--bg:#f7f8fa;--fg:#1b1f24;--muted:#5b6570;--card:#fff;--line:#c5ccd6;--edge:#7a8594;--accent:#0b5fcc;--sel:#fff3c4;--shadow:0 1px 3px rgba(20,30,50,.15);
---z-access:#2f6fdd;--z-ingest:#1b9a67;--z-analysis:#8a54d6;--z-plugins:#c46b1b;--z-infra:#6b7785;--z-kg:#0e8f9e;--z-llm:#c2386b;--z-libs:#a08400}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101419;--fg:#e6e9ed;--muted:#9aa5b1;--card:#1b2128;--line:#3a444f;--edge:#8b97a6;--accent:#6aa9ff;--sel:#5a4a10;--shadow:0 1px 3px rgba(0,0,0,.6);
---z-access:#6a9eff;--z-ingest:#45c690;--z-analysis:#b48cf0;--z-plugins:#e8944a;--z-infra:#9aa5b1;--z-kg:#3cc3d3;--z-llm:#ee6f9c;--z-libs:#d9b92e}}
-:root[data-theme=dark]{--bg:#101419;--fg:#e6e9ed;--muted:#9aa5b1;--card:#1b2128;--line:#3a444f;--edge:#8b97a6;--accent:#6aa9ff;--sel:#5a4a10;--shadow:0 1px 3px rgba(0,0,0,.6);
---z-access:#6a9eff;--z-ingest:#45c690;--z-analysis:#b48cf0;--z-plugins:#e8944a;--z-infra:#9aa5b1;--z-kg:#3cc3d3;--z-llm:#ee6f9c;--z-libs:#d9b92e}
+@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+:root{--sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;color-scheme:dark;--bg:#0f0f0f;--grid:#1f1f1f;--fg:#ececec;--muted:#8b8b8b;--card:#191919;--raise:#232323;--line:rgba(255,255,255,.1);--edge:#8b8b8b;--accent:#ececec;--on-accent:#0f0f0f;--sel:#2b2b2b;--shadow:0 1px 0 rgba(255,255,255,.035) inset,0 12px 32px -20px #000;
+--z-access:#7cc4ff;--z-ingest:#6fd7a8;--z-analysis:#b49cff;--z-plugins:#f5a66b;--z-infra:#a3a3a3;--z-kg:#63d2b8;--z-llm:#f19ac7;--z-libs:#f0c36b}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){color-scheme:light;--bg:#f3f3f1;--grid:#d2d2ce;--fg:#161616;--muted:#595959;--card:#fff;--raise:#ebebe8;--line:rgba(0,0,0,.15);--edge:#666;--accent:#161616;--on-accent:#fff;--sel:#e0e0dc;--shadow:0 0 0 1px rgba(0,0,0,.1),0 12px 28px -18px rgba(0,0,0,.3);
+--z-access:#1f7ac4;--z-ingest:#1a8a5b;--z-analysis:#7a5ad8;--z-plugins:#c06a1d;--z-infra:#666;--z-kg:#0f8a76;--z-llm:#c43c86;--z-libs:#a8710c}}
+:root[data-theme=light]{color-scheme:light;--bg:#f3f3f1;--grid:#d2d2ce;--fg:#161616;--muted:#595959;--card:#fff;--raise:#ebebe8;--line:rgba(0,0,0,.15);--edge:#666;--accent:#161616;--on-accent:#fff;--sel:#e0e0dc;--shadow:0 0 0 1px rgba(0,0,0,.1),0 12px 28px -18px rgba(0,0,0,.3);
+--z-access:#1f7ac4;--z-ingest:#1a8a5b;--z-analysis:#7a5ad8;--z-plugins:#c06a1d;--z-infra:#666;--z-kg:#0f8a76;--z-llm:#c43c86;--z-libs:#a8710c}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--fg);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+#theme{position:fixed;top:14px;right:16px;z-index:6;height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--raise);color:var(--fg);font:inherit;font-size:13px;cursor:pointer}
 header,main,footer{padding:0 16px;max-width:1440px;margin:0 auto}
 header{--w:60rem}
-h1{font-size:1.6rem;line-height:1.25;margin:20px auto 8px;max-width:var(--w)}
+h1{font-size:2rem;font-weight:600;letter-spacing:-.025em;line-height:1.2;margin:20px auto 8px;max-width:var(--w)}
 .eyebrow{max-width:var(--w);margin-left:auto;margin-right:auto;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:20px}
 .intro p{max-width:var(--w);margin:0 auto 8px;font-size:1.05rem;text-align:left}
 .tour{max-width:var(--w);margin:14px auto 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:6px}
-.tour .step{font:inherit;font-size:.85rem;text-align:center;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:16px;padding:3px 12px;cursor:pointer}
-.tour .step[aria-current=step]{background:var(--accent);border-color:var(--accent);color:#fff}
+.tour .step{font:inherit;font-size:.85rem;text-align:center;border:0;background:var(--raise);color:var(--muted);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tour .step[aria-current=step]{background:var(--accent);color:var(--on-accent)}
 .tour .sep{display:none}
-.tour .always{border-style:dashed}
-.tour .nav{text-align:center;font:inherit;font-size:.85rem;border:1px solid var(--line);background:none;color:var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer}
+.tour .always{box-shadow:inset 0 0 0 1px var(--line)}
+.tour .nav{text-align:center;font:inherit;font-size:.85rem;border:0;background:var(--raise);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
 .tour .nav:disabled{opacity:.4;cursor:default}
-#tourtext{min-height:3.2em;max-width:var(--w);margin:6px auto 4px;text-align:left;padding:10px 16px;border:1px solid var(--line);border-top:3px solid var(--accent);background:var(--card);border-radius:6px;color:var(--fg);font-size:1.05rem}
+#tourtext{min-height:3.2em;max-width:var(--w);margin:6px auto 4px;text-align:left;padding:14px 20px;background:var(--card);box-shadow:var(--shadow);border-radius:20px;color:var(--fg);font-size:1.05rem}
 #tourtext b{color:var(--fg)}
 .legend{display:flex;flex-wrap:wrap;max-width:var(--w);margin-left:auto;margin-right:auto;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
 .legend svg{vertical-align:middle;margin-right:4px}
 main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:24px}
 @media (min-width:1000px){main{grid-template-columns:minmax(0,1fr) 320px}aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
-#graph{min-width:0}
+.col{min-width:0}
+#graph{min-width:0;overflow:auto}
+#bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
+#bar .grow{flex:1}
+#bar button,.btn{font:inherit;font-size:.85rem;border:0;background:var(--raise);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
+#bar button:disabled{opacity:.4;cursor:default}
+#crumb{font-size:.9rem;color:var(--muted)}
+#nbrs{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:.85rem;margin-bottom:8px}
+#nbrs[hidden]{display:none}
+#nbrs .lbl{color:var(--muted)}
+#find{position:fixed;top:60px;left:50%;transform:translateX(-50%);width:min(520px,92vw);z-index:7;background:var(--card);box-shadow:var(--shadow),0 0 0 1px var(--line);border-radius:20px;padding:12px 16px}
+#find[hidden]{display:none}
+#find input{width:100%;font:inherit;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--raise);color:var(--fg)}
+#find ul{list-style:none;margin:8px 0 0;padding:0;max-height:50vh;overflow:auto}
+#find li button{display:block;width:100%;text-align:left;font:inherit;font-size:.88rem;border:0;background:none;color:var(--fg);padding:5px 8px;border-radius:10px;cursor:pointer}
+#find li button:hover,#find li button:focus-visible{background:var(--raise)}
+#find li small{color:var(--muted);margin-left:6px}
+.fcard{cursor:pointer}
+.fcard rect.card{fill:var(--card);stroke:var(--line);stroke-width:1}
+.fcard:focus{outline:none}
+.fcard:hover rect.card,.fcard:focus rect.card,.fcard.hit rect.card{stroke:var(--accent);stroke-width:2}
+.fcard .ft{font-size:11.5px;font-weight:600;fill:var(--fg);pointer-events:none}
+.fcard .fs{font-size:10px;fill:var(--muted);pointer-events:none}
+.lane .fh{font:10px var(--mono);fill:var(--muted)}
+.fbadge circle{fill:var(--accent)}
+.fbadge text{fill:var(--on-accent);font:700 11px var(--sans);text-anchor:middle;dominant-baseline:central}
+.flowing .edge.on{stroke-dasharray:7 5;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-12}}
+@keyframes fade{from{opacity:0}}
+svg.map{animation:fade .25s}
+@media (prefers-reduced-motion:reduce){svg.map,.flowing .edge.on{animation:none}}
+.tour .flabel{grid-column:1/-1;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+aside .none{color:var(--muted);margin:4px 0}
+aside details details{margin-top:6px;padding-top:4px;border-top:0}
+aside li small{color:var(--muted)}
 svg.map{display:block;width:100%;height:auto;margin:0 auto}
-.zone rect.bg{fill:color-mix(in srgb,var(--zc) 7%,var(--bg));stroke:color-mix(in srgb,var(--zc) 45%,var(--bg));stroke-width:1.2}
+.zone rect.bg{fill:color-mix(in srgb,var(--zc) 5%,var(--bg));stroke:color-mix(in srgb,var(--zc) 30%,var(--bg));stroke-width:1}
 .zone.external rect.bg{stroke-dasharray:6 4}
 .zone .ztitle{font-size:13.5px;font-weight:650;fill:var(--fg)}
 .zone .zblurb{font-size:10.5px;fill:var(--muted)}
 .zone .badge{fill:var(--zc)}
 .zone .glyph{fill:#fff;font-size:13px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .node{cursor:pointer;transition:opacity .15s}
-.node rect.card{fill:var(--card);stroke:color-mix(in srgb,var(--zc) 55%,var(--card));stroke-width:1.3;filter:drop-shadow(var(--shadow))}
+.node rect.card{fill:var(--card);stroke:var(--line);stroke-width:1}
 .node .nbadge{fill:color-mix(in srgb,var(--zc) 18%,var(--card))}
 .node .nglyph{fill:var(--zc);font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .node .ntitle{font-size:12px;font-weight:600;fill:var(--fg);pointer-events:none}
-.node .nname{font:10px ui-monospace,Menlo,monospace;fill:var(--muted);pointer-events:none}
+.node .nname{font:10px var(--mono);fill:var(--muted);pointer-events:none}
 .node:focus{outline:none}
-.node:focus rect.card,.node.sel rect.card{stroke:var(--accent);stroke-width:2.6}
+.node:focus rect.card,.node.sel rect.card{stroke:var(--accent);stroke-width:2}
 .node.sel rect.card{fill:var(--sel)}
 .edge{stroke:var(--edge);stroke-width:1.2;fill:none;opacity:.3;transition:opacity .15s}
 .edge.calls{stroke-dasharray:6 4}
 .edge.on{stroke:var(--accent);stroke-width:2.2;opacity:1}
 .dim{opacity:.2}
 .edge.quiet:not(.on){opacity:0}
-.planned{display:inline-block;font-size:.75rem;border-radius:10px;padding:0 8px;background:var(--sel);color:var(--fg);margin:0 4px 4px 0}
+.planned{display:inline-block;font-size:.75rem;border-radius:999px;padding:1px 10px;background:var(--sel);color:var(--fg);margin:0 4px 4px 0}
 .status{color:var(--muted)}
 .narrow .edge:not(.on){display:none}
 marker path{fill:var(--edge)}
 marker.on path{fill:var(--accent)}
-aside{background:var(--card);border-radius:10px;padding:12px 16px;align-self:start;box-shadow:var(--shadow)}
+aside{background:var(--card);border-radius:24px;padding:18px 22px;align-self:start;box-shadow:var(--shadow)}
 aside h2{margin:0 0 2px;font-size:1.15rem}
 aside h3{font-size:.78rem;margin:14px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 aside ul{margin:0;padding-left:18px}
 aside p{margin:6px 0}
 aside .sum{font-weight:600}
 aside .close{float:right;font:inherit;border:0;background:none;color:var(--muted);font-size:1.3rem;line-height:1;cursor:pointer;display:none}
-aside code{font:12px ui-monospace,Menlo,monospace;color:var(--muted)}
+aside code{font:12px var(--mono);color:var(--muted)}
 aside details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 aside summary{cursor:pointer;font-weight:600}
 @media (max-width:999px){aside:not(.has){display:none}aside.has{position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:55vh;overflow:auto;border-radius:12px 12px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3)}aside .close{display:block}body.sheet{padding-bottom:55vh}}
 a{color:var(--accent)}
-.tag{display:inline-block;font-size:.75rem;border:1px solid var(--line);border-radius:10px;padding:0 8px;margin:0 4px 4px 0}
+.tag{display:inline-block;font-size:.75rem;background:var(--raise);border-radius:999px;padding:1px 10px;margin:0 4px 4px 0}
 button.chip{font:inherit;background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0;text-align:left}
 footer{padding-bottom:40px}
 footer h2{font-size:1.2rem;margin:8px 0}
 dl.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px 24px;margin:0}
-dl.gloss div{background:var(--card);border-radius:8px;padding:8px 12px}
+dl.gloss div{background:var(--card);box-shadow:var(--shadow);border-radius:20px;padding:14px 18px}
 dl.gloss dt{font-weight:650}
 dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -83,10 +120,11 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 </head>
 <body>
 <header>
+<button id="theme" type="button">Theme</button>
 <div class="eyebrow">SANDMAN architecture map</div>
 <h1 id="h1">SANDMAN</h1>
 <div class="intro" id="intro"></div>
-<div class="tour" id="tour" role="group" aria-label="Follow the data"></div>
+<div class="tour" id="tour" role="group" aria-label="Flows"></div>
 <div id="tourtext" aria-live="polite">Pick a step to follow the data from upload to results, or click a component to learn what it does.</div>
 <div class="legend" aria-label="Legend">
 <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6"/><path d="M33 5l-7-4v8z" fill="var(--edge)"/></svg>needs / starts after</span>
@@ -96,16 +134,24 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 </div>
 </header>
 <main>
+<div class="col">
+<div id="bar" role="toolbar" aria-label="Map controls"><nav id="crumb" aria-label="Breadcrumb"></nav><span class="grow"></span><button id="up" type="button">Up</button><button id="zout" type="button" aria-label="Zoom out">−</button><button id="zfit" type="button" aria-label="Fit to width">Fit</button><button id="zin" type="button" aria-label="Zoom in">+</button><button id="open-find" type="button" aria-label="Search (press /)">Search /</button></div>
+<div id="nbrs" hidden></div>
 <div id="graph" aria-label="Component map"></div>
+</div>
 <aside id="panel" aria-live="polite"></aside>
 </main>
+<div id="find" role="dialog" aria-label="Search components and files" hidden><input id="q" type="search" placeholder="Filter components and files" aria-label="Filter"><ul id="hits"></ul></div>
 <footer>
 <h2>Glossary</h2>
 <dl class="gloss" id="gloss"></dl>
 </footer>
 <script>
 const NS = "http://www.w3.org/2000/svg", NW = 184, NH = 60, GAP = 10, ZP = 12, ZH = 68, COLGAP = 36, ROWGAP = 32, PAD = 8, RIGHT = 36;
-let data, byId, zoneOf, selected = null, hover = null, tour = null;
+const LW = 250, CW = 226, CH = 30, FH = 46, HP = 44, LGAP = 16;
+let data, byId, zoneOf, selected = null, hover = null, tour = null, view = null, zoom = 1, shown = null, hit = null, index = [];
+const size = (w, min = 360) => zoom === 1 ? `width:100%;max-width:${Math.max(w, min)}px` : `width:${Math.round(w * zoom)}px;max-width:none`;
+const cut = (t, n) => t.length > n ? t.slice(0, n - 1) + "…" : t;
 const el = (n, a = {}, t) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; return e; };
 const h = (n, a = {}, t) => { const e = document.createElement(n); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; return e; };
 const $ = id => document.getElementById(id);
@@ -150,9 +196,9 @@ function marker(id, cls) {
   m.append(el("path", { d: "M0 0L10 5L0 10z" })); return m;
 }
 
-function render() {
-  const box = $("graph"), L = layout(box.clientWidth || 800), { zs, pos } = L;
-  const svg = el("svg", { class: "map" + (L.ncols === 1 ? " narrow" : ""), viewBox: `0 0 ${L.w} ${L.h}`, role: "group", "aria-label": "Component map", style: `max-width:${Math.max(L.w, 360)}px` });
+function overviewSvg(width) {
+  const L = layout(width), { zs, pos } = L;
+  const svg = el("svg", { class: "map" + (L.ncols === 1 ? " narrow" : ""), viewBox: `0 0 ${L.w} ${L.h}`, role: "group", "aria-label": "Component map", style: size(L.w) });
   const defs = el("defs"); defs.append(marker("arr", ""), marker("arr-on", "on")); svg.append(defs);
   zs.forEach(z => {
     const g = el("g", { class: "zone" + (z.external ? " external" : ""), style: `--zc:var(--z-${z.id})`, role: "group", "aria-label": `${z.title}: ${z.blurb}` });
@@ -174,55 +220,157 @@ function render() {
     tl.forEach((l, i) => g.append(el("text", { class: "ntitle", x: 38, y: ty + i * 13 }, l)));
     g.append(el("text", { class: "nname", x: 38, y: ty + tl.length * 13 + 3 }, c.name));
     g.addEventListener("click", () => select(c.id));
-    g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(c.id); } else if (ev.key === "Escape") clearSel(); });
+    g.addEventListener("dblclick", () => nav(c.id, true));
+    g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); if (ev.key === "Enter" && selected === c.id) nav(c.id, true); else select(c.id); } else if (ev.key === "Escape") clearSel(); });
     for (const [ev, v] of [["mouseenter", c.id], ["focus", c.id], ["mouseleave", null], ["blur", null]]) g.addEventListener(ev, () => { hover = v; mark(); });
     svg.append(g);
   }));
-  box.replaceChildren(svg);
+  return svg;
+}
+
+function internalsSvg(width) {
+  const c = byId[view], I = c.internals, F = I.files, item = (f, o = {}) => ({ t: f.path.split("/").pop(), url: f.url, path: f.path, ...o });
+  const lanes = [
+    ["Features", "features", I.features.map(f => ({ t: f.name, s: f.description, url: f.url, path: f.path, tall: true }))],
+    ["Source files", "source", F.source.map(f => item(f, { g: f.dir }))],
+    ["Tests", "tests", F.tests.map(f => item(f, { g: f.dir, s: f.count != null ? `${f.count} tests` : "" }))],
+    ["Config & contracts", "config", F.config.map(f => item(f, { s: f.kind }))],
+    ["Docs", "docs", F.docs.map(f => item(f))]
+  ];
+  const ncols = Math.max(1, Math.min(5, Math.floor((width + LGAP) / (LW + LGAP))));
+  const hs = lanes.map(([, , items]) => { let y = HP, last; items.forEach(i => { if (i.g !== undefined && i.g !== last) { y += 16; last = i.g; i.head = true; } i.y = y; y += (i.tall ? FH : CH) + 6; }); return Math.max(y + 6, HP + 30); });
+  const rowY = [PAD], rows = Math.ceil(lanes.length / ncols);
+  for (let r = 0; r < rows; r++) rowY[r + 1] = rowY[r] + Math.max(...hs.slice(r * ncols, r * ncols + ncols)) + ROWGAP;
+  const W = 2 * PAD + ncols * LW + (ncols - 1) * LGAP, svg = el("svg", { class: "map", viewBox: `0 0 ${W} ${rowY[rows] - ROWGAP + PAD}`, role: "group", "aria-label": `Internals of ${c.title}`, style: size(W, 0) });
+  lanes.forEach(([title, key, items], li) => {
+    const x = PAD + (li % ncols) * (LW + LGAP), y = rowY[Math.floor(li / ncols)], g = el("g", { class: "zone lane", style: `--zc:var(--z-${c.zone})`, role: "group", "aria-label": `${title}: ${items.length}` });
+    g.append(el("rect", { class: "bg", x, y, width: LW, height: hs[li], rx: 14 }), el("text", { class: "ztitle", x: x + 14, y: y + 24 }, `${title} · ${items.length}`));
+    const more = I.truncated[key] ? `+${I.truncated[key]} more not shown` : "";
+    if (more) g.append(el("text", { class: "zblurb", x: x + 14, y: y + 38 }, more));
+    if (!items.length) g.append(el("text", { class: "zblurb", x: x + 14, y: y + HP + 14 }, "None"));
+    items.forEach(i => {
+      if (i.head) g.append(el("text", { class: "fh", x: x + 14, y: y + i.y - 5 }, cut(i.g, 34)));
+      const n = el("g", { class: "fcard", tabindex: 0, role: "link", "data-path": i.path, "aria-label": `${i.t}${i.s ? ", " + i.s : ""}, opens on GitHub`, transform: `translate(${x + 12} ${y + i.y})` }), th = i.tall ? FH : CH;
+      n.append(el("title", {}, i.path + (i.s ? " — " + i.s : "")), el("rect", { class: "card", width: CW, height: th, rx: 8 }), el("text", { class: "ft", x: 10, y: i.tall ? 19 : 19 }, cut(i.t, 34)));
+      if (i.s) n.append(el("text", { class: "fs", x: 10, y: i.tall ? 35 : 19, ...(i.tall ? {} : { "text-anchor": "end", dx: CW - 20 }) }, cut(i.s, i.tall ? 38 : 14)));
+      const open = () => window.open(i.url, "_blank", "noopener");
+      n.addEventListener("click", open);
+      n.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); open(); } });
+      g.append(n);
+    });
+    svg.append(g);
+  });
+  return svg;
+}
+
+function render() {
+  const box = $("graph"), w = box.clientWidth || 800; shown = view || "";
+  box.replaceChildren(view ? internalsSvg(w) : overviewSvg(w));
   mark();
+  if (hit) { const n = [...box.querySelectorAll(".fcard")].find(x => x.dataset.path === hit); hit = null; if (n) { n.classList.add("hit"); n.focus(); n.scrollIntoView?.({ block: "center" }); } }
 }
 
 function mark() {
-  const svg = document.querySelector("#graph svg"); if (!svg) return;
+  const svg = document.querySelector("#graph svg"); if (!svg || view) return;
   const step = tour != null ? data.flow[tour] : null, a = hover || selected, c = a && byId[a];
   let rel = null, on = () => false;
   if (step) { rel = new Set(step.components); on = e => rel.has(e.from) && rel.has(e.to); }
   else if (c) { rel = new Set([c.id, ...c.dependsOn, ...c.usedBy]); on = e => e.from === c.id || e.to === c.id; }
-  svg.querySelectorAll(".node").forEach(n => { const id = n.dataset.id; n.classList.toggle("sel", id === selected); n.classList.toggle("dim", !!rel && !rel.has(id)); n.setAttribute("aria-pressed", id === selected); });
+  svg.classList.toggle("flowing", !!step && !step.always);
+  svg.querySelectorAll(".node").forEach(n => {
+    const id = n.dataset.id, k = step && !step.always ? step.components.indexOf(id) : -1;
+    n.classList.toggle("sel", id === selected); n.classList.toggle("dim", !!rel && !rel.has(id)); n.setAttribute("aria-pressed", id === selected);
+    n.querySelector(".fbadge")?.remove();
+    if (k >= 0) { const b = el("g", { class: "fbadge" }); b.append(el("circle", { cx: NW - 4, cy: 4, r: 10 }), el("text", { x: NW - 4, y: 4 }, k + 1)); n.append(b); }
+  });
   svg._edges.forEach(p => {
     const e = { from: p.dataset.from, to: p.dataset.to }, o = on(e);
     p.classList.toggle("on", o); p.classList.toggle("dim", !!rel && !o); p.setAttribute("marker-end", o ? "url(#arr-on)" : "url(#arr)");
   });
 }
 
+function chip(i) { const b = h("button", { class: "chip" }, byId[i].title); b.onclick = () => nav(i, !!view); return b; }
+
 function list(title, ids) {
   const s = document.createDocumentFragment();
-  if (!ids.length) return s;
   s.append(h("h3", {}, title));
+  if (!ids.length) { s.append(h("p", { class: "none" }, "None")); return s; }
   const ul = h("ul");
-  ids.forEach(i => { const li = h("li"), b = h("button", { class: "chip" }, byId[i].title); b.onclick = () => select(i); li.append(b); ul.append(li); });
+  ids.forEach(i => { const li = h("li"); li.append(chip(i)); ul.append(li); });
   s.append(ul); return s;
 }
 
-function select(id) {
-  selected = id; const c = byId[id], p = $("panel"), z = zoneOf[c.zone];
-  const tags = h("p");
+function inside(c) {
+  const I = c.internals, F = I.files, out = [];
+  const det = (title, items) => {
+    if (!items.length) { out.push(h("p", { class: "none" }, title)); return; }
+    const d = h("details"), ul = h("ul"); d.append(h("summary", {}, title));
+    items.forEach(([label, url, note]) => { const li = h("li"); li.append(h("a", { href: url, target: "_blank", rel: "noopener" }, label)); if (note) li.append(h("small", {}, " " + note)); ul.append(li); });
+    d.append(ul); out.push(d);
+  };
+  out.push(h("h3", {}, "Features"));
+  det(`${I.features.length} features`, I.features.map(f => [f.name, f.url, f.description]));
+  out.push(h("h3", {}, "Tests"));
+  det(`${I.tests.length} test files, ${I.testCount} test cases`, I.tests.map(t => [t.path, t.url, `${t.count}`]));
+  out.push(h("h3", {}, "Files"));
+  [["source", "Source"], ["tests", "Tests"], ["config", "Config and contracts"], ["docs", "Docs"]].forEach(([k, t]) => det(`${t}: ${F[k].length}${I.truncated[k] ? ` (+${I.truncated[k]} not shown)` : ""}`, F[k].map(f => [f.path, f.url])));
+  return out;
+}
+
+function panelNodes(c) {
+  const z = zoneOf[c.zone], tags = h("p");
   [z.title, c.group, c.kind, ...c.profiles.map(x => "profile " + x), ...(c.image ? [c.image] : [])].forEach(t => tags.append(h("span", { class: "tag" }, t)));
   const links = h("ul");
   c.links.forEach(l => { const li = h("li"), a = h("a", { href: l.url, target: "_blank", rel: "noopener" }, l.label); li.append(a); links.append(li); });
   const tech = h("details"); tech.append(h("summary", {}, "Technical details"), tags, h("p", {}, c.description), h("h3", {}, "Docs and sources"), links);
   const close = h("button", { class: "close", "aria-label": "Close details" }, "×"); close.onclick = clearSel;
   const plan = c.planned ? [h("span", { class: "planned" }, `planned for ${c.planned}: ${data.milestones.find(m => m.id === c.planned)?.name ?? ""}`)] : [];
-  p.replaceChildren(close, h("h2", {}, c.title), h("code", {}, c.name), ...plan, h("p", { class: "sum" }, c.summary), h("p", {}, c.details), h("h3", {}, "How it fits in the flow"), h("p", {}, c.flow), list("Talks to / needs", c.dependsOn), list("Used by", c.usedBy), tech);
-  p.classList.add("has"); document.body.classList.add("sheet");
-  history.replaceState(null, "", "#" + id);
-  mark();
+  const open = h("button", { class: "btn", type: "button" }, view ? "Back to overview" : "Open internals"); open.onclick = () => nav(c.id, !view);
+  const op = h("p"); op.append(open);
+  return [close, h("h2", {}, c.title), h("code", {}, c.name), ...plan, h("p", { class: "sum" }, c.summary), h("p", {}, c.details), h("h3", {}, "How it fits in the flow"), h("p", {}, c.flow), op, list("Depends on / talks to", c.dependsOn), list("Used by", c.usedBy), ...inside(c), tech];
 }
 
-function clearSel() {
-  selected = null; $("panel").classList.remove("has"); document.body.classList.remove("sheet");
-  $("panel").replaceChildren(h("p", {}, "No component selected. Click a card to see what it is, why it exists and how it fits in the flow."));
-  history.replaceState(null, "", location.pathname + location.search); mark();
+function bar() {
+  const c = view && byId[view], cr = $("crumb"), n = $("nbrs");
+  const ov = Object.assign(h("button", { class: "chip", type: "button" }, "Overview"), { onclick: up });
+  cr.replaceChildren(...(c ? [ov, h("span", { "aria-hidden": "true" }, " › "), h("b", { "aria-current": "page" }, c.title)] : [h("b", { "aria-current": "page" }, "Overview")]));
+  $("up").disabled = !c;
+  n.hidden = !c; n.replaceChildren();
+  if (c) [["Depends on", c.dependsOn], ["Used by", c.usedBy]].forEach(([t, ids]) => { n.append(h("span", { class: "lbl" }, t + ":")); if (ids.length) ids.forEach(i => n.append(chip(i))); else n.append(h("span", { class: "lbl" }, "none")); });
+}
+
+function paint() {
+  const c = selected && byId[selected], p = $("panel");
+  p.classList.toggle("has", !!c); document.body.classList.toggle("sheet", !!c);
+  p.replaceChildren(...(c ? panelNodes(c) : [h("p", {}, "No component selected. Click a card to see what it is, why it exists and how it fits in the flow. Double-click a card, or press Enter on it again, to open its internals.")]));
+  bar();
+  if (shown !== (view || "")) render(); else mark();
+}
+
+function setState(id, v) { selected = id; view = v; zoom = 1; paint(); }
+
+function nav(id, inner) {
+  const v = id && inner ? id : null, hash = id ? "#" + id + (v ? "/internals" : "") : location.pathname + location.search;
+  history[v !== view ? "pushState" : "replaceState"](null, "", hash);
+  setState(id, v);
+}
+
+function fromHash() { const [id, sub] = decodeURIComponent(location.hash.slice(1)).split("/"); if (byId[id]) setState(id, sub === "internals" ? id : null); else setState(null, null); }
+const select = id => nav(id, false);
+const clearSel = () => nav(null, false);
+function up() { const id = selected; nav(id, false); document.querySelector(`.node[data-id="${id}"]`)?.focus(); }
+function zoomBy(f) { zoom = f ? Math.min(3, Math.max(.5, zoom * f)) : 1; render(); }
+
+function openFind() { $("find").hidden = false; $("q").value = ""; $("q").focus(); results(); }
+function closeFind() { $("find").hidden = true; }
+function results() {
+  const terms = $("q").value.toLowerCase().split(/\s+/).filter(Boolean), ul = $("hits");
+  ul.replaceChildren();
+  index.filter(e => terms.every(t => e.text.includes(t))).slice(0, 30).forEach(e => {
+    const li = h("li"), b = h("button", { type: "button" }, e.label); if (e.sub) b.append(h("small", {}, e.sub));
+    b.onclick = () => { closeFind(); hit = e.path || null; if (hit) shown = null; nav(e.id, !!e.path); };
+    li.append(b); ul.append(li);
+  });
 }
 
 function setTour(i) {
@@ -244,16 +392,28 @@ function init() {
   data.flow.forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, s.always ? "|" : "→")); tr.append(Object.assign(h("button", { class: s.always ? "step always" : "step" }, s.always ? s.title : `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });
   tr.append(Object.assign(h("button", { class: "nav", id: "next" }, "Next →"), { onclick: () => setTour(tour == null ? 0 : tour + 1) }));
   setTour(null);
+  tr.prepend(h("div", { class: "flabel" }, "Flows"));
   data.glossary.forEach(g => { const d = h("div"); d.append(h("dt", {}, g.term), h("dd", {}, g.text)); $("gloss").append(d); });
 }
 
+$("theme").onclick = () => { const r = document.documentElement, d = (r.dataset.theme || (matchMedia("(prefers-color-scheme:light)").matches ? "light" : "dark")) === "dark"; r.dataset.theme = d ? "light" : "dark"; };
 fetch("components.json").then(r => r.json()).then(d => {
   data = d; byId = Object.fromEntries(d.components.map(c => [c.id, c])); zoneOf = Object.fromEntries(d.zones.map(z => [z.id, z]));
-  const id = decodeURIComponent(location.hash.slice(1));
-  init(); clearSel(); render(); let w = $("graph").clientWidth;
+  index = d.components.flatMap(c => [{ id: c.id, label: c.title, sub: c.name, text: `${c.title} ${c.name} ${c.summary}`.toLowerCase() }, ...Object.values(c.internals.files).flat().map(f => ({ id: c.id, path: f.path, label: f.path, sub: c.name, text: `${f.path} ${c.name}`.toLowerCase() }))]);
+  init(); fromHash(); let w = $("graph").clientWidth;
   addEventListener("resize", () => { const n = $("graph").clientWidth; if (n !== w) { w = n; render(); } });
-  addEventListener("keydown", e => { if (e.key === "Escape" && tour != null) setTour(null); });
-  if (byId[id]) select(id);
+  addEventListener("popstate", fromHash); addEventListener("hashchange", fromHash);
+  $("up").onclick = up; $("zin").onclick = () => zoomBy(1.25); $("zout").onclick = () => zoomBy(.8); $("zfit").onclick = () => zoomBy(0); $("open-find").onclick = openFind;
+  $("q").oninput = results;
+  $("q").onkeydown = e => { if (e.key === "Enter") $("hits").querySelector("button")?.click(); };
+  $("graph").addEventListener("wheel", e => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1); } }, { passive: false });
+  addEventListener("keydown", e => {
+    if (e.key === "Escape") { if (!$("find").hidden) closeFind(); else if (view) up(); else if (tour != null) setTour(null); return; }
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === "/") { e.preventDefault(); openFind(); }
+    else if (e.key === "Backspace" && view) { e.preventDefault(); up(); }
+    else if (tour != null && (e.key === "ArrowRight" || e.key === "ArrowLeft")) { const b = $(e.key === "ArrowRight" ? "next" : "prev"); if (!b.disabled) { e.preventDefault(); b.click(); } }
+  });
 }).catch(e => { $("graph").textContent = "Could not load components.json: " + e; });
 </script>
 </body>

@@ -12,6 +12,7 @@ from typing import Any
 FORMATS: dict[str, tuple[str, str]] = {
     "ardoco-sad-sam": ("modelElementID", "sentence"),
     "ardoco-sad-code": ("sentenceID", "codeID"),
+    "ardoco-sam-code": ("ae_id", "ce_ids"),
     "lissa": ("source", "target"),
 }
 PAGE = 1000  # the Cypher endpoint maximum
@@ -56,9 +57,12 @@ def write_links(fmt: str, links: Iterable[Link]) -> str:
 
 
 def read_links(fmt: str, text: str) -> set[Link]:
-    """Gold standard or exported links; the header row is skipped, extra columns are ignored."""
+    """Gold standard or exported links; the header row is skipped, extra columns are ignored.
+
+    `ardoco-sam-code` gold files have a name column between id and path: the last column is the path."""
     rows = [r for r in csv.reader(io.StringIO(text)) if r]
-    return {(r[0].strip(), r[1].strip()) for r in rows[1:] if len(r) >= 2}
+    last = -1 if fmt == "ardoco-sam-code" else 1
+    return {(r[0].strip(), r[last].strip()) for r in rows[1:] if len(r) >= 2}
 
 
 def read_file(fmt: str, path: Path) -> set[Link]:
@@ -82,6 +86,9 @@ def rows_to_links(fmt: str, rows: Iterable[Mapping[str, Any]], code_root: str = 
                 if code_root and path.startswith(code_root):
                     path = path[len(code_root) :].lstrip("/")
                 out.add((str(r["sourceIndex"] + 1), path))
+        elif fmt == "ardoco-sam-code":
+            if r["sourceKind"] == "architecture-model" and r["targetKind"] == "code":
+                out.add((_local_key(r["sourceKey"]), r["targetPath"]))
         elif fmt == "lissa":
             out.add((_lissa_id(r["sourceKey"], r["sourcePath"]), _lissa_id(r["targetKey"], r["targetPath"])))
         else:

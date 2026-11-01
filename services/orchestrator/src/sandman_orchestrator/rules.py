@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 import yaml
-from sandman_agent import Contracts, Event, KgClient
+from sandman_agent import Contracts, Event, KgClient, stable_id
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ PRUNE_LINKS, PRUNE_DATA = "prune-trace-links", "prune-artifact-data"
 DERIVE = "derive-architecture-model"
 DERIVATION_ACTOR = "system:model-derivation"
 DERIVE_INPUT_KINDS = ("architecture-doc", "architecture-model")
+KNOWLEDGE_PATH = "sandman-knowledge.yaml"
 SKILL_AGENT = {
     EXTRACT: "extraction-agent",
     TLR: "tlr-agent",
@@ -202,7 +203,11 @@ def protected_hashes(directory: Path) -> list[str]:
 
 
 def detect(project_id: str, artifact_ids: Any) -> StepSpec:
-    return StepSpec(DETECT, {"projectId": project_id, "scopeArtifactIds": ids(artifact_ids)}, mergeable=True)
+    """Declared links join elements of any artifact, so a change of the knowledge file detects the whole project."""
+    scope = ids(artifact_ids)
+    if stable_id("art", project_id, KNOWLEDGE_PATH) in scope:
+        return StepSpec(DETECT, {"projectId": project_id}, mergeable=True)
+    return StepSpec(DETECT, {"projectId": project_id, "scopeArtifactIds": scope}, mergeable=True)
 
 
 def derive(project_id: str) -> StepSpec:

@@ -1,6 +1,6 @@
 # Evaluation protocol (D-8)
 
-Version: 1 · Date: 2026-10-17 · Source: `docs/stage-3-implementation-plan.md` §3.3, `docs/tasks/T2.3-evaluation-harness.md`
+Version: 2 · Date: 2026-10-20 · Source: `docs/stage-3-implementation-plan.md` §3.3, `docs/tasks/T2.3-evaluation-harness.md`, `docs/tasks/T7.3-model-code-inconsistency-detector.md` (section 9)
 
 This file is pre-registered. Commit it before the first comparative experiment. The experiment manifest stores its SHA-256 (`evaluation.protocolSha256`). If you change this file after data collection, add an entry to the deviation log at the end and report the deviation with the results.
 
@@ -66,6 +66,26 @@ LLM approaches:
 ## 8. Experiment manifest
 
 Each experiment has `experiments/<name>/experiment.yaml` from `scripts/experiment_manifest.py` (Git commit, image digests, configuration hashes, routes, snapshot hashes, LLM mode, seeds). Add `--gold` for every gold standard file. Archive cassettes, the KG export and the metrics output with it.
+
+## 9. Removal protocol (T7.3, model-code detector)
+
+Section 9 was added before the first removal run. It does not change sections 1 to 8.
+
+- Data: MediaStore, TeaStore, TEAMMATES, BigBlueButton and JabRef. Use the gold file `goldstandard_sam_*-code_*.csv`, the PCM repository and the code ACM of T2.6.
+- Baseline links: the `getSamCodeTraceLinks` result of `transarc` with the PCM and the unchanged ACM. Record them once as CSV (`ardoco-sam-code`).
+- Gold elements: use only rows with the name prefix `Component:`. Skip `Interface:` rows. Skip components that are not in the PCM or that have no file in the ACM. A directory entry (ends with `/`) stands for all files below it.
+- Detector rules: as `ModelCodeDetector` with default parameters. A file is linked if any link ends at it. A component is linked if a link from it ends at a file that exists. Files `package-info.java` and `module-info.java` never count.
+- Runs: for each gold component `c`, one code removal and one model removal. Code removal drops all files of `c`. Model removal drops `c` from the PCM.
+- Expected findings: code removal gives `model-element-without-code` for `c`. Model removal gives `code-without-model-element` for each file of `c` that no other gold component maps.
+- Skip rule: a run is skipped if all its expected findings are already in the baseline. Report the skipped runs.
+- Counting: true positive, false negative and false positive as in the task spec. A reported finding in the baseline is never a false positive. Count per type, over all runs of a project.
+- Metrics: micro precision, recall and F1 per type and project. Give the 95 % bootstrap CI of F1 (`stats.f1_ci`, resampling the pairs of run and finding, seed 20261017, 10000 resamples).
+- Baseline agreement: precision, recall and F1 of the baseline findings against the unpaired components and unpaired files. A file is unpaired if no gold element maps it (components and interfaces).
+- Simulated mode: drop the removed files or the component and their links from the baseline links. Do not rerun `transarc`.
+- Full mode: for each type, choose 3 runs with `random.Random(42).sample` from the runs sorted by id. Run `transarc` on the changed ACM or PCM. Use the same detector rules.
+- Agreement: the share of expected findings of the sampled runs that simulated and full mode both report or both miss. Also report the mean Jaccard index of the two reported finding sets.
+- Gate (D-4): enable `model-code` only if micro F1 for `model-element-without-code` is at least 0.7 on at least 3 of 5 projects (simulated) and the agreement is at least 0.8 over all projects.
+- Limit: the gold standard and `transarc` come from the same benchmarks (RK-15). Report the numbers as reproduction.
 
 ## Deviation log
 

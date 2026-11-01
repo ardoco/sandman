@@ -289,7 +289,7 @@ def create_app(
                 except ValidationError as e:
                     raise HTTPException(400, f"archive: {e.errors()[0]['msg']}") from None
             ingest.reject_reserved(parsed)
-            ing_id = await ingest.ingest(svc.kg, svc.store, projectId, parsed, files, actor)
+            ing_id = await ingest.ingest(svc.kg, svc.store, projectId, parsed, files, actor, contracts=svc.contracts)
             ing = await ingest.load_ingestion(svc.kg, projectId, ing_id)
             assert ing is not None
             if not ing["eventPublished"]:

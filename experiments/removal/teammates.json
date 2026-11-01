@@ -1,0 +1,96 @@
+{
+  "agreement": {
+    "expectedAgreement": 1.0,
+    "expectedFindings": 173,
+    "findingSetJaccard": 1.0
+  },
+  "baseline": {
+    "code-without-model-element": 23,
+    "model-element-without-code": 1
+  },
+  "baselineAgreement": {
+    "code-without-model-element": {
+      "f1": 1.0,
+      "gold": 23,
+      "precision": 1.0,
+      "predicted": 23,
+      "recall": 1.0
+    },
+    "model-element-without-code": {
+      "f1": 1.0,
+      "gold": 1,
+      "precision": 1.0,
+      "predicted": 1,
+      "recall": 1.0
+    }
+  },
+  "components": 8,
+  "files": 834,
+  "full": {
+    "code-without-model-element": {
+      "f1": 0.9538461538461539,
+      "f1Ci": [
+        0.9308176100628931,
+        0.9759036144578312
+      ],
+      "fn": 15,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.9117647058823529,
+      "tp": 155
+    },
+    "model-element-without-code": {
+      "f1": 1.0,
+      "f1Ci": [
+        1.0,
+        1.0
+      ],
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 3
+    }
+  },
+  "goldComponents": 7,
+  "links": 808,
+  "mode": "full",
+  "project": "teammates",
+  "runs": 14,
+  "sample": [
+    "code:_GaP8QKETEeu-mYqkDskRow",
+    "code:_1lMqsKESEeu-mYqkDskRow",
+    "code:_zUmhEKESEeu-mYqkDskRow",
+    "model:_GaP8QKETEeu-mYqkDskRow",
+    "model:_9JlCIKESEeu-mYqkDskRow",
+    "model:_3LCnIKESEeu-mYqkDskRow"
+  ],
+  "seed": 42,
+  "simulated": {
+    "code-without-model-element": {
+      "f1": 0.9759188846641318,
+      "f1Ci": [
+        0.9680715197956576,
+        0.9830081812460667
+      ],
+      "fn": 38,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.9529702970297029,
+      "tp": 770
+    },
+    "model-element-without-code": {
+      "f1": 1.0,
+      "f1Ci": [
+        1.0,
+        1.0
+      ],
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 7
+    }
+  },
+  "skipped": []
+}

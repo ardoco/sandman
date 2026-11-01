@@ -21,7 +21,8 @@ import tools.jackson.dataformat.yaml.YAMLMapper;
 /** Validation against the JSON Schemas in contracts/; $id URIs resolve to the local files, never the network. */
 public final class Contracts {
 
-    static final List<String> SCHEMA_FILES = List.of("common.schema.json", "skills.schema.json", "events.schema.json");
+    static final List<String> SCHEMA_FILES =
+            List.of("common.schema.json", "skills.schema.json", "events.schema.json", "knowledge.schema.json");
 
     /** Instance does not match its contract; carries every validation message. */
     public static class ContractException extends RuntimeException {

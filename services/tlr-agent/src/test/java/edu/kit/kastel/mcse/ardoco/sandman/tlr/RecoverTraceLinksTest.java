@@ -341,6 +341,49 @@ class RecoverTraceLinksTest {
     }
 
     @Test
+    void decisionMentionLinksDecisionToNamedComponentAndFile() throws Exception {
+        String docVersion = Ids.stableId("ver", "adr");
+        String modelVersion = Ids.stableId("ver", "model");
+        String decision = Ids.stableId("el", docVersion, "file");
+        String component = Ids.stableId("el", modelVersion, "cm-1");
+        String file = Ids.stableId("el", TGT_VERSION, "src/main/java/mini/Store.java");
+        kg.write(
+                "CREATE (:Artifact {id: 'art_adr', projectId: $p, kind: 'architecture-doc'})-[:HAS_VERSION]->"
+                        + "(v:ArtifactVersion {id: $dv, projectId: $p})-[:HAS_ELEMENT]->(:Element:Decision "
+                        + "{id: $d, projectId: $p, key: 'adr#file', kind: 'decision', name: 'Use CacheManager', "
+                        + "text: 'Use CacheManager. Change src/main/java/mini/Store.java.'})",
+                Map.of("p", PROJECT, "dv", docVersion, "d", decision));
+        artifact(
+                "architecture-model",
+                modelVersion,
+                Map.of(component, List.of("ModelElement", "CacheManager", "m#cm-1")));
+        kg.write(
+                "MATCH (v:ArtifactVersion {id: $v}) CREATE (v)-[:HAS_ELEMENT]->(:Element:CodeUnit "
+                        + "{id: $id, projectId: $p, key: 'code#src/main/java/mini/Store.java', kind: 'file', "
+                        + "name: 'Store.java'})",
+                Map.of("v", TGT_VERSION, "id", file, "p", PROJECT));
+        kg.write("MATCH (e:Element {id: $id}) SET e.kind = 'component'", Map.of("id", component));
+
+        var in = JsonMapper.shared()
+                .readTree("{\"projectId\":\"" + PROJECT + "\",\"sourceVersionIds\":[\"" + docVersion
+                        + "\"],\"targetVersionIds\":[\"" + modelVersion + "\",\"" + TGT_VERSION
+                        + "\"],\"approaches\":[\"decision-mention\"]}");
+        var done = run(in);
+
+        assertEquals("TASK_STATE_COMPLETED", done.state(), String.valueOf(done.error()));
+        var active = kg.read(
+                "MATCH (l:TraceLink {approach: 'decision-mention', active: true})-[:SOURCE]->(:Decision), "
+                        + "(l)-[:TARGET]->(t:Element) RETURN t.id AS target, l.confidence AS confidence, "
+                        + "l.linkType AS type ORDER BY confidence",
+                Map.of());
+        assertEquals(
+                List.of(
+                        Map.of("target", component, "confidence", 0.8, "type", "relates"),
+                        Map.of("target", file, "confidence", 1.0, "type", "relates")),
+                active);
+    }
+
+    @Test
     void sameInputTwiceKeepsOneActiveLink() throws Exception {
         var in = input(",\"approaches\":[\"" + STUB + "\"]");
         run(in);
@@ -444,11 +487,12 @@ class RecoverTraceLinksTest {
         kg.write(
                 "CREATE (:TraceLink {id: 'tl_a', approach: 'lissa', active: true}), "
                         + "(:TraceLink {id: 'tl_b', approach: 'explicit-reference', active: true}), "
-                        + "(:TraceLink {id: 'tl_c', approach: 'stub-name-match', active: true})",
+                        + "(:TraceLink {id: 'tl_c', approach: 'stub-name-match', active: true}), "
+                        + "(:TraceLink {id: 'tl_d', approach: 'user-declared', active: true})",
                 Map.of());
         beans.onStart(null, kg, settings, approaches);
         var active = activeLinks().stream().map(l -> l.get("id")).toList();
-        assertEquals(List.of("tl_b", "tl_c"), active);
+        assertEquals(List.of("tl_b", "tl_c", "tl_d"), active);
     }
 
     @Test
@@ -456,10 +500,13 @@ class RecoverTraceLinksTest {
         kg.write(
                 "CREATE (:TraceLink {id: 'tl_explicit', approach: 'explicit-reference', active: true, projectId: $p})",
                 Map.of("p", PROJECT));
-        new LinkStore(kg).deactivate(List.of("explicit-reference", "lissa"));
+        kg.write(
+                "CREATE (:TraceLink {id: 'tl_declared', approach: 'user-declared', active: true, projectId: $p})",
+                Map.of("p", PROJECT));
+        new LinkStore(kg).deactivate(List.of("explicit-reference", "user-declared", "lissa"));
         assertEquals(
-                List.of("tl_explicit"),
-                activeLinks().stream().map(l -> l.get("id")).toList());
+                List.of("tl_declared", "tl_explicit"),
+                activeLinks().stream().map(l -> l.get("id")).sorted().toList());
         var task = run(input(""));
         assertEquals("TASK_STATE_COMPLETED", task.state(), String.valueOf(task.error()));
         new LinkStore(kg).finish("run_none", PROJECT, "explicit-reference", List.of(SRC_VERSION), List.of(TGT_VERSION));
@@ -503,6 +550,7 @@ class RecoverTraceLinksTest {
         link("tl_" + "3".repeat(32), "explicit-reference", true, REQ, MEDIA);
         link("tl_" + "4".repeat(32), "lissa", true, REQ, USER);
         link("tl_" + "5".repeat(32), "lissa", false, REQ, MEDIA);
+        link("tl_" + "6".repeat(32), "user-declared", true, REQ, MEDIA);
         var response = review("tl_" + "1".repeat(32), "{\"status\":\"rejected\",\"reason\":\"wrong\"}");
         assertEquals(200, response.statusCode(), response.body());
         assertEquals(
@@ -518,7 +566,7 @@ class RecoverTraceLinksTest {
         assertEquals("user:alice", reviewed.get("reviewedBy"));
         assertEquals("wrong", reviewed.get("reviewReason"));
         assertEquals("user", reviewed.get("reviewOrigin"));
-        for (String other : List.of("3", "4", "5")) {
+        for (String other : List.of("3", "4", "5", "6")) {
             assertEquals("candidate", linkRow("tl_" + other.repeat(32)).get("status"));
             assertFalse(linkRow("tl_" + other.repeat(32)).containsKey("reviewedAt"));
         }
@@ -578,6 +626,10 @@ class RecoverTraceLinksTest {
         link("tl_" + "1".repeat(32), "lissa", true, REQ, MEDIA);
         link("tl_" + "2".repeat(32), "explicit-reference", true, REQ, USER);
         link("tl_" + "3".repeat(32), "lissa", false, REQ, USER);
+        link("tl_" + "4".repeat(32), "user-declared", true, REQ, USER);
+        var declared = review("tl_" + "4".repeat(32), "{\"status\":\"confirmed\"}");
+        assertEquals(409, declared.statusCode());
+        assertTrue(declared.body().contains("sandman-knowledge.yaml"), declared.body());
         assertEquals(
                 404,
                 review("tl_" + "9".repeat(32), "{\"status\":\"confirmed\"}").statusCode());

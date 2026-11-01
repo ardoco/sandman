@@ -1,0 +1,96 @@
+{
+  "agreement": {
+    "expectedAgreement": 0.6666666666666666,
+    "expectedFindings": 12,
+    "findingSetJaccard": 0.6666666666666666
+  },
+  "baseline": {
+    "code-without-model-element": 51,
+    "model-element-without-code": 0
+  },
+  "baselineAgreement": {
+    "code-without-model-element": {
+      "f1": 0.970873786407767,
+      "gold": 52,
+      "precision": 0.9803921568627451,
+      "predicted": 51,
+      "recall": 0.9615384615384616
+    },
+    "model-element-without-code": {
+      "f1": 0.0,
+      "gold": 0,
+      "precision": 0.0,
+      "predicted": 0,
+      "recall": 0.0
+    }
+  },
+  "components": 11,
+  "files": 208,
+  "full": {
+    "code-without-model-element": {
+      "f1": 0.7142857142857143,
+      "f1Ci": [
+        0.3636363636363636,
+        0.9411764705882353
+      ],
+      "fn": 4,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.5555555555555556,
+      "tp": 5
+    },
+    "model-element-without-code": {
+      "f1": 0.8,
+      "f1Ci": [
+        0.0,
+        1.0
+      ],
+      "fn": 1,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "tp": 2
+    }
+  },
+  "goldComponents": 11,
+  "links": 157,
+  "mode": "full",
+  "project": "teastore",
+  "runs": 22,
+  "sample": [
+    "code:_yA04AKTKEeqKjI323B3R3w",
+    "code:_YkXeIDVgEeqPG_FgW3bi6Q",
+    "code:_AiuxcDVdEeqPG_FgW3bi6Q",
+    "model:_iaElgKpwEeqHXcsU55mirw",
+    "model:_dhM6oDVXEeqPG_FgW3bi6Q",
+    "model:_raxjcDVgEeqPG_FgW3bi6Q"
+  ],
+  "seed": 42,
+  "simulated": {
+    "code-without-model-element": {
+      "f1": 0.9935897435897436,
+      "f1Ci": [
+        0.9838187702265372,
+        1.0
+      ],
+      "fn": 0,
+      "fp": 2,
+      "precision": 0.9872611464968153,
+      "recall": 1.0,
+      "tp": 155
+    },
+    "model-element-without-code": {
+      "f1": 0.9,
+      "f1Ci": [
+        0.7058823529411764,
+        1.0
+      ],
+      "fn": 2,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.8181818181818182,
+      "tp": 9
+    }
+  },
+  "skipped": []
+}

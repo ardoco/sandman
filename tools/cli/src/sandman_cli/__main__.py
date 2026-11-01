@@ -18,7 +18,7 @@ from typing import Any
 import httpx
 import yaml
 
-from sandman_cli.evaluation import labeling, nlquery, stats
+from sandman_cli.evaluation import labeling, nlquery, removal, stats
 from sandman_cli.evaluation.compare import compare, identical
 from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
 from sandman_cli.evaluation.perturb import build_mapping, rename
@@ -26,6 +26,15 @@ from sandman_cli.evaluation.perturb import build_mapping, rename
 DEFAULT_URL = "http://127.0.0.1:8080"
 CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
 KINDS = ("requirements", "architecture-doc", "architecture-model", "code", "test", "other")
+ADR_FOLDERS = ("adr", "docs/adr/**", "docs/decisions/**", "**/adr")
+ADR_RULES = [
+    {"glob": f"{folder}/{name}", "kind": "architecture-doc", "format": "markdown"}
+    for folder in ADR_FOLDERS
+    for name in ("README.md", "index.md", "template.md")
+] + [
+    {"glob": glob, "kind": "architecture-doc", "format": "adr"}
+    for glob in ("adr/*.md", "docs/adr/**/*.md", "docs/decisions/**/*.md", "**/adr/[0-9][0-9][0-9][0-9]-*.md")
+]
 DONE = {"SUCCEEDED", "FAILED", "CANCELED", "BLOCKED"}  # BLOCKED waits for a user action
 
 
@@ -99,8 +108,10 @@ def ingest(http: httpx.Client, args: argparse.Namespace) -> int:
     if not files:
         raise SystemExit(f"sandman: no files in {root}")
     config = root / CONFIG
-    rules = args.kind_rule + (
-        (yaml.safe_load(config.read_text()) or {}).get("kindRules", []) if config.is_file() else []
+    rules = (
+        args.kind_rule
+        + ((yaml.safe_load(config.read_text()) or {}).get("kindRules", []) if config.is_file() else [])
+        + ADR_RULES
     )
     manifest = build_manifest(files, args.mode, args.revision, rules)
     kinds = Counter(kind_of(rel, rules) for rel in files)
@@ -214,6 +225,29 @@ def eval_perturb(args: argparse.Namespace) -> int:
     for path in args.paths:
         (args.out / path.name).write_text(rename(path.read_text(encoding="utf-8"), mapping), encoding="utf-8")
     (args.out / "mapping.json").write_text(json.dumps(mapping, indent=2, sort_keys=True), encoding="utf-8")
+    return 0
+
+
+def eval_removal(args: argparse.Namespace) -> int:
+    gold, pcm, text = removal.locate(args.benchmark, args.project)
+    acm = args.acm or Path.home() / ".cache/sandman/benchmark-code" / f"{args.project}-code-model.acm"
+    links = args.links or Path("experiments/removal") / f"{args.project}.links.csv"
+    if args.mode == "links":
+        if not args.cmd:
+            raise SystemExit("sandman: --cmd is required for mode links")
+        removal.baseline_links(args.cmd, text, acm, pcm, links)
+        return 0
+    if args.mode == "full" and not args.cmd:
+        raise SystemExit("sandman: --cmd is required for mode full")
+    if not links.exists():
+        raise SystemExit(f"sandman: {links} not found; run --mode links first")
+    result = removal.evaluate(
+        gold, pcm, acm, links, mode=args.mode, seed=args.seed, resamples=args.resamples, cmd=args.cmd, text=text
+    )
+    result["project"] = args.project
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(result, indent=2, sort_keys=True, default=sorted) + "\n", encoding="utf-8")
+    print(json.dumps({k: result[k] for k in ("project", "mode", "runs", "simulated")}, indent=2, default=sorted))
     return 0
 
 
@@ -349,6 +383,18 @@ def parser() -> argparse.ArgumentParser:
     e.add_argument("--seed", type=int, default=stats.SEED)
     e.add_argument("paths", type=Path, nargs="+")
     e.set_defaults(func=eval_perturb, offline=True)
+
+    e = ev.add_parser("removal", help="removal-protocol evaluation of the model-code detector (T7.3)")
+    e.add_argument("--project", choices=list(removal.PCM), required=True)
+    e.add_argument("--mode", choices=["simulated", "full", "links"], default="simulated")
+    e.add_argument("--benchmark", type=Path, required=True, help="checkout of ArDoCo/Benchmark")
+    e.add_argument("--acm", type=Path, help="code model (default: cache of the benchmark code snapshots)")
+    e.add_argument("--links", type=Path, help="baseline links, format ardoco-sam-code")
+    e.add_argument("--cmd", help="TLR command: gets a directory of jobs (text.txt, code.acm, model.repository)")
+    e.add_argument("--seed", type=int, default=42)
+    e.add_argument("--resamples", type=int, default=stats.RESAMPLES)
+    e.add_argument("--out", type=Path, required=True)
+    e.set_defaults(func=eval_removal, offline=True)
 
     e = ev.add_parser("label-sample", help="stratified blinded rater sheets from finding exports (T3.6)")
     e.add_argument("--export", type=Path, action="append", required=True, help="export inconsistencies --format json")

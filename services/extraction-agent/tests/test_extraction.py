@@ -408,6 +408,25 @@ async def test_builtin_sections_sentences_and_reextraction(env: Any) -> None:
     assert [r["text"] for r in cur] == ["The MediaCache component caches media files.", "A new sentence appears."]
 
 
+async def test_adr_file_becomes_decision_with_contained_sections(env: Any) -> None:
+    await env.put_project()
+    adr = b"---\nstatus: accepted\ndate: 2026-10-06\n---\n\n# 1. Use Memgraph\n\n## Decision\n\nWe use Memgraph.\n"
+    ing = await created(env, env.mini() | {"adr/0001-use-memgraph.md": adr})
+    task = await env.extract(ing["createdVersionIds"])
+    assert task.state == "TASK_STATE_COMPLETED"
+    rows = await cypher(
+        env,
+        "MATCH (:Artifact {projectId: $p})-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(d:Decision) "
+        "OPTIONAL MATCH (d)-[:CONTAINS]->(s:TextUnit {kind: 'section'}) "
+        "RETURN d.name AS name, d.kind AS kind, d.decisionStatus AS status, d.decisionDate AS date, "
+        "d.contentHash AS hash, collect(s.name) AS sections",
+        p=env.project,
+    )
+    assert rows == [{"name": "Use Memgraph", "kind": "decision", "status": "accepted", "date": "2026-10-06",
+                     "hash": hashlib.sha256(b"Use Memgraph\n\nWe use Memgraph.").hexdigest(),
+                     "sections": ["1. Use Memgraph"]}]  # fmt: skip
+
+
 async def test_requirement_references_direction_and_idempotence(env: Any) -> None:
     await env.put_project()
     csv_path, doc_path = "requirements/more.csv", "docs/extra.md"

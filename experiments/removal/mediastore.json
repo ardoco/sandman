@@ -1,0 +1,96 @@
+{
+  "agreement": {
+    "expectedAgreement": 0.7777777777777778,
+    "expectedFindings": 9,
+    "findingSetJaccard": 0.6666666666666666
+  },
+  "baseline": {
+    "code-without-model-element": 79,
+    "model-element-without-code": 3
+  },
+  "baselineAgreement": {
+    "code-without-model-element": {
+      "f1": 0.6833333333333332,
+      "gold": 41,
+      "precision": 0.5189873417721519,
+      "predicted": 79,
+      "recall": 1.0
+    },
+    "model-element-without-code": {
+      "f1": 1.0,
+      "gold": 3,
+      "precision": 1.0,
+      "predicted": 3,
+      "recall": 1.0
+    }
+  },
+  "components": 14,
+  "files": 99,
+  "full": {
+    "code-without-model-element": {
+      "f1": 1.0,
+      "f1Ci": [
+        1.0,
+        1.0
+      ],
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 6
+    },
+    "model-element-without-code": {
+      "f1": 0.5,
+      "f1Ci": [
+        0.0,
+        1.0
+      ],
+      "fn": 2,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 0.3333333333333333,
+      "tp": 1
+    }
+  },
+  "goldComponents": 11,
+  "links": 20,
+  "mode": "full",
+  "project": "mediastore",
+  "runs": 22,
+  "sample": [
+    "code:_tBjC0HDpEeSqnN80MQ2uGw",
+    "code:_9eK7YHDrEeSqnN80MQ2uGw",
+    "code:_5LN7MLg2EeSNPorBlo7x9g",
+    "model:_ahv3gL0YEeSAHuL4ItXOLQ",
+    "model:_S-lawHDqEeSqnN80MQ2uGw",
+    "model:_st2Y0HDrEeSqnN80MQ2uGw"
+  ],
+  "seed": 42,
+  "simulated": {
+    "code-without-model-element": {
+      "f1": 1.0,
+      "f1Ci": [
+        1.0,
+        1.0
+      ],
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 20
+    },
+    "model-element-without-code": {
+      "f1": 1.0,
+      "f1Ci": [
+        1.0,
+        1.0
+      ],
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tp": 11
+    }
+  },
+  "skipped": []
+}

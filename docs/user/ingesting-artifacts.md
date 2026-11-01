@@ -45,6 +45,7 @@ Pitfall: the kind of a path is fixed when the artifact is first created. Changin
 | Requirements, CSV | `.csv` | `requirements` | a file element and one `Requirement` per row |
 | PCM repository | `.repository` | `architecture-model` | components and interfaces, `PROVIDES`/`REQUIRES` relations |
 | UML (XMI) | `.uml`, `.xmi` | `architecture-model` | components and interfaces, `PROVIDES`/`REQUIRES` relations |
+| ADR | `.md` | `architecture-doc` with `format: adr` | file element with label `Decision`, `decisionStatus`, `decisionDate`, section and sentence elements below it |
 | PDF, DOCX | `.pdf`, `.docx` | any except `requirements` | as Markdown (file, sections, sentences) via Docling, without line numbers; no OCR, so scanned documents yield little or no text |
 | everything else | e.g. `.java` | any | one file-level element (name, first 500 characters of text) |
 
@@ -79,6 +80,26 @@ Text in any ingested file that matches a pattern from `config/extraction/plugins
 - UML: the root must be a `Model`; only direct `packagedElement` children of type `uml:Component` and `uml:Interface` are read.
 
 A model that does not match (other root, invalid XML, DTDs or entities) falls back to a file-level element and the run becomes `partial`. Relations to unknown interfaces are skipped with a warning.
+
+### Architecture decision records
+
+The CLI adds four default rules for ADR files. They set kind `architecture-doc` and format `adr`.
+
+| Glob | Matches |
+|---|---|
+| `adr/*.md` | ADR files in a top-level `adr` directory |
+| `docs/adr/**/*.md` | ADR files below `docs/adr` |
+| `docs/decisions/**/*.md` | ADR files below `docs/decisions` |
+| `**/adr/[0-9][0-9][0-9][0-9]-*.md` | numbered ADR files in any `adr` directory |
+
+- The files `README.md`, `index.md` and `template.md` in these directories stay plain Markdown.
+- Your rules from the command line and from `sandman.yaml` come first. Use them to override the defaults.
+- To exclude ADRs, add a rule that sets kind `other` for the same glob.
+- The file element gets the label `Decision`. The title is the first heading without its number prefix.
+- `decisionStatus` is one of `proposed`, `accepted`, `rejected`, `deprecated`, `superseded` or `unknown`. The extractor reads it from the front matter `status`, a `Status:` line or the `Status` section.
+- `decisionDate` comes from the front matter `date` or a `Date:` line. It must be an ISO date (`YYYY-MM-DD`).
+- If the file has no decision section, the run gets a warning.
+- The TLR approach `decision-mention` links a `Decision` to a model component, an interface or a code file. It matches an exact name or a file path in the decision text. Disable it in `config/tlr/approaches.yaml`.
 
 ## 2. Run the CLI
 

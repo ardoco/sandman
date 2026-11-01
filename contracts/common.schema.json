@@ -44,7 +44,8 @@
         "TextUnit",
         "ModelElement",
         "CodeUnit",
-        "TestCase"
+        "TestCase",
+        "Decision"
       ],
       "description": "Secondary label of an Element node."
     },

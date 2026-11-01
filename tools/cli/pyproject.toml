@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "sandman command-line interface."
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "defusedxml>=0.7.1",
     "httpx>=0.28.1",
     "pyyaml>=6.0.3",
     "sandman-agent",

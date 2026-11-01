@@ -71,6 +71,15 @@ The detector needs the CoreNLP service. If the service is down, the run is `part
 
 The detector `stub-untraced` reports type `untraced-requirement`, severity `warning`, title `Requirement without trace link: <requirement name>`, for each current requirement that has no active, non-rejected link to another current element. In the mini example after `s1`, REQ-2 and REQ-3 are reported.
 
+The detector `model-code` compares architecture components and code files through the trace links. Its default in `config/inconsistency/plugins.yaml` follows the evaluation in the task spec T7.3. It reports two types:
+
+| Type | Severity | Meaning |
+|---|---|---|
+| `model-element-without-code` | `warning` (`info` for an inferred model) | A component has no active, non-rejected link to a code file. |
+| `code-without-model-element` | `info` | A code file has no link to a model element. Models do not cover all code. |
+
+If the project has no model-code link, the detector reports one warning and no finding. Enable `transarc` or declare links first. A link to a type or method counts for its file. Test files and `package-info.java` do not give findings by default. The parameters are in [plugins.md](../plugins.md#core-detector-model-code).
+
 ### Console
 
 **Projects**, then the project name, opens `/console/projects/<id>/inconsistencies`:

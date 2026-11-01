@@ -73,3 +73,39 @@ def test_milestone_text_only_via_planned_field(data):
         "already done" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, meta(), done)
     )
     assert "Status:" in data["status"]
+
+
+def comp(data, cid):
+    return next(c for c in data["components"] if c["id"] == cid)
+
+
+def test_every_component_has_internals(data):
+    for c in data["components"]:
+        i = c["internals"]
+        assert set(i["files"]) == {"source", "tests", "config", "docs"}
+        assert {"image", "profiles", "networks"} <= set(i["compose"])
+        for entries in i["files"].values():
+            assert len(entries) <= build_site.MAX_FILES
+            assert entries == sorted(entries, key=lambda e: e["path"])
+            for e in entries:
+                assert (ROOT / e["path"]).exists() and e["url"].startswith(f"{data['repo']}/")
+
+
+def test_infra_image_internals_are_empty_but_have_compose(data):
+    i = comp(data, "nats")["internals"]
+    assert i["files"]["source"] == i["files"]["tests"] == i["features"] == []
+    assert i["compose"]["image"]
+
+
+def test_extraction_agent_internals(data):
+    i = comp(data, "extraction-agent")["internals"]
+    assert i["files"]["source"] and i["files"]["tests"]
+    assert i["testCount"] > 0 and i["tests"] and all(t["count"] >= 0 for t in i["tests"])
+    kinds = {f["kind"] for f in i["features"]}
+    assert {"operation", "skill", "module"} <= kinds
+    assert any(f["name"].startswith("POST /") for f in i["features"])
+
+
+def test_java_library_internals_count_tests(data):
+    i = comp(data, "agent-lib")["internals"]
+    assert i["files"]["source"] and i["testCount"] > 0

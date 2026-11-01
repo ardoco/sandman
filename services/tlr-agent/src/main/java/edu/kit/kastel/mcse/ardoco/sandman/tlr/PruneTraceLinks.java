@@ -185,13 +185,13 @@ public class PruneTraceLinks implements Skill {
 
     private Map<String, Long> prune(TransactionContext tx, String projectId, List<String> vids, String cutoff) {
         String agent = settings.serviceName();
-        Map<String, Object> p = Map.of("p", projectId, "vids", vids, "explicit", LinkStore.EXPLICIT_REFERENCE);
+        Map<String, Object> p = Map.of("p", projectId, "vids", vids, "explicit", LinkStore.EXTRACTION_OWNED);
         String notReferenced = "OPTIONAL MATCH (:Inconsistency)-[i:INVOLVES]->(l) WITH l, count(i) AS n WHERE n = 0 ";
         String stale = "MATCH (v:ArtifactVersion {projectId: $p})-[:HAS_ELEMENT]->(:Element)<-[:SOURCE|TARGET]-"
-                + "(l:TraceLink {projectId: $p}) WHERE v.id IN $vids AND l.approach <> $explicit "
+                + "(l:TraceLink {projectId: $p}) WHERE v.id IN $vids AND NOT (l.approach IN $explicit) "
                 + "AND l.active = false AND coalesce(l.status, '') <> 'confirmed' WITH DISTINCT l "
                 + notReferenced;
-        String orphans = "MATCH (l:TraceLink {projectId: $p}) WHERE l.approach <> $explicit "
+        String orphans = "MATCH (l:TraceLink {projectId: $p}) WHERE NOT (l.approach IN $explicit) "
                 + "OPTIONAL MATCH (l)-[s:SOURCE]->() OPTIONAL MATCH (l)-[t:TARGET]->() "
                 + "WITH l, count(s) AS a, count(t) AS b WHERE a = 0 OR b = 0 "
                 + notReferenced;

@@ -84,3 +84,23 @@ def test_cli_export_and_compare(
     gold.write_text(out)
     assert main(["eval", "compare", "--format", "ardoco-sad-sam", "--gold", str(gold), "--a", str(gold)]) == 0
     assert json.loads(capsys.readouterr().out)["a"]["f1"] == 1.0
+
+
+def test_sam_code_gold_reads_id_and_path() -> None:
+    gold = formats.read_file("ardoco-sam-code", Path(__file__).parent / "fixtures/goldstandard_sam_2016-code_2016.csv")
+    assert len(gold) == 55
+    assert (
+        "_4QwQwHDqEeSqnN80MQ2uGw",
+        "Implementation/mediastore.basic/src/edu/kit/ipd/sdq/mediastore/basic/interfaces/IDownloadMediaAccess.java",
+    ) in gold
+    text = formats.write_links("ardoco-sam-code", {("b", "y.java"), ("a", "x.java")})
+    assert text == "ae_id,ce_ids\na,x.java\nb,y.java\n"
+    assert formats.read_links("ardoco-sam-code", text) == {("a", "x.java"), ("b", "y.java")}
+
+
+def test_sam_code_rows_use_model_id_and_file_path() -> None:
+    rows = [
+        row("architecture-model", None, "art_m#Comp1", "code", "art_c#src/A.java", "src/A.java"),
+        row("architecture-doc", 0, "art_d#s", "code", "art_c#src/B.java", "src/B.java"),
+    ]
+    assert formats.rows_to_links("ardoco-sam-code", rows) == {("Comp1", "src/A.java")}

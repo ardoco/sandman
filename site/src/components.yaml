@@ -207,7 +207,8 @@ components:
       documentation with a language model. ArDoCo links architecture documents to architecture models and to source code.
       LiSSA links requirements to source code. It ranks the code files for each requirement by embedding
       similarity and asks a language model to confirm each candidate pair. All model calls go through the
-      gateway, so they are budgeted and recorded.
+      gateway, so they are budgeted and recorded. The agent drops every candidate link that names an element
+      outside the project input. The query service shows how many approaches found the same link, as a trust signal.
     flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
   inconsistency-agent:
     zone: analysis

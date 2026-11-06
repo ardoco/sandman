@@ -374,3 +374,6 @@ site/dist/
 
 # T5.3 backup archives
 backups/
+
+# TypeScript kit
+node_modules/

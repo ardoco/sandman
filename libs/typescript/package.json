@@ -1,0 +1,6 @@
+{
+  "name": "sandman-typescript",
+  "private": true,
+  "workspaces": ["sandman-agent"],
+  "engines": { "node": ">=22" }
+}

@@ -74,5 +74,6 @@ Also in scope: a conformance test suite that reads `contracts/conformance/vector
 | RK-14: one more language to maintain | Minimal scope. One CI job. Dependency bot entry. |
 | `@a2a-js/sdk` API differs from `a2a-sdk` (Python) | The skill convention is tested through the SDK request handler, not only by unit tests of helpers. |
 | Number handling: JSON numbers without float widening | The kit parses with plain JSON. Large integers beyond 2^53 are not supported. |
-| Unicode case folding differs between runtimes | `normalizeConceptName` uses `toLowerCase` plus explicit full folding of the vector cases. A gap is open for characters outside the vectors. |
+| Unicode case folding differs between runtimes | `normalizeConceptName` approximates case folding with `toUpperCase().toLowerCase()`. A gap is open for characters outside the vectors. |
+| Ajv format checks differ from Python | The kit sets `validateFormats: false`, as the Python kit does. Format keywords are not enforced. |
 | Interop not verified | Listed under Preconditions. Do not admit an agent before the test passes. |

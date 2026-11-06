@@ -63,6 +63,31 @@ curl -s -X POST -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: appl
 
 Optional body members: `params` (merged into the step input, for example `{"approaches":["stub-name-match"]}` for `tlr`) and `force`. A request with no matching current versions (an empty project) is rejected with `400 nothing to run`. A manual run is the way to reprocess after a configuration change or after a failure, because re-sending an unchanged snapshot starts nothing.
 
+
+## Planner requests (optional)
+
+The planner turns a free-text goal into a short plan. It is off by default. An admin enables it with `planner.enabled` in `config/orchestrator/rules.yaml` (see [operations.md](operations.md)).
+
+A maintainer sends a goal:
+
+```sh
+curl -s -X POST -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"text":"Check the trace links of the latest version"}' http://127.0.0.1:8080/v1/projects/demo/requests
+```
+
+The planner proposes at most `planner.maxSteps` steps. Allowed step types are `extract`, `tlr`, `detect` and `derive`. The orchestrator checks every step against the skill schemas. If one step is invalid, the whole plan is rejected with `400` and a list of errors. Nothing is stored.
+
+A valid plan creates a workflow with trigger kind `planner`. Its steps have the status `BLOCKED`. No step runs before an approval.
+
+| Action | Call |
+|---|---|
+| Read the plan | `GET /v1/workflows/{id}`, member `plan` |
+| Approve | `POST /v1/workflows/{id}/approval` with `{"decision":"approve"}` |
+| Reject | `POST /v1/workflows/{id}/approval` with `{"decision":"reject","reason":"..."}` |
+
+Approval needs the role `maintainer` on the project. An approved plan runs once. A second decision answers `409`. A rejected or expired plan sets the steps to `CANCELED`. A plan expires after `planner.approvalTtl`.
+
+If the planner is off, the request answers `501`. If the model fails, the request answers `502`.
 ## Failures, retries, cancel
 
 - A step that fails with a retryable error (agent unreachable, timeout, lost task) is retried up to 3 attempts with waits of 30 s, 2 min and 10 min. A non-retryable error fails the step at once. Step timeouts: extraction 15 min, link recovery 60 min, detection 30 min.

@@ -67,10 +67,12 @@ docker compose -f deploy/docker-compose.yml restart extraction-agent
 | `config/llm/models.yaml` | logical LLM routes (`chat-default`, `chat-alt`, `embed-default` need provider keys; `chat-local`, `embed-local` use the self-hosted models) |
 | `config/inconsistency/plugins.yaml` | enabled detectors and detector plugins |
 | `config/tlr/approaches.yaml` | enabled trace link approaches and their parameters |
-| `config/orchestrator/rules.yaml` | debounce, concurrency, timeouts, retries, kind pairs for link recovery |
+| `config/orchestrator/rules.yaml` | debounce, concurrency, timeouts, retries, kind pairs for link recovery, planner flag `planner.enabled` (T6.4, off by default), `planner.maxSteps`, `planner.approvalTtl` |
 | `config/query/intents.yaml` | question patterns of **Ask** |
 | `config/query/strategies.yaml` | enabled query strategies, repair and example budgets, flag `suggestions.enabled` (T7.5, off by default) |
 | `config/query/plugins.yaml` | projects each plugin may read |
+
+The planner (T6.4) needs the `SANDMAN_LLM_*` settings on the orchestrator and a route in `config/llm/models.yaml`. A plan waits in the status `BLOCKED` until a maintainer approves it. The dashboard shows the blocked workflow. An alert for waiting plans does not exist yet.
 
 Plugin authors: [plugins.md](../plugins.md).
 

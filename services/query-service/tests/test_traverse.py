@@ -4,6 +4,7 @@
 import json
 import time
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,10 @@ from neo4j import AsyncGraphDatabase
 from neo4j.exceptions import Neo4jError
 from sandman_agent.ids import sha256_hex, stable_id
 from sandman_cli.evaluation.formats import FORMATS, LINKS_QUERY, rows_to_links, write_links
+from sandman_query import asof
+from sandman_query.asof import AS_OF
+from sandman_query.auth import Principal
+from sandman_query.strategies import explore, graphrag
 from test_guard import ACCEPTED, REJECTED
 
 TS = "2026-10-06T12:00:00Z"
@@ -351,3 +356,101 @@ async def test_inconsistency_export_with_history(mg: Env) -> None:
     assert ",cause,involved,history" in csv_text.splitlines()[0] and "intentional" in csv_text
     assert json.loads(json.dumps(items)) == items
     assert Draft202012Validator is not None and SPEC is not None
+
+
+HISTORY = """
+MATCH (pr:Project {id: $p}), (g1:Ingestion {id: $g1}), (g2:Ingestion {id: $g2}), (req:Artifact {id: $req}), (arch:Artifact {id: $arch})
+SET g1.createdAt = '2026-10-01T10:00:00Z', g2.createdAt = '2026-10-02T10:00:00Z', pr.ingestionSeq = 3
+CREATE (req)-[:HAS_VERSION]->(vnew:ArtifactVersion {id: $vnew, artifactId: $req, projectId: $p})
+CREATE (vnew)-[:HAS_ELEMENT]->(:Element:Requirement {id: $r4, key: $req + '#R4', projectId: $p, kind: 'functional', name: 'R4', runId: $run})
+CREATE (g3:Ingestion {id: $g3, projectId: $p, seq: 3, mode: 'partial', sourceRevision: 'rev3', actor: 'u', createdAt: '2026-10-03T10:00:00Z'})
+CREATE (pr)-[:HAS_INGESTION]->(g3), (g3)-[:ACTIVATED]->(vnew), (g3)-[:DELETED]->(arch)
+"""
+
+
+async def history(env: Env) -> dict[str, str]:
+    names = {"g1": "ing", "g2": "ing", "g3": "ing", "vnew": "ver", "r4": "el", "req": "art", "arch": "art"}
+    params = {k: ids("alpha", k, prefix) for k, prefix in names.items()}
+    driver = AsyncGraphDatabase.driver(env.kg)  # type: ignore[attr-defined]
+    async with driver.session() as s:
+        await s.run(HISTORY, p="alpha", run=RUN, **params)  # type: ignore[arg-type]
+    await driver.close()
+    return params
+
+
+async def nl_as_of(env: Env, **body: Any) -> Any:
+    payload = {"projectId": "alpha", "question": "untraced requirements", "strategy": "cypher"} | body
+    return await env.http.post("/v1/query/nl", json=payload, headers=env.token("alice"))
+
+
+async def test_as_of_resolves_by_time_and_revision_on_traverse(mg: Env) -> None:
+    await history(mg)
+    reader = mg.app.state.service.reader
+    vid = {k: ids("alpha", k, "ver") for k in ("vold", "vreq", "varch", "vnew")}
+    by_time = {
+        "2026-10-01T12:00:00Z": (1, [vid["vold"]]),
+        "2026-10-02T12:00:00Z": (2, sorted([vid["vreq"], vid["varch"]])),
+        "2026-10-05T00:00:00Z": (3, [vid["vnew"]]),  # arch deleted, req replaced
+    }
+    for at, (seq, expected) in by_time.items():
+        got, info = await asof.resolve(reader, "alpha", datetime.fromisoformat(at), None)
+        assert (got, info["ingestionSeq"]) == (expected, seq), at
+    got, info = await asof.resolve(reader, "alpha", None, "rev2")
+    assert got == by_time["2026-10-02T12:00:00Z"][1] and info["sourceRevision"] == "rev2"
+    assert await asof.resolve(reader, "alpha", datetime(2026, 9, 1, tzinfo=UTC), None) == ([], {"ingestionSeq": 0})
+
+
+async def test_as_of_rewritten_intent_returns_the_historic_state(mg: Env) -> None:
+    await history(mg)
+    now = await nl_as_of(mg)
+    assert now.status_code == 200 and [r[0].split("#")[1] for r in now.json()["rows"]] == ["R3"]
+    for at, expected in {
+        "2026-10-02T12:00:00Z": ["R3"],
+        "2026-10-03T12:00:00Z": ["R4"],
+        "2026-10-01T12:00:00Z": [],  # Rold has an active link
+    }.items():
+        resp = await nl_as_of(mg, asOf=at)
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert [r[0].split("#")[1] for r in body["rows"]] == expected, at
+    rev = await nl_as_of(mg, asOfRevision="rev3")
+    assert rev.status_code == 200 and [r[0].split("#")[1] for r in rev.json()["rows"]] == ["R4"]
+    assert rev.json()["asOf"]["sourceRevision"] == "rev3"
+
+
+async def test_as_of_scopes_explore_and_graphrag_templates(mg: Env) -> None:
+    await history(mg)
+    svc = mg.app.state.service
+    who = Principal(kind="user", name="alice", admin=True)
+    reader = svc.reader
+    for at, kinds in {
+        "2026-10-02T12:00:00Z": {"functional": 3, "component": 2},
+        "2026-10-03T12:00:00Z": {"functional": 1},
+    }.items():
+        versions, _ = await asof.resolve(reader, "alpha", datetime.fromisoformat(at), None)
+        token = AS_OF.set(versions)
+        try:
+            listed = await svc.runner.run(who, "alpha", explore.TEMPLATES["list_types"], {})
+            seeds = await svc.runner.run(
+                who,
+                "alpha",
+                graphrag.SEEDS,
+                {"keys": [ids("alpha", "req", "art") + "#R4", ids("alpha", "req", "art") + "#R1"]},
+            )
+        finally:
+            AS_OF.reset(token)
+        assert {r[0]: r[1] for r in listed["rows"]} == kinds, at
+        assert [r[1] for r in seeds["rows"]] == (["R1"] if "component" in kinds else ["R4"]), at
+
+
+async def test_as_of_retention_error_on_traverse(mg: Env) -> None:
+    await history(mg)
+    driver = AsyncGraphDatabase.driver(mg.kg)  # type: ignore[attr-defined]
+    async with driver.session() as s:  # retention removed the oldest ingestion
+        await s.run("MATCH (g:Ingestion {projectId: 'alpha', seq: 1}) DETACH DELETE g")
+    await driver.close()
+    old = await nl_as_of(mg, asOf="2026-10-01T12:00:00Z")
+    assert old.status_code == 422 and "retention" in old.json()["detail"], old.text
+    gone = await nl_as_of(mg, asOfRevision="rev1")
+    assert gone.status_code == 422 and "retention" in gone.json()["detail"], gone.text
+    assert (await nl_as_of(mg, asOf="2026-10-02T12:00:00Z")).status_code == 200

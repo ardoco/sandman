@@ -18,7 +18,7 @@ from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.llm import BudgetExceededError, ChatMessage, ChatResponse, Usage
 from sandman_agent.testing import ScriptedLlmClient
 from sandman_query.auth import load_plugin_grants
-from sandman_query.query import Intents
+from sandman_query.query import Intents, with_agreement
 
 ANCHORED = "MATCH (n:Element {projectId: $projectId}) RETURN n.key AS key"
 INTENTS = yaml.safe_load((DEFAULT_CONTRACTS_DIR.parent / "config" / "query" / "intents.yaml").read_text())["intents"]
@@ -186,7 +186,7 @@ async def test_exports_with_empty_graph(env: Env) -> None:
     assert csv_resp.headers["content-type"].startswith("text/csv")
     assert csv_resp.text == (
         "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,"
-        "reviewed_by,reviewed_at,review_reason\n"
+        "reviewed_by,reviewed_at,review_reason,agreement_count\n"
     )
     assert env.reader.queries[-1][1] == {
         "projectId": "alpha",
@@ -428,3 +428,16 @@ async def test_review_forwards_with_actor_and_checks_project(env: Env) -> None:
     assert other.status_code == 404 and len(env.owner.calls) == calls
     env.owner.link_problem = 409
     assert (await env.http.post(url.format(LINK_ID), headers=h, json={"status": "confirmed"})).status_code == 409
+
+
+def test_agreement_count_is_the_number_of_distinct_approaches_per_pair() -> None:
+    link = {"sourceKey": "a#R1", "targetKey": "b#C1"}
+    out = with_agreement(
+        [
+            {**link, "approach": "lissa"},
+            {**link, "approach": "ardoco"},
+            {**link, "approach": "ardoco"},
+            {"sourceKey": "a#R1", "targetKey": "b#C2", "approach": "lissa"},
+        ]
+    )
+    assert [x["agreementCount"] for x in out] == [2, 2, 2, 1]

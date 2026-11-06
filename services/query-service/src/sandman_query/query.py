@@ -54,6 +54,7 @@ TRACELINK_COLUMNS = [
     "reviewed_by",
     "reviewed_at",
     "review_reason",
+    "agreement_count",
 ]
 INCONSISTENCIES = """
 MATCH (i:Inconsistency {projectId: $projectId})
@@ -171,7 +172,7 @@ class Runner:
             "includeRejected": rejected,
         }
         rows = await self.reader.rows(TRACELINKS, params, SERVICE_TIMEOUT_MS / 1000)
-        return [dict(r) for r in rows]
+        return with_agreement([dict(r) for r in rows])
 
     async def inconsistencies(self, project: str) -> list[dict[str, Any]]:
         """InconsistencyDetail items (with history), assembled like the inconsistency-agent's detail view."""
@@ -216,6 +217,14 @@ class Runner:
             detail["allowedTransitions"] = USER_TRANSITIONS.get(props["status"], [])
             out.append(detail)
         return out
+
+
+def with_agreement(links: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Adds agreementCount: the number of distinct approaches that have a returned link for the same pair."""
+    approaches: dict[tuple[str, str], set[str]] = {}
+    for link in links:
+        approaches.setdefault((link["sourceKey"], link["targetKey"]), set()).add(link["approach"])
+    return [{**link, "agreementCount": len(approaches[(link["sourceKey"], link["targetKey"])])} for link in links]
 
 
 def to_csv(columns: list[str], rows: list[list[Any]]) -> str:

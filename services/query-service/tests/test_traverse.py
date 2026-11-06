@@ -274,7 +274,7 @@ async def test_tracelink_export(mg: Env) -> None:
     lines = resp.text.splitlines()
     assert (
         lines[0]
-        == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason"
+        == "source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason,agreement_count"
     )
     rows = sorted(line.split(",")[1:7] for line in lines[1:])
     assert [(r[0].split("#")[1], r[1], r[2]) for r in rows] == [
@@ -308,11 +308,11 @@ async def test_tracelink_export_carries_review_data_in_the_default_format_only(m
     base = "/v1/projects/alpha/export/tracelinks"
     lines = (await mg.http.get(base, headers=h)).text.splitlines()
     header = lines[0].split(",")
-    assert header[-3:] == ["reviewed_by", "reviewed_at", "review_reason"]
+    assert header[-4:] == ["reviewed_by", "reviewed_at", "review_reason", "agreement_count"]
     reviewed = next(line for line in lines[1:] if ",lissa," in line).split(",")
-    assert reviewed[-3:] == ["user:alice", TS, "looks right"]
+    assert reviewed[-4:-1] == ["user:alice", TS, "looks right"] and reviewed[-1] == "1"
     unreviewed = next(line for line in lines[1:] if ",explicit," in line).split(",")
-    assert unreviewed[-3:] == ["", "", ""]
+    assert unreviewed[-4:-1] == ["", "", ""]
     as_json = (await mg.http.get(base + "?format=json", headers=h)).json()
     validate("/v1/projects/{projectId}/export/tracelinks", "get", 200, as_json)
     by_approach = {link["approach"]: link for link in as_json}

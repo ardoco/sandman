@@ -407,7 +407,7 @@ def create_app(
         if format == "json":
             return JSONResponse([{k: v for k, v in link.items() if v is not None} for link in links])
         keys = ["sourceKey", "targetKey", "linkType", "approach", "approachVersion", "confidence", "status", "runId",
-                "reviewedBy", "reviewedAt", "reviewReason"]  # fmt: skip
+                "reviewedBy", "reviewedAt", "reviewReason", "agreementCount"]  # fmt: skip
         return Response(to_csv(TRACELINK_COLUMNS, [[link[k] for k in keys] for link in links]), media_type="text/csv")
 
     @app.get("/v1/projects/{projectId}/export/inconsistencies")

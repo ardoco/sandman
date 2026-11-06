@@ -748,7 +748,7 @@ paths:
           schema: { type: boolean, default: false }
       responses:
         "200":
-          description: Links (CSV columns source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason; JSON members reviewedBy, reviewedAt, reviewReason are optional; benchmark formats are unchanged)
+          description: Links (CSV columns source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason,agreement_count; JSON members reviewedBy, reviewedAt, reviewReason are optional; agreementCount = number of distinct approaches among the returned links of the same element pair (T7.6); benchmark formats are unchanged)
           content:
             text/csv:
               schema: { type: string }
@@ -770,6 +770,7 @@ paths:
                     reviewedBy: { $ref: "../common.schema.json#/$defs/Actor" }
                     reviewedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
                     reviewReason: { type: string }
+                    agreementCount: { type: integer, minimum: 1 }
   /v1/projects/{projectId}/export/inconsistencies:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"

@@ -148,7 +148,7 @@ uv run sandman export --project demo inconsistencies > findings.json
 uv run sandman export --project demo inconsistencies --format csv
 ```
 
-- `tracelinks`: current links only, rejected ones excluded. CSV (default) columns: `source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason`. The review columns are empty for links without a review ([trace-links-and-findings.md](trace-links-and-findings.md#review-trace-links)). JSON uses camelCase members. The REST endpoint also accepts `approach`, `minConfidence` (0 to 1) and `includeRejected=true`.
+- `tracelinks`: current links only, rejected ones excluded. CSV (default) columns: `source_key,target_key,link_type,approach,approach_version,confidence,status,run_id,reviewed_by,reviewed_at,review_reason,agreement_count`. `agreement_count` (JSON `agreementCount`) is the number of distinct approaches that have a link for the same element pair; a higher count is a stronger trust signal. The review columns are empty for links without a review ([trace-links-and-findings.md](trace-links-and-findings.md#review-trace-links)). JSON uses camelCase members. The REST endpoint also accepts `approach`, `minConfidence` (0 to 1) and `includeRejected=true`.
 - `inconsistencies`: all findings of the project with involved elements and status history; JSON by default. CSV has one row per finding, with the column `cause` (the cause of the latest history entry that has one) and `involved` and `history` as JSON cells.
 
 Keys in the export are `art_<id>#<local key>`; map them to paths with the Cypher above.

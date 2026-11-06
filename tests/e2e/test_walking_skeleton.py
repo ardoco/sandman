@@ -155,7 +155,7 @@ class Stack:
 
     def workflows(self) -> list[dict[str, Any]]:
         items: list[dict[str, Any]] = self.users["alice"].get(f"/v1/projects/{self.project}/workflows").json()["items"]
-        return items
+        return [w for w in items if w["trigger"].get("actor") != "system:retention-scheduler"]
 
     def wait_workflow(self, known: set[str]) -> dict[str, Any]:
         """Waits for the next workflow (not in `known`) to succeed and returns it with its steps."""

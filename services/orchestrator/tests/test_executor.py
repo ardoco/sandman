@@ -173,7 +173,7 @@ def test_migrations_apply_once(tmp_path) -> None:
 
     for _ in range(2):
         Orchestrator(tmp_path / "m.db", RULES, None, None, AGENTS, None).close()  # type: ignore[arg-type]
-    assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 4
+    assert sqlite3.connect(tmp_path / "m.db").execute("PRAGMA user_version").fetchone()[0] == 5
 
 
 def test_failing_migration_leaves_user_version(tmp_path, monkeypatch) -> None:
@@ -209,7 +209,7 @@ def test_upgrade_from_v1_keeps_rows_and_is_atomic(tmp_path) -> None:
     orch = Orchestrator(path, RULES, None, None, AGENTS, None)  # type: ignore[arg-type]
     row = orch.db.execute("SELECT id, traceparent FROM steps").fetchone()
     assert (row["id"], row["traceparent"]) == ("step_1", None)
-    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 4
+    assert orch.db.execute("PRAGMA user_version").fetchone()[0] == 5
     orch.close()
 
 

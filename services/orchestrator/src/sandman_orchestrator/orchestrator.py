@@ -15,7 +15,9 @@ from typing import Any, Literal
 import httpx
 from sandman_agent import A2aClient, ContractError, Contracts, Event, TaskNotFoundError, TaskSnapshot, telemetry
 from sandman_agent.ids import canonical_json, new_workflow_id, sha256_hex
+from sandman_agent.llm import LlmClient
 
+from sandman_orchestrator import planner
 from sandman_orchestrator.rules import SKILL_AGENT, Graph, Rules, StepSpec, manual, merge, plan
 
 log = logging.getLogger(__name__)
@@ -44,7 +46,11 @@ def error(code: str, message: str, retryable: bool) -> dict[str, Any]:
 
 
 class Conflict(Exception):
-    """Nothing to cancel, or not BLOCKED."""
+    """Nothing to cancel, not BLOCKED, or the plan is not awaiting approval."""
+
+
+class PlanForbidden(Exception):
+    """Only a user can approve or reject a plan."""
 
 
 class Orchestrator:
@@ -58,7 +64,9 @@ class Orchestrator:
         contracts: Contracts,
         clock: Callable[[], float] = time.time,
         tick: float = 1.0,
+        llm: Callable[[str], tuple[LlmClient, str]] | None = None,
     ) -> None:
+        self.llm = llm  # llmPolicy -> (client, logical chat route); None = planner has no model
         self.rules, self.graph, self.a2a, self.agents, self.contracts = rules, graph, a2a, agents, contracts
         self.clock, self.tick_interval = clock, tick
         self.db = sqlite3.connect(db_path, autocommit=False)
@@ -147,7 +155,9 @@ class Orchestrator:
         )
         self._touch(step["workflow_id"])
         trigger = json.loads(self._workflow(step["workflow_id"])["trigger_json"])
-        if trigger["kind"] == "manual" and trigger.get("type") not in ("full", "prune"):
+        if trigger["kind"] == "planner" or (
+            trigger["kind"] == "manual" and trigger.get("type") not in ("full", "prune")
+        ):
             return False
         return str(step["workflow_id"])
 
@@ -263,8 +273,8 @@ class Orchestrator:
             wf = self._workflow(wf_id)
             if wf is None:
                 return False
-            if wf["status"] != "BLOCKED":
-                raise Conflict(wf_id)
+            if wf["status"] != "BLOCKED" or self._plan_status(wf_id) == "AWAITING":
+                raise Conflict(wf_id)  # an unapproved plan only starts through decide()
             self.db.execute(
                 "UPDATE steps SET status = 'PENDING', attempts = 0, error_json = NULL, ended_at = NULL, "
                 "a2a_task_id = NULL, next_attempt_at = ? WHERE workflow_id = ? AND status = 'BLOCKED'",
@@ -273,6 +283,99 @@ class Orchestrator:
             self._touch(wf_id)
         self.wake.set()
         return True
+
+    def _plan_status(self, wf_id: str) -> str | None:
+        row = self.db.execute("SELECT status FROM plans WHERE workflow_id = ?", (wf_id,)).fetchone()
+        return str(row[0]) if row else None
+
+    async def create_plan(self, project: str, text: str, actor: str) -> str:
+        """Ask the model for a plan and store it as a BLOCKED workflow awaiting approval; nothing runs.
+
+        LookupError: unknown project. planner.PlanError: model failure, nothing stored.
+        planner.PlanInvalid: the plan broke a rule, nothing stored.
+        """
+        policy = await self.graph.policy(project)
+        if policy is None:
+            raise LookupError(project)
+        cfg = self.rules.planner
+        if self.llm is None:
+            raise planner.PlanError("no model configured")
+        try:
+            client, route = self.llm(policy)
+        except Exception as e:  # noqa: BLE001 - e.g. PolicyError: local-only project without a local key
+            raise planner.PlanError(type(e).__name__) from None
+        proposal, resolved = await planner.propose(client, route, project, text, cfg.max_steps)
+        specs = await planner.expand(proposal, project, cfg.max_steps, self.graph, self.rules, self.contracts)
+        now = self.clock()
+        with self.db:
+            wf_id = self._new_workflow(project, {"kind": "planner", "actor": actor})
+            for spec in specs:
+                agent = SKILL_AGENT[spec.skill]
+                self.db.execute(
+                    "INSERT INTO steps (id, workflow_id, project_id, agent, skill, input_json, action_key, mergeable, "
+                    "status, next_attempt_at, traceparent) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'BLOCKED', 0, ?)",
+                    (f"step_{uuid.uuid4().hex}", wf_id, project, agent, spec.skill, json.dumps(spec.input),
+                     action_key(agent, spec.skill, spec.input, wf_id), telemetry.trace_headers().get("traceparent")),
+                )  # fmt: skip
+            self.db.execute(
+                "INSERT INTO plans (workflow_id, project_id, goal, plan_json, status, model, resolved_model, "
+                "prompt_hash, requested_by, created_at, expires_at) VALUES (?, ?, ?, ?, 'AWAITING', ?, ?, ?, ?, ?, ?)",
+                (wf_id, project, text, json.dumps(proposal), route, resolved, planner.prompt_hash(cfg.max_steps),
+                 actor, self.iso(), now + cfg.approval_ttl),
+            )  # fmt: skip
+            self._touch(wf_id)
+        return wf_id
+
+    def decide(self, wf_id: str, decision: str, actor: str, reason: str | None) -> bool:
+        """Approve (BLOCKED steps become PENDING, exactly once) or reject (steps CANCELED) an awaiting plan.
+
+        False: no such plan. PlanForbidden: actor is no user. Conflict: not AWAITING, or expired.
+        """
+        if not actor.startswith("user:"):
+            raise PlanForbidden(actor)
+        with self.db:
+            plan = self.db.execute("SELECT * FROM plans WHERE workflow_id = ?", (wf_id,)).fetchone()
+            if plan is None:
+                return False
+            if plan["status"] != "AWAITING":
+                raise Conflict(wf_id)
+            if plan["expires_at"] <= self.clock():
+                self._close_plan(wf_id, "EXPIRED", None, "approval window elapsed")
+                self.db.commit()  # leaving the block by exception would roll the expiry back
+                raise Conflict(wf_id)
+            if decision == "approve":
+                self._close_plan(wf_id, "APPROVED", actor, reason)
+                trigger = json.loads(self._workflow(wf_id)["trigger_json"]) | {"approvedBy": actor}
+                self.db.execute("UPDATE workflows SET trigger_json = ? WHERE id = ?", (json.dumps(trigger), wf_id))
+                self.db.execute(
+                    "UPDATE steps SET status = 'PENDING', next_attempt_at = ? WHERE workflow_id = ? "
+                    "AND status = 'BLOCKED'",
+                    (self.clock(), wf_id),
+                )
+            else:
+                self._close_plan(wf_id, "REJECTED", actor, reason)
+            self._touch(wf_id)
+        self.wake.set()
+        return True
+
+    def _close_plan(self, wf_id: str, status: str, actor: str | None, reason: str | None) -> None:
+        self.db.execute(
+            "UPDATE plans SET status = ?, decided_by = ?, decided_at = ?, reason = ? WHERE workflow_id = ?",
+            (status, actor, self.iso(), reason, wf_id),
+        )
+        if status != "APPROVED":
+            self.db.execute(
+                "UPDATE steps SET status = 'CANCELED', ended_at = ? WHERE workflow_id = ? AND status = 'BLOCKED'",
+                (self.iso(), wf_id),
+            )
+            self._touch(wf_id)
+
+    def expire_plans(self) -> None:
+        with self.db:
+            for r in self.db.execute(
+                "SELECT workflow_id FROM plans WHERE status = 'AWAITING' AND expires_at <= ?", (self.clock(),)
+            ).fetchall():
+                self._close_plan(r[0], "EXPIRED", None, "approval window elapsed")
 
     async def replay(self, event_id: str) -> bool:
         """Move a dead event back into the inbox and process it."""
@@ -368,6 +471,7 @@ class Orchestrator:
         """Start due steps (pipeline lock per project, per-agent limit), then poll due running steps.
         ponytail: submits and polls run sequentially; a hanging agent delays others by the HTTP timeout (30 s)."""
         await self.schedule_retention()
+        self.expire_plans()
         now = self.clock()
         running = self.db.execute("SELECT project_id, agent FROM steps WHERE status = 'RUNNING'").fetchall()
         locked = {r["project_id"] for r in running}
@@ -431,7 +535,7 @@ class Orchestrator:
                     step["skill"],
                     json.loads(step["input_json"]),
                     workflow_id=step["workflow_id"],
-                    actor=trigger.get("actor") if trigger["kind"] == "manual" else None,
+                    actor=trigger.get("actor") if trigger["kind"] == "manual" else trigger.get("approvedBy"),
                     message_id=message_id,
                 )
         except Exception as e:  # noqa: BLE001 - connection errors and agent errors are retried
@@ -538,6 +642,16 @@ class Orchestrator:
             "id": row["id"], "projectId": row["project_id"], "trigger": json.loads(row["trigger_json"]),
             "status": row["status"], "createdAt": row["created_at"], "updatedAt": row["updated_at"],
         }  # fmt: skip
+        plan = self.db.execute("SELECT * FROM plans WHERE workflow_id = ?", (row["id"],)).fetchone()
+        if plan:
+            wf["plan"] = {
+                "status": plan["status"], "goal": plan["goal"], "model": plan["model"],
+                "resolvedModel": plan["resolved_model"], "promptHash": plan["prompt_hash"],
+                "requestedBy": plan["requested_by"], "expiresAt": self.iso(plan["expires_at"]),
+                "rationales": [s["rationale"] for s in json.loads(plan["plan_json"])["steps"]],
+                **{k: plan[c] for k, c in (("decidedBy", "decided_by"), ("decidedAt", "decided_at"),
+                                           ("reason", "reason")) if plan[c] is not None},
+            }  # fmt: skip
         if with_steps:
             steps = self.db.execute("SELECT * FROM steps WHERE workflow_id = ? ORDER BY rowid", (row["id"],))
             wf["steps"] = [self._step_json(s) for s in steps]

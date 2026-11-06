@@ -78,6 +78,15 @@ class ModelDerivation:
 
 
 @dataclass(frozen=True)
+class PlannerConfig:
+    """LLM planner (T6.4); off by default."""
+
+    enabled: bool = False
+    max_steps: int = 5
+    approval_ttl: float = 86400.0
+
+
+@dataclass(frozen=True)
 class Rules:
     debounce: float = 10.0
     max_per_agent: int = 2
@@ -98,6 +107,7 @@ class Rules:
     kind_pairs: tuple[KindPair, ...] = ()
     retention: Retention = field(default_factory=Retention)
     model_derivation: ModelDerivation = field(default_factory=ModelDerivation)
+    planner: PlannerConfig = field(default_factory=PlannerConfig)
 
     @classmethod
     def load(cls, path: Path, contracts: Contracts) -> "Rules":
@@ -105,6 +115,7 @@ class Rules:
         poll, retry, ret = raw.get("poll", {}), raw.get("retry", {}), raw.get("retention", {})
         derivation = raw.get("modelDerivation", {})
         default = Retention()
+        plan = raw.get("planner", {})
         return cls(
             debounce=seconds(raw.get("debounceSeconds", 10)),
             max_per_agent=int(raw.get("maxConcurrentPerAgent", 2)),
@@ -127,6 +138,11 @@ class Rules:
             ),
             model_derivation=ModelDerivation(
                 enabled=derivation.get("enabled", True), projects=derivation.get("projects", {})
+            ),
+            planner=PlannerConfig(
+                enabled=plan.get("enabled", False),
+                max_steps=int(plan.get("maxSteps", 5)),
+                approval_ttl=seconds(plan.get("approvalTtl", "24h")),
             ),
         )
 
@@ -157,6 +173,10 @@ class Graph(Protocol):
 
     async def projects(self) -> list[str]: ...
 
+    async def policy(self, project_id: str) -> str | None:
+        """The project's llmPolicy; None if the project does not exist."""
+        ...
+
 
 class KgGraph:
     def __init__(self, kg: KgClient) -> None:
@@ -181,6 +201,10 @@ class KgGraph:
     async def projects(self) -> list[str]:
         rows = await self._kg.read("MATCH (p:Project) RETURN p.id AS id ORDER BY p.id")
         return [r["id"] for r in rows]
+
+    async def policy(self, project_id: str) -> str | None:
+        rows = await self._kg.read("MATCH (p:Project {id: $p}) RETURN p.llmPolicy AS policy", p=project_id)
+        return str(rows[0]["policy"]) if rows else None
 
 
 def ids(values: Any) -> list[str]:

@@ -75,6 +75,9 @@ class FakeGraph:
     async def projects(self) -> list[str]:
         return ["mini"]
 
+    async def policy(self, project_id: str) -> str | None:
+        return "default" if project_id == "mini" else None
+
 
 def output_and_event(skill: str, input: dict[str, Any]) -> SkillResult:
     p = input["projectId"]

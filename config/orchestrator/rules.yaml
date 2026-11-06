@@ -20,3 +20,7 @@ retention:                       # T5.2: nightly prune workflows; dryRun true re
   dryRun: true
   experimentsDir: /experiments
   projects: {}                   # <project id>: { enabled, keepVersionsPerArtifact, dryRun }
+planner:                         # T6.4: LLM planner for natural-language requests; every plan needs approval before it runs
+  enabled: false
+  maxSteps: 5
+  approvalTtl: 24h

@@ -114,15 +114,20 @@ async def test_dashboard_may_cancel_and_replay_but_other_callers_may_not(client:
     assert (await client.post(f"/v1/dead-events/{bad.id}/replay", headers=auth("dashboard"))).status_code == 202
 
 
-async def test_planned_operations_answer_501_with_problem_body(client: httpx.AsyncClient, env: Env) -> None:
-    wf = await env.orch.trigger("detect", "mini", {}, "user:alice")
+async def test_planner_disabled_answers_501_with_problem_body(client: httpx.AsyncClient, env: Env) -> None:
     r = await client.post("/v1/requests", json={"projectId": "mini", "text": "run all"}, headers=auth())
-    r2 = await client.post(f"/v1/workflows/{wf}/approval", json={"decision": "approve"}, headers=auth())
-    for resp in (r, r2):
-        assert resp.status_code == 501 and resp.headers["content-type"] == "application/problem+json"
-        check(resp.json(), "Problem", SHARED)
-        assert (resp.json()["type"], resp.json()["title"]) == ("about:blank", "Not Implemented")
+    assert r.status_code == 501 and r.headers["content-type"] == "application/problem+json"
+    check(r.json(), "Problem", SHARED)
+    assert (r.json()["type"], r.json()["title"]) == ("about:blank", "Not Implemented")
     assert (await client.post("/v1/requests", json={"projectId": "mini"}, headers=auth())).status_code == 400
+    wf = "wf_" + "0" * 32
+    assert (
+        await client.post(
+            f"/v1/workflows/{wf}/approval",
+            json={"decision": "approve"},
+            headers=auth(**{"x-sandman-actor": "user:alice"}),
+        )
+    ).status_code == 404
 
 
 async def test_retry_endpoint(client: httpx.AsyncClient, env: Env) -> None:

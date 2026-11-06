@@ -103,6 +103,24 @@
       },
       "additionalProperties": false
     },
+    "planner": {
+      "type": "object",
+      "description": "LLM planner for natural-language requests (T6.4, ADR-0006). Off by default; a plan needs approval before it runs.",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "maxSteps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "approvalTtl": {
+          "$ref": "#/$defs/duration"
+        }
+      },
+      "additionalProperties": false
+    },
     "retention": {
       "type": "object",
       "description": "Scheduled prune workflows (T5.2). Defaults: enabled, dryRun true, 24h, 20 versions per artifact.",

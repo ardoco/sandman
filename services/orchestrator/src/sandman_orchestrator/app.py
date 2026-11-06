@@ -20,6 +20,7 @@ from sandman_agent import (
     Contracts,
     EventConsumer,
     KgClient,
+    ModelSelector,
     Settings,
     StatusTracker,
     TokenVerifier,
@@ -28,11 +29,12 @@ from sandman_agent import (
     trusted_actor,
 )
 from sandman_agent.events import handle_message
+from sandman_agent.llm import LlmClient
 from sandman_agent.telemetry import FASTAPI_TELEMETRY
 from starlette.exceptions import HTTPException
 
-from sandman_orchestrator import __version__
-from sandman_orchestrator.orchestrator import Conflict, Orchestrator
+from sandman_orchestrator import __version__, planner
+from sandman_orchestrator.orchestrator import Conflict, Orchestrator, PlanForbidden
 from sandman_orchestrator.rules import KgGraph, Rules
 
 PROJECT_ID = r"^[a-z0-9][a-z0-9-]{1,62}$"
@@ -166,20 +168,34 @@ def create_app(
             return problem(409, "workflow is not BLOCKED")
         return orch.get_workflow(workflowId)
 
-    def not_implemented() -> JSONResponse:
-        return problem(501, "Not Implemented", "planned operation (M6)")
-
     @app.post("/v1/requests", status_code=202)
     async def create_request(body: PlannerRequest, request: Request, name: str = caller) -> Any:
         admin(name, TRIGGER_CALLERS)
-        actor(name, request)
-        return not_implemented()
+        who = actor(name, request)
+        if not orch.rules.planner.enabled:
+            return problem(501, "Not Implemented", "the LLM planner is disabled (planner.enabled in rules.yaml)")
+        try:
+            wf_id = await orch.create_plan(body.projectId, body.text, who)
+        except LookupError:
+            return problem(404, "project not found")
+        except planner.PlanInvalid as e:
+            return problem(400, "invalid plan", errors=e.messages)
+        except planner.PlanError as e:
+            return problem(502, "planner failed", str(e))
+        return orch.get_workflow(wf_id)
 
     @app.post("/v1/workflows/{workflowId}/approval")
     async def decide_approval(workflowId: str, body: ApprovalRequest, request: Request, name: str = caller) -> Any:
         admin(name)
-        actor(name, request)
-        return not_implemented()
+        who = actor(name, request)
+        try:
+            if not orch.decide(workflowId, body.decision, who, body.reason):
+                return problem(404, "plan not found")
+        except PlanForbidden:
+            return problem(403, "only a user can decide a plan")
+        except Conflict:
+            return problem(409, "plan is not awaiting approval")
+        return orch.get_workflow(workflowId)
 
     @app.get("/v1/dead-events")
     async def dead_events(name: str = caller) -> dict[str, Any]:
@@ -229,6 +245,13 @@ def build(env: dict[str, str] | None = None) -> FastAPI:
         agents,
         contracts,
     )
+    llm: Callable[[str], tuple[LlmClient, str]] | None = None
+    if settings.llm_models_file and settings.llm_base_url and settings.llm_key:
+        selector = ModelSelector(
+            settings.llm_models_file, settings.llm_base_url, settings.llm_key, settings.llm_local_key, contracts
+        )
+        llm = lambda policy: (selector.client(policy), selector.chat_model(policy))  # noqa: E731
+    orch.llm = llm
     tasks: list[asyncio.Task[None]] = []
 
     @contextlib.asynccontextmanager

@@ -6,7 +6,7 @@ info:
     Workflow status, manual triggers and dead events. Called by the query-service (actor forwarded) and operators.
     The query-service forwards in M0 only list/create/get workflows; cancel, retry, dead-event listing and replay are
     x-sandman-status: out-of-scope-M0 there (R-007; the dashboard calls cancel and replay directly, ADR-0016).
-    Operations with x-sandman-status: planned are final-contract operations that answer 501 until implemented (R-019).
+    Operations with x-sandman-status: planned (none left in this service) are final-contract operations that answer 501 until implemented (R-019).
 servers:
   - url: http://orchestrator:8000
 security:
@@ -81,8 +81,9 @@ paths:
     post:
       summary: Natural-language request for the LLM planner (planner behind a feature flag, approval gate)
       operationId: createRequest
-      x-sandman-status: planned
-      description: Planned (final version, M6). Answers 501 until the planner exists; the plan is then executed as a workflow that stays BLOCKED until approved (/v1/workflows/{workflowId}/approval).
+      description: |
+        Asks the model for a plan (T6.4). Answers 501 while planner.enabled is false in rules.yaml (checked after authorization).
+        A valid plan is stored as a workflow whose steps stay BLOCKED until a user approves it (/v1/workflows/{workflowId}/approval); nothing runs before. 400 lists every rule the plan broke, 502 means the model failed (nothing stored).
       parameters:
         - $ref: "shared.yaml#/components/parameters/Actor"
       requestBody:
@@ -104,7 +105,13 @@ paths:
               schema: { $ref: "#/components/schemas/WorkflowDetail" }
         "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
         "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
+        "502":
+          description: The model failed or its answer broke the schema; nothing stored
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
   /v1/workflows/{workflowId}:
     parameters:
       - $ref: "#/components/parameters/WorkflowId"
@@ -164,8 +171,7 @@ paths:
     post:
       summary: Approve or reject the plan of a planner workflow (approval gate)
       operationId: decideWorkflowApproval
-      x-sandman-status: planned
-      description: Planned (final version, M6). Answers 501 until the planner exists.
+      description: Approve (the BLOCKED steps become PENDING, once) or reject an awaiting plan. Only a user may decide; 409 if the plan is not awaiting (decided or expired).
       parameters:
         - $ref: "shared.yaml#/components/parameters/Actor"
       requestBody:
@@ -188,7 +194,6 @@ paths:
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "404": { $ref: "shared.yaml#/components/responses/NotFound" }
         "409": { $ref: "shared.yaml#/components/responses/Conflict" }
-        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
   /v1/dead-events:
     get:
       summary: Events that exceeded MaxDeliver
@@ -254,11 +259,28 @@ components:
           type: object
           required: [kind]
           properties:
-            kind: { enum: [event, manual, schedule] }
+            kind: { enum: [event, manual, schedule, planner] }
             eventType: { type: string }
             eventId: { type: string }
             actor: { $ref: "../common.schema.json#/$defs/Actor" }
+            approvedBy: { $ref: "../common.schema.json#/$defs/Actor" }
         status: { $ref: "#/components/schemas/WorkflowStatus" }
+        plan:
+          type: object
+          description: Present on planner workflows (T6.4).
+          required: [status, goal, model, resolvedModel, promptHash, requestedBy, expiresAt, rationales]
+          properties:
+            status: { enum: [AWAITING, APPROVED, REJECTED, EXPIRED] }
+            goal: { type: string }
+            model: { type: string }
+            resolvedModel: { type: string }
+            promptHash: { $ref: "../common.schema.json#/$defs/Sha256" }
+            requestedBy: { $ref: "../common.schema.json#/$defs/Actor" }
+            expiresAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+            rationales: { type: array, items: { type: string } }
+            decidedBy: { $ref: "../common.schema.json#/$defs/Actor" }
+            decidedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+            reason: { type: string }
         createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
         updatedAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
     WorkflowDetail:

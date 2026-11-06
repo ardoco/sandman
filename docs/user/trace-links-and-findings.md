@@ -56,6 +56,30 @@ A review survives a new version of an artifact. At activation of new links, SAND
 
 Default CSV and JSON exports of `tracelinks` have the review columns `reviewed_by`, `reviewed_at` and `review_reason` ([querying.md](querying.md#export)).
 
+### Use reviews in later runs (experimental)
+
+By default, reviews do not change how an approach finds links. You can switch on feedback adaptation for one approach. The switch is the approach parameter `feedback` in `config/tlr/approaches.yaml` or in the request `params`.
+
+```yaml
+approaches:
+  lissa: { enabled: true, params: { classifier: simple, feedback: { enabled: true, fewShot: 2, minReviews: 10 } } }
+```
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `enabled` | `false` | Switch. |
+| `fewShot` | `2` | Number of confirmed and of rejected element pairs that an LLM approach gets as examples. `0` turns the examples off. |
+| `minReviews` | `10` | Number of reviewed pairs of the approach that SANDMAN needs before it derives a threshold. |
+
+If the switch is on, the run does two things:
+
+1. It drops links with a confidence below a threshold. The threshold gives the best F1 over the reviewed links of the approach. If there are fewer than `minReviews` reviewed pairs, or only confirmed or only rejected ones, no threshold applies. Approaches with a fixed confidence of 1.0, such as `lissa`, are not affected.
+2. `lissa` adds the newest confirmed and rejected pairs to the prompt. The reviewer reason is untrusted text. SANDMAN escapes it, cuts it at 200 characters and marks it as data.
+
+The run stores the hash of the review snapshot in its `configHash`. New reviews give a new `configHash`, new link ids and new prompt ids. The same reviews give the same values. Caches and replay recordings of an older snapshot do not match.
+
+Caution: reviews only cover links that an approach proposed. The threshold can favor precision. Check the effect on a held-out set before you rely on it ([evaluation protocol](../../experiments/PROTOCOL.md), section 10).
+
 ## Findings
 
 A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`. The detector `artemis-id` (LLM based) exists but is disabled in `config/inconsistency/plugins.yaml`.

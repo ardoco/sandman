@@ -87,6 +87,19 @@ Section 9 was added before the first removal run. It does not change sections 1 
 - Gate (D-4): enable `model-code` only if micro F1 for `model-element-without-code` is at least 0.7 on at least 3 of 5 projects (simulated) and the agreement is at least 0.8 over all projects.
 - Limit: the gold standard and `transarc` come from the same benchmarks (RK-15). Report the numbers as reproduction.
 
+## 10. Feedback adaptation (T8.2)
+
+Section 10 was added before the first adaptation run. It does not change sections 1 to 9. The mechanism is in `docs/tasks/T8.2-feedback-adaptation.md`. The human study is part of T8.1 and is not covered here.
+
+- Hypothesis H1: a threshold derived from reviews raises the F1 of an approach on held-out links of the same project, compared with the same approach without feedback.
+- Hypothesis H2: few-shot examples from reviews raise the F1 of `lissa` on held-out links, compared with `lissa` without feedback.
+- Systems: A = approach with `feedback` off. B = the same approach with `feedback.enabled`. Nothing else differs.
+- Data: the projects of section 1. The reviewer is simulated from the gold standard (reviewer label = gold label). Optional: a flip rate for reviewer noise, named in the manifest.
+- Split: per project, split the gold pairs by pair into train and test with a fixed seed (default 20261017). Only train pairs become reviews. Test pairs never enter the snapshot, the examples or the threshold.
+- Metrics and statistics: sections 2 and 3, on the test pairs only. Compare A and B per project.
+- Reproducibility: record the feedback snapshot hash. It is part of `configHash` and of every Run of B. Add the review entries (the input of `FeedbackAdaptation.snapshotHash`) to the archive of the manifest.
+- Limit: simulated reviews have no reviewer errors and no selection bias. Report the results as an upper bound.
+
 ## Deviation log
 
 | Date | Section | Change | Reason |

@@ -403,6 +403,49 @@ class RecoverTraceLinksTest {
     }
 
     @Test
+    void feedbackAdaptationIsOffByDefaultAndEntersTheConfigHashWhenOn() throws Exception {
+        String stubParams = ",\"approaches\":[\"" + STUB + "\"],\"params\":{\"" + STUB + "\":{\"feedback\":";
+        String base = "\"minTokenLength\":4,\"confidence\":0.5";
+        var off = run(input(stubParams + "{\"enabled\":false}}}"));
+        assertEquals("TASK_STATE_COMPLETED", off.state(), String.valueOf(off.error()));
+        assertEquals(DEFAULT_HASH, runHash());
+        assertEquals(linkId(DEFAULT_HASH, REQ, MEDIA), activeLinks().get(0).get("id"));
+
+        String emptySnapshot = FeedbackAdaptation.snapshotHash(List.of());
+        String onParams = base + ",\"feedback\":{\"enabled\":true},\"feedbackSnapshot\":\"";
+        kg.write("MATCH (r:Run) DETACH DELETE r", Map.of());
+        assertEquals(
+                "TASK_STATE_COMPLETED",
+                run(input(stubParams + "{\"enabled\":true}}}")).state());
+        String hashEmpty = runHash();
+        assertEquals(configHash("{" + onParams + emptySnapshot + "\"}"), hashEmpty);
+        assertNotEquals(DEFAULT_HASH, hashEmpty);
+
+        kg.write(
+                "MATCH (s:Element {id: $s}), (t:Element {id: $t}) SET s.contentHash = 'hs', t.contentHash = 'ht' "
+                        + "CREATE (l:TraceLink {id: 'tl_rev', projectId: $p, approach: $a, active: false, "
+                        + "linkType: 'relates', confidence: 0.9, status: 'rejected', reviewedAt: '2026-01-01T00:00:00Z', "
+                        + "reviewReason: 'no', reviewOrigin: 'user'}) CREATE (l)-[:SOURCE]->(s) CREATE (l)-[:TARGET]->(t)",
+                Map.of("s", REQ, "t", MEDIA, "p", PROJECT, "a", STUB));
+        var entries = new LinkStore(kg).feedbackEntries(PROJECT);
+        assertEquals(1, entries.size());
+        assertEquals("Requirement", entries.get(0).sourceLabel());
+        assertEquals("CodeUnit", entries.get(0).targetLabel());
+        assertEquals(0.9, entries.get(0).confidence(), 1e-9);
+
+        kg.write("MATCH (r:Run) DETACH DELETE r", Map.of());
+        run(input(stubParams + "{\"enabled\":true}}}"));
+        assertEquals(configHash("{" + onParams + FeedbackAdaptation.snapshotHash(entries) + "\"}"), runHash());
+        assertNotEquals(hashEmpty, runHash());
+    }
+
+    private String runHash() {
+        return (String) kg.read("MATCH (r:Run {tool: $t}) RETURN r.configHash AS h", Map.of("t", STUB))
+                .get(0)
+                .get("h");
+    }
+
+    @Test
     void changedParamsLeaveOnlyTheNewLinksActive() throws Exception {
         run(input(",\"approaches\":[\"" + STUB + "\"]"));
         var done = run(input(",\"approaches\":[\"" + STUB + "\"],\"params\":{\"" + STUB + "\":{\"confidence\":0.9}}"));

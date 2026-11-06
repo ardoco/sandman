@@ -11,7 +11,8 @@ import tools.jackson.databind.JsonNode;
 /**
  * Per-run services for an approach; llm only for approaches with usesLlm(), artifacts null if no store is configured.
  * llmClient is null in environment() and for approaches without usesLlm(); it is one client per Run. progress takes a
- * short text of the current activity (the skill throttles it to one update per 2 s); it never fails.
+ * short text of the current activity (the skill throttles it to one update per 2 s); it never fails. feedback is null
+ * unless feedback adaptation is on for the approach (T8.2).
  */
 public record TlrContext(
         LlmAccess llm,
@@ -20,7 +21,19 @@ public record TlrContext(
         Logger log,
         JsonNode params,
         LlmClient llmClient,
-        Consumer<String> progress) {
+        Consumer<String> progress,
+        Feedback feedback) {
+
+    public TlrContext(
+            LlmAccess llm,
+            ArtifactStore artifacts,
+            BooleanSupplier cancelled,
+            Logger log,
+            JsonNode params,
+            LlmClient llmClient,
+            Consumer<String> progress) {
+        this(llm, artifacts, cancelled, log, params, llmClient, progress, null);
+    }
 
     public TlrContext(
             LlmAccess llm,

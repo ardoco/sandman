@@ -155,14 +155,21 @@ public final class LissaApproach implements TraceLinkApproach {
 
     private static Classifier classifier(JsonNode params, int concurrency, TlrContext ctx, LissaChat chat) {
         return switch (classifierName(params)) {
-            case SIMPLE -> new SimpleClassifier(concurrency, ctx.cancelled(), chat, SimpleClassifier.DEFAULT_TEMPLATE);
-            case REASONING -> new ReasoningClassifier(concurrency, ctx.cancelled(), chat, reasoningTemplate());
+            case SIMPLE -> new SimpleClassifier(concurrency, ctx.cancelled(), chat, template(ctx));
+            case REASONING -> new ReasoningClassifier(concurrency, ctx.cancelled(), chat, template(ctx));
             default -> throw new IllegalStateException("unreachable");
         };
     }
 
     private static String reasoningTemplate() {
         return ReasoningClassifierPrompt.REASON_WITH_NAME.getPromptTemplate();
+    }
+
+    /** The classifier template, with the examples of reviewed links in front if feedback adaptation is on (T8.2). */
+    static String template(TlrContext ctx) {
+        String base =
+                SIMPLE.equals(classifierName(ctx.params())) ? SimpleClassifier.DEFAULT_TEMPLATE : reasoningTemplate();
+        return ctx.feedback() == null ? base : ctx.feedback().promptBlock("Requirement", "CodeUnit") + base;
     }
 
     private static String classifierName(JsonNode params) {
@@ -175,8 +182,7 @@ public final class LissaApproach implements TraceLinkApproach {
 
     private static String promptId(TlrContext ctx) {
         String name = classifierName(ctx.params());
-        String template = SIMPLE.equals(name) ? SimpleClassifier.DEFAULT_TEMPLATE : reasoningTemplate();
-        return "lissa-" + name + "@" + Ids.sha256Hex(template).substring(0, 8);
+        return "lissa-" + name + "@" + Ids.sha256Hex(template(ctx)).substring(0, 8);
     }
 
     static int k(JsonNode params) {

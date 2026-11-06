@@ -232,6 +232,47 @@ public final class LinkStore {
         });
     }
 
+    /** Direct reviews (confirmed or rejected) of the project, active or not, for feedback adaptation (T8.2). */
+    public List<FeedbackAdaptation.Entry> feedbackEntries(String projectId) {
+        return kg
+                .read(
+                        "MATCH (x:TraceLink {projectId: $p, reviewOrigin: 'user'}) "
+                                + "WHERE x.status IN ['confirmed', 'rejected'] AND NOT (x.approach IN $explicit) "
+                                + "MATCH (x)-[:SOURCE]->(s:Element), (x)-[:TARGET]->(t:Element) "
+                                + "OPTIONAL MATCH (tv:ArtifactVersion)-[:HAS_ELEMENT]->(t) "
+                                + "RETURN x.approach AS approach, x.status AS status, x.confidence AS confidence, "
+                                + "x.reviewedAt AS reviewedAt, x.reviewReason AS reason, s.key AS sKey, "
+                                + "s.contentHash AS sHash, t.key AS tKey, t.contentHash AS tHash, labels(s) AS sLabels, "
+                                + "labels(t) AS tLabels, s.text AS sText, t.text AS tText, tv.storageUri AS uri",
+                        Map.of("p", projectId, "explicit", EXTRACTION_OWNED))
+                .stream()
+                .map(r -> new FeedbackAdaptation.Entry(
+                        (String) r.get("approach"),
+                        (String) r.get("status"),
+                        ((Number) r.get("confidence")).doubleValue(),
+                        String.valueOf(r.get("reviewedAt")),
+                        (String) r.get("reason"),
+                        (String) r.get("sKey"),
+                        String.valueOf(r.get("sHash")),
+                        (String) r.get("tKey"),
+                        String.valueOf(r.get("tHash")),
+                        label(r.get("sLabels")),
+                        label(r.get("tLabels")),
+                        (String) r.get("sText"),
+                        (String) r.get("tText"),
+                        (String) r.get("uri")))
+                .toList();
+    }
+
+    private static String label(Object labels) {
+        return ((List<?>) labels)
+                .stream()
+                        .map(String::valueOf)
+                        .filter(l -> !"Element".equals(l))
+                        .findFirst()
+                        .orElse(null);
+    }
+
     /** The link with the ids of its endpoint elements, or empty if unknown. */
     public java.util.Optional<LinkRow> link(String id) {
         return kg

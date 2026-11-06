@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
@@ -42,6 +43,9 @@ import tools.jackson.databind.node.ObjectNode;
 public class RecoverTraceLinks implements Skill {
 
     static final String SKILL = "recover-trace-links";
+    /** Approach parameter of the feedback adaptation (T8.2); the host handles it for every approach. */
+    static final String FEEDBACK = "feedback";
+
     private static final Logger LOG = LoggerFactory.getLogger(RecoverTraceLinks.class);
 
     @Inject
@@ -80,7 +84,10 @@ public class RecoverTraceLinks implements Skill {
             Set<String> allowed = entry.approach().paramKeys();
             ObjectNode effective = Approaches.effective(
                     entry.params(), input.path("params").path(entry.approach().id()));
-            if (allowed != null && !allowed.containsAll(effective.propertyNames())) {
+            if (allowed != null
+                    && !allowed.containsAll(effective.propertyNames().stream()
+                            .filter(k -> !FEEDBACK.equals(k))
+                            .toList())) {
                 throw new SkillException(
                         "INVALID_INPUT",
                         "approach " + entry.approach().id() + " accepts parameters " + new TreeSet<>(allowed) + ", got "
@@ -229,14 +236,45 @@ public class RecoverTraceLinks implements Skill {
         TraceLinkApproach approach = entry.approach();
         ObjectNode params =
                 Approaches.effective(entry.params(), input.path("params").path(approach.id()));
+        List<FeedbackAdaptation.Entry> feedbackEntries = null;
+        Feedback feedback = null;
+        OptionalDouble threshold = OptionalDouble.empty();
+        if (!params.path(FEEDBACK).path("enabled").asBoolean(false)) {
+            params.remove(FEEDBACK); // off: the hash and the prompts equal those of runs before T8.2
+        } else {
+            JsonNode fb = params.get(FEEDBACK);
+            int fewShot = fb.path("fewShot").asInt(FeedbackAdaptation.DEFAULT_FEW_SHOT);
+            int minReviews = fb.path("minReviews").asInt(FeedbackAdaptation.DEFAULT_MIN_REVIEWS);
+            if (fewShot < 0 || minReviews < 1) {
+                invalid.add(approach.id() + ": feedback.fewShot must be at least 0 and feedback.minReviews at least 1");
+                return null;
+            }
+            feedbackEntries = store.feedbackEntries(in.projectId());
+            threshold = FeedbackAdaptation.threshold(feedbackEntries, approach.id(), minReviews);
+            ArtifactStore artifactStore =
+                    settings.artifactStore() == null ? null : new ArtifactStore(settings.artifactStore());
+            feedback = approach.usesLlm() && fewShot > 0
+                    ? FeedbackAdaptation.feedback(feedbackEntries, fewShot, artifactStore)
+                    : new Feedback(FeedbackAdaptation.snapshotHash(feedbackEntries), List.of());
+        }
         ObjectNode hashed = params.deepCopy();
+        if (feedback != null) {
+            hashed.put("feedbackSnapshot", feedback.snapshotHash());
+        }
         String environment;
         LlmAccess llm = null;
         List<String> promptIds;
         try {
             llm = approach.usesLlm() ? LlmAccess.forPolicy(settings, llmPolicy) : null;
-            var envCtx =
-                    new TlrContext(llm, null, ctx::cancelled, LoggerFactory.getLogger(approach.getClass()), params);
+            var envCtx = new TlrContext(
+                    llm,
+                    null,
+                    ctx::cancelled,
+                    LoggerFactory.getLogger(approach.getClass()),
+                    params,
+                    null,
+                    text -> {},
+                    feedback);
             environment = approach.environment(envCtx);
             promptIds = approach.promptIds(envCtx);
         } catch (LlmAccess.PolicyException
@@ -296,9 +334,13 @@ public class RecoverTraceLinks implements Skill {
                     LoggerFactory.getLogger(approach.getClass()),
                     params,
                     client,
-                    ctx::progress);
+                    ctx::progress,
+                    feedback);
             Map<String, Map<String, Object>> links = new LinkedHashMap<>();
-            List<CandidateLink> candidates = grounded(in, approach.recover(in, tlrCtx));
+            double minConfidence = threshold.orElse(Double.NEGATIVE_INFINITY);
+            List<CandidateLink> candidates = grounded(in, approach.recover(in, tlrCtx)).stream()
+                    .filter(c -> c.confidence() >= minConfidence)
+                    .toList();
             for (CandidateLink c : candidates) {
                 String id =
                         Ids.stableId("tl", approach.id(), approach.version(), configHash, c.sourceId(), c.targetId());
@@ -380,10 +422,8 @@ public class RecoverTraceLinks implements Skill {
     /** All current versions of the kinds the approach supports; the requested version subset is ignored (R-022). */
     /** Keeps the candidates whose source is a source element and whose target is a target element of the input. */
     static List<CandidateLink> grounded(TlrInput in, List<CandidateLink> candidates) {
-        Set<String> sources =
-                in.sources().stream().map(TlrInput.Element::id).collect(Collectors.toSet());
-        Set<String> targets =
-                in.targets().stream().map(TlrInput.Element::id).collect(Collectors.toSet());
+        Set<String> sources = in.sources().stream().map(TlrInput.Element::id).collect(Collectors.toSet());
+        Set<String> targets = in.targets().stream().map(TlrInput.Element::id).collect(Collectors.toSet());
         List<CandidateLink> kept = candidates.stream()
                 .filter(c -> sources.contains(c.sourceId()) && targets.contains(c.targetId()))
                 .toList();

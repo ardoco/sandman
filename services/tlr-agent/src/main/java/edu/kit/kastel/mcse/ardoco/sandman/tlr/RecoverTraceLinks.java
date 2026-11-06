@@ -28,6 +28,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -297,7 +298,8 @@ public class RecoverTraceLinks implements Skill {
                     client,
                     ctx::progress);
             Map<String, Map<String, Object>> links = new LinkedHashMap<>();
-            for (CandidateLink c : approach.recover(in, tlrCtx)) {
+            List<CandidateLink> candidates = grounded(in, approach.recover(in, tlrCtx));
+            for (CandidateLink c : candidates) {
                 String id =
                         Ids.stableId("tl", approach.id(), approach.version(), configHash, c.sourceId(), c.targetId());
                 Map<String, Object> l = new HashMap<>();
@@ -376,6 +378,21 @@ public class RecoverTraceLinks implements Skill {
     }
 
     /** All current versions of the kinds the approach supports; the requested version subset is ignored (R-022). */
+    /** Keeps the candidates whose source is a source element and whose target is a target element of the input. */
+    static List<CandidateLink> grounded(TlrInput in, List<CandidateLink> candidates) {
+        Set<String> sources =
+                in.sources().stream().map(TlrInput.Element::id).collect(Collectors.toSet());
+        Set<String> targets =
+                in.targets().stream().map(TlrInput.Element::id).collect(Collectors.toSet());
+        List<CandidateLink> kept = candidates.stream()
+                .filter(c -> sources.contains(c.sourceId()) && targets.contains(c.targetId()))
+                .toList();
+        if (kept.size() < candidates.size()) {
+            LOG.warn("{} ungrounded candidate links rejected", candidates.size() - kept.size());
+        }
+        return kept;
+    }
+
     private static TlrInput wholeProject(String projectId, TraceLinkApproach approach, LinkStore store) {
         Set<String> sourceKinds = new LinkedHashSet<>();
         Set<String> targetKinds = new LinkedHashSet<>();

@@ -1,10 +1,11 @@
 """Authentication, tokens, admin and forwarding behavior of the /v1 API."""
 
+import json
 from pathlib import Path
 
 import httpx
 from conftest import ADMIN_PASSWORD, Env, service_headers
-from helpers import INC_ID, OTHER_INC_ID, validate, validate_shared
+from helpers import INC_ID, OTHER_INC_ID, WF_ID, validate, validate_shared
 from sandman_query.app import build
 
 
@@ -255,6 +256,35 @@ async def test_workflow_forwarding_adds_project_and_validates_body(env: Env) -> 
     assert sent(env, "/v1/workflows")["query"] == "projectId=alpha&limit=5"
     other = await env.http.get(f"/v1/workflows/{'wf_' + 'c' * 32}", headers=env.token("mia"))
     validate("/v1/workflows/{workflowId}", "get", 200, other.json())
+
+
+async def test_planner_requests_and_approvals_are_forwarded_with_the_actor(env: Env) -> None:
+    env.user("mia", {"alpha": "maintainer"})
+    h = env.token("mia")
+    resp = await env.http.post("/v1/projects/alpha/requests", json={"text": "link all"}, headers=h)
+    assert resp.status_code == 202
+    validate("/v1/projects/{projectId}/requests", "post", 202, resp.json())
+    call = sent(env, "/v1/requests")
+    assert call["headers"]["x-sandman-actor"] == "user:mia" and b'"projectId": "alpha"' in call["body"]
+    bad = {"text": "link all", "projectId": "beta"}
+    assert (await env.http.post("/v1/projects/alpha/requests", json=bad, headers=h)).status_code == 400
+    wf = f"/v1/workflows/{WF_ID}/approval"
+    resp = await env.http.post(wf, json={"decision": "approve", "reason": "ok"}, headers=h)
+    assert resp.status_code == 200
+    validate("/v1/workflows/{workflowId}/approval", "post", 200, resp.json())
+    call = sent(env, "/approval")
+    assert call["headers"]["x-sandman-actor"] == "user:mia" and json.loads(call["body"]) == {
+        "decision": "approve", "reason": "ok"}  # fmt: skip
+    assert (await env.http.post(wf, json={"decision": "maybe"}, headers=h)).status_code == 400
+
+
+async def test_approval_is_refused_before_forwarding_without_maintainer_on_the_workflow_project(env: Env) -> None:
+    env.user("vic", {"alpha": "viewer"})
+    env.user("bea", {"beta": "maintainer"})
+    wf = f"/v1/workflows/{WF_ID}/approval"
+    assert (await env.http.post(wf, json={"decision": "approve"}, headers=env.token("vic"))).status_code == 403
+    assert (await env.http.post(wf, json={"decision": "approve"}, headers=env.token("bea"))).status_code == 404
+    assert not [c for c in env.owner.calls if c["path"].endswith("/approval")]
 
 
 async def test_put_project_is_forwarded_for_admins_only(env: Env) -> None:

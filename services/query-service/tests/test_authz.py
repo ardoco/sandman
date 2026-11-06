@@ -74,7 +74,14 @@ KINDS: dict[str, dict[str, Any]] = {
         "tok_admin_restricted": 404,
     },  # fmt: skip
 }
-PROJECTLESS = {"getInconsistency", "transitionInconsistency", "createSuggestion", "listSuggestions", "getWorkflow"}
+PROJECTLESS = {
+    "getInconsistency",
+    "transitionInconsistency",
+    "createSuggestion",
+    "listSuggestions",
+    "getWorkflow",
+    "decideWorkflowApproval",
+}
 MULTIPART = {"files": {"manifest": (None, '{"mode":"full","files":[]}', "application/json")}}
 # operationId -> (kind, method, path, request kwargs, success statuses)
 OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
@@ -101,6 +108,9 @@ OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
                         {"json": {"status": "confirmed"}}, {200}),
     "listWorkflows": ("read", "GET", "/v1/projects/alpha/workflows", {}, {200}),
     "createWorkflow": ("maintainer", "POST", "/v1/projects/alpha/workflows", {"json": {"type": "full"}}, {202}),
+    "createRequest": ("maintainer", "POST", "/v1/projects/alpha/requests", {"json": {"text": "link all"}}, {202}),
+    "decideWorkflowApproval": ("maintainer", "POST", f"/v1/workflows/{WF_ID}/approval",
+                               {"json": {"decision": "approve"}}, {200}),
     "getSchema": ("schema", "GET", "/v1/schema", {}, {200}),
     "queryCypher": ("cypher", "POST", "/v1/query/cypher",
                     {"json": {"projectId": "alpha", "cypher": "MATCH (n {projectId: $projectId}) RETURN n"}}, {200}),

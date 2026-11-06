@@ -167,6 +167,8 @@ class FakeOwner:
             return ok({**detail(parts[2], project), **self.detail_patch})
         if path.endswith("/inconsistencies"):
             return ok({"items": self.items, "counts": {"OPEN": len(self.items)}})
+        if parts == ["v1", "requests"]:
+            return ok({**workflow(json.loads(body)["projectId"]), "status": "BLOCKED", "steps": []}, 202)
         if parts == ["v1", "workflows"]:
             if method == "POST":
                 return ok({**workflow(json.loads(body)["projectId"]), "steps": []}, 202)

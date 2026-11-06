@@ -469,6 +469,63 @@ paths:
             application/json:
               schema: { $ref: "orchestrator.yaml#/components/schemas/WorkflowDetail" }
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+  /v1/projects/{projectId}/requests:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    post:
+      summary: Forwarded to orchestrator POST /v1/requests (LLM planner, T6.4)
+      description: The plan is stored BLOCKED and runs only after approval. 501 while the planner is disabled.
+      operationId: createRequest
+      x-sandman-min-role: maintainer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, minLength: 3, maxLength: 4000 }
+              additionalProperties: false
+      responses:
+        "202":
+          description: Plan stored, awaiting approval
+          content:
+            application/json:
+              schema: { $ref: "orchestrator.yaml#/components/schemas/WorkflowDetail" }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
+        "502": { description: The model failed; nothing stored }
+  /v1/workflows/{workflowId}/approval:
+    parameters:
+      - $ref: "orchestrator.yaml#/components/parameters/WorkflowId"
+    post:
+      summary: Approve or reject a plan (forwarded to orchestrator)
+      description: The caller needs the maintainer role on the project of the workflow.
+      operationId: decideWorkflowApproval
+      x-sandman-min-role: maintainer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { enum: [approve, reject] }
+                reason: { type: string, maxLength: 2000 }
+              additionalProperties: false
+      responses:
+        "200":
+          description: Decision recorded
+          content:
+            application/json:
+              schema: { $ref: "orchestrator.yaml#/components/schemas/WorkflowDetail" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
   /v1/workflows/{workflowId}:
     parameters:
       - $ref: "orchestrator.yaml#/components/parameters/WorkflowId"

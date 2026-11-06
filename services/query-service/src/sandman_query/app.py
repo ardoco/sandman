@@ -32,12 +32,14 @@ from sandman_query.service import (
     COOKIE,
     QUIET,
     USERNAME,
+    ApprovalBody,
     CypherBody,
     Login,
     Member,
     NewToken,
     NewUser,
     NlBody,
+    PlanRequestBody,
     ProjectId,
     Service,
     UserPatch,
@@ -359,6 +361,18 @@ def create_app(
         projectId: ProjectId, body: WorkflowBody, who: Annotated[Principal, access("createWorkflow")]
     ) -> Response:
         return await svc.create_workflow(who, projectId, body)
+
+    @app.post("/v1/projects/{projectId}/requests", status_code=202)
+    async def create_request(
+        projectId: ProjectId, body: PlanRequestBody, who: Annotated[Principal, access("createRequest")]
+    ) -> Response:
+        return await svc.create_request(who, projectId, body)
+
+    @app.post("/v1/workflows/{workflowId}/approval")
+    async def decide_approval(workflowId: str, body: ApprovalBody, request: Request) -> Response:
+        who = svc.authenticate(request.headers.get("authorization"))
+        svc.check(who, "decideWorkflowApproval")
+        return await svc.decide_approval(who, workflowId, body)
 
     @app.get("/v1/workflows/{workflowId}")
     async def get_workflow(workflowId: str, request: Request) -> Response:

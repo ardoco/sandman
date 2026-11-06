@@ -106,6 +106,17 @@ class WorkflowBody(BaseModel):
     force: bool = False
 
 
+class PlanRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=3, max_length=4000)
+
+
+class ApprovalBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: Literal["approve", "reject"]
+    reason: str | None = Field(default=None, max_length=2000)
+
+
 def iso(t: datetime) -> str:
     return t.astimezone(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
 
@@ -367,6 +378,26 @@ class Service:
         resp = await self.forward(
             "orchestrator", "POST", "/v1/workflows", who, project,
             body=_json(payload), headers={"content-type": "application/json"},
+        )  # fmt: skip
+        return relay(resp)
+
+    async def create_request(self, who: Principal, project: str, body: PlanRequestBody) -> Response:
+        payload = {"projectId": project, **body.model_dump()}
+        resp = await self.forward(
+            "orchestrator", "POST", "/v1/requests", who, project,
+            body=_json(payload), headers={"content-type": "application/json"},
+        )  # fmt: skip
+        return relay(resp)
+
+    async def decide_approval(self, who: Principal, workflow: str, body: ApprovalBody) -> Response:
+        """The role is checked on the workflow's project before the decision is forwarded."""
+        found = await self.forward("orchestrator", "GET", f"/v1/workflows/{workflow}", who, None)
+        if found.status_code != 200:
+            raise HTTPException(404, "not found")
+        self.check(who, "decideWorkflowApproval", found.json()["projectId"])
+        resp = await self.forward(
+            "orchestrator", "POST", f"/v1/workflows/{workflow}/approval", who, None,
+            body=_json(body.model_dump(exclude_none=True)), headers={"content-type": "application/json"},
         )  # fmt: skip
         return relay(resp)
 

@@ -108,7 +108,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T7.3 | Model–code inconsistency detector (model element without code, code without model element); later LLM documentation–code contradictions (Q-6); removal-protocol evaluation | M | T2.7, T3.1 || [T7.3](tasks/T7.3-model-code-inconsistency-detector.md) (done with deviations) |
 | T7.4 | Time-aware queries: optional `asOf` (ingestion or source revision) for all strategies of ADR-0018, bounded by retention | M | M4, T5.2 | |
 | T7.5 | Resolution suggestions and clarification questions for open inconsistencies (LLM, schema-validated, recorded, off by default, severity ≥ warning, never writes artifacts) | M | T3.4, T6.2 | |
-| T7.6 | Grounding checks: LLM-produced facts must cite existing KG elements; cross-approach agreement count as trust signal | S | M4 | |
+| T7.6 | Grounding checks: LLM-produced facts must cite existing KG elements; cross-approach agreement count as trust signal | S | M4 | [T7.6](tasks/T7.6-grounding-checks.md) |
 | **M8** | | | | |
 | T8.1 | Developer user study (usefulness, trust, task time, cognitive load), pre-registered in `experiments/PROTOCOL.md`, pilot first | L | M6, T5.5 | |
 | T8.2 | Feedback-driven adaptation experiment (few-shot from reviewed links, per-project thresholds); feedback snapshot hash in `configHash`; off by default | L | T6.1 | |

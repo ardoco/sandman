@@ -28,11 +28,13 @@ rand() { openssl rand -hex 24; }
 write() { [ -e "secrets/$1" ] && echo "keep    secrets/$1" || { printf '%s' "$2" > "secrets/$1"; echo "created secrets/$1"; }; }
 upper() { echo "$1" | tr '[:lower:]-' '[:upper:]_'; }
 
-if [ ! -e secrets/memgraph_password ]; then
-  MG_PW=$(rand)
-  write memgraph_password "$MG_PW"
-  write memgraph.env "MEMGRAPH_USER=sandman
-MEMGRAPH_PASSWORD=$MG_PW
+if [ ! -e secrets/traverse_password ]; then
+  TV_PW=$(rand)
+  TV_KEY="tvs_$(rand)"
+  write traverse_password "$TV_PW"
+  write traverse_api_key "$TV_KEY"
+  write traverse.toml "auth = \"sandman:$TV_PW\"
+api_key = \"$TV_KEY\"
 "
 fi
 

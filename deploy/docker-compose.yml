@@ -10,9 +10,9 @@ x-agent-env: &agent-env
   SANDMAN_LLM_BASE_URL: http://llm-replay:8000/openai    # record/replay proxy in front of the gateway (ADR-0010)
   SANDMAN_LLM_MODELS_FILE: /config/llm/models.yaml
   SANDMAN_LLM_MODE: ${SANDMAN_LLM_MODE:-live}               # recorded as Run.replayMode
-  SANDMAN_KG_URI: bolt://memgraph:7687
-  SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
-  SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
+  SANDMAN_KG_URI: bolt://traverse:7690
+  SANDMAN_KG_USER: ${TRAVERSE_USER:-sandman}
+  SANDMAN_KG_PASSWORD_FILE: /run/secrets/traverse_password
   SANDMAN_NATS_URL: nats://nats:4222
   SANDMAN_SERVICE_VERIFY_FILE: /run/secrets/svc_tokens_verify
   SANDMAN_ARTIFACT_STORE: /artifacts
@@ -22,36 +22,45 @@ x-agent-env: &agent-env
   OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
 
 x-depends-core: &depends-core
-  memgraph: { condition: service_healthy }
+  traverse-health: { condition: service_healthy }
   kg-migrate: { condition: service_completed_successfully }
   nats: { condition: service_healthy }
   llm-replay: { condition: service_healthy }
 
 services:
   # ---------------------------------------------------------------- infrastructure
-  memgraph:
-    image: memgraph/memgraph:3.13.1@sha256:bd3fe13228f40881365486729c78110dde6e04f3c1f102c84720d31f38b693f8
+  traverse:
+    image: truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965
+    platform: linux/amd64                       # the image is amd64-only; runs emulated on arm64 hosts
     command:
-      - --telemetry-enabled=false
-      - --allow-load-csv=false
-      - --schema-info-enabled=true
-      - --query-execution-timeout-sec=300
-      - --storage-snapshot-interval-sec=300
-      - --memory-limit=8192                      # MiB, below mem_limit (V-30)
-      - --also-log-to-stderr=true
-      - --log-level=INFO
-    env_file: ./secrets/memgraph.env            # MEMGRAPH_USER, MEMGRAPH_PASSWORD
+      - --config=/etc/traverse.toml             # auth and api_key (secrets/traverse.toml)
+      - --data=/data
+      - --memory-limit=8GB                      # below mem_limit
+      - --query-memory-limit=256MB
+      - --query-timeout=300000
+      - --server-agent=Neo4j/5.26.0
+      - --checkpoint-interval=300
     volumes:
-      - memgraph-data:/var/lib/memgraph
-      - memgraph-log:/var/log/memgraph
+      - traverse-data:/data
+      - ./secrets/traverse.toml:/etc/traverse.toml:ro
     networks: [internal]
     mem_limit: 10g
+    restart: unless-stopped
+
+  traverse-health:                              # the traverse image has no shell or curl: this probe checks /api/ready for it
+    image: nats:2.15.0-alpine@sha256:ac8f88a6494bffc2c2a5289a0ca61cb28a9145c11ba5677cf24265d07f46d8d4
+    entrypoint: ["sleep", "infinity"]
     healthcheck:
-      test: ["CMD-SHELL", "echo 'RETURN 1;' | mgconsole --username=$$MEMGRAPH_USER --password=$$MEMGRAPH_PASSWORD"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://traverse:7691/api/ready"]
       interval: 10s
       timeout: 5s
       retries: 6
       start_period: 20s
+    secrets: [traverse_api_key]                  # for scripts/backup.sh (POST /api/save)
+    group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of secrets (deploy/gen-secrets.sh)
+    networks: [internal]
+    mem_limit: 16m
+    depends_on: [traverse]
     restart: unless-stopped
 
   kg-migrate:                                  # one-shot: applies contracts/kg/init.cypher (idempotent, R-029); agents wait for it
@@ -59,15 +68,15 @@ services:
     command: ["python", "-m", "sandman_agent.kg"]
     environment:
       SANDMAN_SERVICE_NAME: kg-migrate
-      SANDMAN_KG_URI: bolt://memgraph:7687
-      SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
-      SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
-    secrets: [memgraph_password]
+      SANDMAN_KG_URI: bolt://traverse:7690
+      SANDMAN_KG_USER: ${TRAVERSE_USER:-sandman}
+      SANDMAN_KG_PASSWORD_FILE: /run/secrets/traverse_password
+    secrets: [traverse_password]
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of secrets (deploy/gen-secrets.sh)
     networks: [internal]
     mem_limit: 256m
     depends_on:
-      memgraph: { condition: service_healthy }
+      traverse-health: { condition: service_healthy }
     restart: "no"
 
   nats:
@@ -180,7 +189,7 @@ services:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_code-extractor-ardoco,
+    secrets: [traverse_password, svc_tokens_verify, svc_token_extraction-agent, plugin_in_code-extractor-ardoco,
               llm_key_extraction, llm_key_extraction_local]
     networks: [internal]
     mem_limit: 2g                                # large ingests hold archive and files in memory
@@ -228,7 +237,7 @@ services:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local, corenlp_client_token_tlr-agent,
+    secrets: [traverse_password, svc_tokens_verify, svc_token_tlr-agent, llm_key_tlr, llm_key_tlr_local, corenlp_client_token_tlr-agent,
               plugin_in_code-extractor-ardoco_tlr]
     networks: [internal, corenlp]               # corenlp: only to reach corenlp-gateway, no egress
     mem_limit: 5g
@@ -294,7 +303,7 @@ services:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_inconsistency-agent, plugin_in_plugin-stubs,
+    secrets: [traverse_password, svc_tokens_verify, svc_token_inconsistency-agent, plugin_in_plugin-stubs,
               llm_key_inconsistency, llm_key_inconsistency_local, corenlp_client_token_inconsistency-agent]
     networks: [internal, corenlp]               # corenlp: only to reach corenlp-gateway, no egress
     mem_limit: 5g
@@ -319,7 +328,7 @@ services:
       - ../experiments:/experiments:ro
       - ../data/logs:/logs
       - orchestrator-data:/data
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_orchestrator, llm_key_orchestrator]
+    secrets: [traverse_password, svc_tokens_verify, svc_token_orchestrator, llm_key_orchestrator]
     networks: [internal]
     mem_limit: 512m
     depends_on:
@@ -351,12 +360,12 @@ services:
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
       - query-data:/data
-    secrets: [memgraph_password, svc_tokens_verify, svc_token_query-service, llm_key_query, llm_key_query_local,
+    secrets: [traverse_password, svc_tokens_verify, svc_token_query-service, llm_key_query, llm_key_query_local,
               admin_bootstrap_password, session_secret]
     networks: [internal]                         # published via edge-proxy (127.0.0.1:8080)
     mem_limit: 1g
     depends_on:
-      memgraph: { condition: service_healthy }
+      traverse-health: { condition: service_healthy }
       orchestrator: { condition: service_healthy }
     healthcheck: *py-health
     restart: unless-stopped
@@ -372,13 +381,16 @@ services:
       SANDMAN_DASHBOARD_ADMIN_PASSWORD_FILE: /run/secrets/dashboard_admin_password
       SANDMAN_SESSION_SECRET_FILE: /run/secrets/dashboard_session_secret
       SANDMAN_STATE_DB: /data/dashboard.db
-      SANDMAN_KG_URI: bolt://memgraph:7687
-      SANDMAN_KG_USER: ${MEMGRAPH_USER:-sandman}
-      SANDMAN_KG_PASSWORD_FILE: /run/secrets/memgraph_password
+      SANDMAN_KG_URI: bolt://traverse:7690
+      SANDMAN_KG_USER: ${TRAVERSE_USER:-sandman}
+      SANDMAN_KG_PASSWORD_FILE: /run/secrets/traverse_password
       SANDMAN_NATS_URL: nats://nats:4222
       SANDMAN_NATS_MONITOR_URL: http://nats:8222
       SANDMAN_GATEWAY_URL: http://llm-gateway:8080
       SANDMAN_GATEWAY_ADMIN_PASSWORD_FILE: /run/secrets/gateway_admin_password
+      SANDMAN_KG_HEALTH_URL: http://traverse:7691
+      SANDMAN_KG_API_KEY_FILE: /run/secrets/traverse_api_key
+      SANDMAN_KG_MEMORY_LIMIT: "8GB"
       SANDMAN_CADVISOR_URL: http://cadvisor:8080           # optional (profile resources)
       SANDMAN_TARGETS: extraction-agent=http://extraction-agent:8000,tlr-agent=http://tlr-agent:8080,inconsistency-agent=http://inconsistency-agent:8080,orchestrator=http://orchestrator:8000,query-service=http://query-service:8000,llm-replay=http://llm-replay:8000,document-converter=http://document-converter:8000
       SANDMAN_LOG_FILE: ${SANDMAN_LOG_FILE:-}
@@ -386,12 +398,12 @@ services:
     volumes:
       - dashboard-data:/data
       - ../data/logs:/logs
-    secrets: [svc_token_dashboard, dashboard_admin_password, dashboard_session_secret, memgraph_password,
+    secrets: [svc_token_dashboard, dashboard_admin_password, dashboard_session_secret, traverse_password, traverse_api_key,
               gateway_admin_password]
     networks: [internal, resources]              # published via edge-proxy (127.0.0.1:8090)
     mem_limit: 512m
     depends_on:                                  # deliberately not on agents: it must show them when they are down
-      memgraph: { condition: service_healthy }
+      traverse-health: { condition: service_healthy }
       nats: { condition: service_healthy }
     healthcheck: *py-health
     restart: unless-stopped
@@ -537,8 +549,7 @@ networks:
     internal: true          # corenlp-gateway <-> its callers (tlr-agent, inconsistency-agent) only
 
 volumes:
-  memgraph-data: {}
-  memgraph-log: {}
+  traverse-data: {}
   nats-data: {}
   gateway-data: {}
   orchestrator-data: {}
@@ -549,7 +560,8 @@ volumes:
   dashboard-data: {}
 
 secrets:
-  memgraph_password: { file: ./secrets/memgraph_password }
+  traverse_password: { file: ./secrets/traverse_password }
+  traverse_api_key: { file: ./secrets/traverse_api_key }
   svc_tokens_verify: { file: ./secrets/svc_tokens_verify.json }
   svc_token_orchestrator: { file: ./secrets/svc_token_orchestrator }
   svc_token_extraction-agent: { file: ./secrets/svc_token_extraction-agent }

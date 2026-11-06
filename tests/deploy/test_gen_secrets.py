@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[2] / "deploy" / "gen-secrets.sh"
-OWNER_ONLY = {"gateway.env", "memgraph.env", "e2e_admin_password"}
+OWNER_ONLY = {"gateway.env", "traverse.toml", "e2e_admin_password"}
 
 
 def run(tmp_path: Path) -> Path:

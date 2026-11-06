@@ -49,7 +49,7 @@ flow:
   - title: Results
     text: >-
       You read results in the console, the REST API or an export, and you can ask questions about
-      the graph. Administrators get a system overview dashboard.
+      the graph, also about an earlier state of the project. Administrators get a system overview dashboard.
     components: [query-service, dashboard]
   - title: Coordination
     always: true
@@ -163,6 +163,11 @@ components:
       texts, or a step by step exploration of the graph. You can pick a strategy, or let the service choose one and
       show its choice. Today five fixed question patterns work, and other questions go to a language model that
       writes a database query. The search by meaning and the exploration exist but are switched off by default.
+      A question can carry a date or a source revision ("as of"). The service then answers from the project as it
+      was after the matching upload. Trace links and findings have no end time, so they show their current state.
+      For an open finding of severity warning or error, a triager can ask for suggested fixes and clarification
+      questions. Each item cites only evidence of that finding, the service records every result, and the service
+      never changes a finding by itself. This feature is switched off by default.
       The console also has a graph explorer: it draws the graph of a project, expands neighbours, finds paths
       and exports the picture. Triagers review trace links and give a cause when they decide on a finding.
       Without it nobody could use the results.
@@ -208,7 +213,10 @@ components:
       LiSSA links requirements to source code. It ranks the code files for each requirement by embedding
       similarity and asks a language model to confirm each candidate pair. All model calls go through the
       gateway, so they are budgeted and recorded. The agent drops every candidate link that names an element
-      outside the project input. The query service shows how many approaches found the same link, as a trust signal.
+      outside the project input and logs it. The query service shows how many approaches found the same link, as a
+      trust signal. Optional feedback adaptation uses the reviews of a project in the next run: confirmed and rejected
+      pairs become examples for language model approaches, and a threshold derived from the reviews drops weak
+      candidates. It is switched off by default and, when on, changes the configuration hash, so runs stay reproducible.
     flow: Starts after extraction finished, reads elements from the graph, and writes trace links back.
   inconsistency-agent:
     zone: analysis
@@ -229,7 +237,9 @@ components:
     details: >-
       After an upload, several steps must run in order: extraction, trace link recovery, inconsistency detection.
       The orchestrator follows fixed rules for this and starts the next step when the previous step reports that
-      it is done. It also lets users run a step again and shows events that failed.
+      it is done. It also lets users run a step again and shows events that failed. An optional language model
+      planner turns a written goal of a maintainer into a short plan of known step types. The plan waits for the
+      approval of a maintainer, runs only after approval, and expires if nobody decides. The planner is switched off by default.
     flow: Listens to events on the message bus and sends tasks to the extraction, trace link and inconsistency agents.
   code-extractor-ardoco:
     zone: plugins
@@ -257,8 +267,9 @@ components:
     title: Graph database
     summary: Stores the knowledge graph.
     details: >-
-      Traverse is a fast graph database with a Neo4j-compatible Bolt interface. It holds projects, artifacts, elements, trace links,
-      findings and records of every run. Its query language is Cypher.
+      Traverse is a fast graph database. It replaces Memgraph and speaks the Bolt protocol with the Cypher query
+      language, so the agents use the usual Neo4j drivers. It holds projects, artifacts, elements, trace links,
+      findings and records of every run.
     flow: Written by the agents, read by the agents and the query service.
   traverse-health:
     zone: kg

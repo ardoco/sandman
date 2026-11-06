@@ -54,7 +54,7 @@ One new plugin `code-extractor-treesitter`. It is a separate service. It does no
 | Binding | `tree-sitter` (py-tree-sitter) with one wheel per grammar: `tree-sitter-go`, `tree-sitter-rust`, `tree-sitter-typescript` | Pins per grammar. Small image. No on-demand download |
 | Not chosen: `tree-sitter-language-pack` | Rejected for now | It downloads parsers on demand (per search result). This violates the no-egress and no-run-time-download rules. Re-check if a bundled mode exists |
 | Skill | `sandman.plugin.extract` only | `code-model` skill is ACM-specific. See question 2 |
-| Routing | A second `plugins.yaml` entry with `match` on `kinds: [code, test]` plus a suffix or `format` filter | Verify that the plugin router can match by suffix or format. If not, the router needs a small change |
+| Routing | A second `plugins.yaml` entry with `match` on `kinds: [code, test]` plus a suffix or `format` filter | `config/extraction/plugins.yaml` already supports `match: { kinds, formats, globs }`. Use `globs` for the suffix filter. No router change is expected |
 | Deploy | Compose service on `internal`, secrets `plugin_in_code-extractor-treesitter` and `svc_token_...`, add to `PLUGINS` in `gen-secrets.sh`, `site/src/components.yaml`, `THIRD-PARTY.md`, `docs/plugins.md` | Same as T2.6 item 9 |
 
 Alternatives:

@@ -1,4 +1,4 @@
-"""T1.12: explicit-link re-resolution, stored references, configHash vector (Memgraph via Testcontainers)."""
+"""T1.12: explicit-link re-resolution, stored references, configHash vector (Traverse via Testcontainers)."""
 
 import hashlib
 import json

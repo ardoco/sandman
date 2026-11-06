@@ -173,6 +173,9 @@ def create_app(
     history_days: float = 14.0,
     http: httpx.AsyncClient | None = None,
     kg: KgClient | None = None,
+    kg_health_url: str | None = None,
+    kg_api_key: str | None = None,
+    kg_memory_limit: str | None = None,
     graph: GraphService | None = None,
     events: EventViewer | None = None,
     start_poller: bool = True,
@@ -206,12 +209,15 @@ def create_app(
         settings.service_token or "",
         interval=poll_interval,
         kg=kg,
+        kg_health_url=kg_health_url,
+        kg_api_key=kg_api_key,
+        kg_memory_limit=kg_memory_limit,
         nats_monitor_url=nats_monitor_url,
         gateway=gateway,
         orchestrator=orchestrator,
     )
     sampler = Sampler(store.db, poller, interval=sample_interval, retention_days=history_days)
-    secret_values = [admin_password, settings.service_token, settings.kg_password, gateway_password]
+    secret_values = [admin_password, settings.service_token, settings.kg_password, kg_api_key, gateway_password]
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -321,11 +327,11 @@ def create_app(
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
-        checks = {"memgraph": "down", "sessionstore": "down"}
+        checks = {"traverse": "down", "sessionstore": "down"}
         try:
             async with asyncio.timeout(5):
                 await kg_client.read("RETURN 1 AS ok")
-            checks["memgraph"] = "ok"
+            checks["traverse"] = "ok"
         except Exception:  # noqa: BLE001 - any failure means not ready
             pass
         try:
@@ -385,7 +391,7 @@ def create_app(
 
     def service_rows() -> list[Any]:
         entries = poller.entries
-        names = [*poller.targets, "memgraph", "nats", "llm-gateway"]
+        names = [*poller.targets, "traverse", "nats", "llm-gateway"]
         return [entries[n] for n in names if n in entries]
 
     @app.get("/")
@@ -535,6 +541,9 @@ def build(env: Mapping[str, str] | None = None) -> FastAPI:
         nats_monitor_url=env.get("SANDMAN_NATS_MONITOR_URL") or None,
         gateway_url=env.get("SANDMAN_GATEWAY_URL") or None,
         gateway_password=secret("SANDMAN_GATEWAY_ADMIN_PASSWORD"),
+        kg_health_url=env.get("SANDMAN_KG_HEALTH_URL") or None,
+        kg_api_key=secret("SANDMAN_KG_API_KEY"),
+        kg_memory_limit=env.get("SANDMAN_KG_MEMORY_LIMIT") or None,
         cadvisor_url=env.get("SANDMAN_CADVISOR_URL") or None,
         poll_interval=float(env.get("SANDMAN_POLL_INTERVAL", "5")),
         sample_interval=float(env.get("SANDMAN_SAMPLE_INTERVAL", "30")),

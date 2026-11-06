@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Console evidence view: sentence text, element state, links, detection runs (Memgraph) and failure/authz (fakes)."""
+"""Console evidence view: sentence text, element state, links, detection runs (Traverse) and failure/authz (fakes)."""
 
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -57,13 +57,13 @@ def involved(
 
 
 @pytest.fixture
-async def mg(memgraph: str, tmp_path: Path) -> AsyncIterator[Env]:
-    driver = AsyncGraphDatabase.driver(memgraph)
+async def mg(traverse: str, tmp_path: Path) -> AsyncIterator[Env]:
+    driver = AsyncGraphDatabase.driver(traverse)
     async with driver.session() as s:
         await s.run("MATCH (n) DETACH DELETE n")
         await s.run(SEED, ts=TS, evil=EVIL, iid=INC_ID)  # type: ignore[arg-type]
     await driver.close()
-    async for env in build_env(tmp_path, memgraph):
+    async for env in build_env(tmp_path, traverse):
         yield env
 
 

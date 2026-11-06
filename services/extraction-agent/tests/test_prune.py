@@ -1,4 +1,4 @@
-"""T5.2: prune-artifact-data keeps referenced versions and removes old ones (Memgraph via Testcontainers)."""
+"""T5.2: prune-artifact-data keeps referenced versions and removes old ones (Traverse via Testcontainers)."""
 
 import asyncio
 from typing import Any

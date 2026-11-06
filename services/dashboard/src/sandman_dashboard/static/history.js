@@ -10,7 +10,7 @@
     { id: "chart-tokens", title: "LLM tokens per interval (in + out)", series: ["llm_tokens_in", "llm_tokens_out"], sum: true },
     { id: "chart-cost", title: "LLM cost per interval (USD)", series: ["llm_cost"] },
     { id: "chart-errors", title: "LLM errors per interval", series: ["llm_errors"] },
-    { id: "chart-memgraph", title: "Memgraph memory (bytes)", series: ["memgraph_memory"] }
+    { id: "chart-traverse", title: "Traverse memory (bytes)", series: ["traverse_memory"] }
   ];
   var plots = [];
 

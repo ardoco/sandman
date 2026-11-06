@@ -40,7 +40,7 @@ RESPONSE_SCHEMA = {
     "required": ["cypher", "explanation"],
     "additionalProperties": False,
 }
-RULES = """You translate questions about one software project into one read-only Cypher query (Memgraph dialect).
+RULES = """You translate questions about one software project into one read-only Cypher query (openCypher).
 Rules:
 - Use only labels, properties and relationship types of the schema below. Return the query in "cypher".
 - Every MATCH pattern must contain a node with the property {projectId: $projectId}.

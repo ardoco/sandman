@@ -1,7 +1,7 @@
 """Cypher scope guard (ADR-0009 amendment, D-2): parser for the allowlisted read subset plus project anchoring.
 
 A small recursive-descent parser for exactly the allowlisted subset (RK-19 fallback, docs/notes/cypher-guard.md):
-anything it does not understand is rejected. The statement sent to Memgraph is rebuilt from the parsed tokens
+anything it does not understand is rejected. The statement sent to the graph database is rebuilt from the parsed tokens
 (comments removed), so the service and the database see the same tokens.
 """
 

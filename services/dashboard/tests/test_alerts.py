@@ -121,9 +121,9 @@ def test_dead_events_and_budgets(engine: AlertEngine, caplog: pytest.LogCaptureF
         ("1GiB", None, False),
     ],
 )
-def test_memgraph_memory(engine: AlertEngine, memory: str, limit: str | None, raised: bool) -> None:
-    mem = Entry("memgraph", "infra", "up", details={"memory": memory, **({"memoryLimit": limit} if limit else {})})
-    engine.evaluate({"memgraph": mem}, [], [], [])
+def test_traverse_memory(engine: AlertEngine, memory: str, limit: str | None, raised: bool) -> None:
+    mem = Entry("traverse", "infra", "up", details={"memory": memory, **({"memoryLimit": limit} if limit else {})})
+    engine.evaluate({"traverse": mem}, [], [], [])
     assert bool(engine.active) is raised
 
 

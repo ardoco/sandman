@@ -1,4 +1,4 @@
-"""T0.5 acceptance tests (Testcontainers Memgraph + NATS)."""
+"""T0.5 acceptance tests (Testcontainers Traverse + NATS)."""
 
 import hashlib
 import io

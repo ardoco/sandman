@@ -46,12 +46,12 @@ async def test_services_page_shows_all_targets_and_infrastructure(env: Env) -> N
     await env.login()
     await poll(env)
     text = (await env.http.get("/")).text
-    for name in ("orchestrator", "tlr-agent", "memgraph", "nats", "llm-gateway"):
+    for name in ("orchestrator", "tlr-agent", "traverse", "nats", "llm-gateway"):
         assert f"<td>{name}</td>" in text
     assert text.count('class="health-up"') == 5
     assert "ollama" not in text
     assert 'hx-trigger="every 5s"' in text
-    assert "<dd>12</dd>" in text and "2.00MiB" in text and "idle" in text
+    assert "<dd>12</dd>" in text and "2097152" in text and "idle" in text
 
 
 async def test_services_page_before_first_poll(env: Env) -> None:

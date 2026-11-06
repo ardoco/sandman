@@ -1,4 +1,4 @@
-"""Testcontainers Memgraph + NATS, an in-process fake extraction plugin and helpers (skipped without Docker)."""
+"""Testcontainers Traverse + NATS, an in-process fake extraction plugin and helpers (skipped without Docker)."""
 
 import asyncio
 import hashlib
@@ -79,14 +79,19 @@ def _wait(url: str) -> str:
             time.sleep(0.5)
 
 
+TRAVERSE_IMAGE = "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965"
+
+
 @pytest.fixture(scope="session")
-def memgraph() -> Iterator[str]:
+def traverse() -> Iterator[str]:
     if not DOCKER:
         pytest.skip("no Docker daemon reachable")
     with (
-        DockerContainer("memgraph/memgraph:3.13.1").with_command("--telemetry-enabled=false").with_exposed_ports(7687)
+        DockerContainer(TRAVERSE_IMAGE, platform="linux/amd64")
+        .with_command(["--data", "/data"])
+        .with_exposed_ports(7690)
     ) as c:
-        yield _wait(f"bolt://{c.get_container_host_ip()}:{c.get_exposed_port(7687)}")
+        yield _wait(f"bolt://{c.get_container_host_ip()}:{c.get_exposed_port(7690)}")
 
 
 @pytest.fixture(scope="session")
@@ -260,7 +265,7 @@ class Env:
 
 
 @pytest.fixture
-async def env(memgraph: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Env]:
+async def env(traverse: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[Env]:
     monkeypatch.setenv("SANDMAN_CONVERTER_URL", "http://document-converter:8000")
     converter = FakeConverter(tmp_path / "store")
     (tmp_path / "token").write_text("inbound")
@@ -282,7 +287,7 @@ async def env(memgraph: str, nats_url: str, tmp_path: Path, monkeypatch: pytest.
     )
     settings = Settings(
         service_name="extraction-agent",
-        kg_uri=memgraph,
+        kg_uri=traverse,
         nats_url=nats_url,
         artifact_store=tmp_path / "store",
         service_token="ea-token",

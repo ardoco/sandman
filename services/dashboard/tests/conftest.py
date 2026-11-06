@@ -38,15 +38,20 @@ def _docker_available() -> bool:
 DOCKER = _docker_available()
 
 
+TRAVERSE_IMAGE = "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965"
+
+
 @pytest.fixture(scope="session")
-def memgraph() -> Iterator[str]:
-    """Bolt URL of a Memgraph 3.13.1 container (skipped without Docker)."""
+def traverse() -> Iterator[str]:
+    """Bolt URL of a Traverse 0.9.1 container (skipped without Docker)."""
     if not DOCKER:
         pytest.skip("no Docker daemon reachable")
     with (
-        DockerContainer("memgraph/memgraph:3.13.1").with_command("--telemetry-enabled=false").with_exposed_ports(7687)
+        DockerContainer(TRAVERSE_IMAGE, platform="linux/amd64")
+        .with_command(["--data", "/data", "--query-memory-limit", "256MB"])
+        .with_exposed_ports(7690)
     ) as container:
-        url = f"bolt://{container.get_container_host_ip()}:{container.get_exposed_port(7687)}"
+        url = f"bolt://{container.get_container_host_ip()}:{container.get_exposed_port(7690)}"
 
         async def ping() -> None:
             driver = AsyncGraphDatabase.driver(url)
@@ -68,8 +73,8 @@ def memgraph() -> Iterator[str]:
 
 
 @pytest.fixture
-async def driver(memgraph: str) -> AsyncIterator[AsyncDriver]:
-    drv = AsyncGraphDatabase.driver(memgraph)
+async def driver(traverse: str) -> AsyncIterator[AsyncDriver]:
+    drv = AsyncGraphDatabase.driver(traverse)
     async with drv.session() as session:
         await session.run("MATCH (n) DETACH DELETE n")
     yield drv

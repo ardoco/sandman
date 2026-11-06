@@ -490,12 +490,12 @@ reject:
 - id: X-120
   threat: TH-6
   why: vector search without project filter
-  query: CALL vector_search.search('element_embedding', 100, [0.1, 0.2]) YIELD node, similarity RETURN node
+  query: CALL db.index.vector.queryNodes('element_embedding', 100, [0.1, 0.2]) YIELD node, score RETURN node
   message: CALL
 - id: X-121
   threat: TH-6
   why: vector search after anchor
-  query: MATCH @A@ CALL vector_search.search('element_embedding', 100, $vector) YIELD node RETURN node
+  query: MATCH @A@ CALL db.index.vector.queryNodes('element_embedding', 100, $vector) YIELD node RETURN node
   message: CALL
 - id: X-122
   threat: TH-6
@@ -615,7 +615,7 @@ reject:
 - id: X-150
   threat: TH-7
   why: USE DATABASE
-  query: USE DATABASE memgraph
+  query: USE DATABASE traverse
   message: USE
 - id: X-151
   threat: TH-7

@@ -1,4 +1,4 @@
-"""T1.5 acceptance tests: enrichment writes, provenance, failure modes (Testcontainers Memgraph + NATS, fake LLM)."""
+"""T1.5 acceptance tests: enrichment writes, provenance, failure modes (Testcontainers Traverse + NATS, fake LLM)."""
 
 import dataclasses
 import json

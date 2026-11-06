@@ -89,7 +89,7 @@ REJECTED = [
     (f"MATCH {ANCHOR} RETURN mg.x()", "syntax error"),
     (f"MATCH {ANCHOR} RETURN n{{.*}}", "syntax error"),  # map projection
     (f"MATCH {ANCHOR} RETURN count {{ MATCH (m) RETURN m }}", "syntax error"),
-    (f"MATCH {ANCHOR}-[*bfs]-(m) RETURN m", "syntax error"),  # Memgraph path algorithms
+    (f"MATCH {ANCHOR}-[*bfs]-(m) RETURN m", "syntax error"),  # non-openCypher path algorithms
     (f"MATCH {ANCHOR}-[*wShortest (r, n | 1) w]-(m) RETURN m", "syntax error"),
     (f"MATCH {ANCHOR} RETURN n /* unterminated", "unterminated comment"),
     (f"MATCH {ANCHOR} RETURN 'unterminated", "unterminated string"),

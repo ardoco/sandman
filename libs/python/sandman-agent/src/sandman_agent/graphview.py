@@ -1,6 +1,7 @@
 """Read-only knowledge-graph access shared by dashboard and query-service: graph exploration and Cypher box.
 
-Every statement runs in a driver read transaction (Memgraph rejects writes there) with timeout and memory limit.
+Every statement runs in a driver read transaction (Traverse rejects writes there) with timeout.
+The memory limit is the server flag --query-memory-limit.
 Exploration queries are fixed and parameterized; labels and relationship types only come from the schema contract.
 The caller supplies the Cypher guard, so this module does not depend on the query-service.
 """
@@ -20,7 +21,7 @@ from neo4j.exceptions import ClientError, Neo4jError
 from neo4j.graph import Node, Relationship
 from neo4j.graph import Path as GraphPath
 
-from sandman_agent.kg import MemoryLimitError
+from sandman_agent.kg import MemoryLimitError, is_memory_limit
 
 MAX_NODES = 500
 MAX_ROWS = 500
@@ -31,8 +32,7 @@ MAX_CELL = 2000
 CUT_MARK = "... [truncated]"
 MAX_PAYLOAD = 2_000_000
 CLIENT_ERRORS = (
-    ("accessor type", "write statements are not allowed (read-only)"),
-    ("misaligned", "write statements are not allowed (read-only)"),
+    ("read access mode", "write statements are not allowed (read-only)"),
     ("syntax", "syntax error in the statement"),
     ("unbound variable", "unbound variable in the statement"),
     ("not allowed", "the statement is not allowed in a read transaction"),
@@ -111,6 +111,10 @@ def _props(entity: Node | Relationship) -> dict[str, Any]:
     return {k: v[:MAX_TEXT] + CUT_MARK if isinstance(v, str) and len(v) > MAX_TEXT else v for k, v in out.items()}
 
 
+def eid(entity: Node | Relationship) -> str:
+    return entity.element_id.rsplit(":", 1)[-1]
+
+
 def node_element(node: Node) -> dict[str, Any]:
     props = _props(node)
     title = next((str(props[k]) for k in DISPLAY if props.get(k)), "")
@@ -118,8 +122,8 @@ def node_element(node: Node) -> dict[str, Any]:
     return {
         "group": "nodes",
         "data": {
-            "id": f"n{node.element_id}",
-            "nid": node.element_id,
+            "id": f"n{eid(node)}",
+            "nid": eid(node),
             "label": title[:60] or (labels[-1] if labels else ""),
             "labels": labels,
             "props": props,
@@ -133,9 +137,9 @@ def edge_element(rel: Relationship) -> dict[str, Any]:
     return {
         "group": "edges",
         "data": {
-            "id": f"e{rel.element_id}",
-            "source": f"n{start.element_id}",
-            "target": f"n{end.element_id}",
+            "id": f"e{eid(rel)}",
+            "source": f"n{eid(start)}",
+            "target": f"n{eid(end)}",
             "label": rel.type,
             "props": _props(rel),
         },
@@ -146,9 +150,9 @@ def collect(values: Iterable[Any], nodes: dict[str, Node], rels: dict[str, Relat
     """Graph entities in (nested) result values."""
     for v in values:
         if isinstance(v, Node):
-            nodes.setdefault(v.element_id, v)
+            nodes.setdefault(eid(v), v)
         elif isinstance(v, Relationship):
-            rels.setdefault(v.element_id, v)
+            rels.setdefault(eid(v), v)
         elif isinstance(v, GraphPath):
             collect(v.nodes, nodes, rels)
             collect(v.relationships, nodes, rels)
@@ -187,7 +191,7 @@ class GraphService:
                         break
                 return list(result.keys()), rows
             except Neo4jError as e:
-                if "memory limit exceeded" in (e.message or "").lower():
+                if is_memory_limit(e):
                     raise MemoryLimitError(e.message) from e
                 raise
 
@@ -212,8 +216,8 @@ class GraphService:
             raise GraphError("knowledge graph unavailable", 503) from None
 
     async def fixed(self, cypher: str, params: Mapping[str, Any], max_rows: int | None = None) -> list[list[Any]]:
-        """Rows of a fixed, parameterized statement in a read transaction with the query memory limit."""
-        return (await self.run(f"{cypher} QUERY MEMORY LIMIT {self.memory_limit}", params, max_rows=max_rows))[1]
+        """Rows of a fixed, parameterized statement in a read transaction."""
+        return (await self.run(cypher, params, max_rows=max_rows))[1]
 
     # ------------------------------------------------------------ exploration
 
@@ -267,8 +271,8 @@ class GraphService:
             for r in rels.values()
             if r.start_node is not None
             and r.end_node is not None
-            and r.start_node.element_id in shown
-            and r.end_node.element_id in shown
+            and eid(r.start_node) in shown
+            and eid(r.end_node) in shown
             and (types is None or r.type in types)
         ]
         return {"elements": elements, "truncated": truncated}
@@ -319,7 +323,8 @@ class GraphService:
         if not 1 <= hops <= 12:
             raise GraphError("max hops must be between 1 and 12")
         rows = await self.fixed(
-            f"MATCH p = (a)-[*BFS ..{int(hops)}]-(b) WHERE id(a) = $a AND id(b) = $b RETURN p LIMIT 1",
+            f"MATCH (a) WHERE id(a) = $a MATCH (b) WHERE id(b) = $b "
+            f"MATCH p = shortestPath((a)-[*..{int(hops)}]-(b)) RETURN p LIMIT 1",
             {"a": self._node_id(source), "b": self._node_id(target)},
         )
         result = await self._result(rows, MAX_NODES)
@@ -337,11 +342,7 @@ class GraphService:
             checked = self.guard(statement, project is not None)
         except self.guard_error as e:
             raise GraphError(str(e)) from None
-        text = (
-            checked.text
-            + ("" if checked.has_limit else f" LIMIT {MAX_ROWS + 1}")
-            + f" QUERY MEMORY LIMIT {self.memory_limit}"
-        )
+        text = checked.text + ("" if checked.has_limit else f" LIMIT {MAX_ROWS + 1}")
         columns, rows = await self.run(text, {"projectId": project} if project else {}, max_rows=MAX_ROWS + 1)
         truncated = len(rows) > MAX_ROWS
         rows = rows[:MAX_ROWS]

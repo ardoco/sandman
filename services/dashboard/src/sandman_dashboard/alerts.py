@@ -29,7 +29,7 @@ class Alert:
 
 
 def parse_size(value: Any) -> float | None:
-    """Bytes from a Memgraph size string such as `2.00MiB` or from a number."""
+    """Bytes from a size string such as `2.00MiB` or from a number."""
     if isinstance(value, int | float) and not isinstance(value, bool):
         return float(value)
     match = SIZE.match(value) if isinstance(value, str) else None
@@ -37,7 +37,7 @@ def parse_size(value: Any) -> float | None:
 
 
 def memory_ratio(details: Mapping[str, Any]) -> float | None:
-    used = parse_size(details.get("memoryTracked", details.get("memory")))
+    used = parse_size(details.get("memory"))
     limit = parse_size(details.get("memoryLimit"))
     return used / limit if used is not None and limit else None
 
@@ -77,12 +77,12 @@ class AlertEngine:
             )
         if budgets is not None:
             self._set("budget", {f"budget:{b.key_name}": budget_alert(b) for b in budgets if b.warn})
-        memgraph = entries.get("memgraph")
-        ratio = memory_ratio(memgraph.details) if memgraph is not None and memgraph.health == "up" else None
+        traverse = entries.get("traverse")
+        ratio = memory_ratio(traverse.details) if traverse is not None and traverse.health == "up" else None
         if ratio is not None:
-            text = f"Memgraph memory at {ratio:.0%} of its limit"
-            high = {"memgraph-memory": Alert("memgraph_memory", "memgraph-memory", text, "/resources")}
-            self._set("memgraph_memory", high if ratio >= MEMORY_WARN else {})
+            text = f"Traverse memory at {ratio:.0%} of its limit"
+            high = {"traverse-memory": Alert("traverse_memory", "traverse-memory", text, "/resources")}
+            self._set("traverse_memory", high if ratio >= MEMORY_WARN else {})
 
     def _down(self, entries: Mapping[str, Any]) -> dict[str, Alert]:
         now = self.clock()

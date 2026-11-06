@@ -1,4 +1,4 @@
-"""T4.1b: element embeddings (unit helpers; Testcontainers Memgraph 3.13.1 + NATS with a fake embedding client)."""
+"""T4.1b: element embeddings (unit helpers; Testcontainers Traverse 0.9.1 + NATS with a fake embedding client)."""
 
 import dataclasses
 import hashlib
@@ -18,7 +18,7 @@ def test_default_config_matches_index_dimension() -> None:
     from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 
     init = (DEFAULT_CONTRACTS_DIR / "kg" / "init.cypher").read_text(encoding="utf-8")
-    assert f'"dimension": {EmbedConfig().dimension}' in init
+    assert f"`vector.dimensions`: {EmbedConfig().dimension}" in init
     assert not EmbedConfig.from_dict({}).enabled
 
 
@@ -131,13 +131,13 @@ async def test_embeddings_written_with_model_id_and_searchable(env: Any) -> None
         )
     )[0]["r"]
     assert (run["status"], run["model"], run["resolvedModel"]) == ("completed", "embed-local", LOCAL_MODEL)
-    index = await env.svc.kg.run_autocommit("SHOW VECTOR INDEX INFO")
-    assert [(i["index_name"], i["dimension"]) for i in index] == [("element_embedding", 768)]
+    index = await env.svc.kg.run_autocommit("SHOW VECTOR INDEXES")
+    assert [i["name"] for i in index] == ["element_embedding"]
     hits = await cypher(
         env,
         "MATCH (e:Element {projectId: $p, name: 'Cache media files'}) WITH e.embedding AS v "
-        "CALL vector_search.search('element_embedding', 50, v) YIELD node, similarity "
-        "WITH node, similarity WHERE node.projectId = $p RETURN node.name AS name, similarity ORDER BY similarity DESC",
+        "CALL db.index.vector.queryNodes('element_embedding', 50, v) YIELD node, score "
+        "WITH node, score WHERE node.projectId = $p RETURN node.name AS name, score ORDER BY score DESC",
         p=env.project,
     )
     assert hits[0]["name"] == "Cache media files" and len(hits) == len(rows)
@@ -268,5 +268,5 @@ async def test_init_schema_is_idempotent_and_versioned(env: Any) -> None:
     before = await cypher(env, snapshot)
     await env.svc.kg.init_schema(init)
     await env.svc.kg.init_schema(init)
-    assert await cypher(env, snapshot) == before and before[0]["version"] == 2
-    assert len(await env.svc.kg.run_autocommit("SHOW VECTOR INDEX INFO")) == 1
+    assert await cypher(env, snapshot) == before and before[0]["version"] == 3
+    assert len(await env.svc.kg.run_autocommit("SHOW VECTOR INDEXES")) == 1

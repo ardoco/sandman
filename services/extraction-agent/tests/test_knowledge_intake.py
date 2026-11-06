@@ -1,4 +1,4 @@
-"""T7.2: intake validation of sandman-knowledge.yaml (Memgraph via Testcontainers for the route tests)."""
+"""T7.2: intake validation of sandman-knowledge.yaml (Traverse via Testcontainers for the route tests)."""
 
 import hashlib
 from typing import Any

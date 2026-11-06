@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""T4.4: two projects in Memgraph (Testcontainers, skipped without Docker); hostile input must return zero foreign data."""
+"""T4.4: two projects in Traverse (Testcontainers, skipped without Docker); hostile input must return zero foreign data."""
 
 import sys
 from collections.abc import AsyncIterator
@@ -12,7 +12,7 @@ from neo4j import AsyncGraphDatabase
 from sandman_query import nl as nl_module
 from sandman_query import query as query_module
 from sandman_query.guard import Checked
-from test_memgraph import count, ids, mg, q  # noqa: F401 - mg is a fixture
+from test_traverse import count, ids, mg, q  # noqa: F401 - mg is a fixture
 
 sys.path.insert(0, str(Path(__file__).parent))
 

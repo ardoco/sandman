@@ -244,8 +244,8 @@ def client_span(name: str, **attributes: str) -> Any:
 
 
 def kg_span(operation: str, statement: str | None = None) -> Any:
-    """Memgraph span; the statement text only, never parameters."""
-    attrs = {ATTR_DB_SYSTEM: "memgraph", ATTR_DB_OPERATION: operation}
+    """Knowledge-graph span; the statement text only, never parameters."""
+    attrs = {ATTR_DB_SYSTEM: "traverse", ATTR_DB_OPERATION: operation}
     if statement is not None:
         attrs[ATTR_DB_STATEMENT] = statement[:MAX_STATEMENT_CHARS]
     return _span(f"{SPAN_KG} {operation}", kind=SpanKind.CLIENT, attributes=attrs)

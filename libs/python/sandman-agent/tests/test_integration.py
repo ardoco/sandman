@@ -1,4 +1,4 @@
-"""Integration tests against real Memgraph and NATS containers (skipped without Docker)."""
+"""Integration tests against real Traverse and NATS containers (skipped without Docker)."""
 
 import asyncio
 import time
@@ -59,14 +59,27 @@ async def _nats_ping(url: str) -> None:
     await nc.close()
 
 
+TRAVERSE_IMAGE = "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965"
+
+
+def _traverse(*flags: str) -> DockerContainer:
+    return (
+        DockerContainer(TRAVERSE_IMAGE, platform="linux/amd64")
+        .with_command(["--data", "/data", *flags])
+        .with_exposed_ports(7690)
+    )
+
+
 @pytest.fixture(scope="module")
-def memgraph() -> Iterator[str]:
-    with (
-        DockerContainer("memgraph/memgraph:3.13.1")
-        .with_command("--telemetry-enabled=false")
-        .with_exposed_ports(7687) as c
-    ):
-        yield _wait_port(c, 7687, "bolt")
+def traverse() -> Iterator[str]:
+    with _traverse() as c:
+        yield _wait_port(c, 7690, "bolt")
+
+
+@pytest.fixture(scope="module")
+def traverse_limited() -> Iterator[str]:
+    with _traverse("--query-memory-limit", "32MB") as c:
+        yield _wait_port(c, 7690, "bolt")
 
 
 @pytest.fixture(scope="module")
@@ -75,8 +88,8 @@ def nats_url() -> Iterator[str]:
         yield _wait_port(c, 4222, "nats")
 
 
-async def test_kg_write_read_and_read_transaction_rejects_writes(memgraph: str) -> None:
-    kg = KgClient(memgraph, None, None)
+async def test_kg_write_read_and_read_transaction_rejects_writes(traverse: str) -> None:
+    kg = KgClient(traverse, None, None)
     try:
         await kg.write("CREATE (:Probe {id: $id})", id="p1")
         assert await kg.read("MATCH (p:Probe {id: $id}) RETURN p.id AS id", id="p1") == [{"id": "p1"}]
@@ -87,8 +100,8 @@ async def test_kg_write_read_and_read_transaction_rejects_writes(memgraph: str) 
         await kg.close()
 
 
-async def test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(memgraph: str) -> None:
-    kg = KgClient(memgraph, None, None)
+async def test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(traverse: str) -> None:
+    kg = KgClient(traverse, None, None)
     runs = RunRecorder(kg, "test-agent", "0")
     try:
         done = await runs.start(project_id="mini", skill="s", tool="t", tool_version="0", input_key="k1")
@@ -97,11 +110,11 @@ async def test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(memgr
         stale = await runs.start(project_id="mini", skill="s", tool="t", tool_version="0", input_key="k1")
         await kg.write(
             "MATCH (r:Run {id: $r}), (old:Element {id: 'keep'}) "
-            "CREATE (r)-[:PRODUCED]->(:Element {id: 'drop', runId: $r}) CREATE (r)-[:PRODUCED]->(old)",
+            "CREATE (r)-[:PRODUCED]->(:Element {id: 'stale', runId: $r}) CREATE (r)-[:PRODUCED]->(old)",
             r=stale,
         )
         assert await runs.cleanup_stale("k1") == 1
-        ids = await kg.read("MATCH (e:Element) WHERE e.id IN ['keep', 'drop'] RETURN e.id AS id")
+        ids = await kg.read("MATCH (e:Element) WHERE e.id IN ['keep', 'stale'] RETURN e.id AS id")
         assert ids == [{"id": "keep"}]
         status = await kg.read("MATCH (r:Run) WHERE r.id IN [$a, $b] RETURN r.id AS id, r.status AS s", a=done, b=stale)
         assert {r["id"]: r["s"] for r in status} == {done: "completed", stale: "failed"}
@@ -109,8 +122,8 @@ async def test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(memgr
         await kg.close()
 
 
-async def test_run_records_prompt_ids_and_resolved_model(memgraph: str) -> None:
-    kg = KgClient(memgraph, None, None)
+async def test_run_records_prompt_ids_and_resolved_model(traverse: str) -> None:
+    kg = KgClient(traverse, None, None)
     runs = RunRecorder(kg, "test-agent", "0")
     try:
         rid = await runs.start(
@@ -155,19 +168,28 @@ async def test_publish_consume_round_trip_with_deduplication(nats_url: str, cont
         await nc.close()
 
 
-async def test_init_schema_is_idempotent_and_memory_limit_is_not_retried(memgraph: str) -> None:
+async def test_init_schema_is_idempotent(traverse: str) -> None:
     from sandman_agent.config import DEFAULT_CONTRACTS_DIR
-    from sandman_agent.kg import MemoryLimitError
 
-    kg = KgClient(memgraph, None, None)
+    kg = KgClient(traverse, None, None)
     try:
         await kg.init_schema(DEFAULT_CONTRACTS_DIR / "kg/init.cypher")
         await kg.init_schema(DEFAULT_CONTRACTS_DIR / "kg/init.cypher")
-        info = await kg.run_autocommit("SHOW STORAGE INFO")
-        assert "memory_res" in {row["storage info"] for row in info}
+        assert (await kg.read("MATCH (v:SchemaVersion {id: 'kg'}) RETURN v.version AS v")) == [{"v": 3}]
+        indexes = {row["name"] for row in await kg.run_autocommit("SHOW INDEXES")}
+        assert "element_embedding" in indexes
+    finally:
+        await kg.close()
+
+
+async def test_memory_limit_is_not_retried(traverse_limited: str) -> None:
+    from sandman_agent.kg import MemoryLimitError
+
+    kg = KgClient(traverse_limited, None, None)
+    try:
         started = time.monotonic()
         with pytest.raises(MemoryLimitError):
-            await kg.read("UNWIND range(1, 2000000) AS i WITH collect(i) AS l RETURN size(l) QUERY MEMORY LIMIT 1 MB")
+            await kg.read("UNWIND range(1, 2000000) AS i WITH collect(i) AS l RETURN size(l)")
         assert time.monotonic() - started < 5, "memory-limit error must not be retried"
     finally:
         await kg.close()

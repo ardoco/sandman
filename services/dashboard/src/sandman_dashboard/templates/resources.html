@@ -2,13 +2,13 @@
 {% block title %}Resources{% endblock %}
 {% block body %}
 <h1>Resources</h1>
-<h2>Memgraph</h2>
-{% if memgraph is none %}<p>n/a</p>{% else %}
+<h2>Traverse</h2>
+{% if traverse is none %}<p>n/a</p>{% else %}
 <table>
-<thead><tr><th>Resident</th><th>Tracked</th><th>Limit (--memory-limit)</th><th>Tracked / limit</th></tr></thead>
-<tbody><tr {% if memgraph.ratio is not none and memgraph.ratio >= 0.8 %}class="warn"{% endif %}>
-  <td>{{ memgraph.resident }}</td><td>{{ memgraph.tracked or "n/a" }}</td><td>{{ memgraph.limit or "n/a" }}</td>
-  <td>{{ memgraph.ratio | percent if memgraph.ratio is not none else "n/a" }}</td>
+<thead><tr><th>Resident</th><th>Limit (--memory-limit)</th><th>Resident / limit</th></tr></thead>
+<tbody><tr {% if traverse.ratio is not none and traverse.ratio >= 0.8 %}class="warn"{% endif %}>
+  <td>{{ traverse.resident | mib }}</td><td>{{ traverse.limit or "n/a" }}</td>
+  <td>{{ traverse.ratio | percent if traverse.ratio is not none else "n/a" }}</td>
 </tr></tbody>
 </table>
 {% endif %}

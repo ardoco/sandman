@@ -70,4 +70,4 @@ async def test_history_after_a_sample(env: Env) -> None:
     await env.app.state.poller.poll_once()
     assert env.app.state.sampler.sample_once() > 0
     series = (await env.http.get("/api/history", params={"range": "1h"})).json()["series"]
-    assert {"orchestrator", "tlr-agent", "memgraph", "nats", "llm-gateway"} <= series["health"].keys()
+    assert {"orchestrator", "tlr-agent", "traverse", "nats", "llm-gateway"} <= series["health"].keys()

@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""T4.6: strategy `explore` with a scripted LLM: fake reader (budgets, hostile arguments) and Memgraph (zero foreign data)."""
+"""T4.6: strategy `explore` with a scripted LLM: fake reader (budgets, hostile arguments) and Traverse (zero foreign data)."""
 
 import asyncio
 import json
@@ -17,7 +17,7 @@ from sandman_query.strategies import explore
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from test_memgraph import ids, mg  # noqa: E402, F401 - mg is a fixture
+from test_traverse import ids, mg  # noqa: E402, F401 - mg is a fixture
 
 MARKER = "BETA-SECRET-NAME"
 COLUMNS = ["key", "kind", "name", "p"]
@@ -181,10 +181,10 @@ async def test_disabled_strategy_is_501(env: Env) -> None:
     assert (await ask(env)).status_code == 501
 
 
-# ---------------------------------------------------------------------------------------------- Memgraph
+# ---------------------------------------------------------------------------------------------- Traverse
 
 
-async def test_memgraph_zero_foreign_data(mg: Env) -> None:  # noqa: F811
+async def test_traverse_zero_foreign_data(mg: Env) -> None:  # noqa: F811
     driver = AsyncGraphDatabase.driver(mg.kg)  # type: ignore[attr-defined]
     async with driver.session() as s:
         await s.run("MATCH (n {projectId: 'beta'}) SET n.name = $m, n.text = $m", m=MARKER)

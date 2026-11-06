@@ -28,7 +28,7 @@ def container(service: str, project: str, working_set: int, limit: int, cpu_ns: 
 
 CADVISOR = {
     "/docker/a": container("orchestrator", "sandman", 410 * 1024**2, 512 * 1024**2, (0, 2_000_000_000)),
-    "/docker/b": container("memgraph", "sandman", 3 * GIB, 10 * GIB, (5, 5)),
+    "/docker/b": container("traverse", "sandman", 3 * GIB, 10 * GIB, (5, 5)),
     "/docker/c": container("cadvisor", "sandman", 100 * 1024**2, 256 * 1024**2, (0, 1_000_000_000)),
     "/docker/d": container("other-service", "foreign", GIB, GIB, (0, 0)),
     "/docker/e": container("tlr-agent", "sandman", GIB, 2**63 - 4096, (0, 0)),
@@ -38,12 +38,12 @@ CADVISOR = {
 
 def test_parse_maps_compose_services_limits_and_cpu() -> None:
     usage = {u.service: u for u in parse(CADVISOR)}
-    assert set(usage) == {"orchestrator", "memgraph", "cadvisor", "tlr-agent"}
+    assert set(usage) == {"orchestrator", "traverse", "cadvisor", "tlr-agent"}
     orch = usage["orchestrator"]
     assert orch.memory == 410 * 1024**2 and orch.limit == 512 * 1024**2
     assert orch.ratio == pytest.approx(410 / 512) and orch.warn and orch.cpu == pytest.approx(0.2)
-    assert usage["memgraph"].ratio == pytest.approx(0.3) and not usage["memgraph"].warn
-    assert usage["memgraph"].cpu == 0.0
+    assert usage["traverse"].ratio == pytest.approx(0.3) and not usage["traverse"].warn
+    assert usage["traverse"].cpu == 0.0
     assert usage["tlr-agent"].limit is None and usage["tlr-agent"].ratio is None and not usage["tlr-agent"].warn
 
 
@@ -76,12 +76,12 @@ async def test_resources_page_with_cadvisor(cadvisor_env: tuple[Env, dict[str, A
     await env.login()
     await env.app.state.poller.poll_once()
     text = (await env.http.get("/resources")).text
-    for service in ("orchestrator", "memgraph", "cadvisor", "tlr-agent"):
+    for service in ("orchestrator", "traverse", "cadvisor", "tlr-agent"):
         assert f"<td>{service}</td>" in text
     assert "other-service" not in text
     assert '<tr class="warn">\n  <td>orchestrator</td>' in text and "80 %" in text and "410 MiB" in text
     assert "0.20" in text and "not active" not in text
-    assert "2.00MiB" in text
+    assert "2 MiB" in text
 
 
 async def test_resources_page_without_cadvisor(cadvisor_env: tuple[Env, dict[str, Any]]) -> None:

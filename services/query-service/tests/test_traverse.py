@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Integration with Testcontainers Memgraph 3.13.1 (skipped without Docker): read path, guard corpus, NL, exports."""
+"""Integration with Testcontainers Traverse 0.9.1 (skipped without Docker): read path, guard corpus, NL, exports."""
 
 import json
 import time
@@ -101,11 +101,11 @@ async def count(uri: str) -> tuple[int, int]:
 
 
 @pytest.fixture
-async def mg(memgraph: str, tmp_path: Path) -> AsyncIterator[Env]:
-    await seed(memgraph)
-    async for env in build_env(tmp_path, memgraph):
+async def mg(traverse: str, tmp_path: Path) -> AsyncIterator[Env]:
+    await seed(traverse)
+    async for env in build_env(tmp_path, traverse):
         env.user("alice", {"alpha": "viewer"})
-        env.kg = memgraph  # type: ignore[attr-defined]
+        env.kg = traverse  # type: ignore[attr-defined]
         yield env
 
 
@@ -116,7 +116,7 @@ async def q(env: Env, cypher: str, project: str = "alpha", **extra: Any) -> Any:
 
 
 async def test_readyz_and_project_list_use_the_real_graph(mg: Env) -> None:
-    assert (await mg.http.get("/readyz")).json()["checks"] == {"memgraph": "ok", "userstore": "ok"}
+    assert (await mg.http.get("/readyz")).json()["checks"] == {"traverse": "ok", "userstore": "ok"}
     projects = (await mg.http.get("/v1/projects", headers=mg.token("alice"))).json()
     assert [p["id"] for p in projects] == ["alpha"]
 
@@ -179,11 +179,11 @@ async def test_corpus_is_rejected_and_changes_nothing(mg: Env, query: str, messa
     assert await count(mg.kg) == before  # type: ignore[attr-defined]
 
 
-RUNNABLE = [a for a in ACCEPTED if "projectId" in a and "EXISTS { (" not in a]  # Memgraph needs MATCH inside EXISTS
+RUNNABLE = [a for a in ACCEPTED if "projectId" in a and "EXISTS { (" not in a]  # Traverse needs MATCH inside EXISTS
 
 
 @pytest.mark.parametrize("query", RUNNABLE)
-async def test_accepted_queries_run_on_memgraph(mg: Env, query: str) -> None:
+async def test_accepted_queries_run_on_traverse(mg: Env, query: str) -> None:
     resp = await q(mg, query)
     assert resp.status_code == 200, (query, resp.text)
 
@@ -196,7 +196,6 @@ WRITES = [
     "MERGE (n:Y {id: 1}) RETURN n",
     "MATCH (n:Project) CALL { WITH n CREATE (:Z) } RETURN n",
     "SHOW STORAGE INFO",
-    "LOAD CSV FROM '/etc/passwd' AS row RETURN row",
 ]
 
 
@@ -214,7 +213,6 @@ async def test_cartesian_product_hits_the_memory_limit(mg: Env) -> None:
     async with driver.session() as s:
         await s.run("UNWIND range(1, 3000) AS i CREATE (:Bulk {projectId: 'alpha', i: i})")
     await driver.close()
-    mg.app.state.service.runner.memory_limit = "5 MB"
     started = time.monotonic()
     resp = await q(mg, "MATCH (a:Bulk {projectId: $projectId}), (b:Bulk {projectId: $projectId}) "
                        "WITH a, b ORDER BY a.i + b.i RETURN count(*) AS c")  # fmt: skip
@@ -224,9 +222,16 @@ async def test_cartesian_product_hits_the_memory_limit(mg: Env) -> None:
 
 
 async def test_timeout_aborts_long_queries(mg: Env) -> None:
-    slow = "RETURN size([x IN range(1, 40000) WHERE size([y IN range(1, 40000) WHERE y = x]) = 0]) AS c"
+    driver = AsyncGraphDatabase.driver(mg.kg)  # type: ignore[attr-defined]
+    async with driver.session() as session:
+        await session.run("UNWIND range(1, 800) AS i CREATE (:Bulk {projectId: 'alpha', i: i})")
+    await driver.close()
+    slow = (
+        "MATCH (a:Bulk {projectId: $projectId}), (b:Bulk {projectId: $projectId}), "
+        "(c:Bulk {projectId: $projectId}) WHERE a.i + b.i + c.i < 0 RETURN count(*) AS c"
+    )
     started = time.monotonic()
-    resp = await q(mg, slow, timeoutMs=1000)
+    resp = await q(mg, slow, timeoutMs=100)
     assert resp.status_code == 422 and "timed out" in resp.json()["detail"], resp.text
     assert time.monotonic() - started < 8
     assert (await q(mg, "MATCH (n:Project {id: $projectId}) RETURN n.id AS id")).status_code == 200

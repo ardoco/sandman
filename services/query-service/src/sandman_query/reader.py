@@ -8,7 +8,7 @@ from typing import Any
 from neo4j import AsyncDriver, AsyncGraphDatabase, AsyncManagedTransaction, unit_of_work
 from neo4j.exceptions import Neo4jError
 from sandman_agent.graphview import jsonable
-from sandman_agent.kg import MemoryLimitError
+from sandman_agent.kg import MemoryLimitError, is_memory_limit
 
 log = logging.getLogger(__name__)
 
@@ -62,8 +62,8 @@ class Reader:
                         break
                 return list(result.keys()), rows
             except Neo4jError as e:
-                # a plain exception stops the driver's retry of transient errors (Memgraph reports this one as such)
-                if "memory limit exceeded" in (e.message or "").lower():
+                # a plain exception stops the driver's retry of transient errors (Traverse reports this one as such)
+                if is_memory_limit(e):
                     raise MemoryLimitError(e.message) from e
                 raise
 

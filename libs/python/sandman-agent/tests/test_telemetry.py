@@ -188,7 +188,7 @@ async def test_kg_span_has_statement_but_no_parameters() -> None:
     await kg.write_tx(lambda tx: _noop())
     spans = by_name("kg ")
     assert [s.name for s in spans] == ["kg read", "kg write", "kg write_tx"]
-    assert spans[0].attributes["db.system.name"] == "memgraph"
+    assert spans[0].attributes["db.system.name"] == "traverse"
     assert spans[0].attributes["db.query.text"] == "MATCH (n {id: $id}) RETURN n"
     assert "SECRET-VALUE" not in json.dumps([dict(s.attributes or {}) for s in spans])
 

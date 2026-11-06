@@ -1,4 +1,4 @@
-"""Cypher endpoint, NL stub, schema and exports with a fake KG reader (real Memgraph: test_memgraph.py)."""
+"""Cypher endpoint, NL stub, schema and exports with a fake KG reader (real Traverse: test_traverse.py)."""
 
 import asyncio
 import csv
@@ -30,17 +30,17 @@ async def cypher(env: Env, headers: dict[str, str], **body: Any) -> Any:
     )
 
 
-async def test_cypher_binds_project_limit_and_memory_limit(env: Env) -> None:
+async def test_cypher_binds_project_and_limit(env: Env) -> None:
     env.user("alice", {"alpha": "viewer"})
     resp = await cypher(env, env.token("alice"))
     assert resp.status_code == 200
     validate("/v1/query/cypher", "post", 200, resp.json())
     text, params = env.reader.queries[-1]
-    assert text.endswith("RETURN n.key AS key LIMIT 201 QUERY MEMORY LIMIT 100 MB")
+    assert text.endswith("RETURN n.key AS key LIMIT 201")
     assert params == {"projectId": "alpha"}
     await cypher(env, env.token("alice"), cypher=ANCHORED + " LIMIT 5", limit=10, params={"x": 1})
     text, params = env.reader.queries[-1]
-    assert text.endswith("LIMIT 5 QUERY MEMORY LIMIT 100 MB") and params == {"projectId": "alpha", "x": 1}
+    assert text.endswith("LIMIT 5") and params == {"projectId": "alpha", "x": 1}
 
 
 async def test_user_cannot_supply_project_id_or_reserved_params(env: Env) -> None:

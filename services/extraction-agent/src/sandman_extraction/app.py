@@ -217,10 +217,10 @@ def create_app(
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
-        checks = {"memgraph": "down", "nats": "down"}
+        checks = {"traverse": "down", "nats": "down"}
         try:
             await svc.kg.read("RETURN 1 AS ok")
-            checks["memgraph"] = "ok"
+            checks["traverse"] = "ok"
         except Exception:  # noqa: BLE001 - any failure means not ready
             pass
         if svc._nc is not None and svc._nc.is_connected:

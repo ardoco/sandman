@@ -115,11 +115,7 @@ class Runner:
             checked = check(cypher, scoped=project is not None)
         except GuardError as e:
             raise HTTPException(422, str(e)) from None
-        text = (
-            checked.text
-            + ("" if checked.has_limit else f" LIMIT {limit + 1}")
-            + f" QUERY MEMORY LIMIT {self.memory_limit}"
-        )
+        text = checked.text + ("" if checked.has_limit else f" LIMIT {limit + 1}")
         cap = USER_TIMEOUT_MS if who.kind == "user" else SERVICE_TIMEOUT_MS
         bound = {**params, **({"projectId": project} if project else {})}
         started = time.monotonic()

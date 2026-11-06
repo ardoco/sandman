@@ -1,4 +1,4 @@
-"""T7.2: user-declared links of sandman-knowledge.yaml (Memgraph via Testcontainers)."""
+"""T7.2: user-declared links of sandman-knowledge.yaml (Traverse via Testcontainers)."""
 
 import hashlib
 import json

@@ -5,7 +5,6 @@ Pages read only this cache. Upstream error bodies and request headers are never 
 
 import asyncio
 import logging
-import time
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
@@ -20,16 +19,9 @@ from sandman_dashboard.orchestrator import OrchestratorClient, Unreachable
 log = logging.getLogger(__name__)
 
 TIMEOUT = 2.0
-COUNT_INTERVAL = 60.0
 STATES = ("working", "idle")
 MAX_DETAILS = 30
 MAX_TEXT = 300
-STORAGE_KEYS = {
-    "memory_res": "memory",
-    "memory_tracked": "memoryTracked",
-    "memory_limit": "memoryLimit",
-    "disk_usage": "disk",
-}
 
 
 @dataclass
@@ -90,12 +82,17 @@ class Poller:
         *,
         interval: float = 5.0,
         kg: KgClient | None = None,
+        kg_health_url: str | None = None,
+        kg_api_key: str | None = None,
+        kg_memory_limit: str | None = None,
         nats_monitor_url: str | None = None,
         gateway: GatewayClient | None = None,
         orchestrator: OrchestratorClient | None = None,
         alerts: AlertEngine | None = None,
     ) -> None:
         self.targets, self.client, self.token, self.interval = dict(targets), client, token, interval
+        self.kg_health_url, self.kg_api_key = (kg_health_url or "").rstrip("/"), kg_api_key
+        self.kg_memory_limit = kg_memory_limit
         self.kg, self.nats_url, self.gateway = kg, (nats_monitor_url or "").rstrip("/"), gateway
         self.orchestrator, self.alerts = orchestrator, alerts or AlertEngine()
         self.entries: dict[str, Entry] = {}
@@ -126,8 +123,8 @@ class Poller:
         jobs: list[tuple[str, str, Callable[[Entry], Awaitable[None]]]] = [
             (n, "service", self._service(u)) for n, u in self.targets.items()
         ]
-        if self.kg:
-            jobs.append(("memgraph", "infra", self._memgraph))
+        if self.kg_health_url:
+            jobs.append(("traverse", "infra", self._traverse))
         if self.nats_url:
             jobs.append(("nats", "infra", self._nats))
         if self.gateway:
@@ -209,18 +206,16 @@ class Poller:
 
         return check
 
-    async def _memgraph(self, entry: Entry) -> None:
-        assert self.kg
-        async with asyncio.timeout(TIMEOUT):
-            await self.kg.read("RETURN 1 AS ok")
-            if self._counts is None or time.monotonic() - self._counts_at >= COUNT_INTERVAL:
-                nodes = await self.kg.read("MATCH (n) RETURN count(n) AS c")
-                edges = await self.kg.read("MATCH ()-[r]->() RETURN count(r) AS c")
-                self._counts, self._counts_at = {"nodes": nodes[0]["c"], "edges": edges[0]["c"]}, time.monotonic()
-            rows = await self.kg.run_autocommit("SHOW STORAGE INFO")
-        info = {r.get("storage info"): r.get("value") for r in rows}
-        entry.details = dict(self._counts)
-        entry.details |= {label: clean(info[key]) for key, label in STORAGE_KEYS.items() if key in info}
+    async def _traverse(self, entry: Entry) -> None:
+        resp = await self._get(f"{self.kg_health_url}/api/health", {"X-API-Key": self.kg_api_key or ""})
+        if resp.status_code != 200:
+            entry.health, entry.reason = "down", "not healthy"
+            return
+        doc = resp.json()
+        db = next((x for x in doc.get("databases", []) if x.get("default")), {})
+        entry.details = {"nodes": db.get("nodes"), "edges": db.get("edges"), "memory": doc.get("memory_bytes")}
+        if self.kg_memory_limit:
+            entry.details["memoryLimit"] = self.kg_memory_limit
         entry.health = "up"
 
     async def _nats(self, entry: Entry) -> None:

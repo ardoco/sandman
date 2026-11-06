@@ -1,5 +1,5 @@
 # ruff: noqa: E501
-"""Change impact on a real Memgraph graph (skipped without Docker)."""
+"""Change impact on a real Traverse graph (skipped without Docker)."""
 
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -52,13 +52,13 @@ CREATE (:Ingestion {id: $ing3, projectId: 'beta', seq: 1, mode: 'full', createdA
 
 
 @pytest.fixture
-async def mg(memgraph: str, tmp_path: Path) -> AsyncIterator[Env]:
-    driver = AsyncGraphDatabase.driver(memgraph)
+async def mg(traverse: str, tmp_path: Path) -> AsyncIterator[Env]:
+    driver = AsyncGraphDatabase.driver(traverse)
     async with driver.session() as s:
         await s.run("MATCH (n) DETACH DELETE n")
         await s.run(SEED, ing1=ING1, ing2=ING2, ing3="ing_" + "3" * 32)  # type: ignore[arg-type]
     await driver.close()
-    async for env in build_env(tmp_path, memgraph):
+    async for env in build_env(tmp_path, traverse):
         env.user("alice", {"alpha": "viewer", "beta": "viewer"})
         yield env
 

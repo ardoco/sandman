@@ -156,10 +156,10 @@ def create_app(
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
-        checks = {"memgraph": "down", "userstore": "down"}
+        checks = {"traverse": "down", "userstore": "down"}
         try:
             await svc.reader.run("RETURN 1", {}, 5)
-            checks["memgraph"] = "ok"
+            checks["traverse"] = "ok"
         except Exception:  # noqa: BLE001 - any failure means not ready
             pass
         try:

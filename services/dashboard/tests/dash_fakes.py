@@ -14,10 +14,11 @@ from sandman_query.auth import RateLimiter
 
 ADMIN_PASSWORD = "admin-password-LEAK-1"
 SERVICE_TOKEN = "service-token-LEAK-2"
-MEMGRAPH_PASSWORD = "memgraph-password-LEAK-3"
+KG_PASSWORD = "kg-password-LEAK-3"
+KG_API_KEY = "tvs_api-key-LEAK-4"
 GATEWAY_PASSWORD = "gateway-password-LEAK-4"
 SESSION_SECRET = "session-secret-LEAK-5"
-SECRETS = [ADMIN_PASSWORD, SERVICE_TOKEN, MEMGRAPH_PASSWORD, GATEWAY_PASSWORD, SESSION_SECRET]
+SECRETS = [ADMIN_PASSWORD, SERVICE_TOKEN, KG_PASSWORD, KG_API_KEY, GATEWAY_PASSWORD, SESSION_SECRET]
 CSRF = re.compile(r'name="csrf" value="([^"]+)"')
 FIXTURE = (Path(__file__).parent / "bifrost-metrics.txt").read_text()
 
@@ -28,16 +29,13 @@ class FakeKg:
 
     async def read(self, cypher: str, **params: Any) -> list[dict[str, Any]]:
         if not self.up:
-            raise OSError("memgraph down")
+            raise OSError("traverse down")
         return [{"ok": 1, "c": 30 if "count(r)" in cypher else 12}]
 
     async def run_autocommit(self, cypher: str, **params: Any) -> list[dict[str, Any]]:
         if not self.up:
-            raise OSError("memgraph down")
-        return [
-            {"storage info": "memory_res", "value": "2.00MiB"},
-            {"storage info": "memory_limit", "value": "8.00GiB"},
-        ]
+            raise OSError("traverse down")
+        return []
 
 
 class FakeGraph:
@@ -126,6 +124,13 @@ class Upstream:
             return httpx.Response(
                 200, json={"budgets": [{"virtual_key_id": "vk-query", "max_limit": 10, "current_usage": 8.5}]}
             )
+        if host == "traverse":
+            if request.headers.get("X-API-Key") != KG_API_KEY:
+                return httpx.Response(401)
+            return httpx.Response(200, json={
+                "status": "ok", "memory_bytes": 2 * 1024**2,
+                "databases": [{"default": True, "name": "traverse", "nodes": 12, "edges": 30}],
+            })  # fmt: skip
         if host == "nats":
             if path == "/healthz":
                 return httpx.Response(200, json={"status": "ok"})
@@ -156,13 +161,16 @@ def make_app(
 ) -> tuple[Any, httpx.AsyncClient]:
     http = httpx.AsyncClient(transport=httpx.MockTransport(upstream))
     settings = Settings(
-        service_name="dashboard", service_token=SERVICE_TOKEN, kg_uri="bolt://x", kg_password=MEMGRAPH_PASSWORD
+        service_name="dashboard", service_token=SERVICE_TOKEN, kg_uri="bolt://x", kg_password=KG_PASSWORD
     )
     app = create_app(
         settings,
         admin_password=ADMIN_PASSWORD,
         state_db=state_db,
         targets=kwargs.pop("targets", TARGETS),
+        kg_health_url="http://traverse:7691",
+        kg_api_key=KG_API_KEY,
+        kg_memory_limit="8GiB",
         nats_monitor_url="http://nats:8222",
         gateway_url="http://gateway:8080",
         gateway_password=GATEWAY_PASSWORD,

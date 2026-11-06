@@ -13,7 +13,7 @@ from sandman_dashboard.alerts import parse_size
 log = logging.getLogger(__name__)
 
 HEALTH = {"down": 0.0, "degraded": 1.0, "up": 2.0}
-GAUGES = ("health", "active_tasks", "memgraph_memory")
+GAUGES = ("health", "active_tasks", "traverse_memory")
 COUNTERS = ("llm_requests", "llm_tokens_in", "llm_tokens_out", "llm_cost", "llm_errors")
 GATEWAY_FIELDS = {
     "llm_requests": "requests",
@@ -35,10 +35,10 @@ def collect(poller: Any) -> list[tuple[str, str, float]]:
         rows.append(("health", name, HEALTH.get(entry.health, 0.0)))
         if entry.active_tasks is not None:
             rows.append(("active_tasks", name, float(entry.active_tasks)))
-    memgraph = poller.entries.get("memgraph")
-    memory = parse_size(memgraph.details.get("memory")) if memgraph is not None and memgraph.health == "up" else None
+    traverse = poller.entries.get("traverse")
+    memory = parse_size(traverse.details.get("memory")) if traverse is not None and traverse.health == "up" else None
     if memory is not None:
-        rows.append(("memgraph_memory", "memgraph", memory))
+        rows.append(("traverse_memory", "traverse", memory))
     snapshot = poller.gateway_snapshot
     if snapshot is not None:
         totals: dict[tuple[str, str], float] = {}

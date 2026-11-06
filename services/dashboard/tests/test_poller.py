@@ -3,35 +3,37 @@ import time
 
 import httpx
 import pytest
-from dash_fakes import SERVICE_TOKEN, TARGETS, FakeKg, Upstream
+from dash_fakes import KG_API_KEY, SERVICE_TOKEN, TARGETS, Upstream
 from sandman_dashboard import poller as poller_module
 from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.poller import Poller, nats_details, parse_targets
 
 
-def make(upstream: Upstream, kg: FakeKg | None = None, targets: dict[str, str] | None = None) -> Poller:
+def make(upstream: Upstream, targets: dict[str, str] | None = None) -> Poller:
     client = httpx.AsyncClient(transport=httpx.MockTransport(upstream))
     return Poller(
         targets or TARGETS,
         client,
         SERVICE_TOKEN,
-        kg=kg,  # type: ignore[arg-type]
+        kg_health_url="http://traverse:7691",
+        kg_api_key=KG_API_KEY,
+        kg_memory_limit="8GiB",
         nats_monitor_url="http://nats:8222",
         gateway=GatewayClient("http://gateway:8080", "pw", client),
     )
 
 
 async def test_all_up_with_infrastructure() -> None:
-    poller = make(Upstream(), FakeKg())
+    poller = make(Upstream())
     await poller.poll_once()
     health = {n: e.health for n, e in poller.entries.items()}
-    assert health == {"orchestrator": "up", "tlr-agent": "up", "memgraph": "up", "nats": "up", "llm-gateway": "up"}
+    assert health == {"orchestrator": "up", "tlr-agent": "up", "traverse": "up", "nats": "up", "llm-gateway": "up"}
     assert poller.entries["orchestrator"].state == "idle" and poller.entries["orchestrator"].version == "1.0"
-    assert poller.entries["memgraph"].details == {
+    assert poller.entries["traverse"].details == {
         "nodes": 12,
         "edges": 30,
-        "memory": "2.00MiB",
-        "memoryLimit": "8.00GiB",
+        "memory": 2 * 1024**2,
+        "memoryLimit": "8GiB",
     }
     assert poller.entries["nats"].details == {
         "stream": {"messages": 7, "bytes": 700},
@@ -121,17 +123,16 @@ async def test_slow_target_does_not_delay_the_others(monkeypatch: pytest.MonkeyP
 async def test_infrastructure_down_and_error_bodies_not_kept() -> None:
     upstream = Upstream()
     upstream.gateway_status = 500
-    kg = FakeKg()
-    kg.up = False
-    poller = make(upstream, kg)
+    upstream.down.add("traverse")
+    poller = make(upstream)
     await poller.poll_once()
-    assert poller.entries["memgraph"].health == "down"
+    assert poller.entries["traverse"].health == "down"
     assert poller.entries["llm-gateway"].health == "up" and poller.gateway_snapshot is None
     assert "LEAK" not in repr(poller.entries)
 
 
 async def test_loop_survives_errors_and_stops() -> None:
-    poller = make(Upstream(), FakeKg())
+    poller = make(Upstream())
     poller.interval = 0.01
     poller.start()
     await asyncio.sleep(0.1)
@@ -178,23 +179,3 @@ async def test_slow_but_healthy_gateway_is_up(monkeypatch: pytest.MonkeyPatch) -
     poller = make(upstream)
     await poller.poll_once()
     assert poller.entries["llm-gateway"].health == "up" and poller.gateway_snapshot is not None
-
-
-async def test_memgraph_counts_are_refreshed_at_a_lower_cadence(monkeypatch: pytest.MonkeyPatch) -> None:
-    kg = FakeKg()
-    calls: list[str] = []
-    original = kg.read
-
-    async def counting(cypher: str, **params: object) -> list[dict[str, object]]:
-        calls.append(cypher)
-        return await original(cypher, **params)
-
-    kg.read = counting  # type: ignore[method-assign]
-    poller = make(Upstream(), kg)
-    await poller.poll_once()
-    await poller.poll_once()
-    assert sum("count(n)" in c for c in calls) == 1
-    assert poller.entries["memgraph"].details["nodes"] == 12
-    monkeypatch.setattr(poller_module, "COUNT_INTERVAL", 0.0)
-    await poller.poll_once()
-    assert sum("count(n)" in c for c in calls) == 2

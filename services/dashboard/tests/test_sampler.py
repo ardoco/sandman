@@ -37,19 +37,19 @@ def test_one_row_set_per_interval_with_health_and_tasks() -> None:
     p = poller(
         tlr=Entry("tlr", "service", "up", active_tasks=3),
         nats=Entry("nats", "infra", "degraded"),
-        memgraph=Entry("memgraph", "infra", "up", details={"memory": "2.00MiB"}),
+        traverse=Entry("traverse", "infra", "up", details={"memory": "2.00MiB"}),
     )
     sampler, db = make(clock, p)
     assert sampler.sample_once() == 5
     clock.t += 30
     assert sampler.sample_once() == 5
     assert rows(db, "health")[:3] == [
-        (1_000_000, "health", "memgraph", 2.0),
         (1_000_000, "health", "nats", 1.0),
         (1_000_000, "health", "tlr", 2.0),
+        (1_000_000, "health", "traverse", 2.0),
     ]
     assert [r[3] for r in rows(db, "active_tasks")] == [3.0, 3.0]
-    assert [r[3] for r in rows(db, "memgraph_memory")] == [2 * 1024**2] * 2
+    assert [r[3] for r in rows(db, "traverse_memory")] == [2 * 1024**2] * 2
 
 
 def test_target_going_down_is_zero_in_the_next_sample() -> None:

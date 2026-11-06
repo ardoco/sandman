@@ -207,7 +207,7 @@ async def test_gateway_errors_do_not_leak(env: Env, alice: dict[str, str]) -> No
 
 async def test_database_errors_do_not_leak(env: Env, alice: dict[str, str], validation: str) -> None:
     async def boom(*args: Any, **kwargs: Any) -> Any:
-        raise Neo4jError("bolt://memgraph:7687 refused for user kg-admin")
+        raise Neo4jError("bolt://traverse:7690 refused for user kg-admin")
 
     env.reader.run = boom  # type: ignore[method-assign]
     env.app.state.service.nl.llm_factory = lambda policy: HostileLlm()
@@ -218,7 +218,7 @@ async def test_database_errors_do_not_leak(env: Env, alice: dict[str, str], vali
     assert direct.status_code == 503
     assert nl.status_code in (500, 503)
     for resp in (direct, nl):
-        assert "memgraph" not in resp.text and "kg-admin" not in resp.text
+        assert "traverse" not in resp.text and "kg-admin" not in resp.text
 
 
 async def test_reserved_parameters_are_refused(env: Env, alice: dict[str, str]) -> None:

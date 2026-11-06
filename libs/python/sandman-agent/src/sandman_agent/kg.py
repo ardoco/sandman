@@ -1,4 +1,4 @@
-"""Knowledge-graph access (Neo4j driver over Bolt to Memgraph) and run provenance."""
+"""Knowledge-graph access (Neo4j driver over Bolt to Traverse) and run provenance."""
 
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
@@ -17,7 +17,12 @@ T = TypeVar("T")
 
 
 class MemoryLimitError(Exception):
-    """Memgraph aborted the query at its memory limit; not retried (Memgraph reports it as transient, spike T0.4)."""
+    """Traverse aborted the query at its memory limit; not retried (Traverse reports it as transient)."""
+
+
+def is_memory_limit(e: Neo4jError) -> bool:
+    """True for the Traverse query memory limit error (--query-memory-limit)."""
+    return e.code == "Neo.TransientError.General.MemoryPoolOutOfMemoryError"
 
 
 def _no_retry_on_memory_limit[R](fn: Callable[[AsyncManagedTransaction], Awaitable[R]]) -> Callable[..., Awaitable[R]]:
@@ -26,7 +31,7 @@ def _no_retry_on_memory_limit[R](fn: Callable[[AsyncManagedTransaction], Awaitab
         try:
             return await fn(tx)
         except Neo4jError as e:
-            if "memory limit exceeded" in (e.message or "").lower():
+            if is_memory_limit(e):
                 raise MemoryLimitError(e.message) from e
             raise
 
@@ -39,7 +44,7 @@ def now() -> str:
 
 
 class KgClient:
-    """read() runs in a read transaction (Memgraph rejects writes there); write() in a write transaction."""
+    """read() runs in a read transaction (Traverse rejects writes there); write() in a write transaction."""
 
     def __init__(self, uri: str, user: str | None, password: str | None, driver: AsyncDriver | None = None) -> None:
         auth = (user, password or "") if user else None
@@ -53,7 +58,7 @@ class KgClient:
         """Run a read query; rows as dicts.
 
         Rule: a query whose rows enter an LLM prompt or set the order of LLM calls must end in ORDER BY on a stable
-        key (e.g. e.id); Memgraph returns unordered rows in no guaranteed order, which breaks replay determinism.
+        key (e.g. e.id); Traverse returns unordered rows in no guaranteed order, which breaks replay determinism.
         """
 
         async def work(tx: AsyncManagedTransaction) -> list[dict[str, Any]]:
@@ -80,17 +85,24 @@ class KgClient:
                 return cast(T, await session.execute_write(_no_retry_on_memory_limit(fn)))
 
     async def run_autocommit(self, cypher: LiteralString, **params: Any) -> list[dict[str, Any]]:
-        """Auto-commit query; Memgraph requires it for schema statements and SHOW STORAGE INFO (spike T0.4)."""
+        """Auto-commit query; schema statements run outside an explicit transaction."""
         async with self._driver.session() as session:
             return [r.data() async for r in await session.run(cypher, params)]
 
     async def init_schema(self, cypher_file: Path) -> None:
-        """Run contracts/kg/init.cypher statement by statement (idempotent)."""
+        """Run contracts/kg/init.cypher statement by statement (idempotent).
+
+        CREATE INDEX and CREATE VECTOR INDEX have no IF NOT EXISTS in Traverse: an 'already exists' error is ignored.
+        """
         code = "\n".join(
             line for line in cypher_file.read_text(encoding="utf-8").splitlines() if not line.lstrip().startswith("//")
         )
         for statement in filter(None, (s.strip() for s in code.split(";"))):
-            await self.run_autocommit(statement)
+            try:
+                await self.run_autocommit(statement)
+            except Neo4jError as e:
+                if "already exists" not in (e.message or ""):
+                    raise
 
 
 class RunRecorder:

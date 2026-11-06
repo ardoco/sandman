@@ -1,4 +1,4 @@
-"""T4.5: strategy graphrag with fake embedding client (fake reader) and on Memgraph (Testcontainers)."""
+"""T4.5: strategy graphrag with fake embedding client (fake reader) and on Traverse (Testcontainers)."""
 
 import asyncio
 import json
@@ -9,11 +9,11 @@ import yaml
 from conftest import Env
 from helpers import validate
 from neo4j import AsyncGraphDatabase
-from neo4j.exceptions import ClientError, ServiceUnavailable, TransientError
+from neo4j.exceptions import ClientError, DatabaseError, ServiceUnavailable, TransientError
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.llm import BudgetExceededError, ChatMessage, ChatRequest, ChatResponse, Usage
 from sandman_query.nl import schema_text
-from test_memgraph import ids, mg  # noqa: F401 - mg is a fixture
+from test_traverse import ids, mg  # noqa: F401 - mg is a fixture
 
 QUESTION = "which parts deal with caching"
 MARKER = "BETA-SECRET-NAME"
@@ -52,18 +52,18 @@ def graph(env: Env, present: bool = True, hits: list[dict[str, Any]] | None = No
     calls: list[tuple[str, dict[str, Any]]] = []
     original = env.reader.run
     hits = hits if hits is not None else [
-        {"key": "a#R1", "similarity": 0.9},
-        {"key": "a#R1", "similarity": 0.8},
-        {"key": "a#R2", "similarity": 0.7},
+        {"key": "a#R1", "score": 0.9},
+        {"key": "a#R1", "score": 0.8},
+        {"key": "a#R2", "score": 0.7},
     ]  # fmt: skip
 
     async def run(cypher: str, params: Any, timeout: float = 10.0, max_rows: int | None = None) -> Any:
         calls.append((cypher, dict(params)))
         if "e.embedding IS NOT NULL" in cypher:
             return ["key"], [["a#R1"]] if present else []
-        if "vector_search" in cypher:
-            return ["key", "projectId", "similarity"], [
-                [h["key"], h.get("projectId") or params["projectId"], h["similarity"]] for h in hits
+        if "queryNodes" in cypher:
+            return ["key", "projectId", "score"], [
+                [h["key"], h.get("projectId") or params["projectId"], h["score"]] for h in hits
             ]
         if "e.text AS text" in cypher:
             return ["key", "name", "kind", "text"], [
@@ -104,7 +104,7 @@ async def test_rows_evidence_and_answer(env: Env) -> None:
     assert keys.count("a#C1") == 5  # maxNeighbours
     assert len(body["rows"][0][3]) == 500
     assert body["answer"].startswith("Caching") and body["citations"] == ["a#C1", "a#U1"]
-    search = next(p for c, p in calls if "vector_search" in c)
+    search = next(p for c, p in calls if "queryNodes" in c)
     assert search["k"] == 100 and search["projectId"] == "alpha" and len(search["vector"]) == DIM
     assert llm.texts == [QUESTION] and llm.routes == ["embed-local"]  # alpha is local-only
 
@@ -137,7 +137,7 @@ async def test_cypher_only_and_dry_run_embed_nothing(env: Env, body: dict[str, A
     llm = FakeLlm()
     resp = await ask(env, llm, **body)
     assert resp.status_code == 200 and "rows" not in resp.json() and resp.json()["warnings"]
-    assert llm.routes == [] and not [c for c, _ in calls if "vector_search" in c]
+    assert llm.routes == [] and not [c for c, _ in calls if "queryNodes" in c]
 
 
 @pytest.mark.parametrize("error", [BudgetExceededError("budget sk-x"), RuntimeError("http://10.0.0.5 sk-secret")])
@@ -148,7 +148,7 @@ async def test_embedding_failure_is_503_without_leak(env: Env, error: Exception)
 
 
 async def test_foreign_hit_is_refused(env: Env) -> None:
-    graph(env, hits=[{"key": MARKER, "projectId": "beta", "similarity": 0.99}])
+    graph(env, hits=[{"key": MARKER, "projectId": "beta", "score": 0.99}])
     resp = await ask(env, FakeLlm())
     assert resp.status_code == 422 and MARKER not in resp.text
 
@@ -175,11 +175,11 @@ async def test_without_llm_access_is_503(env: Env) -> None:
 @pytest.mark.parametrize("strategy", ["cypher", "graphrag"])
 async def test_policy_graph_error_is_503(env: Env, strategy: str) -> None:  # F-5
     async def boom(*args: Any, **kwargs: Any) -> Any:
-        raise ServiceUnavailable("bolt://memgraph:7687 down")
+        raise ServiceUnavailable("bolt://traverse:7690 down")
 
     env.reader.run = boom  # type: ignore[method-assign]
     resp = await ask(env, FakeLlm(), strategy=strategy, question="how many requirements are there")
-    assert resp.status_code == 503 and "memgraph" not in resp.text
+    assert resp.status_code == 503 and "traverse" not in resp.text
 
 
 def test_schema_text_skips_internal_properties() -> None:
@@ -188,7 +188,7 @@ def test_schema_text_skips_internal_properties() -> None:
     assert "embedding" not in text and "name: string" in text
 
 
-# ---------------------------------------------------------------- Memgraph
+# ---------------------------------------------------------------- Traverse
 
 VECTORS = {"r1": onehot(0), "r2": onehot(1), "c1": onehot(2), "u1": onehot(3)}
 
@@ -199,12 +199,12 @@ async def embed_graph(uri: str, with_embeddings: bool = True) -> None:
         for _ in range(60):
             try:
                 result = await s.run(
-                    "CREATE VECTOR INDEX element_embedding ON :Element(embedding) "
-                    'WITH CONFIG {"dimension": 768, "capacity": 1000, "metric": "cos"}'
+                    "CREATE VECTOR INDEX element_embedding FOR (n:Element) ON (n.embedding) "
+                    "OPTIONS {indexConfig: {`vector.dimensions`: 768, `vector.similarity_function`: 'cosine'}}"
                 )
                 await result.consume()
                 break
-            except ClientError as exc:
+            except (ClientError, DatabaseError) as exc:
                 if "already exists" not in str(exc):
                     raise
                 break
@@ -220,7 +220,7 @@ async def embed_graph(uri: str, with_embeddings: bool = True) -> None:
     await driver.close()
 
 
-async def test_memgraph_search_expansion_and_isolation(mg: Env) -> None:  # noqa: F811
+async def test_traverse_search_expansion_and_isolation(mg: Env) -> None:  # noqa: F811
     await embed_graph(mg.kg)  # type: ignore[attr-defined]
     llm = FakeLlm(cites=[ids("alpha", "req", "art") + "#R1"])
     resp = await ask(mg, llm)
@@ -234,7 +234,7 @@ async def test_memgraph_search_expansion_and_isolation(mg: Env) -> None:  # noqa
     assert body["rows"][0][4] is None and body["answer"], body["warnings"]
 
 
-async def test_memgraph_without_embeddings_is_409(mg: Env) -> None:  # noqa: F811
+async def test_traverse_without_embeddings_is_409(mg: Env) -> None:  # noqa: F811
     await embed_graph(mg.kg, with_embeddings=False)  # type: ignore[attr-defined]
     resp = await ask(mg, FakeLlm())
     assert resp.status_code == 409

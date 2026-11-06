@@ -1,4 +1,4 @@
-"""Reserved path prefix and derived artifacts at intake (T2.7, Testcontainers Memgraph + NATS)."""
+"""Reserved path prefix and derived artifacts at intake (T2.7, Testcontainers Traverse + NATS)."""
 
 import hashlib
 import json

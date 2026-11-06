@@ -68,14 +68,13 @@ def register(
     @app.get("/resources")
     async def resources_page(request: Request, ctx: Session) -> HTMLResponse:
         usage = await cadvisor.usage()
-        memgraph = poller.entries.get("memgraph")
-        details = memgraph.details if memgraph is not None and memgraph.health == "up" else {}
-        memgraph_row = None
+        traverse = poller.entries.get("traverse")
+        details = traverse.details if traverse is not None and traverse.health == "up" else {}
+        traverse_row = None
         if parse_size(details.get("memory")) is not None:
-            memgraph_row = {
+            traverse_row = {
                 "resident": details["memory"],
-                "tracked": details.get("memoryTracked"),
                 "limit": details.get("memoryLimit"),
                 "ratio": memory_ratio(details),
             }
-        return page(request, ctx, "resources.html", usage=usage, memgraph=memgraph_row)
+        return page(request, ctx, "resources.html", usage=usage, traverse=traverse_row)

@@ -45,7 +45,7 @@ async def test_public_routes(env: Env) -> None:
     assert (await env.http.get("/static/dashboard.css")).status_code == 200
     env.kg.up = False
     resp = await env.http.get("/readyz")
-    assert resp.status_code == 503 and resp.json()["checks"] == {"memgraph": "down", "sessionstore": "ok"}
+    assert resp.status_code == 503 and resp.json()["checks"] == {"traverse": "down", "sessionstore": "ok"}
 
 
 async def test_login_sets_cookie_with_flags(env: Env) -> None:

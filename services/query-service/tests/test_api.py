@@ -153,7 +153,7 @@ async def test_status_and_health(env: Env) -> None:
     assert (await env.http.get("/healthz")).status_code == 200
     ready = await env.http.get("/readyz")
     validate_shared("Health", ready.json())
-    assert ready.status_code == 200 and ready.json()["checks"] == {"memgraph": "ok", "userstore": "ok"}
+    assert ready.status_code == 200 and ready.json()["checks"] == {"traverse": "ok", "userstore": "ok"}
     assert (await env.http.get("/v1/status")).status_code == 401
     status = await env.http.get("/v1/status", headers=service_headers("orchestrator"))
     assert status.status_code == 200 and status.json()["service"] == "query-service"

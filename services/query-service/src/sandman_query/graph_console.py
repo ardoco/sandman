@@ -133,7 +133,8 @@ class ConsoleGraph(GraphService):
         rows = await self.fixed(
             f"MATCH (a) WHERE id(a) = $a AND {in_project('a')} AND {visible('a')} "
             f"MATCH (b) WHERE id(b) = $b AND {in_project('b')} AND {visible('b')} "
-            f"MATCH p = (a)-[*BFS ..{hops} (r, x | {in_project('x')} AND {visible('x')})]-(b) RETURN p LIMIT 1",
+            f"MATCH p = (a)-[*..{hops}]-(b) WHERE all(x IN nodes(p) WHERE {in_project('x')} AND {visible('x')}) "
+            f"RETURN p ORDER BY length(p) LIMIT 1",
             {"a": self._node_id(source), "b": self._node_id(target), "project": self._project(project),
              "hidden": hidden},
         )  # fmt: skip

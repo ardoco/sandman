@@ -1,31 +1,24 @@
-// SANDMAN KG initialization (idempotent at startup of each writer; executed by the extraction-agent in M0).
-// Memgraph syntax. Composite index support to verify (V-7); single-property indexes are used meanwhile.
-CREATE CONSTRAINT ON (n:Project) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:Ingestion) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:Artifact) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:ArtifactVersion) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:Element) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:Concept) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:TraceLink) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:Inconsistency) ASSERT n.id IS UNIQUE;
-CREATE CONSTRAINT ON (n:Run) ASSERT n.id IS UNIQUE;
-CREATE INDEX ON :Project(id);
-CREATE INDEX ON :Ingestion(id);
-CREATE INDEX ON :Artifact(id);
-CREATE INDEX ON :Artifact(projectId);
-CREATE INDEX ON :ArtifactVersion(id);
-CREATE INDEX ON :Element(id);
-CREATE INDEX ON :Element(key);
-CREATE INDEX ON :Element(projectId);
-CREATE INDEX ON :Concept(id);
-CREATE INDEX ON :TraceLink(id);
-CREATE INDEX ON :TraceLink(projectId);
-CREATE INDEX ON :Inconsistency(id);
-CREATE INDEX ON :Inconsistency(fingerprint);
-CREATE INDEX ON :Inconsistency(projectId);
-CREATE INDEX ON :Run(id);
-CREATE INDEX ON :Run(inputKey);
-CREATE CONSTRAINT ON (n:SchemaVersion) ASSERT n.id IS UNIQUE;
+// SANDMAN KG initialization (idempotent at startup of each writer; executed by the kg-migrate service).
+// Traverse (openCypher) syntax. A unique constraint creates its index; CREATE INDEX and CREATE VECTOR INDEX have no IF NOT EXISTS,
+// so the clients (KgClient.init_schema / initSchema) ignore an 'already exists' error of these statements.
+CREATE CONSTRAINT c_Project_id IF NOT EXISTS FOR (n:Project) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_Ingestion_id IF NOT EXISTS FOR (n:Ingestion) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_Artifact_id IF NOT EXISTS FOR (n:Artifact) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_ArtifactVersion_id IF NOT EXISTS FOR (n:ArtifactVersion) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_Element_id IF NOT EXISTS FOR (n:Element) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_Concept_id IF NOT EXISTS FOR (n:Concept) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_TraceLink_id IF NOT EXISTS FOR (n:TraceLink) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_Inconsistency_id IF NOT EXISTS FOR (n:Inconsistency) REQUIRE n.id IS UNIQUE;
+CREATE CONSTRAINT c_Run_id IF NOT EXISTS FOR (n:Run) REQUIRE n.id IS UNIQUE;
+CREATE INDEX FOR (n:Artifact) ON (n.projectId);
+CREATE INDEX FOR (n:Element) ON (n.key);
+CREATE INDEX FOR (n:Element) ON (n.projectId);
+CREATE INDEX FOR (n:TraceLink) ON (n.projectId);
+CREATE INDEX FOR (n:Inconsistency) ON (n.fingerprint);
+CREATE INDEX FOR (n:Inconsistency) ON (n.projectId);
+CREATE INDEX FOR (n:Run) ON (n.inputKey);
+CREATE CONSTRAINT c_SchemaVersion_id IF NOT EXISTS FOR (n:SchemaVersion) REQUIRE n.id IS UNIQUE;
 MERGE (v:SchemaVersion {id: 'kg'}) ON CREATE SET v.version = 1, v.appliedAt = toString(localDateTime());
-CREATE VECTOR INDEX element_embedding ON :Element(embedding) WITH CONFIG {"dimension": 768, "capacity": 100000, "metric": "cos"};
+CREATE VECTOR INDEX element_embedding FOR (n:Element) ON (n.embedding) OPTIONS {indexConfig: {`vector.dimensions`: 768, `vector.similarity_function`: 'cosine'}};
 MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 2 SET v.version = 2;
+MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 3 SET v.version = 3;

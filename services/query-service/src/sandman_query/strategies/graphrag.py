@@ -21,9 +21,9 @@ DEFAULTS: dict[str, Any] = {"enabled": False, "topK": 5, "overFetch": 20, "maxNe
 TEXT_CHARS = 500
 COLUMNS = ["key", "name", "kind", "text", "relation", "from"]
 PRESENT = "MATCH (e:Element {projectId: $projectId}) WHERE e.embedding IS NOT NULL RETURN e.key AS key LIMIT 1"
-SEARCH = """CALL vector_search.search('element_embedding', $k, $vector) YIELD node, similarity
-WITH node, similarity WHERE node.projectId = $projectId
-RETURN node.key AS key, node.projectId AS projectId, similarity ORDER BY similarity DESC"""
+SEARCH = """CALL db.index.vector.queryNodes('element_embedding', $k, $vector) YIELD node, score
+WITH node, score WHERE node.projectId = $projectId
+RETURN node.key AS key, node.projectId AS projectId, score ORDER BY score DESC"""
 SEEDS = """MATCH (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)-[:HAS_ELEMENT]->(e:Element {projectId: $projectId})
 WHERE e.key IN $keys
 RETURN e.key AS key, e.name AS name, e.kind AS kind, e.text AS text"""
@@ -88,7 +88,7 @@ async def graphrag(
     scores: dict[str, float] = {}
     for hit in found:
         if isinstance(hit.get("key"), str):
-            scores.setdefault(hit["key"], float(hit.get("similarity") or 0.0))
+            scores.setdefault(hit["key"], float(hit.get("score") or 0.0))
     keys = list(scores)[: cfg["topK"]]
     if not keys:
         return out | {"rows": [], "evidence": [], "elapsedMs": int((time.monotonic() - started) * 1000)}

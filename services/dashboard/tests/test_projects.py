@@ -1,4 +1,4 @@
-"""Project statistics: fake-graph page tests; figures against Testcontainers Memgraph (skipped without Docker)."""
+"""Project statistics: fake-graph page tests; figures against Testcontainers Traverse (skipped without Docker)."""
 
 from dash_fakes import Env
 from neo4j import AsyncDriver

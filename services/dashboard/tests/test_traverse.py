@@ -1,4 +1,4 @@
-"""Integration with Testcontainers Memgraph 3.13.1 (skipped without Docker): graph queries, Cypher box, read-only."""
+"""Integration with Testcontainers Traverse 0.9.1 (skipped without Docker): graph queries, Cypher box, read-only."""
 
 import pytest
 from neo4j import AsyncDriver
@@ -14,10 +14,9 @@ REJECTED = [
     "MATCH (n) DELETE n",
     "MATCH (n) DETACH DELETE n",
     "MATCH (n) REMOVE n.id RETURN n",
-    "CALL mg.procedures() YIELD name RETURN name",
+    "CALL db.labels() YIELD label RETURN label",
     "DUMP DATABASE",
-    "SHOW STORAGE INFO",
-    "SHOW INDEX INFO",
+    "SHOW INDEXES",
     "LOAD CSV FROM '/etc/passwd' AS row RETURN row",
     "MATCH (n) RETURN n; MATCH (m) RETURN m",
     "MATCH (n) RETURN n; CREATE (x:X)",
@@ -115,13 +114,11 @@ async def test_truncation_at_500_nodes(driver: AsyncDriver) -> None:
     assert len([e for e in result["elements"] if e["group"] == "nodes"]) == MAX_NODES  # type: ignore[union-attr]
 
 
-async def test_storage_info_runs_autocommit_but_not_in_a_read_transaction(driver: AsyncDriver) -> None:
-    await seed(driver)
+async def test_ddl_runs_autocommit_but_not_in_a_read_transaction(driver: AsyncDriver) -> None:
     kg = KgClient("bolt://unused", None, None, driver=driver)
-    info = {r["storage info"]: r["value"] for r in await kg.run_autocommit("SHOW STORAGE INFO")}
-    assert "memory_res" in info and "memory_limit" in info
+    await kg.run_autocommit("CREATE INDEX FOR (n:Probe) ON (n.p)")
     with pytest.raises(GraphError):
-        await service(driver).run("SHOW STORAGE INFO", {})
+        await service(driver).run("CREATE INDEX FOR (n:Probe) ON (n.q)", {})
 
 
 @pytest.mark.parametrize("statement", REJECTED)
@@ -157,10 +154,10 @@ async def test_cypher_box_returns_table_and_graph(driver: AsyncDriver) -> None:
 
 async def test_cartesian_product_hits_the_memory_limit(driver: AsyncDriver) -> None:
     async with driver.session() as session:
-        await session.run("UNWIND range(1, 300) AS i CREATE (:Element:CodeUnit {id: toString(i), projectId: 'big'})")
-    graph = service(driver, memory_limit="1 MB")
+        await session.run("UNWIND range(1, 3000) AS i CREATE (:Element:CodeUnit {id: toString(i), projectId: 'big'})")
+    graph = service(driver)
     with pytest.raises(GraphError, match="memory limit"):
-        await graph.cypher("MATCH (a), (b), (c) RETURN count(*) AS c ORDER BY c")
+        await graph.cypher("MATCH (a), (b) WITH a, b ORDER BY a.id + b.id RETURN count(*) AS c")
 
 
 async def test_large_cells_and_payload_are_capped(driver: AsyncDriver) -> None:

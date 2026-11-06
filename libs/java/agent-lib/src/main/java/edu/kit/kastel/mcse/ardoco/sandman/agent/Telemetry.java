@@ -165,9 +165,9 @@ public final class Telemetry {
         return tracer().spanBuilder(name).setSpanKind(kind).setAllAttributes(attributes);
     }
 
-    /** Memgraph span; the statement text only, never parameters. */
+    /** Knowledge-graph span; the statement text only, never parameters. */
     public static SpanBuilder kgSpan(String operation, String statement) {
-        var attrs = Attributes.builder().put(ATTR_DB_SYSTEM, "memgraph").put(ATTR_DB_OPERATION, operation);
+        var attrs = Attributes.builder().put(ATTR_DB_SYSTEM, "traverse").put(ATTR_DB_OPERATION, operation);
         if (statement != null) {
             attrs.put(
                     ATTR_DB_STATEMENT,

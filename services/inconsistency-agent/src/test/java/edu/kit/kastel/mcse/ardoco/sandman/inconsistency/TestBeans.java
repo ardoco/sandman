@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import tools.jackson.databind.JsonNode;
 
-/** Test wiring: settings for the Memgraph container and a recording event sink. */
+/** Test wiring: settings for the Traverse container and a recording event sink. */
 final class TestBeans {
 
     static final Map<String, String> TOKENS =

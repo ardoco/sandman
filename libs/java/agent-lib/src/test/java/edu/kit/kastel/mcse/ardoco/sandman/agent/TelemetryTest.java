@@ -134,7 +134,7 @@ class TelemetryTest {
         kg.write("CREATE (n {id: $id})", Map.of("id", "SECRET-VALUE"));
         kg.writeTx(t -> "done");
         SpanData read = span("kg read");
-        assertEquals("memgraph", read.getAttributes().get(Telemetry.ATTR_DB_SYSTEM));
+        assertEquals("traverse", read.getAttributes().get(Telemetry.ATTR_DB_SYSTEM));
         assertEquals("MATCH (n {id: $id}) RETURN n", read.getAttributes().get(Telemetry.ATTR_DB_STATEMENT));
         assertEquals("CREATE (n {id: $id})", span("kg write").getAttributes().get(Telemetry.ATTR_DB_STATEMENT));
         assertNull(span("kg write_tx").getAttributes().get(Telemetry.ATTR_DB_STATEMENT));

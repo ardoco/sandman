@@ -6,22 +6,24 @@ import java.util.Map;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
-/** Shared Memgraph container (started on first use) and fixture helpers. */
+/** Shared Traverse container (started on first use) and fixture helpers. */
 final class TestKg {
 
-    static final GenericContainer<?> MEMGRAPH = new GenericContainer<>("memgraph/memgraph:3.13.1")
-            .withCommand("--telemetry-enabled=false")
-            .withExposedPorts(7687)
-            .waitingFor(Wait.forListeningPort());
+    static final GenericContainer<?> TRAVERSE = new GenericContainer<>(
+                    "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965")
+            .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
+            .withCommand("--data", "/data", "--server-agent", "Neo4j/5.26.0")
+            .withExposedPorts(7690, 7691)
+            .waitingFor(Wait.forHttp("/api/ready").forPort(7691));
 
     static {
-        MEMGRAPH.start();
+        TRAVERSE.start();
     }
 
     private TestKg() {}
 
     static String uri() {
-        return "bolt://" + MEMGRAPH.getHost() + ":" + MEMGRAPH.getMappedPort(7687);
+        return "bolt://" + TRAVERSE.getHost() + ":" + TRAVERSE.getMappedPort(7690);
     }
 
     static KgClient client() {

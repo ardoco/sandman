@@ -16,15 +16,17 @@ import org.neo4j.driver.Session;
 import org.neo4j.driver.TransactionCallback;
 import org.neo4j.driver.exceptions.Neo4jException;
 
-/** Knowledge-graph access over Bolt; read() runs in a read transaction (Memgraph rejects writes there). */
+/** Knowledge-graph access over Bolt; read() runs in a read transaction (Traverse rejects writes there). */
 public final class KgClient implements AutoCloseable {
 
-    /** Memgraph aborted the query at its memory limit; not retried (Memgraph reports it as transient). */
+    /** Traverse aborted the query at its memory limit; not retried (Traverse reports it as transient). */
     public static final class MemoryLimitException extends RuntimeException {
         public MemoryLimitException(String message, Throwable cause) {
             super(message, cause);
         }
     }
+
+    private static final String MEMORY_LIMIT_CODE = "Neo.TransientError.General.MemoryPoolOutOfMemoryError";
 
     private final Driver driver;
 
@@ -69,7 +71,7 @@ public final class KgClient implements AutoCloseable {
         });
     }
 
-    /** Auto-commit query; Memgraph requires it for schema statements and SHOW STORAGE INFO (spike T0.4). */
+    /** Auto-commit query; schema statements run outside an explicit transaction. */
     public List<Map<String, Object>> runAutoCommit(String cypher, Map<String, Object> params) {
         return Telemetry.inSpan(Telemetry.kgSpan("autocommit", cypher), () -> {
             try (Session session = driver.session()) {
@@ -78,7 +80,10 @@ public final class KgClient implements AutoCloseable {
         });
     }
 
-    /** Runs contracts/kg/init.cypher statement by statement (idempotent). */
+    /**
+     * Runs contracts/kg/init.cypher statement by statement (idempotent). CREATE INDEX and CREATE VECTOR INDEX have no IF NOT EXISTS in
+     * Traverse: an "already exists" error is ignored.
+     */
     public void initSchema(Path cypherFile) {
         try {
             String code = Files.readAllLines(cypherFile, StandardCharsets.UTF_8).stream()
@@ -86,7 +91,13 @@ public final class KgClient implements AutoCloseable {
                     .collect(Collectors.joining("\n"));
             for (String statement : code.split(";")) {
                 if (!statement.isBlank()) {
-                    runAutoCommit(statement.strip(), Map.of());
+                    try {
+                        runAutoCommit(statement.strip(), Map.of());
+                    } catch (Neo4jException e) {
+                        if (e.getMessage() == null || !e.getMessage().contains("already exists")) {
+                            throw e;
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
@@ -100,9 +111,8 @@ public final class KgClient implements AutoCloseable {
             try {
                 return work.execute(tx);
             } catch (Neo4jException e) {
-                String message = e.getMessage() == null ? "" : e.getMessage();
-                if (message.toLowerCase(java.util.Locale.ROOT).contains("memory limit exceeded")) {
-                    throw new MemoryLimitException(message, e);
+                if (MEMORY_LIMIT_CODE.equals(e.code())) {
+                    throw new MemoryLimitException(e.getMessage(), e);
                 }
                 throw e;
             }

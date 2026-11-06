@@ -19,15 +19,25 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/** Real Memgraph and NATS containers; skipped without Docker. */
+/** Real Traverse and NATS containers; skipped without Docker. */
 @Testcontainers(disabledWithoutDocker = true)
 class IntegrationTest {
 
     @Container
-    static final GenericContainer<?> MEMGRAPH = new GenericContainer<>("memgraph/memgraph:3.13.1")
-            .withCommand("--telemetry-enabled=false")
-            .withExposedPorts(7687)
-            .waitingFor(Wait.forListeningPort());
+    static final GenericContainer<?> TRAVERSE = new GenericContainer<>(
+                    "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965")
+            .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
+            .withCommand("--data", "/data", "--server-agent", "Neo4j/5.26.0")
+            .withExposedPorts(7690, 7691)
+            .waitingFor(Wait.forHttp("/api/ready").forPort(7691));
+
+    @Container
+    static final GenericContainer<?> TRAVERSE_LIMITED = new GenericContainer<>(
+                    "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965")
+            .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
+            .withCommand("--data", "/data", "--server-agent", "Neo4j/5.26.0", "--query-memory-limit", "32MB")
+            .withExposedPorts(7690, 7691)
+            .waitingFor(Wait.forHttp("/api/ready").forPort(7691));
 
     @Container
     static final GenericContainer<?> NATS = new GenericContainer<>("nats:2.15.0-alpine")
@@ -36,7 +46,7 @@ class IntegrationTest {
             .waitingFor(Wait.forLogMessage(".*Server is ready.*", 1));
 
     static KgClient kg() {
-        return new KgClient("bolt://" + MEMGRAPH.getHost() + ":" + MEMGRAPH.getMappedPort(7687), null, null);
+        return new KgClient("bolt://" + TRAVERSE.getHost() + ":" + TRAVERSE.getMappedPort(7690), null, null);
     }
 
     @Test
@@ -63,12 +73,12 @@ class IntegrationTest {
             String stale = runs.start(RunRecorder.RunInfo.of("mini", "s", "t", "0", "k1"));
             kg.write(
                     "MATCH (r:Run {id: $r}), (old:Element {id: 'keep'}) "
-                            + "CREATE (r)-[:PRODUCED]->(:Element {id: 'drop', runId: $r}) CREATE (r)-[:PRODUCED]->(old)",
+                            + "CREATE (r)-[:PRODUCED]->(:Element {id: 'stale', runId: $r}) CREATE (r)-[:PRODUCED]->(old)",
                     Map.of("r", stale));
             assertEquals(1, runs.cleanupStale("k1"));
             assertEquals(
                     List.of(Map.of("id", "keep")),
-                    kg.read("MATCH (e:Element) WHERE e.id IN ['keep', 'drop'] RETURN e.id AS id", Map.of()));
+                    kg.read("MATCH (e:Element) WHERE e.id IN ['keep', 'stale'] RETURN e.id AS id", Map.of()));
             var status = kg
                     .read(
                             "MATCH (r:Run) WHERE r.id IN [$a, $b] RETURN r.id AS id, r.status AS s",
@@ -125,13 +135,16 @@ class IntegrationTest {
             var initFile = Settings.defaultContractsDir().resolve("kg/init.cypher");
             kg.initSchema(initFile);
             kg.initSchema(initFile);
-            var info = kg.runAutoCommit("SHOW STORAGE INFO", Map.of());
-            assertTrue(info.stream().anyMatch(r -> "memory_res".equals(r.get("storage info"))));
+            var indexes = kg.runAutoCommit("SHOW INDEXES", Map.of());
+            assertTrue(indexes.stream().anyMatch(r -> "element_embedding".equals(r.get("name"))));
+        }
+        try (KgClient kg = new KgClient(
+                "bolt://" + TRAVERSE_LIMITED.getHost() + ":" + TRAVERSE_LIMITED.getMappedPort(7690), null, null)) {
             long started = System.nanoTime();
             assertThrows(
                     KgClient.MemoryLimitException.class,
                     () -> kg.read(
-                            "UNWIND range(1, 2000000) AS i WITH collect(i) AS l RETURN size(l) QUERY MEMORY LIMIT 1 MB",
+                            "UNWIND range(1, 3000) AS a UNWIND range(1, 3000) AS b RETURN a, b ORDER BY b DESC",
                             Map.of()));
             assertTrue((System.nanoTime() - started) / 1_000_000_000L < 5, "memory-limit error must not be retried");
         }

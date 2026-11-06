@@ -2,7 +2,7 @@
 
 `make e2e` runs it after the walking skeleton on the same stack (strict replay from tests/cassettes/walking-skeleton),
 `make record-cassettes` runs it with SANDMAN_UPDATE_GOLDEN=1 against a recording stack and writes the golden file.
-Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_BOLT (default bolt://127.0.0.1:7687), SANDMAN_E2E_PROJECT or
+Environment: SANDMAN_E2E=1 (required), SANDMAN_E2E_BOLT (default bolt://127.0.0.1:7690), SANDMAN_E2E_PROJECT or
 COMPOSE_PROJECT_NAME (docker compose project of the stack, default "sandman"),
 SANDMAN_UPDATE_GOLDEN=1 (write the golden file, not compare).
 """
@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(not os.environ.get("SANDMAN_E2E"), reason="set S
 
 PROJECT = "replay-mini"
 GOLDEN = ROOT / "tests" / "cassettes" / "walking-skeleton" / "kg-canonical.json"
-BOLT = os.environ.get("SANDMAN_E2E_BOLT", "bolt://127.0.0.1:7687")
+BOLT = os.environ.get("SANDMAN_E2E_BOLT", "bolt://127.0.0.1:7690")
 STATUS = (
     "import json,os,urllib.request;"
     "r=urllib.request.Request('http://127.0.0.1:8000/v1/status',headers={'Authorization':'Bearer '+os.environ['T']});"

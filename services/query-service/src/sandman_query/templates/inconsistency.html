@@ -7,6 +7,19 @@
 <p>{{ d.description }}</p>
 {% if evidence %}<h2>Evidence</h2><pre>{{ evidence }}</pre>{% endif %}
 {% include "evidence.html" %}
+{% if can_suggest or suggestion %}
+<h2>Suggestions</h2>
+<p class="muted">AI suggestion, not verified. It changes nothing.</p>
+{% if can_suggest %}<form method="post" action="/console/inconsistencies/{{ d.id }}/suggest"><input type="hidden" name="csrf" value="{{ csrf }}"><button>Suggest resolutions</button></form>{% endif %}
+{% if suggestion %}
+<p class="muted">{{ suggestion.createdAt }}, {{ suggestion.actor }}, model {{ suggestion.resolvedModel }}, prompt {{ suggestion.promptHash[:12] }}</p>
+{% for w in suggestion.warnings %}<p class="muted">{{ w }}</p>{% endfor %}
+<h3>Resolution suggestions</h3>
+<ul>{% for i in suggestion.suggestions %}<li>{{ i.text }} <small>{{ i.evidenceIds | join(", ") }}</small></li>{% else %}<li class="muted">None.</li>{% endfor %}</ul>
+<h3>Clarification questions</h3>
+<ul>{% for i in suggestion.questions %}<li>{{ i.text }} <small>{{ i.evidenceIds | join(", ") }}</small></li>{% else %}<li class="muted">None.</li>{% endfor %}</ul>
+{% endif %}
+{% endif %}
 <h2>Involved</h2>
 <table>
 <tr><th>Role</th><th>What</th><th>Location</th><th>Excerpt</th></tr>

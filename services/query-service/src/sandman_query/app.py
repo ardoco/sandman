@@ -327,6 +327,18 @@ def create_app(
         svc.check(who, "transitionInconsistency")
         return await svc.transition(who, inconsistencyId, await request.body())
 
+    @app.post("/v1/inconsistencies/{inconsistencyId}/suggestions", status_code=201)
+    async def create_suggestion(inconsistencyId: str, request: Request) -> dict[str, Any]:
+        who = svc.authenticate(request.headers.get("authorization"))
+        svc.check(who, "createSuggestion")
+        return await svc.create_suggestion(who, inconsistencyId)
+
+    @app.get("/v1/inconsistencies/{inconsistencyId}/suggestions")
+    async def list_suggestions(inconsistencyId: str, request: Request) -> list[dict[str, Any]]:
+        who = svc.authenticate(request.headers.get("authorization"))
+        svc.check(who, "listSuggestions")
+        return await svc.list_suggestions(who, inconsistencyId)
+
     @app.post("/v1/projects/{projectId}/links/{linkId}/review")
     async def review_trace_link(
         projectId: ProjectId,

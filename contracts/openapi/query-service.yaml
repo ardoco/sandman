@@ -382,6 +382,50 @@ paths:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }
 
+  /v1/inconsistencies/{inconsistencyId}/suggestions:
+    parameters:
+      - $ref: "inconsistency-agent.yaml#/components/parameters/InconsistencyId"
+    post:
+      summary: LLM resolution suggestions and clarification questions for an open inconsistency (T7.5); advice only, off by default, recorded
+      description: Needs severity warning or error and status OPEN or REOPENED. Evidence ids that are not ids of the involved elements or trace links are dropped. Writes no artifact, no KG node and no status.
+      operationId: createSuggestion
+      x-sandman-min-role: triager
+      responses:
+        "201":
+          description: Recorded result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Suggestion" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "409": { $ref: "shared.yaml#/components/responses/Conflict" }
+        "422":
+          description: Severity is info
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "501": { $ref: "shared.yaml#/components/responses/NotImplemented" }
+        "502":
+          description: The model failed or its answer broke the output schema; nothing is recorded
+          content:
+            application/problem+json:
+              schema: { $ref: "shared.yaml#/components/schemas/Problem" }
+        "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
+    get:
+      summary: Recorded suggestions of an inconsistency, newest first
+      operationId: listSuggestions
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Recorded results
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Suggestion" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+
   /v1/projects/{projectId}/workflows:
     parameters:
       - $ref: "shared.yaml#/components/parameters/ProjectId"
@@ -828,6 +872,29 @@ components:
       required: true
       schema: { type: string, pattern: "^[A-Za-z0-9._@-]{2,64}$" }
   schemas:
+    SuggestionItem:
+      type: object
+      required: [text, evidenceIds]
+      properties:
+        text: { type: string, minLength: 1, maxLength: 1000 }
+        evidenceIds: { type: array, minItems: 1, items: { type: string }, description: Ids of involved elements or trace links of the inconsistency. }
+      additionalProperties: false
+    Suggestion:
+      type: object
+      required: [id, inconsistencyId, projectId, createdAt, actor, model, resolvedModel, promptHash, suggestions, questions, warnings]
+      properties:
+        id: { type: string }
+        inconsistencyId: { type: string }
+        projectId: { $ref: "../common.schema.json#/$defs/ProjectId" }
+        createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }
+        actor: { type: string }
+        model: { type: string, description: Logical route. }
+        resolvedModel: { type: string }
+        promptHash: { $ref: "../common.schema.json#/$defs/Sha256" }
+        suggestions: { type: array, maxItems: 5, items: { $ref: "#/components/schemas/SuggestionItem" } }
+        questions: { type: array, maxItems: 5, items: { $ref: "#/components/schemas/SuggestionItem" } }
+        warnings: { type: array, items: { type: string } }
+      additionalProperties: false
     ProjectWithRole:
       type: object
       description: Project (extraction-agent.yaml) plus the caller's role; standalone, because Project forbids additional properties.

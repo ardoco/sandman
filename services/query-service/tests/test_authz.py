@@ -74,7 +74,7 @@ KINDS: dict[str, dict[str, Any]] = {
         "tok_admin_restricted": 404,
     },  # fmt: skip
 }
-PROJECTLESS = {"getInconsistency", "transitionInconsistency", "getWorkflow"}
+PROJECTLESS = {"getInconsistency", "transitionInconsistency", "createSuggestion", "listSuggestions", "getWorkflow"}
 MULTIPART = {"files": {"manifest": (None, '{"mode":"full","files":[]}', "application/json")}}
 # operationId -> (kind, method, path, request kwargs, success statuses)
 OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
@@ -95,6 +95,8 @@ OPS: dict[str, tuple[str, str, str, dict[str, Any], set[int]]] = {
     "getInconsistency": ("read", "GET", f"/v1/inconsistencies/{INC_ID}", {}, {200}),
     "transitionInconsistency": ("triager", "POST", f"/v1/inconsistencies/{INC_ID}/transitions",
                                 {"json": {"to": "ACCEPTED", "expectedStatus": "OPEN", "reason": "r"}}, {200}),
+    "createSuggestion": ("triager", "POST", f"/v1/inconsistencies/{INC_ID}/suggestions", {}, {501}),  # off by default
+    "listSuggestions": ("read", "GET", f"/v1/inconsistencies/{INC_ID}/suggestions", {}, {200}),
     "reviewTraceLink": ("triager", "POST", f"/v1/projects/alpha/links/{LINK_ID}/review",
                         {"json": {"status": "confirmed"}}, {200}),
     "listWorkflows": ("read", "GET", "/v1/projects/alpha/workflows", {}, {200}),

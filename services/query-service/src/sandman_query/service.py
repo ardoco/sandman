@@ -35,6 +35,7 @@ from sandman_query.nl import NlService
 from sandman_query.query import Intents, Runner
 from sandman_query.reader import Reader
 from sandman_query.store import UserStore
+from sandman_query.suggest import PROMPT_HASH, SuggestionError, suggest
 
 log = logging.getLogger(__name__)
 PROJECT_ID = r"^[a-z0-9][a-z0-9-]{1,62}$"
@@ -265,6 +266,30 @@ class Service:
         runs = [r for r in runs if r.get("id")]
         return {"items": items, "links": links[:EVIDENCE_LINKS], "more_links": len(links) > EVIDENCE_LINKS,
                 "runs": runs, "revisions": revisions}  # fmt: skip
+
+    async def create_suggestion(self, who: Principal, iid: str) -> dict[str, Any]:
+        """Suggestions and questions for an open finding of severity warning or error (T7.5); advice only."""
+        detail = (await self.inconsistency(who, iid, "createSuggestion")).json()  # authorizes first
+        if not self.nl.config["suggestions"]["enabled"]:
+            raise HTTPException(501, "suggestions are not enabled (config/query/strategies.yaml)")
+        if not self.nl.can_call_llm():
+            raise HTTPException(503, "LLM unavailable")
+        if detail["status"] not in ("OPEN", "REOPENED"):
+            raise HTTPException(409, "suggestions are only available for open inconsistencies")
+        if detail["severity"] == "info":
+            raise HTTPException(422, "suggestions need severity warning or error")
+        client, route = await self.nl.llm(detail["projectId"])
+        try:
+            out, model = await suggest(client, route, detail["projectId"], detail)
+        except SuggestionError as e:
+            raise HTTPException(502, f"suggestion failed: {e}") from None
+        return self.store.add_suggestion(
+            iid, detail["projectId"], who.actor or who.name, route, model, PROMPT_HASH, out
+        )
+
+    async def list_suggestions(self, who: Principal, iid: str) -> list[dict[str, Any]]:
+        await self.inconsistency(who, iid, "listSuggestions")
+        return self.store.list_suggestions(iid)
 
     async def transition(self, who: Principal, iid: str, body: bytes) -> Response:
         detail = await self.inconsistency(who, iid, "transitionInconsistency")

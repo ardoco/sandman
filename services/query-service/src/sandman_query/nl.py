@@ -88,6 +88,7 @@ class NlService:
             "cypher": {**DEFAULTS["cypher"], **configured.get("cypher", {})},
             "graphrag": {**GRAPHRAG_DEFAULTS, **configured.get("graphrag", {})},
         }
+        self.config["suggestions"] = {"enabled": False, **raw.get("suggestions", {})}  # T7.5, not a strategy
         schema = yaml.safe_load((settings.contracts_dir / "kg" / "schema.yaml").read_text(encoding="utf-8"))
         self.system = f"{RULES}\n\nSchema:\n{schema_text(schema)}"
         examples_file = config_dir / "query" / "examples.yaml"

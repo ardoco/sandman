@@ -295,4 +295,4 @@ def test_build_from_environment(tmp_path: Path) -> None:
     admin = svc.store.get_user("admin")
     assert admin["must_change_password"] and svc.cookie_secure  # type: ignore[index]
     assert svc.store.verify_password("admin", "bootstrap-secret")
-    assert svc.store.db.execute("PRAGMA user_version").fetchone()[0] == 1
+    assert svc.store.db.execute("PRAGMA user_version").fetchone()[0] == 2

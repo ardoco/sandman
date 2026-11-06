@@ -15,3 +15,5 @@ strategies:
     dimension: 768       # = vector index element_embedding
   explore:
     enabled: false
+suggestions:
+  enabled: false         # T7.5: POST /v1/inconsistencies/{id}/suggestions; advice only, severity warning or error, recorded

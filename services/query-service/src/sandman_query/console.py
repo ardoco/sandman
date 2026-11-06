@@ -327,9 +327,24 @@ def build_router(svc: Service) -> APIRouter:
         evidence = json.dumps(d["evidence"], indent=2, ensure_ascii=False) if d.get("evidence") else ""
         can = ctx.who.level(d["projectId"]) >= LEVEL["triager"]
         ev = await svc.evidence(d["projectId"], d)
+        enabled = svc.nl.config["suggestions"]["enabled"]
+        sug = svc.store.list_suggestions(iid)[:1] if enabled else []
+        can_suggest = enabled and can and d["severity"] != "info" and d["status"] in ("OPEN", "REOPENED")
         return render(
-            ctx, "inconsistency.html", status, d=d, evidence=evidence, ev=ev, can_transition=can, causes=CAUSES, **extra
-        )
+            ctx, "inconsistency.html", status, d=d, evidence=evidence, ev=ev, can_transition=can, causes=CAUSES,
+            suggestion=sug[0] if sug else None, can_suggest=can_suggest, **extra,
+        )  # fmt: skip
+
+    @router.post("/inconsistencies/{iid}/suggest")
+    async def suggest_action(iid: str, request: Request, ctx: Ctx = Session) -> Response:
+        await form(request, ctx)
+        try:
+            await svc.create_suggestion(ctx.who, iid)
+        except HTTPException as e:
+            if e.status_code in (404, 403):
+                raise
+            return await detail_page(ctx, iid, e.status_code, message=str(e.detail), error=True)
+        return redirect(f"/console/inconsistencies/{iid}")
 
     @router.get("/inconsistencies/{iid}")
     async def inconsistency(iid: str, ctx: Ctx = Session) -> HTMLResponse:

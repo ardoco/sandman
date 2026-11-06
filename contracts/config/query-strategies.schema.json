@@ -6,6 +6,12 @@
   "type": "object",
   "properties": {
     "classifierThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+    "suggestions": {
+      "description": "T7.5: LLM resolution suggestions and clarification questions for open inconsistencies of severity warning or error. Off by default.",
+      "type": "object",
+      "properties": { "enabled": { "type": "boolean" } },
+      "additionalProperties": false
+    },
     "strategies": {
       "type": "object",
       "properties": {

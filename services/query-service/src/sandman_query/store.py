@@ -1,6 +1,7 @@
 """SQLite user store: users, memberships, personal tokens, console sessions, last visits (ADR-0013)."""
 
 import hashlib
+import json
 import secrets
 import sqlite3
 import uuid
@@ -208,6 +209,29 @@ class UserStore:
             "INSERT INTO last_visits VALUES (?, ?, ?) ON CONFLICT (username, project) DO UPDATE SET visited_at = ?",
             (username, project, now(), now()),
         )
+
+    # ---------------------------------------------------------- suggestions (T7.5)
+
+    def add_suggestion(self, iid: str, project: str, actor: str, route: str, model: str, prompt_hash: str,
+                       payload: dict[str, Any]) -> dict[str, Any]:  # fmt: skip
+        rec = {"id": "sug_" + uuid.uuid4().hex, "inconsistencyId": iid, "projectId": project, "createdAt": now(),
+               "actor": actor, "model": route, "resolvedModel": model, "promptHash": prompt_hash} | payload  # fmt: skip
+        self.db.execute(
+            "INSERT INTO suggestions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (rec["id"], iid, project, rec["createdAt"], actor, route, model, prompt_hash, json.dumps(payload)),
+        )
+        return rec
+
+    def list_suggestions(self, iid: str) -> list[dict[str, Any]]:
+        rows = self.db.execute(
+            "SELECT * FROM suggestions WHERE inconsistency_id = ? ORDER BY created_at DESC, rowid DESC", (iid,)
+        )
+        return [
+            {"id": r["id"], "inconsistencyId": iid, "projectId": r["project"], "createdAt": r["created_at"],
+             "actor": r["actor"], "model": r["route"], "resolvedModel": r["resolved_model"],
+             "promptHash": r["prompt_hash"]} | json.loads(r["payload"])
+            for r in rows
+        ]  # fmt: skip
 
 
 def row_dict(row: sqlite3.Row) -> dict[str, Any]:

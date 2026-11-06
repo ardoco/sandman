@@ -135,6 +135,18 @@ curl -s -X POST -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: appl
   http://127.0.0.1:8080/v1/inconsistencies/inc_.../transitions
 ```
 
+### Suggestions and questions
+
+The system can suggest resolutions and ask clarification questions for an open finding. This feature uses an LLM. It is off by default.
+
+1. Set `suggestions.enabled: true` in `config/query/strategies.yaml`.
+2. Open the finding page. The finding must have status `OPEN` or `REOPENED` and severity `warning` or `error`.
+3. Select **Suggest resolutions**. Triager role or higher is required.
+
+The result lists at most five suggestions and five questions. Each item names the ids of the elements or links it is based on. The system drops items that name no id of the finding. A suggestion is not verified. It never changes an artifact or a status.
+
+Each result is recorded with the actor, the model and a hash of the prompt. The API is `POST /v1/inconsistencies/{id}/suggestions` and `GET` on the same path. Disabled answers `501`, severity `info` answers `422`, another status answers `409`, and a model failure answers `502`.
+
 ### What the system does by itself
 
 After each detection run, for findings within the run's scope:

@@ -23,6 +23,29 @@ curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/
   -d '{"projectId":"demo","question":"untraced requirements"}' http://127.0.0.1:8080/v1/query/nl
 ```
 
+### Ask about an earlier state
+
+Add `asOf` or `asOfRevision` to read the project as it was after an earlier ingestion. All strategies support this. Send at most one of the two fields.
+
+| Field | Meaning |
+| --- | --- |
+| `asOf` | Time (ISO-8601). The newest ingestion that is not later than this time. |
+| `asOfRevision` | Source revision, for example a Git commit. The newest ingestion with this revision. |
+
+```sh
+curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/json' \
+  -d '{"projectId":"demo","question":"untraced requirements","asOf":"2026-10-02T12:00:00Z"}' \
+  http://127.0.0.1:8080/v1/query/nl
+```
+
+The response has an `asOf` member with the ingestion that was read: `ingestionSeq`, `ingestedAt` and `sourceRevision`.
+
+- Retention (see Operations) removes old versions. If `asOf` is older than the history that is left, the answer is 422 and names retention.
+- An unknown or removed `asOfRevision` answers 422.
+- Trace links and inconsistencies have no end time. They show their state now, for elements that existed then. The response has a warning for this.
+- The intents `links of`, `open inconsistencies` and `what changed since` do not read artifact versions. With `asOf` they answer 422.
+- The raw Cypher endpoint, the exports and the console do not support `asOf`.
+
 ## Cypher
 
 `POST /v1/query/cypher` runs a read query against the graph (Traverse, openCypher dialect). The console has a Cypher box in the [graph explorer](#graph-explorer-console).

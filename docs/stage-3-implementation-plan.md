@@ -111,7 +111,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T7.6 | Grounding checks: LLM-produced facts must cite existing KG elements; cross-approach agreement count as trust signal | S | M4 | [T7.6](tasks/T7.6-grounding-checks.md) |
 | **M8** | | | | |
 | T8.1 | Developer user study (usefulness, trust, task time, cognitive load), pre-registered in `experiments/PROTOCOL.md`, pilot first | L | M6, T5.5 | |
-| T8.2 | Feedback-driven adaptation experiment (few-shot from reviewed links, per-project thresholds); feedback snapshot hash in `configHash`; off by default | L | T6.1 | |
+| T8.2 | Feedback-driven adaptation experiment (few-shot from reviewed links, per-project thresholds); feedback snapshot hash in `configHash`; off by default | L | T6.1 | [T8.2](tasks/T8.2-feedback-adaptation.md) |
 | **MX** | | | | |
 | TX.1 | TypeScript agent kit (`@a2a-js/sdk` 1.x, `nats.js` v3, `neo4j-driver` 6, `openai`, Ajv 2020, `canonicalize`, OTel): skill server convention, auth, status, completion events, KG client (auto-commit, memory-limit), run provenance, ids/keys/fingerprints, contract validation; CI job, Dockerfile template | M–L | M0 | |
 | TX.2 | Go agent kit (`a2a-go` v2, `nats.go`, `neo4j-go-driver` v6, `openai-go`, `santhosh-tekuri/jsonschema` v6, cyberphone JCS, OTel); same scope | M–L | M0 | |

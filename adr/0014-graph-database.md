@@ -92,3 +92,4 @@ T1.8 benchmark report (latency p50/p95 for the walking-skeleton and M1 workloads
   * The Java Neo4j driver rejects a server that does not identify as Neo4j. The server flag `--server-agent Neo4j/5.26.0` is the workaround.
   * The licence of Traverse is to be verified before a release.
   * Fallback order if Traverse fails: ArcadeDB, then Neo4j.
+  * A unique constraint makes inserts slow on Traverse. The cost grows faster than the node count (see `docs/tasks/T-kg-traverse-migration.md`). The batch size has no effect. Keep the constraints in the normal ingest path (ADR-0005). Only the `make perf` filler creates them after the bulk load.

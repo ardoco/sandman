@@ -33,18 +33,41 @@ Memgraph Community is BSL 1.1. The project prefers a store with a different lice
 | Vector dimension | The index does not validate it. The embedding writer checks 768. |
 | Replay cassettes | The prompt change did not touch any cassette. 53 NL and replay tests pass. No re-record was needed. |
 | Memory-limit tests | Test containers use `--query-memory-limit` 64 MB (Python) and 32 MB (Java). |
-| Insert speed | See the table below. The unique constraint slows inserts a lot. |
+| Insert speed | See the section below. The unique constraint slows inserts a lot. |
 
-### Insert speed (open issue)
+### Insert speed
 
-5 000 nodes (`UNWIND ... CREATE`), one local container, amd64 emulation on arm64:
+Measured 2026-11-06 on one local container, amd64 emulation on arm64. Each case inserts nodes with six properties into a fresh label.
 
-| Unique constraint | Batch 1000 | Batch 100 |
+Effect of the batch size (20 000 nodes, `UNWIND ... CREATE`, unique constraint on `id` created before the load):
+
+| Batch size | Time |
+|---|---|
+| 1 000 | 24.9 s |
+| 5 000 | 25.4 s |
+| 10 000 | 24.4 s |
+
+The batch size has no effect. `MERGE` on the constrained `id` shows the same: 16.7 s for all three sizes.
+
+Effect of the constraint position (20 000 nodes, batch 5 000):
+
+| Case | Load time | Constraint creation |
 |---|---|---|
-| no | 0.08 s | 0.20 s |
-| yes | 1.55 s | 2.16 s |
+| Constraint before the load | 25.4 s | none |
+| Constraint after the load (`CREATE`) | 0.44 s | 0.02 s |
+| Index only before the load | 0.37 s | none |
+| `MERGE` without constraint or index | 24.5 s | 0.01 s |
 
-The constraint costs about 20 times more at this size. Check the cost at 200 000 nodes with `make perf` before a release.
+The cost depends on the constraint, not on the batch. It grows faster than the node count: 5 000 nodes take 1.3 s, 20 000 nodes take 19 s. An index on the property costs almost nothing. `MERGE` needs the index on the key. Without it, `MERGE` scans the label.
+
+Decision:
+
+* Keep the unique constraints in the normal ingest path. They guard the correctness of ADR-0005.
+* Keep the batch sizes. A larger batch gives no gain.
+* Change the `make perf` filler (`seed_clones` in `scripts/perf.py`). It drops each constraint, creates an index on the property, loads the clones, and creates the constraint again. The new constraint fails on duplicate ids, so the load is still checked.
+* Result of the filler on a scratch container (20 000 nodes): 2.9 s with the change, 17.0 s before. The constraints are active after the run.
+
+Open: the per-batch cost of the normal writers stays. A writer that ingests many new nodes into one label pays the quadratic cost. Ask the Traverse vendor about it, or re-check with a newer version.
 
 ## Verification
 

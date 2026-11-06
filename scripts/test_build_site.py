@@ -109,3 +109,24 @@ def test_extraction_agent_internals(data):
 def test_java_library_internals_count_tests(data):
     i = comp(data, "agent-lib")["internals"]
     assert i["files"]["source"] and i["testCount"] > 0
+
+
+def test_zone_grid_is_valid_and_every_zone_has_cards(data):
+    zones = data["zones"]
+    cells = {(z["col"], z["row"]) for z in zones}
+    assert len(cells) == len(zones) and all(0 <= z["col"] < 4 and z["row"] >= 0 for z in zones)
+    assert all(z.get("span", 1) <= 4 for z in zones)
+    used = {c["zone"] for c in data["components"]}
+    assert used == {z["id"] for z in zones}
+
+
+def test_every_flow_and_edge_endpoint_has_a_details_entry(data):
+    ids = {c["id"] for c in data["components"]}
+    detailed = {c["id"] for c in data["components"] if c["summary"] and c["details"] and c["flow"]}
+    assert ids == detailed
+    assert {i for s in data["flow"] for i in s["components"]} <= ids
+    assert {e[k] for e in data["edges"] for k in ("from", "to")} <= ids
+
+
+def test_status_line_stays_short(data):
+    assert "(" not in data["status"] and len(data["status"]) < 400

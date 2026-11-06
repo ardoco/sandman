@@ -79,7 +79,7 @@ async def suggest(client: LlmClient, route: str, project: str, detail: dict[str,
         _VALIDATOR.validate(data)
     except Exception as e:  # noqa: BLE001 - any model, parse or schema failure is one error for the caller
         raise SuggestionError(type(e).__name__) from None
-    out = {k: ground(data[k], allowed) for k in ("suggestions", "questions")}
+    out: dict[str, Any] = {k: ground(data[k], allowed) for k in ("suggestions", "questions")}
     dropped = sum(len(data[k]) - len(out[k]) for k in out)
     out["warnings"] = [f"{dropped} item(s) dropped: no evidence id of the finding"] if dropped else []
     return out, resp.resolved_model

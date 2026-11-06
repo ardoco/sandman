@@ -2,7 +2,7 @@
 
 Milestone MX · Effort M–L · Depends on: M0 · Risk: RK-14 (maintenance cost per language)
 
-Status: open. Kit and conformance tests are in scope. Two preconditions of ADR-0017 are not met (see Preconditions).
+Status: kit built in `libs/typescript/sandman-agent` (64 unit and conformance tests, CI job `typescript`, `libs/typescript/Dockerfile.template`). The interop test and a Traverse integration test are open. Two preconditions of ADR-0017 are not met (see Preconditions).
 
 ## Context
 

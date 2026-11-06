@@ -18,6 +18,7 @@ jobs:
       contracts: ${{ steps.filter.outputs.contracts }}
       python: ${{ steps.filter.outputs.python }}
       java: ${{ steps.filter.outputs.java }}
+      typescript: ${{ steps.filter.outputs.typescript }}
       compose: ${{ steps.filter.outputs.compose }}
     steps:
       - uses: actions/checkout@v7
@@ -54,6 +55,10 @@ jobs:
               - 'services/code-extractor-ardoco/**'
               - 'pom.xml'
               - 'scripts/ardoco-id-bootstrap.sh'
+              - '.github/workflows/**'
+            typescript:
+              - 'contracts/**'
+              - 'libs/typescript/**'
               - '.github/workflows/**'
             compose:
               - 'deploy/**'
@@ -119,6 +124,25 @@ jobs:
           key: ardoco-id-${{ steps.ardoco.outputs.sha }}
       - run: make ardoco
       - run: mvn -B verify
+
+  typescript:
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: libs/typescript
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: libs/typescript/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck --workspaces
+      - run: npm test --workspaces
+      - run: npm run guard --workspaces
 
   compose:
     needs: changes

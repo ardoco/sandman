@@ -1,0 +1,19 @@
+# Template for a TypeScript SANDMAN agent. Copy to services/<agent>/Dockerfile and replace <agent>.
+# Caution: pin the base image digest (node:22-slim@sha256:...) before use, as the other Dockerfiles do.
+# The kit imports use .ts extensions. Node 22.18 or later runs them with built-in type stripping.
+FROM node:22-slim AS build
+WORKDIR /app
+COPY libs/typescript/package.json libs/typescript/package-lock.json ./
+COPY libs/typescript/sandman-agent libs/typescript/sandman-agent
+COPY services/<agent> services/<agent>
+RUN npm ci --omit=dev
+
+FROM node:22-slim
+RUN useradd --uid 10001 --create-home sandman
+WORKDIR /app
+COPY --from=build /app /app
+COPY contracts /contracts
+ENV SANDMAN_CONTRACTS_DIR=/contracts SANDMAN_AGENT_CARD=/contracts/agent-cards/<agent>.json NODE_ENV=production
+USER sandman
+EXPOSE 8000
+CMD ["node", "services/<agent>/src/main.ts"]

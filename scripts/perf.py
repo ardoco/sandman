@@ -2,11 +2,14 @@
 
 Run: `make perf` (uv run python scripts/perf.py [--files 1000] [--delta 100] [--kg-nodes 200000] [--keep]).
 
-Starts the scratch compose project `sandman-perf` (never `sandman`): Memgraph on 127.0.0.1:17687, query-service on
-127.0.0.1:18080, CoreNLP local, plugin stubs, LLM enrichment and LiSSA off (no LLM credentials needed). Then:
+Starts the scratch compose project `sandman-perf` (never `sandman`): Traverse on 127.0.0.1:17690 (Bolt),
+17691 (HTTP),
+query-service on 127.0.0.1:18080, CoreNLP local, plugin stubs,
+LLM enrichment and LiSSA off (no LLM credentials).
+Then:
 1. ingest of a deterministic synthetic project (`--files` files, md/xml/java), end to end up to the workflow end;
 2. incremental ingest of `--delta` changed files;
-3. Memgraph: seeded KG (experiments/nlquery/seed_kg.py data, cloned per project id) up to `--kg-nodes` nodes, memory and
+3. Traverse: seeded KG (experiments/nlquery/seed_kg.py data, cloned per project id) up to `--kg-nodes` nodes, memory and
    snapshot size per step, latency of the NL benchmark Cypher queries over bolt and a few queries over the HTTP path.
 Container memory comes from `docker stats` (sampled every 3 s). Output: JSON file and a table; exit 1 if a budget fails.
 The four time items of the ingest are judged per unit (documents, pairs, changed files) next to the absolute limit. A
@@ -41,10 +44,12 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT / "experiments/nlquery"), str(ROOT / "tests/e2e")]
 
 PROJECT = "sandman-perf"
-BOLT = "bolt://127.0.0.1:17687"
+BOLT = "bolt://127.0.0.1:17690"
+TRAVERSE_HTTP = "http://127.0.0.1:17691"
 HTTP = "http://127.0.0.1:18080"
 SERVICES = [
-    "memgraph",
+    "traverse",
+    "traverse-health",
     "kg-migrate",
     "nats",
     "llm-gateway",
@@ -70,8 +75,8 @@ BUDGET: dict[str, tuple[str, float]] = {  # id -> (unit, limit); keep equal to d
     "query-bolt-p50": ("ms", 20),
     "query-bolt-p95": ("ms", 250),
     "query-http-p95": ("ms", 1000),
-    "memgraph-memory": ("MiB", 4096),
-    "memgraph-bytes-per-node": ("KiB", 16),
+    "traverse-memory": ("MiB", 4096),
+    "traverse-bytes-per-node": ("KiB", 16),
     "snapshot-size": ("MiB", 1024),
     "snapshot-time": ("s", 60),
     "container-memory": ("% of mem_limit", 85),
@@ -205,7 +210,10 @@ class Compose:
         mount = {"volumes": [f"{self.cfg}:/config:ro"]}
         services = {s: dict(mount) for s in ("extraction-agent", "tlr-agent", "inconsistency-agent", "orchestrator")}
         services["query-service"] = {**mount, "networks": ["internal", "edge"], "ports": ["127.0.0.1:18080:8000"]}
-        services["memgraph"] = {"networks": ["internal", "edge"], "ports": ["127.0.0.1:17687:7687"]}
+        services["traverse"] = {
+            "networks": ["internal", "edge"],
+            "ports": ["127.0.0.1:17690:7690", "127.0.0.1:17691:7691"],
+        }
         self.override.write_text(yaml.safe_dump({"services": services}))
 
     def dc(self, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -274,26 +282,24 @@ class Sampler(threading.Thread):
             self.stop.wait(3)
 
 
+def traverse_headers() -> dict[str, str]:
+    return {"X-API-Key": (ROOT / "deploy/secrets/traverse_api_key").read_text().strip()}
+
+
 def storage_info(driver: Any) -> dict[str, Any]:
-    with driver.session() as s:
-        info = {r[0]: r[1] for r in s.run("SHOW STORAGE INFO")}
-        vertices = s.run("MATCH (n) RETURN count(n)").single()[0]
-        edges = s.run("MATCH ()-[r]->() RETURN count(r)").single()[0]
-    return {
-        "vertices": vertices,
-        "edges": edges,
-        "memoryResMiB": round(mib(str(info["memory_res"])), 1),
-        "memoryTrackedMiB": round(mib(str(info["memory_tracked"])), 1),
-    }
+    health = httpx.get(f"{TRAVERSE_HTTP}/api/health", headers=traverse_headers(), timeout=30).json()
+    db = next(d for d in health["databases"] if d["default"])
+    return {"vertices": db["nodes"], "edges": db["edges"], "memoryMiB": round(health["memory_bytes"] / 1048576, 1)}
 
 
 def snapshot_size(driver: Any, comp: Compose) -> dict[str, float]:
     started = time.monotonic()
-    with driver.session() as s:
-        s.run("CREATE SNAPSHOT").consume()
+    httpx.post(f"{TRAVERSE_HTTP}/api/save", headers=traverse_headers(), timeout=600).raise_for_status()
     took = time.monotonic() - started
-    out = comp.dc("exec", "-T", "memgraph", "sh", "-c", "stat -c %s $(ls -t /var/lib/memgraph/snapshots/* | head -n 1)")
-    return {"sizeMiB": round(int(out.stdout.strip()) / 1048576, 2), "seconds": round(took, 2)}
+    with tempfile.TemporaryDirectory() as tmp:
+        comp.dc("cp", "traverse:/data/traverse.tvdb", f"{tmp}/traverse.tvdb")
+        size = Path(tmp, "traverse.tvdb").stat().st_size
+    return {"sizeMiB": round(size / 1048576, 2), "seconds": round(took, 2)}
 
 
 def ingest_phase(stack: Any, root: Path, label: str, known: set[str], timeout: float) -> dict[str, Any]:
@@ -467,7 +473,7 @@ def oom_killed() -> list[str]:
 
 
 def evaluate(result: dict[str, Any]) -> list[dict[str, Any]]:
-    ing, inc, kg = result.get("ingest"), result.get("incremental"), result.get("memgraph")
+    ing, inc, kg = result.get("ingest"), result.get("incremental"), result.get("traverse")
     values: dict[str, float | None] = {}
     if ing:
         values |= {
@@ -487,8 +493,8 @@ def evaluate(result: dict[str, Any]) -> list[dict[str, Any]]:
             "query-bolt-p50": kg["bolt"]["p50Ms"],
             "query-bolt-p95": kg["bolt"]["p95Ms"],
             "query-http-p95": kg["http"]["p95Ms"],
-            "memgraph-memory": last["memoryResMiB"],
-            "memgraph-bytes-per-node": round(last["memoryTrackedMiB"] * 1024 / max(1, last["vertices"]), 2),
+            "traverse-memory": last["memoryMiB"],
+            "traverse-bytes-per-node": round(last["memoryMiB"] * 1024 / max(1, last["vertices"]), 2),
             "snapshot-size": kg["snapshot"]["sizeMiB"],
             "snapshot-time": kg["snapshot"]["seconds"],
         }
@@ -599,7 +605,7 @@ def main(argv: list[str] | None = None) -> int:
             steps = [{"copies": 0, **storage_info(driver)}]
             steps += seed_clones(driver, args.kg_nodes, steps[0]["vertices"])
             copies = steps[-1]["copies"]
-            result["memgraph"] = {
+            result["traverse"] = {
                 "steps": steps,
                 "snapshot": snapshot_size(driver, comp),
                 "bolt": query_latency(driver, copies, args.reps),

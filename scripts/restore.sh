@@ -24,7 +24,7 @@ tar -xzf "$archive" -C "$work"
 
 field() { sed -n "s/^  \"$1\": \"\{0,1\}\([^\",]*\)\"\{0,1\},\{0,1\}\$/\1/p" "$work/manifest.json"; }
 [ "$(field formatVersion)" = "$FORMAT" ] || die "archive format $(field formatVersion) is not supported (need $FORMAT)"
-[ "$(field memgraphImage)" = "$(memgraph_image)" ] || die "Memgraph image mismatch: archive $(field memgraphImage), stack $(memgraph_image)"
+[ "$(field traverseImage)" = "$(traverse_image)" ] || die "Traverse image mismatch: archive $(field traverseImage), stack $(traverse_image)"
 latest=$(grep -o 'v\.version = [0-9]*' "$ROOT/contracts/kg/init.cypher" | sed 's/.*= //' | sort -n | tail -n 1)
 [ "$(field kgSchemaVersion)" -le "$latest" ] || die "KG schema $(field kgSchemaVersion) is newer than this repository ($latest)"
 for pair in orchestrator.db:orchestrator users.db:query-service dashboard.db:dashboard; do
@@ -36,7 +36,7 @@ done
 [ -f "$work/secrets.tar" ] && [ "$with_secrets" = 0 ] && echo "note: the archive holds secrets; use --with-secrets to restore them" >&2
 
 in_volume() { dc run --rm --no-deps -T -u root --entrypoint sh "$1" -c "$2"; }
-volumes="memgraph:/var/lib/memgraph orchestrator:/data query-service:/data extraction-agent:/artifacts"
+volumes="orchestrator:/data query-service:/data extraction-agent:/artifacts"
 [ ! -f "$work/sqlite-dashboard.tar" ] || volumes="$volumes dashboard:/data"
 
 if [ "$force" = 0 ]; then
@@ -45,12 +45,15 @@ if [ "$force" = 0 ]; then
     n=$(in_volume "${v%%:*}" "ls -A ${v##*:} | wc -l") || die "cannot inspect ${v##*:} of ${v%%:*}"
     [ "$n" -eq 0 ] || die "volume ${v##*:} of ${v%%:*} is not empty; use --force to overwrite it"
   done
+  dc create traverse >/dev/null 2>&1
+  ! dc cp traverse:/data/traverse.tvdb - >/dev/null 2>&1 || die "volume /data of traverse is not empty; use --force to overwrite it"
 else
   dc down
 fi
 
 put() { in_volume "$1" "find $2 -mindepth 1 -delete && tar -C $2 -xpf -" < "$3"; }
-put memgraph /var/lib/memgraph "$work/memgraph.tar"
+dc create traverse >/dev/null 2>&1
+dc cp "$work/traverse.tvdb" traverse:/data/traverse.tvdb
 put orchestrator /data "$work/sqlite-orchestrator.tar"
 put query-service /data "$work/sqlite-query-service.tar"
 [ ! -f "$work/sqlite-dashboard.tar" ] || put dashboard /data "$work/sqlite-dashboard.tar"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Backup of a running SANDMAN stack: Memgraph snapshot, SQLite online backups, artifact store.
+# Backup of a running SANDMAN stack: Traverse save, SQLite online backups, artifact store.
 # Usage: scripts/backup.sh [--out DIR] [--keep N] [--include-secrets]
 set -eu
 . "$(dirname "$0")/backup-common.sh"
@@ -20,7 +20,7 @@ mkdir -p "$out"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-for s in memgraph orchestrator query-service; do
+for s in traverse orchestrator query-service; do
   [ -n "$(dc ps -q --status running "$s")" ] || die "service $s is not running; start the stack first"
 done
 
@@ -44,10 +44,9 @@ sqlite_backup orchestrator
 sqlite_backup query-service
 [ -z "$(dc ps -q --status running dashboard)" ] || sqlite_backup dashboard
 
-mg='mgconsole --username="$MEMGRAPH_USER" --password="$MEMGRAPH_PASSWORD"'
-dc exec -T memgraph sh -c "echo 'CREATE SNAPSHOT;' | $mg >/dev/null"
-dc exec -T memgraph sh -c 'cd /var/lib/memgraph && f=$(ls snapshots | sort | tail -n 1) && tar --no-recursion -cf - snapshots "snapshots/$f"' > "$work/memgraph.tar"
-kgv=$(dc exec -T memgraph sh -c "echo \"MATCH (v:SchemaVersion {id: 'kg'}) RETURN v.version;\" | $mg --output-format=csv" | tail -n 1 | tr -d '\r"')
+dc exec -T traverse-health sh -c 'wget -q -O /dev/null --header "X-API-Key: $(cat /run/secrets/traverse_api_key)" --post-data "" http://traverse:7691/api/save'
+dc cp traverse:/data/traverse.tvdb "$work/traverse.tvdb"
+kgv=$(kg_version | tr -d '\r')
 case $kgv in ''|*[!0-9]*) die "cannot read the KG SchemaVersion" ;; esac
 
 [ "$secrets" = 0 ] || {
@@ -63,7 +62,7 @@ stamp=$(date -u +%Y%m%dT%H%M%SZ)
   echo "  \"project\": \"$PROJECT\","
   echo "  \"gitCommit\": \"$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo unknown)\","
   echo "  \"kgSchemaVersion\": $kgv,"
-  echo "  \"memgraphImage\": \"$(memgraph_image)\","
+  echo "  \"traverseImage\": \"$(traverse_image)\","
   echo "  \"secretsIncluded\": $([ "$secrets" = 1 ] && echo true || echo false),"
   echo '  "sqliteUserVersion": {'
   sed 's/^\(.*\) \([0-9]*\)$/    "\1": \2,/' "$work/versions" | sed '$ s/,$//'

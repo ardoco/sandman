@@ -107,7 +107,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T-kg-traverse | Replace Memgraph by Truespar Traverse as graph database (ADR-0014 amendment 2026-11-06) | M | T5.4 | [T-kg-traverse-migration](tasks/T-kg-traverse-migration.md) (code done, deviations listed) |
 | T7.3 | Model–code inconsistency detector (model element without code, code without model element); later LLM documentation–code contradictions (Q-6); removal-protocol evaluation | M | T2.7, T3.1 || [T7.3](tasks/T7.3-model-code-inconsistency-detector.md) (done with deviations) |
 | T7.4 | Time-aware queries: optional `asOf` (ingestion or source revision) for all strategies of ADR-0018, bounded by retention | M | M4, T5.2 | [T7.4](tasks/T7.4-time-aware-queries.md) |
-| T7.5 | Resolution suggestions and clarification questions for open inconsistencies (LLM, schema-validated, recorded, off by default, severity ≥ warning, never writes artifacts) | M | T3.4, T6.2 | |
+| T7.5 | Resolution suggestions and clarification questions for open inconsistencies (LLM, schema-validated, recorded, off by default, severity ≥ warning, never writes artifacts) | M | T3.4, T6.2 | [T7.5](tasks/T7.5-resolution-suggestions.md) |
 | T7.6 | Grounding checks: LLM-produced facts must cite existing KG elements; cross-approach agreement count as trust signal | S | M4 | [T7.6](tasks/T7.6-grounding-checks.md) |
 | **M8** | | | | |
 | T8.1 | Developer user study (usefulness, trust, task time, cognitive load), pre-registered in `experiments/PROTOCOL.md`, pilot first | L | M6, T5.5 | |

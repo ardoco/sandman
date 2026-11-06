@@ -30,7 +30,7 @@ START, END = "<!-- T2.4-RESULTS:START -->", "<!-- T2.4-RESULTS:END -->"
 HEADER = ["| Check | Result | Date |", "|---|---|---|"]
 R_MVN = "`BenchmarkEquivalenceTest` (adapter against standalone runner)"
 R_EQ = "`sandman eval equal` (`ardoco-sad-sam`)"
-R_MG = "Memgraph integration tests (`services/query-service`)"
+R_MG = "Traverse integration tests (`services/query-service`)"
 R_LISSA = "LiSSA live re-run with Δ and CI"
 R_PILOT = "Variance pilot (run count)"
 R_CONT = "Contamination probe"
@@ -39,7 +39,7 @@ NOT_REPORTED = ("Not reported", "–")
 PCM_CASES = [("mediastore", "ms.repository", "pcm"), ("teastore", "teastore.repository", "pcm")]
 STEPS = {
     0: "Preflight",
-    1: "Memgraph integration tests",
+    1: "Traverse integration tests",
     2: "ArDoCo check A (adapter against standalone)",
     3: "ArDoCo check B (live stack against standalone)",
     4: "LiSSA live re-run",
@@ -425,9 +425,9 @@ class Guide:
         return self.finish(0, "FAIL" if fails else "PASS", "; ".join(fails) or "stack, token, admin and Docker ok")
 
     def step1(self) -> str:
-        if not self.confirm("The tests pull a Memgraph image and take minutes. Run them now?"):
+        if not self.confirm("The tests pull a Traverse image and take minutes. Run them now?"):
             return self.finish(1, "SKIP", "not run")
-        code, out = self.sh(["uv", "run", "pytest", "services/query-service", "-q", "-rs"], "memgraph")
+        code, out = self.sh(["uv", "run", "pytest", "services/query-service", "-q", "-rs"], "traverse")
         tail = out.strip().splitlines()[-1] if out.strip() else "no output"
         if self.args.dry_run:
             return self.finish(1, "PASS", "dry run")

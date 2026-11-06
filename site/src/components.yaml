@@ -33,7 +33,7 @@ flow:
     text: >-
       All extracted elements are stored in one graph database. Every later step reads from it and
       writes its results back to it, so the graph is the shared memory of the system.
-    components: [memgraph, kg-migrate]
+    components: [traverse, kg-migrate]
   - title: Trace links
     text: >-
       The trace link agent connects elements that belong together, for example a requirement and the
@@ -251,12 +251,12 @@ components:
       are small examples that prove the plugin contract works end to end and are used by the tests. Their
       results are demonstration data, not analysis results.
     flow: Called by the inconsistency agent (detect problems). In tests it can also answer the extraction agent.
-  memgraph:
+  traverse:
     zone: kg
     title: Graph database
     summary: Stores the knowledge graph.
     details: >-
-      Memgraph is a fast in-memory graph database. It holds projects, artifacts, elements, trace links,
+      Traverse is a fast graph database with a Neo4j-compatible Bolt interface. It holds projects, artifacts, elements, trace links,
       findings and records of every run. Its query language is Cypher.
     flow: Written by the agents, read by the agents and the query service.
   kg-migrate:

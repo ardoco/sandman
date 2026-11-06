@@ -1,4 +1,4 @@
-"""Export tests against a small graph in a Memgraph container (skipped without Docker)."""
+"""Export tests against a small graph in a Traverse container (skipped without Docker)."""
 
 import json
 import time
@@ -26,11 +26,14 @@ pytestmark = pytest.mark.skipif(not _docker_available(), reason="no Docker daemo
 @pytest.fixture(scope="module")
 def driver() -> Iterator[Driver]:
     with (
-        DockerContainer("memgraph/memgraph:3.13.1")
-        .with_command("--telemetry-enabled=false")
-        .with_exposed_ports(7687) as c
+        DockerContainer(
+            "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965",
+            platform="linux/amd64",
+        )
+        .with_command(["--data", "/data"])
+        .with_exposed_ports(7690) as c
     ):
-        url = f"bolt://{c.get_container_host_ip()}:{c.get_exposed_port(7687)}"
+        url = f"bolt://{c.get_container_host_ip()}:{c.get_exposed_port(7690)}"
         deadline = time.monotonic() + 60
         while True:
             try:

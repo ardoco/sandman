@@ -20,7 +20,7 @@ def fixture(tmp: Path) -> None:
 
 def test_manifest_has_every_section_and_hashes(tmp_path: Path) -> None:
     fixture(tmp_path)
-    images = {"memgraph": {"image": "memgraph/memgraph:3.13.1", "id": "sha256:x", "repoDigests": ["m@sha256:y"]}}
+    images = {"traverse": {"image": "truespar/traverse:0.9.1", "id": "sha256:x", "repoDigests": ["m@sha256:y"]}}
     snapshot = {"project": "p", "snapshotHash": "h", "artifacts": {"a.md": "c"}}
     gold = tmp_path / "gold.csv"
     gold.write_text("a,b\n")

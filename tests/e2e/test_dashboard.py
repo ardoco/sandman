@@ -35,7 +35,7 @@ TARGETS = {
     "llm-replay",
     "document-converter",
 }
-INFRASTRUCTURE = {"memgraph", "nats", "llm-gateway"}
+INFRASTRUCTURE = {"traverse", "nats", "llm-gateway"}
 
 
 def compose_command() -> list[str]:
@@ -120,7 +120,7 @@ def test_everything_is_up(dashboard: httpx.Client) -> None:
     assert set(found) == TARGETS | INFRASTRUCTURE
     assert "ollama" not in found
     assert found["nats"]["details"].get("stream", {}).get("messages") is not None
-    assert found["memgraph"]["details"]["nodes"] > 0
+    assert found["traverse"]["details"]["nodes"] > 0
     page = dashboard.get("/")
     assert page.status_code == 200 and "tlr-agent" in page.text and "llm-gateway" in page.text
 
@@ -260,5 +260,5 @@ def test_resources_page(dashboard: httpx.Client) -> None:
     if not os.environ.get("SANDMAN_E2E_RESOURCES"):
         assert "not active" in page.text or "<td>orchestrator</td>" in page.text
         return
-    for service in ("memgraph", "nats", "orchestrator", "dashboard", "cadvisor"):
+    for service in ("traverse", "nats", "orchestrator", "dashboard", "cadvisor"):
         assert f"<td>{service}</td>" in page.text, service

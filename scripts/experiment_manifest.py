@@ -2,7 +2,7 @@
 file under config/ and of deploy/gateway/config.json, gateway model routes, project snapshot hashes, LLM mode, seeds.
 
 Run (stack up, Bolt reachable): uv run python scripts/experiment_manifest.py --name <name> --project <id>
-  [--llm-mode record|replay|live (default $SANDMAN_LLM_MODE)] [--uri bolt://127.0.0.1:7687]
+  [--llm-mode record|replay|live (default $SANDMAN_LLM_MODE)] [--uri bolt://127.0.0.1:7690]
 
 Image digests come from `docker compose ps` of the running stack, snapshot hashes from the current ArtifactVersions of
 the project in the KG. `build()` takes both as arguments so it is testable without Docker or Bolt.
@@ -148,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--name", required=True)
     ap.add_argument("--project", required=True)
     ap.add_argument("--llm-mode", default=os.environ.get("SANDMAN_LLM_MODE"), choices=["live", "record", "replay"])
-    ap.add_argument("--uri", default="bolt://127.0.0.1:7687")
+    ap.add_argument("--uri", default="bolt://127.0.0.1:7690")
     ap.add_argument("--gold", type=Path, action="append", default=[], help="gold standard file (repeatable)")
     args = ap.parse_args(argv)
     if not args.llm_mode:

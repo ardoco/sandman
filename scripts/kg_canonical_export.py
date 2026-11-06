@@ -1,9 +1,9 @@
 """Canonical KG export of one project for determinism checks (Stage 1 §11.6, T1.6).
 
-Run: uv run python scripts/kg_canonical_export.py --project <id> [--uri bolt://127.0.0.1:7687] [--out file]
+Run: uv run python scripts/kg_canonical_export.py --project <id> [--uri bolt://127.0.0.1:7690] [--out file]
 
 Auth: SANDMAN_KG_USER (default `sandman`) with SANDMAN_KG_PASSWORD, SANDMAN_KG_PASSWORD_FILE or, as the dev fallback,
-deploy/secrets/memgraph_password. Without any password the connection is unauthenticated.
+deploy/secrets/traverse_password. Without any password the connection is unauthenticated.
 
 Output: RFC 8785 (JCS) JSON `{"nodes": [...], "relationships": [...]}`, lists sorted by their own JCS bytes. Nodes are
 all nodes with `projectId` = project, the Project node and the StatusChange nodes of its inconsistencies. Properties
@@ -104,7 +104,7 @@ def export(driver: Driver, project_id: str) -> bytes:
 def connect(uri: str) -> Driver:
     """Driver with the auth described in the module docstring."""
     password = os.environ.get("SANDMAN_KG_PASSWORD")
-    file = os.environ.get("SANDMAN_KG_PASSWORD_FILE") or ROOT / "deploy" / "secrets" / "memgraph_password"
+    file = os.environ.get("SANDMAN_KG_PASSWORD_FILE") or ROOT / "deploy" / "secrets" / "traverse_password"
     if password is None and Path(file).is_file():
         password = Path(file).read_text().strip()
     auth = (os.environ.get("SANDMAN_KG_USER", "sandman"), password) if password else None
@@ -113,7 +113,7 @@ def connect(uri: str) -> Driver:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
-    ap.add_argument("--uri", default="bolt://127.0.0.1:7687")
+    ap.add_argument("--uri", default="bolt://127.0.0.1:7690")
     ap.add_argument("--project", required=True)
     ap.add_argument("--out", type=Path, default=None, help="output file (default stdout)")
     args = ap.parse_args(argv)

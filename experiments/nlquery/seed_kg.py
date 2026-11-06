@@ -1,6 +1,6 @@
 """Seed KG for the NL query evaluation set (T4.2) and the gold-Cypher validator.
 
-Builds, in a Memgraph testcontainer (or --bolt URL), the KG of the benchmark projects: elements and relations are the
+Builds, in a Traverse testcontainer (or --bolt URL), the KG of the benchmark projects: elements and relations are the
 extraction goldens of services/extraction-agent/tests/golden/benchmark, trace links are the ArDoCo SAD-SAM results in
 seed/<project>-links.csv. Confidence, link status, inconsistencies, concepts and ingestions are SYNTHETIC (deterministic
 rules below), because the stack has no run that produces them for all projects.
@@ -22,6 +22,7 @@ from typing import Any
 
 import yaml
 from neo4j import GraphDatabase
+from neo4j.exceptions import DatabaseError
 from sandman_agent.ids import stable_id
 from sandman_query.guard import check
 from testcontainers.core.container import DockerContainer
@@ -216,9 +217,12 @@ def start(bolt: str | None, reload: bool = True) -> tuple[Any, Any]:
     """(driver, container or None)."""
     container = None
     if bolt is None:
-        container = DockerContainer("memgraph/memgraph:3.13.1").with_command("--telemetry-enabled=false")
-        container.with_exposed_ports(7687).start()
-        bolt = f"bolt://{container.get_container_host_ip()}:{container.get_exposed_port(7687)}"
+        container = DockerContainer(
+            "truespar/traverse@sha256:e39b5739a525f2b955dcac0e5747039845f3a5c3cd89397aec923312d5d69965",
+            platform="linux/amd64",
+        ).with_command(["--data", "/data"])
+        container.with_exposed_ports(7690).start()
+        bolt = f"bolt://{container.get_container_host_ip()}:{container.get_exposed_port(7690)}"
     driver = GraphDatabase.driver(bolt)
     deadline = time.monotonic() + 60
     while True:
@@ -235,7 +239,11 @@ def start(bolt: str | None, reload: bool = True) -> tuple[Any, Any]:
         s.run("MATCH (n) DETACH DELETE n").consume()  # a given --bolt instance is reset to the seed state
         for line in (ROOT / "contracts/kg/init.cypher").read_text().splitlines():
             if line.strip() and not line.startswith("//"):
-                s.run(line.strip().rstrip(";")).consume()
+                try:
+                    s.run(line.strip().rstrip(";")).consume()
+                except DatabaseError as e:
+                    if "already exists" not in e.message:
+                        raise
         for p in PROJECTS:
             load(s, p)
     return driver, container
@@ -313,7 +321,7 @@ def cmd_run(driver: Any, args: argparse.Namespace) -> int:
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--bolt", help="use this Memgraph instead of a testcontainer (loads the seed KG into it)")
+    p.add_argument("--bolt", help="use this Traverse instead of a testcontainer (loads the seed KG into it)")
     p.add_argument("--no-load", action="store_true", help="with --bolt: keep the loaded KG (authoring)")
     sub = p.add_subparsers(dest="cmd", required=True)
     q = sub.add_parser("query", help="run ad-hoc Cypher (for authoring), parameters: $projectId")

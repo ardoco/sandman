@@ -23,23 +23,25 @@ COMPOSE = [
     "-f",
     str(ROOT / "deploy/docker-compose.dev.yml"),
 ]
-SNAPSHOT = (
-    "MATCH (n) RETURN count(n); MATCH (v:SchemaVersion) RETURN v.id, v.version; SHOW CONSTRAINT INFO; SHOW INDEX INFO;"
-)
+SNAPSHOT = """import os
+from neo4j import GraphDatabase
+with open(os.environ['SANDMAN_KG_PASSWORD_FILE']) as f:
+    pw = f.read().strip()
+with GraphDatabase.driver(os.environ['SANDMAN_KG_URI'], auth=(os.environ['SANDMAN_KG_USER'], pw)) as d:
+    for q in ('MATCH (n) RETURN count(n)', 'MATCH (v:SchemaVersion) RETURN v.id, v.version', 'SHOW CONSTRAINTS'):
+        print(sorted(map(str, d.execute_query(q).records)))
+"""
 
 
 def snapshot() -> str:
-    script = (
-        f'echo "{SNAPSHOT}" | mgconsole --username=$MEMGRAPH_USER --password=$MEMGRAPH_PASSWORD --output-format=csv'
-    )
     result = subprocess.run(
-        [*COMPOSE, "exec", "-T", "memgraph", "bash", "-c", script], capture_output=True, text=True, check=True
+        [*COMPOSE, "exec", "-T", "query-service", "python", "-c", SNAPSHOT], capture_output=True, text=True, check=True
     )
     return result.stdout
 
 
 def test_schema_version_and_idempotent_migrate() -> None:
     before = snapshot()
-    assert '"kg"' in before
+    assert "'kg'" in before
     subprocess.run([*COMPOSE, "run", "--rm", "--no-deps", "kg-migrate"], check=True, capture_output=True, text=True)
     assert snapshot() == before

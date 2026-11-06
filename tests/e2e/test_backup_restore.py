@@ -1,7 +1,7 @@
 """Backup and restore drill (T5.3): seed a scratch compose project, back up, wipe its volumes, restore, compare.
 
-Run: `make backup-drill`. The test starts its own project `sandman-drill` (never `sandman`), publishes Memgraph on
-127.0.0.1:17687 and removes the project with its volumes at the end.
+Run: `make backup-drill`. The test starts its own project `sandman-drill` (never `sandman`), publishes Traverse on
+127.0.0.1:17690 and removes the project with its volumes at the end.
 Environment: SANDMAN_E2E=1 (required), DOCKER_HOST if Docker is not on the default socket.
 """
 
@@ -25,8 +25,8 @@ pytestmark = pytest.mark.skipif(
 ROOT = Path(__file__).resolve().parents[2]
 PROJECT = "sandman-drill"
 OVERRIDE = Path(tempfile.gettempdir()) / "sandman-drill-override.yml"
-BOLT = "bolt://127.0.0.1:17687"
-SERVICES = ["memgraph", "nats", "orchestrator", "query-service"]
+BOLT = "bolt://127.0.0.1:17690"
+SERVICES = ["traverse", "traverse-health", "nats", "orchestrator", "query-service"]
 SEED_WORKFLOW = (
     "import sqlite3; d = sqlite3.connect('/data/orchestrator.db'); "
     "d.execute(\"INSERT INTO workflows VALUES ('wf-drill', 'drill', '{}', 'SUCCEEDED', "
@@ -79,10 +79,10 @@ def start() -> None:
 @pytest.fixture(scope="module")
 def drill(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Drill]:
     assert PROJECT != "sandman"
-    OVERRIDE.write_text('services:\n  memgraph:\n    networks: [internal, edge]\n    ports: ["127.0.0.1:17687:7687"]\n')
+    OVERRIDE.write_text('services:\n  traverse:\n    networks: [internal, edge]\n    ports: ["127.0.0.1:17690:7690"]\n')
     try:
         dc("down", "-v", "--remove-orphans")
-        dc("up", "-d", "--wait", "--wait-timeout", "300", "memgraph")
+        dc("up", "-d", "--wait", "--wait-timeout", "300", "traverse", "traverse-health")
         dc("run", "--rm", "--no-deps", "-T", "kg-migrate")
         start()
         with connect(BOLT) as driver:

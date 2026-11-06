@@ -13,9 +13,9 @@ FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
 
-infra:              ## memgraph, nats, llm-gateway with dev ports on localhost
+infra:              ## traverse, nats, llm-gateway with dev ports on localhost
 	deploy/check-env.sh
-	$(COMPOSE_DEV) up -d memgraph nats llm-gateway
+	$(COMPOSE_DEV) up -d traverse nats llm-gateway
 
 up:                 ## whole system
 	deploy/check-env.sh

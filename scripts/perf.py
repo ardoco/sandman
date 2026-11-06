@@ -351,6 +351,29 @@ def step_seconds(phase: dict[str, Any], skill: str) -> float | None:
     return round(sum(values), 2) if values else None
 
 
+def filler_schema(init: str) -> tuple[list[str], list[str]]:
+    """Splits init.cypher for the bulk filler: statements to run before the load, unique constraints to run after it.
+
+    On Traverse a unique constraint makes inserts quadratic (20 000 nodes: 19 s with it, 0.4 s with an index only), so
+    the filler drops each constraint, keeps an index on its property for the MATCH steps, and recreates the constraint
+    after the load. Recreating validates the loaded data.
+    """
+    stmts = [x.strip().rstrip(";") for x in init.splitlines() if x.strip() and not x.startswith("//")]
+    before: list[str] = []
+    constraints: list[str] = []
+    for stmt in stmts:
+        if "VECTOR" in stmt:
+            continue
+        if m := re.match(
+            r"CREATE CONSTRAINT (\w+) (?:IF NOT EXISTS )?FOR \(n:(\w+)\) REQUIRE n\.(\w+) IS UNIQUE", stmt
+        ):
+            before += [f"DROP CONSTRAINT {m[1]}", f"CREATE INDEX FOR (n:{m[2]}) ON (n.{m[3]})"]
+            constraints.append(stmt)
+        else:
+            before.append(stmt)
+    return before, constraints
+
+
 def seed_clones(driver: Any, target_nodes: int, current: int) -> list[dict[str, Any]]:
     """Loads clones of the five benchmark projects (new ids per copy) until the KG has `target_nodes` nodes."""
     import seed_kg
@@ -372,10 +395,10 @@ def seed_clones(driver: Any, target_nodes: int, current: int) -> list[dict[str, 
     steps = []
     try:
         with driver.session() as s:
-            for stmt in (ROOT / "contracts/kg/init.cypher").read_text().splitlines():
-                if stmt.strip() and not stmt.startswith("//") and "VECTOR" not in stmt:
-                    with contextlib.suppress(Exception):
-                        s.run(stmt.strip().rstrip(";")).consume()
+            before, constraints = filler_schema((ROOT / "contracts/kg/init.cypher").read_text())
+            for stmt in before:
+                with contextlib.suppress(Exception):
+                    s.run(stmt).consume()
             copy = 0
             while current < target_nodes:
                 for base in seed_kg.PROJECTS:
@@ -384,6 +407,8 @@ def seed_clones(driver: Any, target_nodes: int, current: int) -> list[dict[str, 
                 info = storage_info(driver)
                 current = info["vertices"]
                 steps.append({"copies": copy, **info})
+            for stmt in constraints:
+                s.run(stmt).consume()
     finally:
         seed_kg.build = original
     return steps

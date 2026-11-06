@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pytest
-from perf import count_workload, evaluate, file_mix, generate, mib, percentile, workflow_failures
+from perf import count_workload, evaluate, file_mix, filler_schema, generate, mib, percentile, workflow_failures
 
 
 def test_generate_is_deterministic_and_has_the_requested_size(tmp_path: Path) -> None:
@@ -75,3 +75,27 @@ def test_impact_budget_uses_the_max_of_the_repetitions() -> None:
     assert {r["id"]: r["verdict"] for r in evaluate(result)}["impact-depth2"] == "FAIL"
     result["incremental"]["impact"]["maxSeconds"] = 0.4
     assert {r["id"]: r["verdict"] for r in evaluate(result)}["impact-depth2"] == "PASS"
+
+
+def test_filler_schema_moves_unique_constraints_after_the_load() -> None:
+    init = (
+        "// c\nCREATE CONSTRAINT c_Run_id IF NOT EXISTS FOR (n:Run) REQUIRE n.id IS UNIQUE;\n"
+        "CREATE INDEX FOR (n:Run) ON (n.inputKey);\n"
+        "CREATE VECTOR INDEX element_embedding FOR (n:Element) ON (n.embedding) OPTIONS {};\n"
+        "MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 2 SET v.version = 2;\n"
+    )
+    before, after = filler_schema(init)
+    assert before == [
+        "DROP CONSTRAINT c_Run_id",
+        "CREATE INDEX FOR (n:Run) ON (n.id)",
+        "CREATE INDEX FOR (n:Run) ON (n.inputKey)",
+        "MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 2 SET v.version = 2",
+    ]
+    assert after == ["CREATE CONSTRAINT c_Run_id IF NOT EXISTS FOR (n:Run) REQUIRE n.id IS UNIQUE"]
+
+
+def test_filler_schema_covers_every_constraint_of_init_cypher() -> None:
+    text = (Path(__file__).parent.parent / "contracts/kg/init.cypher").read_text()
+    before, after = filler_schema(text)
+    assert len(after) == text.count("CREATE CONSTRAINT")
+    assert sum(s.startswith("DROP CONSTRAINT") for s in before) == len(after)

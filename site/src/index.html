@@ -8,32 +8,32 @@
 @font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"JetBrains Mono";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/jetbrains-mono-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 :root{--sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;color-scheme:dark;--bg:#0f0f0f;--grid:#1f1f1f;--fg:#ececec;--muted:#8b8b8b;--card:#191919;--raise:#232323;--line:rgba(255,255,255,.1);--edge:#8b8b8b;--accent:#ececec;--on-accent:#0f0f0f;--sel:#2b2b2b;--shadow:0 1px 0 rgba(255,255,255,.035) inset,0 12px 32px -20px #000;
---z-access:#7cc4ff;--z-ingest:#6fd7a8;--z-analysis:#b49cff;--z-plugins:#f5a66b;--z-infra:#a3a3a3;--z-kg:#63d2b8;--z-llm:#f19ac7;--z-libs:#f0c36b}
+--z-access:#7cc4ff;--z-ingest:#6fd7a8;--z-analysis:#b49cff;--z-plugins:#f5a66b;--z-infra:#a3a3a3;--z-kg:#63d2b8;--z-llm:#f19ac7;--z-libs:#f0c36b;--z-nlp:#7dd3e8}
 @media (prefers-color-scheme:light){:root:not([data-theme=dark]){color-scheme:light;--bg:#f3f3f1;--grid:#d2d2ce;--fg:#161616;--muted:#595959;--card:#fff;--raise:#ebebe8;--line:rgba(0,0,0,.15);--edge:#666;--accent:#161616;--on-accent:#fff;--sel:#e0e0dc;--shadow:0 0 0 1px rgba(0,0,0,.1),0 12px 28px -18px rgba(0,0,0,.3);
---z-access:#1f7ac4;--z-ingest:#1a8a5b;--z-analysis:#7a5ad8;--z-plugins:#c06a1d;--z-infra:#666;--z-kg:#0f8a76;--z-llm:#c43c86;--z-libs:#a8710c}}
+--z-access:#1f7ac4;--z-ingest:#1a8a5b;--z-analysis:#7a5ad8;--z-plugins:#c06a1d;--z-infra:#666;--z-kg:#0f8a76;--z-llm:#c43c86;--z-libs:#a8710c;--z-nlp:#0e7f9a}}
 :root[data-theme=light]{color-scheme:light;--bg:#f3f3f1;--grid:#d2d2ce;--fg:#161616;--muted:#595959;--card:#fff;--raise:#ebebe8;--line:rgba(0,0,0,.15);--edge:#666;--accent:#161616;--on-accent:#fff;--sel:#e0e0dc;--shadow:0 0 0 1px rgba(0,0,0,.1),0 12px 28px -18px rgba(0,0,0,.3);
---z-access:#1f7ac4;--z-ingest:#1a8a5b;--z-analysis:#7a5ad8;--z-plugins:#c06a1d;--z-infra:#666;--z-kg:#0f8a76;--z-llm:#c43c86;--z-libs:#a8710c}
+--z-access:#1f7ac4;--z-ingest:#1a8a5b;--z-analysis:#7a5ad8;--z-plugins:#c06a1d;--z-infra:#666;--z-kg:#0f8a76;--z-llm:#c43c86;--z-libs:#a8710c;--z-nlp:#0e7f9a}
 *{box-sizing:border-box}
 body{margin:0;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--fg);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
 #theme{position:fixed;top:14px;right:16px;z-index:6;height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--raise);color:var(--fg);font:inherit;font-size:13px;cursor:pointer}
-header,main,footer{padding:0 16px;max-width:1440px;margin:0 auto}
-header{--w:60rem}
-h1{font-size:2rem;font-weight:600;letter-spacing:-.025em;line-height:1.2;margin:20px auto 8px;max-width:var(--w)}
-.eyebrow{max-width:var(--w);margin-left:auto;margin-right:auto;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:20px}
-.intro p{max-width:var(--w);margin:0 auto 8px;font-size:1.05rem;text-align:left}
-.tour{max-width:var(--w);margin:14px auto 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:6px}
+header,main,footer{padding:0 24px;max-width:1560px;margin:0 auto}
+header{--w:62rem}
+h1{font-size:2rem;font-weight:600;letter-spacing:-.025em;line-height:1.2;margin:20px 0 8px;max-width:var(--w)}
+.eyebrow{max-width:var(--w);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:20px}
+.intro p{max-width:var(--w);margin:0 0 8px;font-size:1.05rem;text-align:left}
+.tour{max-width:var(--w);margin:14px 0 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:6px}
 .tour .step{font:inherit;font-size:.85rem;text-align:center;border:0;background:var(--raise);color:var(--muted);border-radius:999px;padding:6px 14px;cursor:pointer}
 .tour .step[aria-current=step]{background:var(--accent);color:var(--on-accent)}
 .tour .sep{display:none}
 .tour .always{box-shadow:inset 0 0 0 1px var(--line)}
 .tour .nav{text-align:center;font:inherit;font-size:.85rem;border:0;background:var(--raise);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
 .tour .nav:disabled{opacity:.4;cursor:default}
-#tourtext{min-height:3.2em;max-width:var(--w);margin:6px auto 4px;text-align:left;padding:14px 20px;background:var(--card);box-shadow:var(--shadow);border-radius:20px;color:var(--fg);font-size:1.05rem}
+#tourtext{min-height:3.2em;max-width:var(--w);margin:6px 0 4px;text-align:left;padding:14px 20px;background:var(--card);box-shadow:var(--shadow);border-radius:20px;color:var(--fg);font-size:1.05rem}
 #tourtext b{color:var(--fg)}
-.legend{display:flex;flex-wrap:wrap;max-width:var(--w);margin-left:auto;margin-right:auto;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
 .legend svg{vertical-align:middle;margin-right:4px}
 main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:24px}
-@media (min-width:1000px){main{grid-template-columns:minmax(0,1fr) 320px}aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
+@media (min-width:1000px){main{grid-template-columns:minmax(0,1fr) 380px}aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
 .col{min-width:0}
 #graph{min-width:0;overflow:auto}
 #bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px}
@@ -70,13 +70,16 @@ aside .none{color:var(--muted);margin:4px 0}
 aside details details{margin-top:6px;padding-top:4px;border-top:0}
 aside li small{color:var(--muted)}
 svg.map{display:block;width:100%;height:auto;margin:0 auto}
-.zone rect.bg{fill:color-mix(in srgb,var(--zc) 5%,var(--bg));stroke:color-mix(in srgb,var(--zc) 30%,var(--bg));stroke-width:1}
+.zone rect.bg{fill:color-mix(in srgb,var(--zc) 7%,var(--bg));stroke:color-mix(in srgb,var(--zc) 30%,var(--bg));stroke-width:1}
 .zone.external rect.bg{stroke-dasharray:6 4}
 .zone .ztitle{font-size:13.5px;font-weight:650;fill:var(--fg)}
 .zone .zblurb{font-size:10.5px;fill:var(--muted)}
 .zone .badge{fill:var(--zc)}
 .zone .glyph{fill:#fff;font-size:13px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 .node{cursor:pointer;transition:opacity .15s}
+.node.rel rect.card{stroke:var(--zc);stroke-width:1.5}
+.node:hover rect.card{stroke:var(--accent)}
+.node.fdim{opacity:.18}
 .node rect.card{fill:var(--card);stroke:var(--line);stroke-width:1}
 .node .nbadge{fill:color-mix(in srgb,var(--zc) 18%,var(--card))}
 .node .nglyph{fill:var(--zc);font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
@@ -85,9 +88,9 @@ svg.map{display:block;width:100%;height:auto;margin:0 auto}
 .node:focus{outline:none}
 .node:focus rect.card,.node.sel rect.card{stroke:var(--accent);stroke-width:2}
 .node.sel rect.card{fill:var(--sel)}
-.edge{stroke:var(--edge);stroke-width:1.2;fill:none;opacity:.3;transition:opacity .15s}
+.edge{stroke:var(--edge);stroke-width:1.2;fill:none;opacity:.45;stroke-linejoin:round;transition:opacity .15s}
 .edge.calls{stroke-dasharray:6 4}
-.edge.on{stroke:var(--accent);stroke-width:2.2;opacity:1}
+.edge.on{stroke:var(--accent);stroke-width:1.8;opacity:1}
 .dim{opacity:.2}
 .edge.quiet:not(.on){opacity:0}
 .planned{display:inline-block;font-size:.75rem;border-radius:999px;padding:1px 10px;background:var(--sel);color:var(--fg);margin:0 4px 4px 0}
@@ -95,7 +98,19 @@ svg.map{display:block;width:100%;height:auto;margin:0 auto}
 .narrow .edge:not(.on){display:none}
 marker path{fill:var(--edge)}
 marker.on path{fill:var(--accent)}
-aside{background:var(--card);border-radius:24px;padding:18px 22px;align-self:start;box-shadow:var(--shadow)}
+aside{background:var(--card);border-radius:24px;padding:0 22px 18px;align-self:start;box-shadow:var(--shadow)}
+#sidehead{position:sticky;top:0;z-index:2;background:var(--card);padding:16px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+#cf{width:100%;font:inherit;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--raise);color:var(--fg)}
+#zf{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+#zf button{font:inherit;font-size:.75rem;border:1px solid var(--line);background:none;color:var(--muted);border-radius:999px;padding:2px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+#zf button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--zc);flex:none}
+#clist h3{display:flex;align-items:center;gap:6px;margin:12px 0 2px}
+#clist ul{list-style:none;padding:0}
+#clist li button{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;font:inherit;font-size:.9rem;border:0;background:none;color:var(--fg);padding:5px 8px;border-radius:10px;cursor:pointer}
+#clist li button:hover,#clist li button:focus-visible{background:var(--raise)}
+#clist li small{color:var(--muted);font:11px var(--mono)}
+#back{font:inherit;font-size:.85rem;border:0;background:none;color:var(--muted);cursor:pointer;padding:0 0 6px;text-decoration:underline}
 aside h2{margin:0 0 2px;font-size:1.15rem}
 aside h3{font-size:.78rem;margin:14px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 aside ul{margin:0;padding-left:18px}
@@ -105,7 +120,7 @@ aside .close{float:right;font:inherit;border:0;background:none;color:var(--muted
 aside code{font:12px var(--mono);color:var(--muted)}
 aside details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 aside summary{cursor:pointer;font-weight:600}
-@media (max-width:999px){aside:not(.has){display:none}aside.has{position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:55vh;overflow:auto;border-radius:12px 12px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3)}aside .close{display:block}body.sheet{padding-bottom:55vh}}
+@media (max-width:999px){aside.has{position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:55vh;overflow:auto;border-radius:12px 12px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3)}aside .close{display:block}body.sheet{padding-bottom:55vh}}
 a{color:var(--accent)}
 .tag{display:inline-block;font-size:.75rem;background:var(--raise);border-radius:999px;padding:1px 10px;margin:0 4px 4px 0}
 button.chip{font:inherit;background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0;text-align:left}
@@ -139,7 +154,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <div id="nbrs" hidden></div>
 <div id="graph" aria-label="Component map"></div>
 </div>
-<aside id="panel" aria-live="polite"></aside>
+<aside id="panel"><div id="sidehead"><input id="cf" type="search" placeholder="Filter components" aria-label="Filter components"><div id="zf" role="group" aria-label="Filter by zone"></div></div><div id="sidebody" aria-live="polite"></div></aside>
 </main>
 <div id="find" role="dialog" aria-label="Search components and files" hidden><input id="q" type="search" placeholder="Filter components and files" aria-label="Filter"><ul id="hits"></ul></div>
 <footer>
@@ -147,9 +162,9 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <dl class="gloss" id="gloss"></dl>
 </footer>
 <script>
-const NS = "http://www.w3.org/2000/svg", NW = 184, NH = 60, GAP = 10, ZP = 12, ZH = 68, COLGAP = 36, ROWGAP = 32, PAD = 8, RIGHT = 36;
+const NS = "http://www.w3.org/2000/svg", NW = 196, NH = 60, GAP = 10, ZP = 12, ZH = 64, COLGAP = 60, ROWGAP = 36, PAD = 8, STUB = 12;
 const LW = 250, CW = 226, CH = 30, FH = 46, HP = 44, LGAP = 16;
-let data, byId, zoneOf, selected = null, hover = null, tour = null, view = null, zoom = 1, shown = null, hit = null, index = [];
+let data, byId, zoneOf, selected = null, hover = null, filt = { q: "", zone: null }, tour = null, view = null, zoom = 1, shown = null, hit = null, index = [];
 const size = (w, min = 360) => zoom === 1 ? `width:100%;max-width:${Math.max(w, min)}px` : `width:${Math.round(w * zoom)}px;max-width:none`;
 const cut = (t, n) => t.length > n ? t.slice(0, n - 1) + "…" : t;
 const el = (n, a = {}, t) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; return e; };
@@ -166,33 +181,47 @@ function wrap(text, max, lines = 2) {
 
 function layout(width) {
   const ncols = width >= 980 ? 4 : width >= 560 ? 2 : 1, ZW = NW + 2 * ZP;
-  const zs = data.zones.map((z, i) => {
-    const members = data.components.filter(c => c.zone === z.id);
-    return { ...z, members, w: ZW, h: ZH + members.length * (NH + GAP) - GAP + ZP, c: ncols === 4 ? z.col : i % ncols, r: ncols === 4 ? z.row : Math.floor(i / ncols) };
+  const zs = data.zones.map(z => {
+    const members = data.components.filter(c => c.zone === z.id), span = Math.min(z.span || 1, ncols), w = span * ZW + (span - 1) * COLGAP;
+    const per = Math.max(1, Math.floor((w - 2 * ZP + GAP) / (NW + GAP))), n = Math.ceil(members.length / per);
+    return { ...z, members, span, w, per, h: ZH + n * (NH + GAP) - GAP + ZP };
+  });
+  let cc = 0, cr = 0;
+  zs.forEach(z => {
+    if (ncols === 4) { z.c = z.col; z.r = z.row; return; }
+    if (cc && (z.span > 1 || cc + z.span > ncols)) { cc = 0; cr++; }
+    z.c = cc; z.r = cr; cc += z.span; if (cc >= ncols) { cc = 0; cr++; }
   });
   const rows = Math.max(...zs.map(z => z.r)) + 1, rowH = Array(rows).fill(0), rowY = [];
   zs.forEach(z => { rowH[z.r] = Math.max(rowH[z.r], z.h); });
   rowH.forEach((v, i) => { rowY[i] = i ? rowY[i - 1] + rowH[i - 1] + ROWGAP : PAD; });
   const pos = {};
   zs.forEach(z => {
-    z.x = PAD + z.c * (ZW + COLGAP); z.y = rowY[z.r];
-    z.members.forEach((m, i) => { pos[m.id] = { x: z.x + ZP, y: z.y + ZH + i * (NH + GAP) }; });
+    z.x = PAD + z.c * (ZW + COLGAP); z.y = rowY[z.r]; z.h = rowH[z.r];
+    z.members.forEach((m, i) => { pos[m.id] = { x: z.x + ZP + (i % z.per) * (NW + GAP), y: z.y + ZH + Math.floor(i / z.per) * (NH + GAP) }; });
   });
-  return { zs, pos, ncols, w: PAD + ncols * ZW + (ncols - 1) * COLGAP + RIGHT, h: rowY[rows - 1] + rowH[rows - 1] + PAD };
+  return { zs, pos, ncols, w: 2 * PAD + ncols * ZW + (ncols - 1) * COLGAP, h: rowY[rows - 1] + rowH[rows - 1] + PAD };
 }
 
-function edgePath(a, b) {
-  const ax = a.x + NW / 2, ay = a.y + NH / 2, bx = b.x + NW / 2, by = b.y + NH / 2, dx = bx - ax;
-  if (Math.abs(dx) < NW / 2) {
-    const bulge = 14 + Math.min(26, Math.abs(by - ay) / 15), x1 = a.x + NW, x2 = b.x + NW;
-    return `M${x1} ${ay} C${x1 + bulge} ${ay} ${x2 + bulge} ${by} ${x2} ${by}`;
-  }
-  const dir = dx > 0 ? 1 : -1, x1 = dir > 0 ? a.x + NW : a.x, x2 = dir > 0 ? b.x : b.x + NW, k = Math.max(40, Math.abs(x2 - x1) / 2);
-  return `M${x1} ${ay} C${x1 + dir * k} ${ay} ${x2 - dir * k} ${by} ${x2} ${by}`;
+function routes(edges, pos) {
+  const cy = id => pos[id].y + NH / 2, cx = id => pos[id].x + NW / 2, ports = {}, ends = edges.map(e => {
+    const dx = cx(e.to) - cx(e.from), same = Math.abs(dx) < NW / 2, d = same ? 1 : Math.sign(dx);
+    return { from: [e.from, d, e.to], to: [e.to, same ? 1 : -d, e.from], same };
+  });
+  ends.forEach(x => ["from", "to"].forEach(k => { const [id, d, other] = x[k], key = id + ":" + d; (ports[key] ||= []).push({ x, k, other }); }));
+  Object.values(ports).forEach(list => {
+    list.sort((p, q) => cy(p.other) - cy(q.other) || (p.other < q.other ? -1 : 1));
+    list.forEach((p, i) => { p.x[p.k + "Y"] = cy(p.x[p.k][0]) - NH / 2 + 10 + (NH - 20) * (i + .5) / list.length; });
+  });
+  return ends.map(x => {
+    const [a, da] = x.from, [b, db] = x.to, x1 = pos[a].x + (da > 0 ? NW : 0), x2 = pos[b].x + (db > 0 ? NW : 0), y1 = x.fromY, y2 = x.toY;
+    const sx = x1 + da * STUB, ex = x2 + db * STUB, k = x.same ? 16 + Math.min(30, Math.abs(y2 - y1) / 12) : Math.max(24, Math.abs(ex - sx) / 2);
+    return { d: `M${x1} ${y1} L${sx} ${y1} C${sx + da * k} ${y1} ${ex + db * k} ${y2} ${ex} ${y2} L${x2} ${y2}`, x1, y1, x2, y2 };
+  });
 }
 
 function marker(id, cls) {
-  const m = el("marker", { id, class: cls, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto" });
+  const m = el("marker", { id, class: cls, viewBox: "0 0 10 10", refX: 10, refY: 5, markerWidth: 9, markerHeight: 9, markerUnits: "userSpaceOnUse", orient: "auto" });
   m.append(el("path", { d: "M0 0L10 5L0 10z" })); return m;
 }
 
@@ -203,12 +232,13 @@ function overviewSvg(width) {
   zs.forEach(z => {
     const g = el("g", { class: "zone" + (z.external ? " external" : ""), style: `--zc:var(--z-${z.id})`, role: "group", "aria-label": `${z.title}: ${z.blurb}` });
     g.append(el("rect", { class: "bg", x: z.x, y: z.y, width: z.w, height: z.h, rx: 14 }), el("circle", { class: "badge", cx: z.x + 22, cy: z.y + 22, r: 12 }), el("text", { class: "glyph", x: z.x + 22, y: z.y + 22 }, z.glyph), el("text", { class: "ztitle", x: z.x + 42, y: z.y + 26 }, z.title));
-    wrap(z.blurb, 33).forEach((l, i) => g.append(el("text", { class: "zblurb", x: z.x + 14, y: z.y + 46 + i * 12 }, l)));
+    wrap(z.blurb, Math.floor((z.w - 28) / 6.4)).forEach((l, i) => g.append(el("text", { class: "zblurb", x: z.x + 14, y: z.y + 46 + i * 12 }, l)));
     svg.append(g);
   });
-  svg._edges = data.edges.map(e => {
-    const p = el("path", { class: "edge " + e.kind, d: edgePath(pos[e.from], pos[e.to]), "marker-end": "url(#arr)" });
-    p.dataset.from = e.from; p.dataset.to = e.to;
+  const rt = routes(data.edges, pos);
+  svg._edges = data.edges.map((e, i) => {
+    const p = el("path", { class: "edge " + e.kind, d: rt[i].d, "marker-end": "url(#arr)" });
+    p.dataset.from = e.from; p.dataset.to = e.to; p.append(el("title", {}, `${byId[e.from].title} ${e.kind === "calls" ? "calls" : "needs"} ${byId[e.to].title}`));
     const top = new Set(["access", "ingest", "analysis", "plugins"]), za = byId[e.from].zone, zb = byId[e.to].zone;
     if (!(za === zb || (top.has(za) && top.has(zb) && e.from !== "dashboard"))) p.classList.add("quiet");
     svg.append(p); return p;
@@ -279,7 +309,7 @@ function mark() {
   svg.classList.toggle("flowing", !!step && !step.always);
   svg.querySelectorAll(".node").forEach(n => {
     const id = n.dataset.id, k = step && !step.always ? step.components.indexOf(id) : -1;
-    n.classList.toggle("sel", id === selected); n.classList.toggle("dim", !!rel && !rel.has(id)); n.setAttribute("aria-pressed", id === selected);
+    n.classList.toggle("sel", id === selected); n.classList.toggle("dim", !!rel && !rel.has(id)); n.classList.toggle("rel", !!c && id !== c.id && !!rel && rel.has(id)); n.classList.toggle("fdim", fOn() && !fMatch(byId[id])); n.setAttribute("aria-pressed", id === selected);
     n.querySelector(".fbadge")?.remove();
     if (k >= 0) { const b = el("g", { class: "fbadge" }); b.append(el("circle", { cx: NW - 4, cy: 4, r: 10 }), el("text", { x: NW - 4, y: 4 }, k + 1)); n.append(b); }
   });
@@ -339,10 +369,35 @@ function bar() {
   if (c) [["Depends on", c.dependsOn], ["Used by", c.usedBy]].forEach(([t, ids]) => { n.append(h("span", { class: "lbl" }, t + ":")); if (ids.length) ids.forEach(i => n.append(chip(i))); else n.append(h("span", { class: "lbl" }, "none")); });
 }
 
+const fOn = () => !!(filt.q || filt.zone);
+const fMatch = c => (!filt.zone || c.zone === filt.zone) && filt.q.split(/\s+/).filter(Boolean).every(t => `${c.title} ${c.name} ${c.summary} ${zoneOf[c.zone].title}`.toLowerCase().includes(t));
+
+function compList() {
+  const box = h("div", { id: "clist" }), hits = data.components.filter(fMatch);
+  if (!fOn()) box.append(h("p", { class: "none" }, "Click a card or pick a component below to see what it is and how it fits in the flow. Double-click a card, or press Enter on it again, to open its internals."));
+  else box.append(h("p", { class: "none" }, `${hits.length} of ${data.components.length} components match.`));
+  data.zones.forEach(z => {
+    const m = hits.filter(c => c.zone === z.id); if (!m.length) return;
+    const t = h("h3", { style: `--zc:var(--z-${z.id})` }); t.append(h("span", { class: "dot" }), z.title); box.append(t);
+    const ul = h("ul"); m.forEach(c => { const li = h("li"), b = h("button", { type: "button" }, c.title); b.append(h("small", {}, c.name)); b.onclick = () => { filt = { q: "", zone: null }; syncFilter(); select(c.id); };
+      b.onmouseenter = b.onfocus = () => { hover = c.id; mark(); }; b.onmouseleave = b.onblur = () => { hover = null; mark(); };
+      b.onkeydown = e => { const bs = [...box.querySelectorAll("li button")], i = bs.indexOf(b); if (e.key === "ArrowDown") { e.preventDefault(); bs[i + 1]?.focus(); } else if (e.key === "ArrowUp") { e.preventDefault(); (bs[i - 1] || $("cf")).focus(); } };
+      li.append(b); ul.append(li); }); box.append(ul);
+  });
+  return [box];
+}
+
+function syncFilter() {
+  $("cf").value = filt.q;
+  $("zf").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.z === (filt.zone || "")));
+  paint();
+}
+
 function paint() {
-  const c = selected && byId[selected], p = $("panel");
+  const c = selected && byId[selected], p = $("panel"), list = !c || fOn();
   p.classList.toggle("has", !!c); document.body.classList.toggle("sheet", !!c);
-  p.replaceChildren(...(c ? panelNodes(c) : [h("p", {}, "No component selected. Click a card to see what it is, why it exists and how it fits in the flow. Double-click a card, or press Enter on it again, to open its internals.")]));
+  const back = Object.assign(h("button", { id: "back", type: "button" }, "← All components"), { onclick: clearSel });
+  $("sidebody").replaceChildren(...(list ? compList() : [back, ...panelNodes(c)]));
   bar();
   if (shown !== (view || "")) render(); else mark();
 }
@@ -405,6 +460,9 @@ fetch("components.json").then(r => r.json()).then(d => {
   addEventListener("popstate", fromHash); addEventListener("hashchange", fromHash);
   $("up").onclick = up; $("zin").onclick = () => zoomBy(1.25); $("zout").onclick = () => zoomBy(.8); $("zfit").onclick = () => zoomBy(0); $("open-find").onclick = openFind;
   $("q").oninput = results;
+  data.zones.forEach(z => { const b = h("button", { type: "button", "data-z": z.id, "aria-pressed": "false", style: `--zc:var(--z-${z.id})` }); b.append(h("span", { class: "dot" }), z.title.replace(/ \(.*/, "")); b.onclick = () => { filt.zone = filt.zone === z.id ? null : z.id; syncFilter(); }; $("zf").append(b); });
+  $("cf").oninput = () => { filt.q = $("cf").value.trim().toLowerCase(); paint(); };
+  $("cf").onkeydown = e => { if (e.key === "Escape") { filt = { q: "", zone: null }; syncFilter(); } else if (e.key === "ArrowDown" || e.key === "Enter") { e.preventDefault(); $("clist")?.querySelector("li button")?.[e.key === "Enter" ? "click" : "focus"](); } };
   $("q").onkeydown = e => { if (e.key === "Enter") $("hits").querySelector("button")?.click(); };
   $("graph").addEventListener("wheel", e => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1); } }, { passive: false });
   addEventListener("keydown", e => {

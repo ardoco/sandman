@@ -99,7 +99,7 @@ zones:
     row: 0
   analysis:
     title: Analysis agents
-    blurb: Find links and inconsistencies, coordinate the work
+    blurb: Recover links, find inconsistencies, run workflows
     glyph: "✦"
     col: 2
     row: 0
@@ -132,14 +132,15 @@ zones:
     title: Language processing
     blurb: Splits text into sentences and words for the ArDoCo approach
     glyph: "¶"
-    col: 0
-    row: 2
-  libs:
-    title: Libraries
-    blurb: Shared code used inside agents
-    glyph: "❖"
     col: 3
     row: 1
+  libs:
+    title: Libraries
+    blurb: Shared code that is built into the agents. These are not running services.
+    glyph: "❖"
+    col: 0
+    row: 2
+    span: 4
 
 components:
   edge-proxy:

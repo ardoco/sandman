@@ -150,7 +150,7 @@ def status_line(ms: list[dict]) -> str:
         f"finished milestones: {', '.join(done)}. " if done else "milestone tags are not available in this build. "
     )
     if todo:
-        text += f"Next: {todo[0]['id']} {todo[0]['name']} ({todo[0]['goal']})."
+        text += f"Next: {todo[0]['id']} {todo[0]['name']}."
         if len(todo) > 1:
             text += " Later: " + "; ".join(f"{m['id']} {m['name']}" for m in todo[1:]) + "."
     return text

@@ -14,6 +14,7 @@ from sandman_agent.contracts import Contracts
 from sandman_agent.kg import MemoryLimitError
 from starlette.exceptions import HTTPException
 
+from sandman_query.asof import AS_OF, applicable, scope
 from sandman_query.auth import Principal
 from sandman_query.guard import GuardError, check
 from sandman_query.reader import Reader, ScopeViolation, check_scope
@@ -116,9 +117,19 @@ class Runner:
             checked = check(cypher, scoped=project is not None)
         except GuardError as e:
             raise HTTPException(422, str(e)) from None
-        text = checked.text + ("" if checked.has_limit else f" LIMIT {limit + 1}")
+        body, versions = checked.text, AS_OF.get()
+        if versions is not None and (rewritten := scope(body)):
+            try:
+                body = check(rewritten, scoped=project is not None).text
+            except GuardError as e:
+                raise HTTPException(422, str(e)) from None
+        text = body + ("" if checked.has_limit else f" LIMIT {limit + 1}")
         cap = USER_TIMEOUT_MS if who.kind == "user" else SERVICE_TIMEOUT_MS
-        bound = {**params, **({"projectId": project} if project else {})}
+        bound = {
+            **params,
+            **({"projectId": project} if project else {}),
+            **({} if versions is None else {"versionIds": versions}),
+        }
         started = time.monotonic()
         try:
             columns, rows = await self.reader.run(text, bound, min(timeout_ms, cap) / 1000, max_rows=limit + 1)
@@ -152,6 +163,10 @@ class Runner:
                 422, "question not understood (M0 stub, no LLM); supported intents: " + ", ".join(intents.supported())
             )
         _, cypher, extracted = found
+        if AS_OF.get() is not None and not applicable(cypher):
+            raise HTTPException(
+                422, "asOf cannot apply to this question: it does not read the current artifact versions"
+            )
         out: dict[str, Any] = {"columns": [], "rows": [], "truncated": False, "elapsedMs": 0}
         if mode == "cypher-only":
             del out["rows"]

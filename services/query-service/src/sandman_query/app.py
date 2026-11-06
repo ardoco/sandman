@@ -379,7 +379,9 @@ def create_app(
     async def query_nl(body: NlBody, request: Request) -> dict[str, Any]:
         who = svc.authenticate(request.headers.get("authorization"))
         svc.check(who, "queryNl", body.projectId)
-        return await svc.nl.answer(who, body.projectId, body.question, body.strategy, body.mode, body.execute)
+        return await svc.nl.answer(
+            who, body.projectId, body.question, body.strategy, body.mode, body.execute, body.asOf, body.asOfRevision
+        )
 
     @app.get("/v1/projects/{projectId}/ingestions/{ingestionId}/impact")
     async def ingestion_impact(

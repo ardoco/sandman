@@ -3,6 +3,7 @@
 import json
 import logging
 from collections.abc import Awaitable, Callable, Mapping
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,7 @@ from sandman_agent.llm import (
 )
 from starlette.exceptions import HTTPException
 
+from sandman_query.asof import AS_OF, WARNING, applicable, resolve
 from sandman_query.auth import Principal
 from sandman_query.guard import GuardError, check
 from sandman_query.query import Intents, Runner
@@ -112,12 +114,35 @@ class NlService:
         return bool(self.config.get(strategy, {}).get("enabled")) and strategy in self.strategies
 
     async def answer(
-        self, who: Principal, project: str, question: str, strategy: str, mode: str, execute: bool
+        self,
+        who: Principal,
+        project: str,
+        question: str,
+        strategy: str,
+        mode: str,
+        execute: bool,
+        as_of: datetime | None = None,
+        as_of_revision: str | None = None,
     ) -> dict[str, Any]:
-        """Run the strategy (auto classifies first, T4.7); 501 if it is not enabled or not implemented."""
+        """Run the strategy (auto classifies first, T4.7); 501 if not enabled. asOf (T7.4) reads past versions."""
         if not self.enabled(strategy):
             raise HTTPException(501, f"strategy {strategy} is not enabled or not implemented (ADR-0018)")
-        result = await self.strategies[strategy](who, project, question, mode, execute)
+        info: dict[str, Any] | None = None
+        token = None
+        if as_of is not None or as_of_revision is not None:
+            try:
+                versions, info = await resolve(self.reader, project, as_of, as_of_revision)
+            except (Neo4jError, DriverError, OSError, TimeoutError):
+                log.warning("asOf resolution failed", exc_info=True)
+                raise HTTPException(503, "knowledge graph unavailable") from None
+            token = AS_OF.set(versions)
+        try:
+            result = await self.strategies[strategy](who, project, question, mode, execute)
+        finally:
+            if token is not None:
+                AS_OF.reset(token)
+        if info is not None:
+            result |= {"asOf": info, "warnings": [*result.get("warnings", []), WARNING]}
         if mode == "answer" and execute and result.get("rows") and self.can_call_llm():
             client, route = await self.llm(project)
             synthesized, model, warning = await synthesize(client, route, project, question, result)
@@ -217,6 +242,8 @@ class NlService:
             check(cypher, scoped=True)
         except GuardError as e:
             return str(e)
+        if AS_OF.get() is not None and not applicable(cypher):
+            return "asOf is set: read artifact versions with (:Artifact)-[:CURRENT_VERSION]->(:ArtifactVersion)"
         return None
 
     async def policy(self, project: str) -> str:

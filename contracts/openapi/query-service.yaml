@@ -516,6 +516,15 @@ paths:
                   default: auto
                 mode: { enum: [answer, cypher-only], default: answer }
                 execute: { type: boolean, default: true }
+                asOf:
+                  description: Read the artifact versions that were current after the newest ingestion not later than this time (T7.4). All strategies. Send at most one of asOf and asOfRevision. A time older than the history kept by retention answers 422.
+                  type: string
+                  format: date-time
+                asOfRevision:
+                  description: Like asOf, for the newest ingestion with this source revision. An unknown or pruned revision answers 422.
+                  type: string
+                  minLength: 1
+                  maxLength: 200
               additionalProperties: false
       responses:
         "200":
@@ -577,6 +586,14 @@ paths:
                           properties:
                             cypher: { type: string }
                             error: { type: string }
+                      asOf:
+                        description: Present when the request set asOf or asOfRevision. The ingestion whose state was read; ingestionSeq 0 means the project had no ingestion yet.
+                        type: object
+                        required: [ingestionSeq]
+                        properties:
+                          ingestionSeq: { type: integer, minimum: 0 }
+                          ingestedAt: { type: string }
+                          sourceRevision: { type: string }
                       warnings:
                         type: array
                         items: { type: string }
@@ -584,7 +601,7 @@ paths:
                       resolvedModel: { type: string }
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
         "422":
-          description: No valid query after repairs
+          description: No valid query after repairs, or asOf is unusable (both asOf fields, older than retention, unknown revision, query that asOf cannot apply to)
           content:
             application/problem+json:
               schema: { $ref: "shared.yaml#/components/schemas/Problem" }

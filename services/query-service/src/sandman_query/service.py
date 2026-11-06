@@ -94,6 +94,8 @@ class NlBody(BaseModel):
     strategy: Literal["auto", "cypher", "graphrag", "explore"] = "auto"
     mode: Literal["answer", "cypher-only"] = "answer"
     execute: bool = True
+    asOf: datetime | None = None
+    asOfRevision: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class WorkflowBody(BaseModel):

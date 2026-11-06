@@ -12,7 +12,7 @@ All commands run in the repository root. The stack is defined in `deploy/docker-
 | `make logs` | follow the logs of all services |
 | `make images` | build the images of the `stubs` profile |
 | `docker compose -f deploy/docker-compose.yml ps` | state and health of each container |
-| `curl http://127.0.0.1:8080/readyz` | readiness of the query service: Memgraph and user store |
+| `curl http://127.0.0.1:8080/readyz` | readiness of the query service: Traverse and user store |
 
 `docker compose -f deploy/docker-compose.yml down -v` additionally deletes all data (see below). It cannot be undone.
 
@@ -27,7 +27,7 @@ Everything is published on `127.0.0.1` only.
 | `127.0.0.1:8090` | system overview (dashboard), see [Dashboard](#dashboard); profile `dashboard` | admins |
 | `127.0.0.1:3001` | Grafana, profile `obs` | operators |
 
-Memgraph and NATS have no host ports. `make infra` starts only Memgraph, NATS and the gateway with development ports (Bolt `7687`, NATS `4222`, NATS monitoring `8222`) for developers.
+Traverse and NATS have no host ports. `make infra` starts only Traverse, NATS and the gateway with development ports (Bolt `7690`, Traverse HTTP `7691`, NATS `4222`, NATS monitoring `8222`) for developers.
 
 The containers share an internal network without internet access. The `document-converter` (Docling) is reachable only inside it, mounts the artifact store read-only and accepts conversion requests only from the extraction agent; if it is down, PDF and DOCX artifacts fall back to file-level elements (`partial`). Only the LLM gateway has internet access (to the providers you configured keys for, or the remote Open WebUI); with profile `local-llm` the Ollama container also has egress for model pulls, and talks to nobody but the gateway.
 
@@ -35,7 +35,7 @@ The containers share an internal network without internet access. The `document-
 
 | Profile | Adds | Start |
 |---|---|---|
-| (default) | Memgraph, NATS, LLM gateway, replay proxy, extraction, document converter (PDF/DOCX), code extraction plugin (`code-extractor-ardoco`), TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
+| (default) | Traverse, NATS, LLM gateway, replay proxy, extraction, document converter (PDF/DOCX), code extraction plugin (`code-extractor-ardoco`), TLR, inconsistency agent, orchestrator, query service, edge proxy | `make up` |
 | `stubs` | `plugin-stubs`: stub code extractor (not used by the shipped config) and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
 | `obs` | Grafana/OpenTelemetry backend on `:3001`; services export telemetry when `OTEL_SDK_DISABLED=false` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318` are set in the shell that runs compose | `... --profile obs up -d` |
 | `resources` | cAdvisor container metrics for the dashboard. **Security: grants root-equivalent access to the host through the Docker socket (read-only socket proxy plus host mounts); off by default, not for production.** | `... --profile resources up -d` |
@@ -46,7 +46,7 @@ Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos 
 
 ## Dashboard
 
-With profile `dashboard`, `http://127.0.0.1:8090` shows (log in as `admin` with `deploy/secrets/dashboard_admin_password`): services and infrastructure health, projects (current-state statistics from the knowledge graph), the knowledge graph, the LLM gateway, workflows (with cancel), dead events (with replay), the event stream (last 500 events, read-only), history charts (health, activity and LLM usage, sampled every 30 s and kept for 14 days; `SANDMAN_SAMPLE_INTERVAL`, `SANDMAN_HISTORY_DAYS`), record/replay status (experiments) and resource usage. Cancel and replay ask for confirmation and are written to the dashboard log as `event=admin_action`. Alerts (service down for more than 30 s, failed or blocked workflows of the last 24 h, dead events, gateway budget at 80 % or more, Memgraph memory at 80 % of its limit) appear as a banner on every page and as `event=alert` log lines; they are kept in memory and cleared when the condition ends.
+With profile `dashboard`, `http://127.0.0.1:8090` shows (log in as `admin` with `deploy/secrets/dashboard_admin_password`): services and infrastructure health, projects (current-state statistics from the knowledge graph), the knowledge graph, the LLM gateway, workflows (with cancel), dead events (with replay), the event stream (last 500 events, read-only), history charts (health, activity and LLM usage, sampled every 30 s and kept for 14 days; `SANDMAN_SAMPLE_INTERVAL`, `SANDMAN_HISTORY_DAYS`), record/replay status (experiments) and resource usage. Cancel and replay ask for confirmation and are written to the dashboard log as `event=admin_action`. Alerts (service down for more than 30 s, failed or blocked workflows of the last 24 h, dead events, gateway budget at 80 % or more, Traverse memory at 80 % of its limit) appear as a banner on every page and as `event=alert` log lines; they are kept in memory and cleared when the condition ends.
 
 The graph page of the dashboard has the same layout as the console graph explorer ([querying.md](querying.md#graph-explorer-console)): foldout controls, wheel zoom, fullscreen and a canvas that follows the color theme.
 
@@ -78,7 +78,7 @@ Plugin authors: [plugins.md](../plugins.md).
 
 | Data | Location |
 |---|---|
-| graph | volume `memgraph-data` (snapshot every 300 s) |
+| graph | volume `traverse-data` (checkpoint every 300 s) |
 | users, sessions, tokens | volume `query-data` (`users.db`) |
 | workflow state | volume `orchestrator-data` |
 | uploaded file contents | volume `artifact-store` |
@@ -99,7 +99,7 @@ make restore ARCHIVE=backups/sandman-backup-<time>.tar.gz
 make restore ARCHIVE=... RESTORE_ARGS="--force"
 ```
 
-The archive holds the graph (Memgraph snapshot), the SQLite databases (workflow state, users, dashboard state), the artifact store and `manifest.json`. It does not hold events (`nats-data`), gateway state, logs or `deploy/secrets`.
+The archive holds the graph (Traverse snapshot), the SQLite databases (workflow state, users, dashboard state), the artifact store and `manifest.json`. It does not hold events (`nats-data`), gateway state, logs or `deploy/secrets`.
 
 - The script keeps the newest 7 archives. Set `--keep N` or `BACKUP_KEEP` to change this. Value 0 keeps all archives.
 - Warning: `--include-secrets` adds `deploy/secrets` to the archive. Store such an archive encrypted. Restore needs `--with-secrets` to use them.
@@ -112,7 +112,7 @@ To restore on a new host:
 3. Use `--force` to overwrite an existing stack. It stops the stack and empties the data volumes first.
 4. Run `make up`.
 
-The restore stops with an error if the checksum fails, the archive format or the Memgraph image differs, or a schema version in the archive is newer than the repository.
+The restore stops with an error if the checksum fails, the archive format or the Traverse image differs, or a schema version in the archive is newer than the repository.
 
 Run `make backup-drill` to test the procedure. It uses the scratch project `sandman-drill` and never touches the project `sandman`.
 
@@ -147,8 +147,8 @@ Caution: A prune with `dryRun: false` cannot be undone. Run `make backup` first.
 | workflow step fails with `DEPENDENCY_UNAVAILABLE` and the message names `ardoco` | `corenlp-gateway` or its service is down. The orchestrator retries the step. Check `docker compose ps corenlp-gateway`, or switch the mode |
 | `Cannot connect to the Docker daemon` | start Docker (Docker Desktop on macOS). `DOCKER_HOST=unix://$HOME/.docker/run/docker.sock` is only needed for the Python integration tests (`make test`), not for running the stack |
 | port already in use | change the published ports of `edge-proxy` and `llm-gateway` in `deploy/docker-compose.yml`. To run a second stack, also give it its own project name: `docker compose -p other -f ...` |
-| containers killed or Memgraph restarts | the memory limits assume a 32 GB host (Memgraph 10 GB, TLR and inconsistency agents 5 GB each); give Docker enough memory |
-| `readyz` returns 503 | the `checks` object names the failing part (`memgraph`, `userstore`); look at that service's logs |
+| containers killed or Traverse restarts | the memory limits assume a 32 GB host (Traverse 10 GB, TLR and inconsistency agents 5 GB each); give Docker enough memory |
+| `readyz` returns 503 | the `checks` object names the failing part (`traverse`, `userstore`); look at that service's logs |
 | `503 <service> unavailable` from the API or "unavailable" as last workflow in the console | the extraction agent, inconsistency agent or orchestrator is down or still starting; check `docker compose ps` |
 | login fails with 429 | five wrong passwords per user name or address within 15 minutes; wait |
 | `403 password change required` with a token | the token's owner has not yet changed the initial password in the console |

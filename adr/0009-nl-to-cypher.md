@@ -27,7 +27,7 @@ The query service answers natural-language questions over the KG and executes di
 
 Chosen option: "B", with A as stub and C/E as later extensions if evaluation shows need.
 
-Pipeline: schema contract (`contracts/kg/schema.yaml`, with descriptions and enums; drift-checked against `SHOW SCHEMA INFO`) + top-k few-shot examples → structured output `{cypher, params, explanation}` → validation (lexical denylist of write/admin keywords and non-allowlisted `CALL`, `$projectId` required, `EXPLAIN`, enforced `LIMIT`) → execution in a driver **read transaction** (Memgraph rejects writes in read-access transactions) with server timeout and per-query memory limit → up to 2 repair attempts with error feedback → answer synthesis citing element keys.
+Pipeline: schema contract (`contracts/kg/schema.yaml`, with descriptions and enums; drift-checked against `SHOW SCHEMA INFO`) + top-k few-shot examples → structured output `{cypher, params, explanation}` → validation (lexical denylist of write/admin keywords and non-allowlisted `CALL`, `$projectId` required, `EXPLAIN`, enforced `LIMIT`) → execution in a driver **read transaction** (Memgraph rejects writes in read-access transactions) with server timeout and server memory limit → up to 2 repair attempts with error feedback → answer synthesis citing element keys.
 
 ### Consequences
 
@@ -70,7 +70,7 @@ Security tests: write/admin queries are rejected by validation and, with validat
 ## More Information
 
 * Memgraph's own GraphChat is part of the proprietary Lab and not usable standalone; Memgraph's MCP server uses regex-only read-only checks — not adopted as sole guard.
-* To verify: `QUERY MEMORY LIMIT` syntax, `EXPLAIN` behavior, read-mode enforcement for auto-commit and procedures (V-7, V-8).
+* To verify: the server flag `--query-memory-limit` (Traverse has no per-query limit; amendment of ADR-0014, 2026-11-06), `EXPLAIN` behavior, read-mode enforcement for auto-commit and procedures (V-7, V-8).
 * Related: ADR-0005.
 
 ## Amendments

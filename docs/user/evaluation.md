@@ -1,6 +1,6 @@
 # Evaluation and reproduction study
 
-Goal: run the Memgraph integration tests and the reproduction study (task T2.4) on your machine.
+Goal: run the Traverse integration tests and the reproduction study (task T2.4) on your machine.
 The rules of the study are in `experiments/PROTOCOL.md`. The task specification is `docs/tasks/T2.4-reproduction-study.md`.
 Run all commands from the root of a checkout, unless a step says otherwise.
 
@@ -8,7 +8,7 @@ Run all commands from the root of a checkout, unless a step says otherwise.
 
 | Check | Question | Needs |
 |---|---|---|
-| Memgraph integration tests | Do the query service and the graph queries work on a real Memgraph? | Docker, uv |
+| Traverse integration tests | Do the query service and the graph queries work on a real Traverse? | Docker, uv |
 | Exact equality (ArDoCo) | Does the adapter give the same links as the standalone ArDoCo runner? | Docker, JDK, Maven, uv; for the live part also the stack and CoreNLP |
 | LiSSA compare | How far is a live LiSSA run from the published F1? | the stack, an LLM endpoint |
 | Variance pilot, contamination probe | How many runs do you need? Does the model memorize the benchmark? | the stack, an LLM endpoint |
@@ -35,15 +35,15 @@ If you have no KIT credentials, use a local CoreNLP container instead.
 
 More details are in [getting-started.md](getting-started.md), section 3.
 
-## 2. Memgraph integration tests
+## 2. Traverse integration tests
 
 ```sh
 uv run pytest services/query-service -q -rs
 ```
 
-- Expected result: all tests pass. The first run pulls the image `memgraph/memgraph:3.13.1` (Testcontainers) and takes longer.
-- Docker must be running. The tests start and stop their own Memgraph container. They do not use the stack of `make up`.
-- If Docker is not reachable, the Memgraph tests are skipped with the reason `no Docker daemon reachable`. The `-rs` flag prints this reason.
+- Expected result: all tests pass. The first run pulls the image `truespar/traverse` (pinned by digest) (Testcontainers) and takes longer.
+- Docker must be running. The tests start and stop their own Traverse container. They do not use the stack of `make up`.
+- If Docker is not reachable, the Traverse tests are skipped with the reason `no Docker daemon reachable`. The `-rs` flag prints this reason.
 - A skip is not a pass. If you see skips, start Docker and run the command again.
 
 ## 3. Start the stack and ingest a benchmark project
@@ -228,7 +228,7 @@ uv run python scripts/t24_guided.py
 | Step | Check |
 |---|---|
 | 0 | Preflight: `SANDMAN_URL`, token, proxy, `/readyz`, Docker, admin rights, CoreNLP mode. |
-| 1 | Memgraph integration tests. |
+| 1 | Traverse integration tests. |
 | 2 | ArDoCo check A: `BenchmarkEquivalenceTest`, then `eval equal` for each written pair. |
 | 3 | ArDoCo check B for `mediastore` and `teastore` (PCM). |
 | 4 | LiSSA live re-run, compared with the published F1. |
@@ -259,7 +259,7 @@ uv run python scripts/t24_guided.py
 | `curl -I $SANDMAN_URL` prints `404` | The root path has no page. | None. This is normal. Use `/readyz`. |
 | `403` on `PUT /v1/admin/projects/...` | The token does not belong to an admin user. | Create the token as `admin` in the console. |
 | `make up` prints `check-env: ... placeholder` | `corenlp_credentials` still holds `change-me:change-me`. | Write `user:password` into the file, or set `SANDMAN_CORENLP_MODE=local` (section 1). |
-| Memgraph tests are skipped | No Docker daemon. | Start Docker. Run the command of section 2 again. |
+| Traverse tests are skipped | No Docker daemon. | Start Docker. Run the command of section 2 again. |
 | `ingest` prints `other=4` and ArDoCo finds no links | No kind rule matched. | Add the `--kind-rule` options of step 3.4 and use a new project. |
 | `eval equal` prints exit code 1 | The link sets differ. | Read `onlyExpected` and `onlyActual`. Do not accept a difference. See check B caution. |
 

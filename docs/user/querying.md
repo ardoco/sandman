@@ -25,7 +25,7 @@ curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/
 
 ## Cypher
 
-`POST /v1/query/cypher` runs a read query against the graph (Memgraph, openCypher dialect). The console has a Cypher box in the [graph explorer](#graph-explorer-console).
+`POST /v1/query/cypher` runs a read query against the graph (Traverse, openCypher dialect). The console has a Cypher box in the [graph explorer](#graph-explorer-console).
 
 ```sh
 curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/json' http://127.0.0.1:8080/v1/query/cypher -d '{

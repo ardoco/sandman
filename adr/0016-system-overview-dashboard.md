@@ -30,7 +30,7 @@ Chosen: **P1 + A1 + G1 + R1** (P1 and A1 decided by the user on 2026-10-06, toge
 * `dashboard`: Python service (FastAPI + Jinja2 + vendored htmx, Cytoscape.js and uPlot; no build chain), port `127.0.0.1:8090`, admin login with its own secret (`dashboard_admin_password`), server-side sessions with the same rules as the console (ADR-0013 amendment). It depends only on Memgraph and NATS at startup, not on agents or the query-service.
 * **Data sources** (all reads; the only writes are dead-event replay and workflow cancel through the orchestrator API, and its own SQLite samples):
   * every SANDMAN service exposes `GET /v1/status` (`ServiceStatus`: `working`/`idle`, active tasks, last activity, service-specific details); together with `/readyz` this gives health and activity;
-  * Memgraph via read transactions (graph view, project statistics, `SHOW STORAGE INFO`), with timeout and memory limit;
+  * The graph database via read transactions (graph view, project statistics) and its HTTP `GET /api/health` (nodes, edges, memory; ADR-0014 amendment 2026-11-06), with timeout and memory limit;
   * NATS monitoring endpoint (`/jsz`) and an ephemeral ordered consumer for the event viewer;
   * orchestrator REST API for the workflow monitor and dead events;
   * Bifrost `/metrics` (Prometheus) and management API for LLM statistics and budgets, authenticated with the gateway admin credentials;

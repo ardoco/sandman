@@ -17,7 +17,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | [trace-links-and-findings.md](trace-links-and-findings.md) | read and review trace links, read inconsistency findings, triage them with a cause |
 | [derived-models.md](derived-models.md) | use the architecture models that SANDMAN derives from documentation |
 | [operations.md](operations.md) | start, stop, logs, profiles, data, troubleshooting |
-| [evaluation.md](evaluation.md) | run the Memgraph integration tests and the reproduction study (T2.4) |
+| [evaluation.md](evaluation.md) | run the Traverse integration tests and the reproduction study (T2.4) |
 
 ## Interfaces
 

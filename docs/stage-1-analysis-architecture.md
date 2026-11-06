@@ -106,7 +106,7 @@ Status: revision 5 (system overview dashboard added, see 0.3) · Date: 2026-10-0
 | NFR-10 | Persistence: KG, event log, workflow state, artifact store and gateway data survive restarts and can be backed up. |
 | NFR-11 | Extensibility: new TLR approaches and inconsistency detectors are added without changing contracts or the orchestrator. |
 | NFR-12 | Local models (Ollama/vLLM) are usable through the same gateway (confidential artifacts). |
-| NFR-13 | Free/open-source components only; licenses compatible with distributing the repository under AGPL-3.0. Exception (ADR-0014, amended 2026-10-18): Memgraph Community (BSL 1.1) runs as a separate service from the official image. The repository does not redistribute it. |
+| NFR-13 | Free/open-source components only; licenses compatible with distributing the repository under AGPL-3.0. Exception (ADR-0014, amended 2026-10-18): Memgraph Community (BSL 1.1) ran as a separate service from the official image. Since 2026-11-06 (ADR-0014 amendment) the graph database is Truespar Traverse; its licence is to be verified. The repository does not redistribute it. |
 | NFR-14 | Testability: LLM-dependent behavior can be tested offline (mock LLM, record/replay). |
 | NFR-15 | Simplicity: single-server research prototype; target size per project ≤ ~5 000 artifacts/files, ≤ ~200 000 KG nodes (assumption A-6). |
 | NFR-16 | Architecture decisions are documented as ADRs (`adr/`). |
@@ -1192,7 +1192,7 @@ A separate service `dashboard` for **global admins** (operators). It is independ
 | **Events** | Recent events per type and project, payload view; consumer pending/redelivered counts | NATS ephemeral ordered consumer (read-only), `/jsz` |
 | **Projects** | Per project: artifacts and versions, elements by label, active links per approach, inconsistencies by status and type, last ingestion | Memgraph read transactions |
 | **Experiments** | `llm-replay` mode, experiment name, cassette entries, hits, misses, recordings | `llm-replay` `GET /v1/status` |
-| **Resources** (profile `resources`) | Memory and CPU per container against its `mem_limit`; Memgraph memory against `--memory-limit` | cAdvisor API, `SHOW STORAGE INFO` |
+| **Resources** (profile `resources`) | Memory and CPU per container against its `mem_limit`; graph database memory against `--memory-limit` | cAdvisor API, Traverse `GET /api/health` |
 | **History** | Health, activity and LLM usage over time (charts) | own SQLite samples every 30 s, 14 days retention |
 
 - **Working vs. idle:** a service is `working` while `activeTasks > 0`: A2A tasks for agents, ingestions in progress for the extraction-agent, running workflow steps for the orchestrator, in-flight requests for the query-service and `llm-replay`. Both agent libraries implement `GET /v1/status` (`ServiceStatus`, contracts 0.3.0).
@@ -1226,7 +1226,7 @@ A separate service `dashboard` for **global admins** (operators). It is independ
 - Poison events: after `MaxDeliver` → `dead_events` table + console list.
 
 ### 11.5 Persistence and backup
-- Memgraph: periodic snapshots + WAL in `memgraph-data` (defaults: snapshot every 300 s, WAL enabled, keep 3 snapshots). Backup = `CREATE SNAPSHOT;` then copy the snapshot directory (procedure to verify) plus a portable Cypher/JSONL export for experiment archives.
+- Memgraph: periodic snapshots + WAL in `memgraph-data` (defaults: snapshot every 300 s, WAL enabled, keep 3 snapshots). Backup (Traverse since 2026-11-06) = `POST /api/save`, then copy `/data/traverse.tvdb` plus a portable Cypher/JSONL export for experiment archives.
 - NATS JetStream file store, SQLite files, artifact store, gateway data: volume tarballs via `make backup` (services paused briefly for SQLite consistency, or SQLite `.backup`).
 - Restore drill introduced in M5 (T5.3), then part of the definition of done of every later milestone.
 

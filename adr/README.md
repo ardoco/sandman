@@ -40,7 +40,7 @@ Status values:
 | [0011](0011-inconsistency-console.md) | User interface for inconsistencies | accepted |
 | [0012](0012-pluggable-approaches-and-detectors.md) | Pluggable TLR approaches, extractors and detectors | accepted |
 | [0013](0013-users-and-roles.md) | Users and roles | accepted |
-| [0014](0014-graph-database.md) | Graph database: Memgraph Community | accepted |
+| [0014](0014-graph-database.md) | Graph database: Memgraph Community, replaced by Traverse (2026-11-06) | accepted |
 | [0015](0015-ardoco-integration.md) | ArDoCo integration | proposed |
 | [0016](0016-system-overview-dashboard.md) | System overview dashboard | accepted |
 | [0017](0017-additional-agent-languages.md) | Additional agent languages: TypeScript, Go, Rust | accepted |

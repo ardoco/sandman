@@ -4,7 +4,7 @@ Goal: a running stack, a logged-in admin account, a project, and an API token.
 
 ## Requirements
 
-- Docker with Compose v2 (`docker compose`), running. The containers' memory limits assume a host with 32 GB RAM (`deploy/docker-compose.yml`); Memgraph alone is limited to 10 GB.
+- Docker with Compose v2 (`docker compose`), running. The containers' memory limits assume a host with 32 GB RAM (`deploy/docker-compose.yml`); Traverse alone is limited to 10 GB.
 - `openssl` (used by `make secrets`).
 - [uv](https://docs.astral.sh/uv/) with Python 3.13, only for the `sandman` CLI. Run `uv sync` once in the checkout.
 - JDK and Maven are not needed to run the stack; the Java images are built inside Docker.
@@ -15,7 +15,7 @@ Goal: a running stack, a logged-in admin account, a project, and an API token.
 make secrets
 ```
 
-This creates `deploy/secrets/*` (service tokens, Memgraph password, session secret, initial admin password, LLM gateway keys) and `data/` directories. It never overwrites existing files, so it is safe to run again. `deploy/secrets/` is git-ignored; keep it private.
+This creates `deploy/secrets/*` (service tokens, Traverse password, session secret, initial admin password, LLM gateway keys) and `data/` directories. It never overwrites existing files, so it is safe to run again. `deploy/secrets/` is git-ignored; keep it private.
 
 ## 2. Provider keys (optional today)
 
@@ -115,7 +115,7 @@ The first start builds all images and takes several minutes. Then check readines
 
 ```sh
 curl http://127.0.0.1:8080/readyz
-# {"status":"ok","checks":{"memgraph":"ok","userstore":"ok"}}
+# {"status":"ok","checks":{"traverse":"ok","userstore":"ok"}}
 docker compose -f deploy/docker-compose.yml ps
 ```
 

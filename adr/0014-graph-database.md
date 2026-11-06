@@ -38,7 +38,7 @@ Evidence caveat: the speed driver is not backed by independent data for our work
 ### Consequences
 
 * Good, because fast in-memory engine with the features we use, no driver changes.
-* Good, because portability is kept: contract tests use portable Cypher; Memgraph-specific constructs (e.g., `QUERY MEMORY LIMIT`) stay in one place (query-service guard).
+* Good, because portability is kept: contract tests use portable Cypher; Engine-specific constructs stay in one place (query-service guard).
 * Bad, because BSL is not OSI; distribution to third parties as part of a product would need a license review.
 * Bad, because Community lacks multi-tenancy and RBAC (projects share one database; isolation limits in ADR-0013).
 * Bad, because the whole graph must fit in RAM (retention, Stage 1 §4.2).
@@ -80,3 +80,15 @@ T1.8 benchmark report (latency p50/p95 for the walking-skeleton and M1 workloads
 * 2026-10-18, review item R-009: NFR-13 (Stage 1 §3) now names the BSL exception for Memgraph Community. It runs as a separate service from the official image and is not redistributed. The decision is unchanged.
 * 2026-10-18, T5.4 performance budget: Memgraph passes. At 200 000 nodes it used 537 MiB resident, the Bolt p95 was 18.5 ms, the HTTP p95 was 42 ms, and the snapshot had 144 MiB (`docs/tasks/T5.4-performance-budget.md`). The fallback (ArcadeDB, Neo4j) is not started. The decision is unchanged. The ingest budget items fail because of ArDoCo, not because of the database (follow-up F-1).
 * 2026-10-19, T5.4 follow-up F-2: the four ingest time items (`ingest-e2e`, `ingest-tlr`, `detection`, `incremental-e2e`) are judged per document, per document plus pair, per pair and per changed file. The limits are the absolute limits divided by the reference workload of 1 000 files (200 documents, 10 models, 2 000 pairs, 100 changed files): 4.5 s, 0.218 s, 0.06 s and 3 s. The absolute limits stay in the spec. The reason: the cost of ArDoCo grows with documents times models, so a file count alone does not describe the load, and the 1 000 file run does not end in 2 hours with `transarc`. The Memgraph items and the Memgraph decision are unchanged. The harness fails a run if a workflow does not end with SUCCEEDED (`docs/tasks/T5.4-performance-budget.md`).
+* 2026-11-06, replacement of Memgraph by Truespar Traverse 0.9.1 (`docs/tasks/T-kg-traverse-migration.md`, checks in `spikes/traverse/`). Reason: Memgraph Community is BSL 1.1 (see Context) and the project prefers a store without that licence. Traverse speaks Bolt and openCypher, so the contract tests, the guard and the drivers stay. Memgraph stays only as a reference; the T0.4 spike files are unchanged. Consequences:
+  * Traverse is version 0.9.x. Expect breaking changes and bugs. The image is pinned by digest.
+  * The image exists for amd64 only. On arm64 hosts it runs emulated.
+  * There is no per-query memory limit. The server flag `--query-memory-limit` applies to all queries. The guard still rejects a user-written `QUERY MEMORY LIMIT`. The agents map the error code `Neo.TransientError.General.MemoryPoolOutOfMemoryError` to the non-retried memory-limit error.
+  * Vector dimension is not validated by the index. The embedding writer checks 768 dimensions.
+  * The image has no shell and no healthcheck tool. A sidecar service `traverse-health` checks `GET /api/ready`.
+  * `SHOW STORAGE INFO` is replaced by `GET /api/health`. `CREATE SNAPSHOT` is replaced by `POST /api/save` plus a copy of `/data/traverse.tvdb`.
+  * `CREATE INDEX` and `CREATE VECTOR INDEX` have no `IF NOT EXISTS`. `init_schema` ignores the error "already exists".
+  * In a read transaction, Traverse rejects any query text that contains the words drop, set, delete, create, merge or remove, also in string literals. Use parameters.
+  * The Java Neo4j driver rejects a server that does not identify as Neo4j. The server flag `--server-agent Neo4j/5.26.0` is the workaround.
+  * The licence of Traverse is to be verified before a release.
+  * Fallback order if Traverse fails: ArcadeDB, then Neo4j.

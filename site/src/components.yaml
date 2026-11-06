@@ -33,7 +33,7 @@ flow:
     text: >-
       All extracted elements are stored in one graph database. Every later step reads from it and
       writes its results back to it, so the graph is the shared memory of the system.
-    components: [traverse, kg-migrate]
+    components: [traverse, traverse-health, kg-migrate]
   - title: Trace links
     text: >-
       The trace link agent connects elements that belong together, for example a requirement and the
@@ -259,6 +259,14 @@ components:
       Traverse is a fast graph database with a Neo4j-compatible Bolt interface. It holds projects, artifacts, elements, trace links,
       findings and records of every run. Its query language is Cypher.
     flow: Written by the agents, read by the agents and the query service.
+  traverse-health:
+    zone: kg
+    title: Graph health check
+    summary: A small helper that reports whether the graph database is ready.
+    details: >-
+      The graph database image has no shell, so Docker cannot run a health command inside it. This helper
+      asks the database for its status and reports it. Services start only after the report says ready.
+    flow: Asked by Docker. Services wait for it before they start.
   kg-migrate:
     zone: kg
     title: Graph set-up

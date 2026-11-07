@@ -130,30 +130,13 @@ def strings(node, path=""):
 
 
 def milestones() -> list[dict]:
-    """Milestones (id, name, goal) from the Stage 3 table; done = M* git tag exists."""
+    """Milestones (id, name, goal) from the Stage 3 table."""
     rows = re.findall(r"^\| \*\*(M\w+) ([^*]+)\*\* \| ([^|]+) \|", PLAN.read_text(), re.M)
-    try:
-        tags = set(
-            subprocess.run(
-                ["git", "tag", "--list", "M*"], cwd=ROOT, capture_output=True, text=True, check=True
-            ).stdout.split()
-        )
-    except (OSError, subprocess.CalledProcessError):
-        tags = set()
-    return [{"id": i, "name": n.strip(), "goal": g.strip(), "done": i in tags} for i, n, g in rows]
+    return [{"id": i, "name": n.strip(), "goal": g.strip()} for i, n, g in rows]
 
 
-def status_line(ms: list[dict]) -> str:
-    done = [f"{m['id']} {m['name']}" for m in ms if m["done"]]
-    todo = [m for m in ms if not m["done"] and re.fullmatch(r"M\d", m["id"])]
-    text = "Status: " + (
-        f"finished milestones: {', '.join(done)}. " if done else "milestone tags are not available in this build. "
-    )
-    if todo:
-        text += f"Next: {todo[0]['id']} {todo[0]['name']}."
-        if len(todo) > 1:
-            text += " Later: " + "; ".join(f"{m['id']} {m['name']}" for m in todo[1:]) + "."
-    return text
+def status_line(comps: dict, edges: dict) -> str:
+    return f"Status: {len(comps)} components and {len(edges)} connections in this repository."
 
 
 def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> list[str]:
@@ -168,8 +151,8 @@ def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> li
             problems.append(f"{i}: unknown zone {t.get('zone')}")
     byid = {m["id"]: m for m in ms}
     for i, t in texts.items():
-        if "planned" in t and (t["planned"] not in byid or byid[t["planned"]]["done"]):
-            problems.append(f"{i}: planned milestone {t['planned']} unknown or already done")
+        if "planned" in t and t["planned"] not in byid:
+            problems.append(f"{i}: planned milestone {t['planned']} is not in the Stage 3 table")
     for path, text in strings(meta):
         if re.search(r"\bM\d+\b|planned", text, re.I) and not path.endswith(".planned"):
             problems.append(f"{path}: milestone or 'planned' text in YAML, use the planned field")
@@ -405,7 +388,7 @@ def build() -> dict:
     return {
         "repo": REPO,
         "intro": meta["intro"],
-        "status": status_line(ms),
+        "status": status_line(comps, edges),
         "milestones": ms,
         "flow": meta["flow"],
         "glossary": meta["glossary"],

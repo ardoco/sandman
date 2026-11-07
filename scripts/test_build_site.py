@@ -63,16 +63,29 @@ def test_glossary_and_intro_present(data):
 
 def test_milestone_text_only_via_planned_field(data):
     ms = build_site.milestones()
+    ids = {c["id"] for c in data["components"]}
     assert {m["id"] for m in ms} >= {"M0", "M1", "M2", "M3", "M4"}
-    assert build_site.sync_problems({c["id"] for c in data["components"]}, meta(), ms) == []
+    assert build_site.sync_problems(ids, meta(), ms) == []
     bad = meta()
     bad["components"]["nats"]["details"] += " Planned for M1."
-    assert any("nats.details" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, bad, ms))
-    done = [{**m, "done": True} for m in ms]
-    assert any(
-        "already done" in p for p in build_site.sync_problems({c["id"] for c in data["components"]}, meta(), done)
-    )
-    assert "Status:" in data["status"]
+    assert any("nats.details" in p for p in build_site.sync_problems(ids, bad, ms))
+    bad = meta()
+    bad["components"]["nats"]["planned"] = "M99"
+    assert any("not in the Stage 3 table" in p for p in build_site.sync_problems(ids, bad, ms))
+
+
+def test_build_does_not_use_git_tags(monkeypatch, tmp_path):
+    real = build_site.subprocess.run
+
+    def run(cmd, *a, **k):
+        assert "tag" not in cmd, cmd
+        return real(cmd, *a, **k)
+
+    monkeypatch.setattr(build_site.subprocess, "run", run)
+    build_site.main(tmp_path)
+    out = json.loads((tmp_path / "components.json").read_text())
+    assert out["status"].startswith("Status: ") and "M4" not in out["status"]
+    assert all("done" not in m for m in out["milestones"])
 
 
 def comp(data, cid):

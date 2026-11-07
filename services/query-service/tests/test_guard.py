@@ -1,7 +1,7 @@
 """Scope guard: accepted queries, bypass corpus and rewriting."""
 
 import pytest
-from sandman_query.guard import GuardError, check
+from sandman_query.guard import GuardError, check, tokenize
 
 ANCHOR = "(n:Element {projectId: $projectId})"
 
@@ -167,3 +167,97 @@ def test_all_fixed_templates_pass_the_guard() -> None:
 
     for template in (query.TRACELINKS, query.INCONSISTENCIES, query.INVOLVED, query.ARTIFACTS):
         check(template)
+
+
+def toks(src: str) -> list[tuple[str, str, int, int]]:
+    return [(t.kind, t.text, t.pos, t.end) for t in tokenize(src)]
+
+
+def test_tokenize_positions_and_kinds() -> None:
+    assert toks("a 1.5e3 'x' `q` $p <= .") == [
+        ("name", "a", 0, 1),
+        ("num", "1.5e3", 2, 7),
+        ("str", "x", 8, 11),
+        ("qname", "q", 12, 15),
+        ("param", "p", 16, 18),
+        ("sym", "<=", 19, 21),
+        ("sym", ".", 22, 23),
+        ("eof", "", 23, 23),
+    ]
+
+
+def test_tokenize_names_and_numbers() -> None:
+    assert [t[:2] for t in toks("_a9 0x1F 7")] == [("name", "_a9"), ("num", "0x1F"), ("num", "7"), ("eof", "")]
+    with pytest.raises(GuardError, match="unexpected character"):
+        tokenize("é")
+
+
+def test_tokenize_whitespace_kinds() -> None:
+    assert [t[1] for t in toks("a\tb\nc\rd\fe")] == ["a", "b", "c", "d", "e", ""]
+
+
+def test_tokenize_line_comment_ends_at_cr_or_lf() -> None:
+    assert [t[1] for t in toks("a // x\rb")] == ["a", "b", ""]
+    assert [t[1] for t in toks("a // x\nb")] == ["a", "b", ""]
+    assert [t[1] for t in toks("a // x\r\nb // y\nc")] == ["a", "b", "c", ""]
+    assert [t[1] for t in toks("a // x")] == ["a", ""]
+    assert [t[1] for t in toks("//\nb")] == ["b", ""]
+
+
+def test_tokenize_block_comment() -> None:
+    assert toks("a /* x */ b") == [("name", "a", 0, 1), ("name", "b", 10, 11), ("eof", "", 11, 11)]
+    assert [t[1] for t in toks("/**/a /* x */ b /* y */ c")] == ["a", "b", "c", ""]
+    assert [t[1] for t in toks("/*/ x */a")] == ["a", ""]
+    with pytest.raises(GuardError, match="^syntax error: unterminated comment$"):
+        tokenize("a /* x")
+    with pytest.raises(GuardError, match="^syntax error: unterminated comment$"):
+        tokenize("/*/")
+
+
+def test_tokenize_strings() -> None:
+    assert toks("'a\\'b' 'c'")[0] == ("str", "a\\'b", 0, 6)
+    assert toks("''") == [("str", "", 0, 2), ("eof", "", 2, 2)]
+    assert toks("'\\u00e9' '\\U0001f600'")[0][1] == "\\u00e9"
+    assert toks("'\\U0001f600'")[0][1] == "\\U0001f600"
+    with pytest.raises(GuardError, match="^syntax error: unterminated string$"):
+        tokenize("'abc")
+    with pytest.raises(GuardError, match="^syntax error: unterminated string$"):
+        tokenize("'")
+    with pytest.raises(GuardError, match="invalid escape at 1"):
+        tokenize("'\\q'")
+    for bad in ("'\\u00'", "'\\u00zz'", "'\\U0001f60'", "'\\U0001f60g'", "'\\u'"):
+        with pytest.raises(GuardError, match="invalid unicode escape at 1"):
+            tokenize(bad)
+    with pytest.raises(GuardError, match="invalid escape"):
+        tokenize("'\\")
+
+
+def test_tokenize_quoted_names() -> None:
+    assert toks("`a``b` x") == [("qname", "a`b", 0, 6), ("name", "x", 7, 8), ("eof", "", 8, 8)]
+    assert toks("`a`` ``b`")[0][1:] == ("a` `b", 0, 9)
+    assert toks("`` x")[0] == ("qname", "", 0, 2)
+    with pytest.raises(GuardError, match="^syntax error: unterminated quoted name$"):
+        tokenize("`abc")
+    with pytest.raises(GuardError, match="^syntax error: unterminated quoted name$"):
+        tokenize("`abc``")
+    with pytest.raises(GuardError, match="^syntax error: unterminated quoted name$"):
+        tokenize("`")
+
+
+def test_tokenize_symbols_and_params() -> None:
+    assert [t[1] for t in toks("<> != >= =~ .. <- -> ; |")] == [
+        "<>", "!=", ">=", "=~", "..", "<", "-", "-", ">", ";", "|", "",
+    ]  # fmt: skip
+    assert toks("..x")[0] == ("sym", "..", 0, 2)
+    assert toks("$1 $a_1")[0][1] == "1"
+    with pytest.raises(GuardError, match="invalid parameter at 2"):
+        tokenize("a $")
+    with pytest.raises(GuardError, match="unexpected character '#' at 0"):
+        tokenize("#")
+    with pytest.raises(GuardError, match="unexpected character '!' at 0"):
+        tokenize("!x")
+
+
+def test_nesting_depth_error_message_for_expressions() -> None:
+    with pytest.raises(GuardError, match="^expression nested too deeply$"):
+        check("RETURN " + "(" * 5000 + "1" + ")" * 5000)

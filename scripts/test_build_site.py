@@ -1,6 +1,13 @@
 """The generated site stays in sync with compose, services/ and libs/, and links resolve."""
 
+import functools
+import glob
+import http.server
 import json
+import shutil
+import subprocess
+import threading
+from pathlib import Path
 
 import build_site
 import pytest
@@ -143,3 +150,55 @@ def test_every_flow_and_edge_endpoint_has_a_details_entry(data):
 
 def test_status_line_stays_short(data):
     assert "(" not in data["status"] and len(data["status"]) < 400
+
+
+ANCHOR_CHECK = """<iframe id=f src="index.html#" style="width:1600px;height:1200px"></iframe><pre id=r>pending</pre><script>
+f.onload = () => setTimeout(() => {
+  const d = f.contentDocument, bad = [], eps = .01, nodes = {};
+  d.querySelectorAll(".node").forEach(n => { const m = /translate\\(([-\\d.]+) ([-\\d.]+)\\)/.exec(n.getAttribute("transform")), r = n.querySelector("rect.card"); nodes[n.dataset.id] = { x: +m[1], y: +m[2], w: +r.getAttribute("width"), h: +r.getAttribute("height") }; });
+  const on = (b, p, side) => Math.abs(p.x - (side > 0 ? b.x + b.w : b.x)) < eps && p.y >= b.y && p.y <= b.y + b.h;
+  const ok = (b, p) => on(b, p, 1) || on(b, p, -1);
+  const paths = [...d.querySelectorAll("path.edge")];
+  paths.forEach(p => { const L = p.getTotalLength(), a = p.getPointAtLength(0), z = p.getPointAtLength(L); if (!ok(nodes[p.dataset.from], a) || !ok(nodes[p.dataset.to], z)) bad.push(p.dataset.from + ">" + p.dataset.to); });
+  r.textContent = JSON.stringify({ n: paths.length, bad });
+}, 1500);
+</script>"""  # noqa: E501
+
+
+def chromium():
+    env = shutil.which("chromium") or shutil.which("chrome-headless-shell")
+    found = glob.glob(str(Path.home() / "*/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell"))
+    found += glob.glob(
+        str(Path.home() / "Library/Caches/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell")
+    )
+    return env or (sorted(found)[-1] if found else None)
+
+
+def test_edges_start_and_end_on_box_edges_in_browser(data, tmp_path):
+    exe = chromium()
+    if not exe:
+        pytest.skip("headless Chromium not available")
+    build_site.main(tmp_path)
+    (tmp_path / "check.html").write_text(ANCHOR_CHECK)
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(tmp_path))
+    handler.log_message = lambda *a: None
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        out = subprocess.run(
+            [
+                exe,
+                "--no-sandbox",
+                "--disable-gpu",
+                "--virtual-time-budget=6000",
+                "--dump-dom",
+                f"http://127.0.0.1:{srv.server_port}/check.html",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        ).stdout
+    finally:
+        srv.shutdown()
+    result = json.loads(out.split('<pre id="r">')[1].split("</pre>")[0])
+    assert result["n"] == len(data["edges"]) and result["bad"] == []

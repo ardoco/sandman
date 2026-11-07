@@ -12,7 +12,7 @@ use sandman_agent::config::{default_contracts_dir, llm_mode, process_env, settin
 use sandman_agent::contracts::Contracts;
 use sandman_agent::events::{
     CONSUMER_BACKOFF, Delivery, Event, EventPublisher, EventSink, Handler, JetPublish,
-    PublishOptions, build_event, handle_message,
+    PublishOptions, build_event, consumer_config, handle_message, stream_config,
 };
 use sandman_agent::ids::sha256_hex;
 use sandman_agent::kg::{
@@ -618,4 +618,33 @@ fn now_rfc3339_is_a_plausible_utc_timestamp() {
     assert!((2026..2100).contains(&year), "{t}");
     assert!((1..=12).contains(&month) && (1..=31).contains(&day), "{t}");
     assert!(t.ends_with('Z'));
+}
+
+#[test]
+fn stream_config_matches_the_event_retention_policy() {
+    use async_nats::jetstream::stream::{DiscardPolicy, RetentionPolicy, StorageType};
+    let c = stream_config();
+    assert_eq!(c.name, "SANDMAN");
+    assert_eq!(c.subjects, vec!["sandman.>".to_string()]);
+    assert_eq!(c.storage, StorageType::File);
+    assert_eq!(c.retention, RetentionPolicy::Limits);
+    assert_eq!(c.max_age, Duration::from_secs(90 * 86_400));
+    assert_eq!(c.duplicate_window, Duration::from_secs(120));
+    assert_eq!(c.discard, DiscardPolicy::Old);
+    assert_eq!(c.num_replicas, 1);
+}
+
+#[test]
+fn consumer_config_uses_explicit_acks_and_the_backoff_schedule() {
+    use async_nats::jetstream::consumer::AckPolicy;
+    let c = consumer_config("durable-x", "sandman.events.>");
+    assert_eq!(c.durable_name.as_deref(), Some("durable-x"));
+    assert_eq!(c.filter_subject, "sandman.events.>");
+    assert_eq!(c.ack_policy, AckPolicy::Explicit);
+    assert_eq!(c.ack_wait, Duration::from_secs(60));
+    assert_eq!(c.max_deliver, 5);
+    let backoff: Vec<u64> = c.backoff.iter().map(Duration::as_secs).collect();
+    assert_eq!(backoff, vec![5, 30, 120, 300]);
+    assert_eq!(CONSUMER_BACKOFF, [5, 30, 120, 300]);
+    assert_eq!(c.max_ack_pending, 100);
 }

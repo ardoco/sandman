@@ -1,6 +1,10 @@
 timeout_multiplier = 3.0
 minimum_test_timeout = 30
 additional_cargo_test_args = ["--locked"]
+# Mutants below need a live NATS server (JetStream glue); the Docker-based e2e tests cover them.
 exclude_re = [
-  "telemetry.rs.*replace .* with \\(\\)",
+  "<impl JetPublish for async_nats::jetstream::Context>",
+  "<impl Delivery for NatsDelivery>",
+  "ensure_stream",
+  "run_consumer",
 ]

@@ -598,3 +598,24 @@ fn config_require_accepts_every_configured_name_and_flags_each_missing_one() {
 fn process_env_reads_the_process_environment() {
     assert!(process_env().contains_key("CARGO_PKG_NAME"));
 }
+
+#[test]
+fn contract_error_displays_reference_and_joined_messages() {
+    let e = sandman_agent::contracts::ContractError {
+        reference: "events.schema.json".into(),
+        messages: vec!["a".into(), "b".into()],
+    };
+    assert_eq!(e.to_string(), "events.schema.json: a; b");
+}
+
+#[test]
+fn now_rfc3339_is_a_plausible_utc_timestamp() {
+    let t = sandman_agent::status::now_rfc3339();
+    assert_eq!(t.len(), 20);
+    let year: u32 = t[..4].parse().unwrap();
+    let month: u32 = t[5..7].parse().unwrap();
+    let day: u32 = t[8..10].parse().unwrap();
+    assert!((2026..2100).contains(&year), "{t}");
+    assert!((1..=12).contains(&month) && (1..=31).contains(&day), "{t}");
+    assert!(t.ends_with('Z'));
+}

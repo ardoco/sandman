@@ -539,3 +539,13 @@ async fn llm_returns_content_usage_and_resolved_model() {
     );
     assert_eq!((r.usage.input_tokens, r.usage.output_tokens), (4, 2));
 }
+
+#[test]
+fn generated_workflow_ids_are_prefixed_and_unique() {
+    let a = sandman_agent::ids::new_workflow_id();
+    let b = sandman_agent::ids::new_workflow_id();
+    assert!(a.starts_with("wf_"));
+    assert_eq!(a.len(), 3 + 32);
+    assert!(a[3..].chars().all(|c| c.is_ascii_hexdigit()));
+    assert_ne!(a, b);
+}

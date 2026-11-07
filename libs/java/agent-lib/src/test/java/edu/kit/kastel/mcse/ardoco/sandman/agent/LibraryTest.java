@@ -198,13 +198,26 @@ class LibraryTest {
     }
 
     @Test
+    void settingsContractsDirToStringAndDefaults(@TempDir Path tmp) {
+        var env = Map.of("SANDMAN_SERVICE_NAME", "tlr-agent", "SANDMAN_CONTRACTS_DIR", tmp.toString());
+        assertEquals(tmp, Settings.fromEnv(env).contractsDir());
+        assertEquals(
+                Settings.defaultContractsDir(),
+                Settings.fromEnv(Map.of("SANDMAN_SERVICE_NAME", "x")).contractsDir());
+        assertTrue(Files.isRegularFile(Settings.defaultContractsDir().resolve("common.schema.json")));
+        assertEquals("Settings[serviceName=tlr-agent]", Settings.fromEnv(env).toString());
+    }
+
+    @Test
     void statusTrackerReportsWorkingWhileTasksRun() {
         var tracker = new StatusTracker("tlr-agent", "1.0");
+        assertEquals(0, tracker.activeTasks());
         var idle = tracker.snapshot(null);
         assertEquals("idle", idle.get("state").asString());
         assertFalse(idle.has("lastActivityAt"));
         try (var a = tracker.track();
                 var b = tracker.track()) {
+            assertEquals(2, tracker.activeTasks());
             var working = tracker.snapshot(JsonMapper.shared().readTree("{\"pending\": 1}"));
             assertEquals("working", working.get("state").asString());
             assertEquals(2, working.get("activeTasks").asInt());

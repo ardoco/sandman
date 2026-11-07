@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.json.JsonMapper;
@@ -93,5 +94,17 @@ class DecisionMentionTest {
     void stubFileKeyIsNotTreatedAsPath() {
         assertTrue(run("Read the file first.", 4, element("f", "CodeUnit", "file", "file", "Other.java"))
                 .isEmpty());
+    }
+
+    @Test
+    void identifiesItselfAndItsSupportedKinds() {
+        var approach = new DecisionMention();
+        assertEquals("decision-mention", approach.id());
+        assertEquals("1", approach.version());
+        assertEquals(
+                Set.of(
+                        new KindPair("architecture-doc", "architecture-model"),
+                        new KindPair("architecture-doc", "code")),
+                approach.supports());
     }
 }

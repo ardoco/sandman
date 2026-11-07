@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import edu.kit.kastel.mcse.ardoco.sandman.agent.ArtifactStore;
 import edu.kit.kastel.mcse.ardoco.sandman.tlr.FeedbackAdaptation.Entry;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class FeedbackAdaptationTest {
 
@@ -164,5 +167,117 @@ class FeedbackAdaptationTest {
             g += gold.get(i) ? 1 : 0;
         }
         return 2.0 * tp / (p + g);
+    }
+
+    private static Entry withTexts(String status, String at, String source, String target, String uri) {
+        return new Entry(
+                "a", status, 0.5, at, "why", "r", "h", "c", "h", "Requirement", "CodeUnit", source, target, uri);
+    }
+
+    @Test
+    void thresholdPicksHighestF1AmongOverlappingConfidences() {
+        List<Entry> e = new ArrayList<>();
+        int n = 0;
+        for (double c : new double[] {0.9, 0.8, 0.4}) {
+            e.add(entry("a", true, c, "2026-01-01", n++));
+        }
+        for (double c : new double[] {0.7, 0.2}) {
+            e.add(entry("a", false, c, "2026-01-01", n++));
+        }
+        assertEquals(0.4, FeedbackAdaptation.threshold(e, "a", 1).getAsDouble(), 1e-9);
+    }
+
+    @Test
+    void firstEntryWinsWhenReviewTimesAreEqual() {
+        List<Entry> e = List.of(entry("a", true, 0.9, "2026-01-01", 1), entry("a", false, 0.9, "2026-01-01", 1));
+        assertEquals("confirmed", FeedbackAdaptation.latest(e).get(0).status());
+        assertEquals("confirmed", FeedbackAdaptation.select(e, 1).get(0).status());
+        assertEquals(1, FeedbackAdaptation.select(e, 1).size());
+    }
+
+    @Test
+    void snapshotHashTreatsMissingReasonAsEmpty() {
+        Entry missing = entry("a", true, 0.9, "2026-01-01", 1);
+        Entry empty = new Entry(
+                "a",
+                "confirmed",
+                0.9,
+                "2026-01-01",
+                "",
+                "req#1",
+                "h",
+                "code#1",
+                "h",
+                "Requirement",
+                "CodeUnit",
+                "req 1",
+                "code 1",
+                null);
+        assertEquals(
+                FeedbackAdaptation.snapshotHash(List.of(missing)), FeedbackAdaptation.snapshotHash(List.of(empty)));
+        assertNotEquals(
+                FeedbackAdaptation.snapshotHash(List.of(missing)),
+                FeedbackAdaptation.snapshotHash(List.of(new Entry(
+                        "a",
+                        "confirmed",
+                        0.9,
+                        "2026-01-01",
+                        "because",
+                        "req#1",
+                        "h",
+                        "code#1",
+                        "h",
+                        "Requirement",
+                        "CodeUnit",
+                        "req 1",
+                        "code 1",
+                        null))));
+    }
+
+    @Test
+    void examplesCutTextsAndReadTargetsFromTheStore(@TempDir Path dir) throws Exception {
+        ArtifactStore store = new ArtifactStore(dir);
+        String uri = store.put("mini", "x".repeat(1200).getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                .uri();
+        var examples = FeedbackAdaptation.feedback(
+                        List.of(withTexts("confirmed", "2026-01-01", "s".repeat(600), null, uri)), 1, store)
+                .examples();
+        assertEquals(1, examples.size());
+        assertEquals("s".repeat(500), examples.get(0).sourceText());
+        assertEquals("x".repeat(1000), examples.get(0).targetText());
+        var inline = FeedbackAdaptation.feedback(
+                        List.of(withTexts("confirmed", "2026-01-01", "src", "t".repeat(1500), null)), 1, null)
+                .examples();
+        assertEquals("src", inline.get(0).sourceText());
+        assertEquals("t".repeat(1000), inline.get(0).targetText());
+    }
+
+    @Test
+    void examplesSkipUnreadableTargetsAndBlankSources(@TempDir Path dir) {
+        ArtifactStore store = new ArtifactStore(dir);
+        String missing = "artifact://mini/" + "a".repeat(64);
+        assertEquals(
+                0,
+                FeedbackAdaptation.feedback(
+                                List.of(withTexts("confirmed", "2026-01-01", "src", null, missing)), 1, store)
+                        .examples()
+                        .size());
+        assertEquals(
+                0,
+                FeedbackAdaptation.feedback(
+                                List.of(withTexts("confirmed", "2026-01-01", "src", null, "not-a-uri")), 1, store)
+                        .examples()
+                        .size());
+        assertEquals(
+                0,
+                FeedbackAdaptation.feedback(
+                                List.of(withTexts("confirmed", "2026-01-01", "src", null, missing)), 1, null)
+                        .examples()
+                        .size());
+        assertEquals(
+                0,
+                FeedbackAdaptation.feedback(List.of(withTexts("confirmed", "2026-01-01", "  ", "t", null)), 1, store)
+                        .examples()
+                        .size());
     }
 }

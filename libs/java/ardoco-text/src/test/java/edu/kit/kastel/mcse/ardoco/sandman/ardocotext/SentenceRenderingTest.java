@@ -14,6 +14,7 @@ class SentenceRenderingTest {
         assertEquals("703c4e4a5dd6", SentenceRendering.hash("The MediaCache stores audio files."));
         assertEquals("54b850c03299", SentenceRendering.hash("Größe und Café."));
         assertEquals("703c4e4a5dd6", SentenceRendering.hashPart("sec:Architecture/Cache/703c4e4a5dd6~3"));
+        assertEquals("", SentenceRendering.hashPart("sec:a/~2"));
     }
 
     @Test

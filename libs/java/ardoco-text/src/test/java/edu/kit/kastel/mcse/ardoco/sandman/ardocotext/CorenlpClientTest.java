@@ -2,6 +2,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.ardocotext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,14 +13,19 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class CorenlpClientTest {
 
@@ -179,6 +185,49 @@ class CorenlpClientTest {
         var e = assertThrows(IllegalStateException.class, () -> annotate());
         assertTrue(e.getMessage().contains("at line 2 of 3"), e.getMessage());
         assertTrue(e.getMessage().contains("'Beta'") && e.getMessage().contains("'Betta'"), e.getMessage());
+    }
+
+    @Test
+    void longSentencesAreShortenedAfter80Characters() {
+        String exact = "x".repeat(80);
+        String longer = "y".repeat(81);
+        handler = s -> new Reply(200, answer(longer));
+        var client = client(CorenlpClient.Eolonly.TRUE, 0);
+        var e = assertThrows(
+                IllegalStateException.class,
+                () -> client.annotate(List.of(exact), new CorenlpClient.Provider(true, "x"), () -> false));
+        assertTrue(e.getMessage().contains("line '" + exact + "'"), e.getMessage());
+        assertTrue(e.getMessage().contains("sentence '" + "y".repeat(77) + "...'"), e.getMessage());
+    }
+
+    @Test
+    void fromEnvReadsSettingsAndBuildsBasicAuthFromTokenFile(@TempDir Path tmp) throws Exception {
+        Path token = tmp.resolve("token");
+        Files.writeString(token, "tok\n");
+        var props = Map.of(
+                "SANDMAN_CORENLP_TOKEN_FILE", token.toString(),
+                "SANDMAN_CORENLP_USER", "alice",
+                "SANDMAN_CORENLP_EOLONLY", "false",
+                "SANDMAN_CORENLP_TIMEOUT", "7");
+        props.forEach(System::setProperty);
+        try {
+            var client = CorenlpClient.fromEnv();
+            assertEquals(
+                    "Basic " + Base64.getEncoder().encodeToString("alice:tok".getBytes(StandardCharsets.UTF_8)),
+                    client.authorization());
+        } finally {
+            props.keySet().forEach(System::clearProperty);
+        }
+        assertNull(CorenlpClient.fromEnv().authorization());
+        assertEquals("fallback", CorenlpClient.setting("SANDMAN_NO_SUCH_SETTING", "fallback"));
+        System.setProperty("SANDMAN_NO_SUCH_SETTING", "  ");
+        try {
+            assertEquals("fallback", CorenlpClient.setting("SANDMAN_NO_SUCH_SETTING", "fallback"));
+            System.setProperty("SANDMAN_NO_SUCH_SETTING", "v");
+            assertEquals("v", CorenlpClient.setting("SANDMAN_NO_SUCH_SETTING", "fallback"));
+        } finally {
+            System.clearProperty("SANDMAN_NO_SUCH_SETTING");
+        }
     }
 
     @Test

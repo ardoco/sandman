@@ -5,7 +5,9 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
-use sandman_agent::auth::{ForbiddenError, TokenVerifier, actor_from_metadata, authenticator_for};
+use sandman_agent::auth::{
+    ForbiddenError, TokenVerifier, actor_from_metadata, authenticator_for, bearer_token,
+};
 use sandman_agent::config::{default_contracts_dir, llm_mode, settings_from_env};
 use sandman_agent::contracts::Contracts;
 use sandman_agent::events::{
@@ -548,4 +550,18 @@ fn generated_workflow_ids_are_prefixed_and_unique() {
     assert_eq!(a.len(), 3 + 32);
     assert!(a[3..].chars().all(|c| c.is_ascii_hexdigit()));
     assert_ne!(a, b);
+}
+
+#[test]
+fn bearer_token_accepts_only_the_bearer_scheme() {
+    assert_eq!(bearer_token(Some("Bearer  abc ")), Some("abc"));
+    assert_eq!(bearer_token(Some("Basic abcdefgh")), None);
+    assert_eq!(bearer_token(Some("Bearer\u{20ac}x")), None);
+    assert_eq!(bearer_token(Some("Bearer ")), None);
+    assert_eq!(bearer_token(Some("Bear")), None);
+}
+
+#[test]
+fn forbidden_error_displays_its_message() {
+    assert_eq!(ForbiddenError("nope".into()).to_string(), "nope");
 }

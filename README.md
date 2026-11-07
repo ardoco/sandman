@@ -26,6 +26,7 @@ The walking skeleton runs end to end: upload, extraction, trace link recovery, i
 - `actions/sandman-ingest`: GitHub Action that ingests a repository, waits for the workflow and writes the change impact to the job summary
 - `tools/cli`: `sandman` CLI (`ingest`, `workflows`, `export`, `impact`, `eval`)
 - `tests/plugin-stubs`, `tests/e2e`, `tests/conformance`: plugin stubs, end-to-end and conformance tests
+- `apps/desktop` (Tauri 2, TypeScript): desktop app for one project at a time; starts or connects to the system, ingests, shows results (see [Desktop app](#desktop-app))
 - `deploy/`: Docker Compose stack, edge proxy, LLM gateway config, CoreNLP gateway and provider, secret generation
 
 ## Quickstart
@@ -49,6 +50,17 @@ uv run sandman export --project demo tracelinks
 Optional compose profiles: `stubs`, `dashboard` (system overview on :8090), `obs` (Grafana on :3001), `resources` (cAdvisor), `local-llm` (Ollama container for the `local-only` routes; `make models` pulls the models).
 
 Self-hosted models (`chat-local`, `embed-local`, `local-only` policy) are served either by the local Ollama container (default: `SELFHOSTED_LLM_URL=http://ollama:11434`, profile `local-llm`, `make models`) or by a remote Open WebUI/Ollama (`SELFHOSTED_LLM_URL=https://<host>/ollama`, `SELFHOSTED_LLM_KEY=<Open WebUI API key>`), both set in `deploy/secrets/gateway.env` (ADR-0004). `make up`/`infra`/`e2e` run `deploy/check-env.sh` and refuse any other non-`https://` URL or an empty key.
+
+## Desktop app
+
+The desktop app in `apps/desktop` needs Node 22+, Rust (stable) and the Tauri system libraries. Details: [apps/desktop/README.md](apps/desktop/README.md).
+
+```sh
+make desktop-dev     # development mode
+make desktop-build   # bundle in apps/desktop/src-tauri/target/release/bundle/
+```
+
+Start the built app on macOS with `open apps/desktop/src-tauri/target/release/bundle/macos/SANDMAN.app`. Start it on Linux or Windows with `apps/desktop/src-tauri/target/release/sandman-desktop` (`.exe` on Windows).
 
 ## Development
 

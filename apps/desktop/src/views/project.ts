@@ -1,0 +1,96 @@
+import { listen } from "@tauri-apps/api/event";
+import { cmd, Ctx, Project, StackState } from "../api";
+import { clear, h, toast } from "./dom";
+import { renderAsk } from "./ask";
+import { renderFindings } from "./findings";
+import { renderGraph } from "./graph";
+import { renderIngest } from "./ingest";
+import { renderLinks } from "./links";
+import { renderOverview } from "./overview";
+import { renderSettings } from "./settings";
+import { renderWorkflows } from "./workflows";
+
+const TABS = ["Overview", "Ingest", "Workflows", "Findings", "Trace links", "Ask", "Graph", "Settings"];
+
+export async function renderProject(root: HTMLElement, project: Project, leave: () => void): Promise<void> {
+  const local = project.mode === "local";
+  let stack: StackState | null = null;
+  let cleanup: (() => void) | void = undefined;
+  let tab = "Overview";
+  const state = h("span", { class: "muted" });
+  const nav = h("nav", {});
+  const content = h("div", { class: "content" });
+  const log = h("pre", { class: "log", hidden: true });
+  const start = h("button", { onclick: () => run("stack_up") }, "Start");
+  const stop = h("button", { class: "secondary", onclick: () => run("stack_down") }, "Stop");
+  start.hidden = stop.hidden = !local;
+  const ctx: Ctx = { project, go: (t) => select(t) };
+
+  async function run(command: "stack_up" | "stack_down"): Promise<void> {
+    log.hidden = false;
+    clear(log);
+    start.disabled = stop.disabled = true;
+    try {
+      const code = await cmd<number>(command, { projectId: project.id });
+      toast(code === 0 ? "Done." : `Command failed (exit ${code}).`, code === 0 ? "info" : "error");
+    } catch (e) { toast(String(e instanceof Error ? e.message : e), "error"); }
+    start.disabled = stop.disabled = false;
+    await refresh();
+    select(tab);
+  }
+  async function refresh(): Promise<void> {
+    if (!local) return;
+    try { stack = await cmd<StackState>("stack_state", { projectId: project.id }); } catch { stack = null; }
+    clear(state, stack ? `${stack.state}${stack.ready ? " (ready)" : ""}` : "unknown");
+  }
+  async function select(t: string): Promise<void> {
+    tab = t;
+    cleanup?.();
+    cleanup = undefined;
+    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.textContent === t));
+    const view = h("div", {});
+    clear(content, view);
+    try {
+      switch (t) {
+        case "Overview": await renderOverview(view, ctx, stack); break;
+        case "Ingest": cleanup = await renderIngest(view, ctx); break;
+        case "Workflows": cleanup = await renderWorkflows(view, ctx); break;
+        case "Findings": await renderFindings(view, ctx); break;
+        case "Trace links": await renderLinks(view, ctx); break;
+        case "Ask": renderAsk(view, ctx); break;
+        case "Graph": cleanup = await renderGraph(view, ctx); break;
+        default: await renderSettings(view, ctx);
+      }
+    } catch (e) { view.append(h("p", { class: "error" }, e instanceof Error ? e.message : String(e))); }
+  }
+  async function confirmClose(): Promise<boolean> {
+    if (!local) return true;
+    await refresh();
+    if (!stack || stack.state === "stopped") return true;
+    return new Promise((resolve) => {
+      const done = (v: boolean) => { dlg.remove(); resolve(v); };
+      const command = `make -C ${project.checkout} down`;
+      const dlg = h("div", { class: "modal" }, h("div", { class: "dialog" },
+        h("p", {}, "The local stack is still running."),
+        h("pre", {}, command),
+        h("div", { class: "row" },
+          h("button", { onclick: async () => { await cmd("stack_down", { projectId: project.id }).catch(() => undefined); done(true); } }, "Stop containers"),
+          h("button", { class: "secondary", onclick: () => { navigator.clipboard?.writeText(command); done(true); } }, "Keep running (copy command)"),
+          h("button", { class: "secondary", onclick: () => done(false) }, "Cancel"))));
+      document.body.append(dlg);
+    });
+  }
+
+  const unStack = await listen<string>("stack-log", (e) => { log.append(e.payload + "\n"); log.scrollTop = log.scrollHeight; });
+  const unClose = await listen("close-requested", async () => { if (await confirmClose()) await cmd("quit_app"); });
+  const timer = setInterval(refresh, 5000);
+  const teardown = () => { clearInterval(timer); unStack(); unClose(); cleanup?.(); };
+
+  clear(root,
+    h("header", {}, h("strong", {}, project.name), state, start, stop,
+      h("button", { class: "secondary", onclick: async () => { if (await confirmClose()) { teardown(); leave(); } } }, "Switch project")),
+    nav, log, content);
+  nav.append(...TABS.map((t) => h("button", { class: "tab", onclick: () => select(t) }, t)));
+  await refresh();
+  await select("Overview");
+}

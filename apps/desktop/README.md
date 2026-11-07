@@ -1,0 +1,114 @@
+# SANDMAN desktop app
+
+The app works on one SANDMAN project at a time. It starts or connects to the system, stores settings, ingests folders and files, and shows progress and results. Decision: [ADR-0019](../../adr/0019-desktop-app.md).
+
+## Prerequisites
+
+| Tool | Version | Install hint |
+|---|---|---|
+| Node.js | 22 or newer | https://nodejs.org or `brew install node` |
+| Rust | stable | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` |
+| Tauri system libraries | n/a | see below |
+| Docker with Compose | n/a | https://docs.docker.com/get-docker/ (local projects only) |
+| uv | recent | `brew install uv` or https://docs.astral.sh/uv/ (ingestion only) |
+
+Tauri system libraries:
+
+* macOS: run `xcode-select --install`.
+* Linux (Debian, Ubuntu): run `sudo apt-get install libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev build-essential`.
+* Windows: install the Microsoft C++ Build Tools and the WebView2 runtime.
+
+The OS keychain stores tokens. On Linux, a Secret Service provider (for example GNOME Keyring) must run.
+
+## Install dependencies
+
+```sh
+cd apps/desktop
+npm ci
+```
+
+## Run in development
+
+```sh
+make desktop-dev          # from the repository root
+npm run tauri dev         # or, from apps/desktop
+```
+
+The first Rust build takes several minutes.
+
+## Build
+
+```sh
+make desktop-build        # from the repository root
+npm run tauri build       # or, from apps/desktop
+```
+
+Add `-- --no-bundle` to build only the binary.
+
+| Output | Path (below `apps/desktop/src-tauri/target/release/`) |
+|---|---|
+| Binary | `sandman-desktop` (`sandman-desktop.exe` on Windows) |
+| macOS app | `bundle/macos/SANDMAN.app` |
+| macOS disk image | `bundle/dmg/SANDMAN_<version>_<arch>.dmg` |
+| Linux packages | `bundle/deb/`, `bundle/appimage/`, `bundle/rpm/` |
+| Windows installers | `bundle/msi/`, `bundle/nsis/` |
+
+## Start the built app
+
+* macOS: run `open apps/desktop/src-tauri/target/release/bundle/macos/SANDMAN.app`. Or open the `.dmg` and drag the app to Applications.
+* Linux: run `apps/desktop/src-tauri/target/release/sandman-desktop`. Or install the `.deb` or run the AppImage.
+* Windows: run `apps\desktop\src-tauri\target\release\sandman-desktop.exe`. Or run the installer.
+
+The bundles are not signed. On macOS, open the app with right click and Open on the first start.
+
+## Test
+
+```sh
+make desktop-test         # npm test and cargo test
+npm run typecheck         # from apps/desktop
+```
+
+## Use
+
+### Local project
+
+1. Click New project. Enter a name and an id.
+2. Select mode local. Select the SANDMAN checkout folder. The folder must contain `deploy/docker-compose.yml`.
+3. Enter the keys. Tick "Save as default" to reuse them for new projects.
+4. Click Create. The app writes `deploy/secrets/gateway.env` and `deploy/.env`.
+5. Click Start in the project header. The app runs `make up` in the checkout. The URL is `http://127.0.0.1:8080`.
+6. Create a token (see below) and paste it in Settings.
+
+When you close the app or switch the project while the stack runs, a dialog asks what to do. Choose Stop containers, Keep running, or Cancel.
+
+### Remote project
+
+1. Click New project. Select mode remote.
+2. Enter the URL of the SANDMAN system. Use `https://` for hosts that are not on this machine.
+3. Paste the token. The app stores it in the OS keychain.
+
+The app does not start or stop a remote system.
+
+### Create a token
+
+1. Click Open console in Settings.
+2. Sign in. A local system has the user `admin` and the initial password in `deploy/secrets/admin_bootstrap_password`.
+3. Change the password if the console asks for it.
+4. Create a personal API token.
+5. Paste the token in Settings and click Save.
+
+### Ingest
+
+1. Open the Ingest tab. Click Pick folder or Pick files.
+2. Select the mode. Enter a revision if you want one.
+3. Click Ingest. The log shows the CLI output. The progress shows the workflow steps.
+
+The app runs `uv run --project <checkout> sandman ingest`. Set a CLI command in Settings to use another command. Single files are staged in a temporary folder and sent with mode partial.
+
+## Limitations
+
+* The app has no administration, no token management and no password change.
+* The app does not update itself. The bundles are not signed.
+* Ingestion needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings.
+* Linux and Windows builds were not tested.
+* The app was not tested against a running stack in this version.

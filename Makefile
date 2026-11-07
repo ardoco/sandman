@@ -8,7 +8,7 @@ COMPOSE     = docker compose -f deploy/docker-compose.yml $(if $(filter local,$(
 COMPOSE_DEV = $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill perf site
+.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill perf site desktop-dev desktop-build desktop-test
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -120,3 +120,12 @@ perf: secrets          ## performance budget (T5.4): scratch project sandman-per
 
 site:               ## build the component site into site/dist (open index.html via a local web server)
 	uv run python scripts/build_site.py site/dist
+
+desktop-dev:        ## run the desktop app in development mode (needs Node and Rust)
+	cd apps/desktop && npm ci && npm run tauri dev
+
+desktop-build:      ## build the desktop app bundle into apps/desktop/src-tauri/target/release
+	cd apps/desktop && npm ci && npm run tauri build
+
+desktop-test:       ## desktop app unit tests (TypeScript and Rust)
+	cd apps/desktop && npm ci && npm test && cd src-tauri && cargo test --locked

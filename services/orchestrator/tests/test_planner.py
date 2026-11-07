@@ -10,7 +10,7 @@ from fakes import RULES, TOKENS, VERIFY, Env, vid
 from sandman_agent import TokenVerifier
 from sandman_agent.llm import ChatMessage, ChatResponse, Usage
 from sandman_agent.testing import ScriptedLlmClient
-from sandman_orchestrator import planner
+from sandman_orchestrator import metrics, planner
 from sandman_orchestrator.app import create_app
 from sandman_orchestrator.orchestrator import Orchestrator
 from sandman_orchestrator.rules import PlannerConfig
@@ -214,3 +214,25 @@ async def test_rule_based_orchestration_unchanged_when_planner_is_on(h: Harness)
 
 def test_prompt_hash_changes_with_the_step_bound() -> None:
     assert planner.prompt_hash(3) != planner.prompt_hash(4)
+
+
+async def test_plan_metrics(h: Harness, monkeypatch: pytest.MonkeyPatch) -> None:
+    outcomes: list[str] = []
+    monkeypatch.setattr(metrics, "plan_outcome", outcomes.append)
+    now = [1000.0]
+    h.orch.clock = lambda: now[0]
+    assert h.orch.plans_waiting() == (0, 0.0)
+    a = (await h.request(reply(step("detect")))).json()["id"]
+    now[0] += 30
+    b = (await h.request(reply(step("detect")))).json()["id"]
+    now[0] += 30
+    assert h.orch.plans_waiting() == (2, 60.0)
+    await h.decide(a, "reject")
+    assert h.orch.plans_waiting() == (1, 30.0)
+    await h.decide(b, "approve")
+    c = (await h.request(reply(step("detect")))).json()["id"]
+    now[0] += 101
+    await h.orch.tick()
+    assert h.orch.get_workflow(c)["plan"]["status"] == "EXPIRED"  # type: ignore[index]
+    assert h.orch.plans_waiting() == (0, 0.0)
+    assert outcomes == ["REJECTED", "APPROVED", "EXPIRED"]

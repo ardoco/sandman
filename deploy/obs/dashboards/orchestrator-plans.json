@@ -1,0 +1,190 @@
+{
+  "uid": "sandman-orchestrator-plans",
+  "title": "SANDMAN orchestrator plans",
+  "tags": [
+    "sandman"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Plans waiting for approval",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(sandman_orchestrator_plans_awaiting_approval)",
+          "legendFormat": "waiting"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Oldest waiting plan",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 3600
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {},
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(sandman_orchestrator_plans_oldest_waiting_age_seconds)",
+          "legendFormat": "oldest"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Plans waiting and oldest age",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(sandman_orchestrator_plans_awaiting_approval)",
+          "legendFormat": "waiting"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(sandman_orchestrator_plans_oldest_waiting_age_seconds)",
+          "legendFormat": "oldest age (s)"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Plan outcomes",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (sandman_outcome) (increase(sandman_orchestrator_plans_outcomes_total[$__rate_interval]))",
+          "legendFormat": "{{sandman_outcome}}"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": []
+  }
+}

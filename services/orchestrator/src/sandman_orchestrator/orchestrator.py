@@ -17,7 +17,7 @@ from sandman_agent import A2aClient, ContractError, Contracts, Event, TaskNotFou
 from sandman_agent.ids import canonical_json, new_workflow_id, sha256_hex
 from sandman_agent.llm import LlmClient
 
-from sandman_orchestrator import planner
+from sandman_orchestrator import metrics, planner
 from sandman_orchestrator.rules import SKILL_AGENT, Graph, Rules, StepSpec, manual, merge, plan
 
 log = logging.getLogger(__name__)
@@ -74,6 +74,7 @@ class Orchestrator:
         self._migrate()
         self.wake = asyncio.Event()
         self._next_schedule = 0.0
+        metrics.observe(self.plans_waiting)
 
     def _migrate(self) -> None:
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
@@ -358,11 +359,19 @@ class Orchestrator:
         self.wake.set()
         return True
 
+    def plans_waiting(self) -> tuple[int, float]:
+        """(plans awaiting approval, age in seconds of the oldest)."""
+        n, oldest = self.db.execute("SELECT count(*), min(created_at) FROM plans WHERE status = 'AWAITING'").fetchone()
+        if not n:
+            return 0, 0.0
+        return n, max(0.0, self.clock() - datetime.fromisoformat(oldest).timestamp())
+
     def _close_plan(self, wf_id: str, status: str, actor: str | None, reason: str | None) -> None:
         self.db.execute(
             "UPDATE plans SET status = ?, decided_by = ?, decided_at = ?, reason = ? WHERE workflow_id = ?",
             (status, actor, self.iso(), reason, wf_id),
         )
+        metrics.plan_outcome(status)
         if status != "APPROVED":
             self.db.execute(
                 "UPDATE steps SET status = 'CANCELED', ended_at = ? WHERE workflow_id = ? AND status = 'BLOCKED'",

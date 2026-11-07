@@ -482,6 +482,9 @@ services:
       - otel-data:/data
       - ./obs/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/sandman.yaml:ro
       - ./obs/dashboards:/otel-lgtm/grafana/conf/provisioning/dashboards/sandman:ro
+      - ./obs/alerts.yaml:/otel-lgtm/grafana/conf/provisioning/alerting/sandman.yaml:ro
+    environment:
+      SANDMAN_PLAN_WAIT_ALERT_MINUTES: ${SANDMAN_PLAN_WAIT_ALERT_MINUTES:-60}   # alert: plan waiting for approval longer than this
     networks: [internal]                         # Grafana published via edge-proxy (127.0.0.1:3001)
     mem_limit: 2g
     restart: unless-stopped

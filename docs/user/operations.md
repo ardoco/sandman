@@ -72,7 +72,15 @@ docker compose -f deploy/docker-compose.yml restart extraction-agent
 | `config/query/strategies.yaml` | enabled query strategies, repair and example budgets, flag `suggestions.enabled` (T7.5, off by default) |
 | `config/query/plugins.yaml` | projects each plugin may read |
 
-The planner (T6.4) needs the `SANDMAN_LLM_*` settings on the orchestrator and a route in `config/llm/models.yaml`. A plan waits in the status `BLOCKED` until a maintainer approves it. The dashboard shows the blocked workflow. An alert for waiting plans does not exist yet.
+The planner (T6.4) needs the `SANDMAN_LLM_*` settings on the orchestrator and a route in `config/llm/models.yaml`. A plan waits in the status `BLOCKED` until a maintainer approves it. The dashboard shows the blocked workflow.
+
+### Plan approval alert
+
+With profile `obs`, Grafana shows the dashboard "SANDMAN orchestrator plans". It shows the plans that wait for approval, the age of the oldest plan and the plan outcomes (approved, rejected, expired).
+
+Grafana raises the alert "Plan waiting for approval too long" when a plan waits longer than `SANDMAN_PLAN_WAIT_ALERT_MINUTES` minutes. The default is 60. Set a lower value to get the alert sooner. Set the value in `deploy/.env`, then restart `otel-lgtm`.
+
+The alert needs `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_SDK_DISABLED=false` on the orchestrator. Set `planner.approvalTtl` higher than the alert limit. If not, the plan expires before the alert fires.
 
 Plugin authors: [plugins.md](../plugins.md).
 

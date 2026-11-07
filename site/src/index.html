@@ -29,15 +29,22 @@ header{--w:62rem}
 h1{font-size:clamp(2rem,3.4vw,2.8rem);font-weight:700;letter-spacing:-.035em;line-height:1.1;margin:12px 0 10px;max-width:var(--w);background:linear-gradient(100deg,var(--fg) 40%,var(--z-analysis));-webkit-background-clip:text;background-clip:text;color:transparent}
 .eyebrow{max-width:var(--w);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:24px}
 .intro p{max-width:var(--w);margin:0 0 8px;font-size:1.05rem;text-align:left}
-.tour{max-width:var(--w);margin:14px 0 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:6px}
+.tour{scroll-margin-top:64px;max-width:var(--w);margin:14px 0 8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:6px}
 .tour .step{transition:background .2s,color .2s,transform .15s var(--ease);font:inherit;font-size:.85rem;text-align:center;border:0;background:var(--raise);color:var(--muted);border-radius:999px;padding:6px 14px;cursor:pointer}
 .tour .step[aria-current=step]{background:var(--accent);color:var(--on-accent)}
 .tour .sep{display:none}
 .tour .always{box-shadow:inset 0 0 0 1px var(--line)}
+#play{transition:transform .15s var(--ease),background .2s;text-align:center;font:inherit;font-size:.85rem;border:0;background:var(--raise);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
 .tour .nav{transition:transform .15s var(--ease);text-align:center;font:inherit;font-size:.85rem;border:0;background:var(--raise);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
 .tour .nav:disabled{opacity:.4;cursor:default}
 #tourtext{min-height:3.2em;max-width:var(--w);margin:6px 0 4px;text-align:left;padding:14px 20px;background:var(--card);box-shadow:var(--shadow);border-radius:var(--r3);color:var(--fg);font-size:1.05rem}
 #tourtext b{color:var(--fg)}
+@media (min-width:1250px){.intro{display:grid;grid-template-columns:minmax(0,62rem) auto;column-gap:32px}.intro p{grid-column:1}.stats{grid-column:2;grid-row:1/span 3;align-self:start;display:grid!important;grid-template-columns:1fr 1fr;margin-top:6px!important}}
+.stats{display:flex;flex-wrap:wrap;gap:var(--s2);margin:14px 0 4px}
+.stat{background:var(--card);box-shadow:var(--shadow);border-radius:var(--r2);padding:10px 20px;min-width:8rem;animation:rise .5s var(--ease) backwards;animation-delay:var(--d)}
+.stat b{display:block;font-size:1.8rem;line-height:1.2;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+#play[aria-pressed=true]{background:var(--accent);color:var(--on-accent)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--muted);font-size:.85rem;margin:10px 0 6px;align-items:center}
 .legend svg{vertical-align:middle;margin-right:4px}
 main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding-bottom:24px}
@@ -119,8 +126,9 @@ marker.on path{fill:var(--accent)}
 aside{background:var(--card);border-radius:var(--r3);padding:0 22px 18px;align-self:start;box-shadow:var(--shadow)}
 #sidehead{position:sticky;top:0;z-index:2;background:var(--card);padding:16px 0 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
 #cf{width:100%;font:inherit;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--raise);color:var(--fg)}
-#zf{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-#zf button{font:inherit;font-size:.75rem;border:1px solid var(--line);background:none;color:var(--muted);border-radius:999px;padding:2px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+#zf{display:flex;flex-wrap:wrap;gap:6px;flex-basis:100%;margin-top:4px}
+#zf button{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:3px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,transform .15s var(--ease)}
+#zf button:hover{transform:translateY(-1px)}
 #zf button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--zc);flex:none}
 #clist h3{display:flex;align-items:center;gap:6px;margin:12px 0 2px}
@@ -164,6 +172,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <span><svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="26" y2="5" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="5 3"/><path d="M33 5l-7-4v8z" fill="var(--edge)"/></svg>calls over the network</span>
 <span><svg width="30" height="14" aria-hidden="true"><rect x="1" y="1" width="28" height="12" rx="4" fill="none" stroke="var(--edge)" stroke-dasharray="4 3"/></svg>outside system</span>
 <span>Main flow lines are always shown. Hover, focus or select a component to see all its connections.</span>
+<div id="zf" role="group" aria-label="Filter by zone"></div>
 </div>
 </header>
 <main>
@@ -172,7 +181,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <div id="nbrs" hidden></div>
 <div id="graph" aria-label="Component map"></div>
 </div>
-<aside id="panel"><div id="sidehead"><input id="cf" type="search" placeholder="Filter components" aria-label="Filter components"><div id="zf" role="group" aria-label="Filter by zone"></div></div><div id="sidebody" aria-live="polite"></div></aside>
+<aside id="panel"><div id="sidehead"><input id="cf" type="search" placeholder="Filter components" aria-label="Filter components"></div><div id="sidebody" aria-live="polite"></div></aside>
 </main>
 <div id="find" role="dialog" aria-label="Search components and files" hidden><input id="q" type="search" placeholder="Filter components and files" aria-label="Filter"><ul id="hits"></ul></div>
 <footer>
@@ -512,7 +521,8 @@ function results() {
   });
 }
 
-function setTour(i) {
+function setTour(i, auto) {
+  if (!auto) stopPlay();
   tour = i;
   document.querySelectorAll("#tour .step").forEach((b, k) => { if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
   $("prev").disabled = i == null || i === 0; $("next").disabled = i != null && (i >= data.flow.filter(f => !f.always).length - 1);
@@ -522,14 +532,37 @@ function setTour(i) {
   mark();
 }
 
+function countUp(node, to) {
+  if (matchMedia("(prefers-reduced-motion:reduce)").matches) { node.textContent = to; return; }
+  let t0 = null; const dur = 900;
+  const tick = t => { t0 ??= t; const k = Math.min(1, (t - t0) / dur); node.textContent = Math.round(to * (1 - (1 - k) ** 3)); if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+
+let timer = null;
+function stopPlay() { clearInterval(timer); timer = null; const b = $("play"); if (b) { b.textContent = "▶ Play flow"; b.setAttribute("aria-pressed", "false"); } }
+function play() {
+  if (timer) return stopPlay();
+  const last = data.flow.filter(f => !f.always).length - 1;
+  if (tour == null || tour >= last) setTour(0);
+  $("tour").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth" });
+  $("play").textContent = "❚❚ Pause"; $("play").setAttribute("aria-pressed", "true");
+  timer = setInterval(() => { if (tour >= last) stopPlay(); else setTour(tour + 1, true); }, 5000);
+}
+
 function init() {
   $("h1").textContent = data.intro.title;
   data.intro.paragraphs.forEach(t => $("intro").append(h("p", {}, t)));
-  $("intro").append(h("p", { class: "status" }, data.status));
+  const st = h("div", { class: "stats", role: "group", "aria-label": data.status });
+  [["Components", data.components.length], ["Connections", data.edges.length], ["Zones", data.zones.length], ["Test cases", data.components.reduce((n, c) => n + c.internals.testCount, 0)]].forEach(([t, n], i) => {
+    const b = h("b", {}, "0"), d = h("div", { class: "stat", style: `--d:${i * 80}ms` }); d.append(b, h("span", {}, t)); st.append(d); countUp(b, n);
+  });
+  $("intro").append(st);
   const tr = $("tour");
   tr.append(Object.assign(h("button", { class: "nav", id: "prev" }, "← Previous"), { onclick: () => setTour(Math.max(0, (tour ?? 1) - 1)) }));
   data.flow.forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, s.always ? "|" : "→")); tr.append(Object.assign(h("button", { class: s.always ? "step always" : "step" }, s.always ? s.title : `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });
   tr.append(Object.assign(h("button", { class: "nav", id: "next" }, "Next →"), { onclick: () => setTour(tour == null ? 0 : tour + 1) }));
+  tr.append(Object.assign(h("button", { id: "play", type: "button", "aria-pressed": "false" }, "▶ Play flow"), { onclick: play }));
   setTour(null);
   tr.prepend(h("div", { class: "flabel" }, "Flows"));
   data.glossary.forEach(g => { const d = h("div"); d.append(h("dt", {}, g.term), h("dd", {}, g.text)); $("gloss").append(d); });

@@ -14,6 +14,8 @@ All commands run in the repository root. The stack is defined in `deploy/docker-
 | `docker compose -f deploy/docker-compose.yml ps` | state and health of each container |
 | `curl http://127.0.0.1:8080/readyz` | readiness of the query service: Traverse and user store |
 
+The desktop app starts a local stack with `make up` and stops it with `make down` ([desktop-app.md](desktop-app.md)). If you chose "Keep running" in the close dialog, the stack keeps running. Run `make down` in the checkout to stop it.
+
 `docker compose -f deploy/docker-compose.yml down -v` additionally deletes all data (see below). It cannot be undone.
 
 ## Services and ports

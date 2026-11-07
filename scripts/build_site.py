@@ -13,7 +13,7 @@ import yaml
 
 ROOT = Path(__file__).parents[1]
 REPO = "https://github.com/ardoco/sandman"
-GROUPS = ["platform", "agents", "plugins", "infrastructure", "libraries"]
+GROUPS = ["platform", "agents", "plugins", "infrastructure", "libraries", "apps"]
 DOC_FILES = ["docs/stage-1-analysis-architecture.md", "docs/stage-2-contracts-repository.md", "docs/plugins.md"]
 DOC_GLOBS = ["docs/tasks/*.md", "adr/*.md"]
 MAX_PER_DOC = 5
@@ -348,13 +348,34 @@ def build() -> dict:
                     c["links"].append(link(f, f"{rel}/{f}"))
             comps[d.name] = c
 
+    for d in sorted((ROOT / "apps").iterdir()):
+        if not d.is_dir():
+            continue
+        rel = d.relative_to(ROOT).as_posix()
+        comps[d.name] = {
+            "id": d.name,
+            "name": d.name,
+            "group": "apps",
+            "kind": "desktop app",
+            "profiles": [],
+            "networks": [],
+            "image": None,
+            "description": describe_dir(d) or d.name,
+            "links": [
+                link("Source", rel),
+                link("README.md", f"{rel}/README.md"),
+                link("ADR-0019: Desktop application", "adr/0019-desktop-app.md"),
+                link("User guide", "docs/user/desktop-app.md"),
+            ],
+        }
+
     allfiles = repo_files()
     for c in comps.values():
         c["links"] += doc_links(c["name"])
         n = c["name"]
         roots = [r for r in (f"services/{n}", f"tests/{n}") if any(p.startswith(r + "/") for p in allfiles)]
         if c["kind"] != "service":
-            roots = [f"libs/{c['kind'].split()[0]}/{n}"]
+            roots = [c["links"][0]["path"]]
         c["internals"] = internals(c, n, roots, allfiles)
 
     edges: dict[tuple[str, str], str] = {}

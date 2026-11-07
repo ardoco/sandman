@@ -16,6 +16,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | [querying.md](querying.md) | ask questions, run Cypher, explore the graph in the console, call the REST API, export |
 | [trace-links-and-findings.md](trace-links-and-findings.md) | read and review trace links, read inconsistency findings, triage them with a cause |
 | [derived-models.md](derived-models.md) | use the architecture models that SANDMAN derives from documentation |
+| [desktop-app.md](desktop-app.md) | use the desktop app: local and remote projects, start and stop, ingest, results |
 | [operations.md](operations.md) | start, stop, logs, profiles, data, troubleshooting |
 | [evaluation.md](evaluation.md) | run the Traverse integration tests and the reproduction study (T2.4) |
 
@@ -24,6 +25,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | What | Where |
 |---|---|
 | Console (web): projects, findings, links, ask, graph explorer, upload, workflows, tokens, administration | `http://127.0.0.1:8080/console` |
+| Desktop app (`apps/desktop`): one project at a time, start and stop of a local stack, ingest, results ([desktop-app.md](desktop-app.md)) | started from the built bundle |
 | REST API | `http://127.0.0.1:8080/v1/...` (bearer token) |
 | CLI | `uv run sandman` (subcommands `ingest`, `workflows`, `export`) from a checkout |
 | System overview (dashboard, admins only, profile `dashboard`) | `http://127.0.0.1:8090` ([operations.md](operations.md#dashboard)) |
@@ -50,6 +52,6 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 | Trace links | `explicit-reference` (built in), `stub-name-match` (token overlap, for pipeline checks), `ardoco` (document to model), `transarc` (document to code, default), `lissa` (requirements to code), `ardocode` (document to code, off by default); review by triagers; derived architecture models ([derived-models.md](derived-models.md)) | further approaches |
 | Findings | `stub-untraced` (requirement without active link), `ardoco-id` (model elements missing in the documentation, sentences with entities missing in the model); triage with a cause; evidence view | LLM-based detection `artemis-id` (disabled in `config/inconsistency/plugins.yaml`) |
 | Natural language questions | five fixed question patterns; other questions go to the LLM strategy `cypher`. The strategies `graphrag` and `explore` exist but are disabled in `config/query/strategies.yaml` | enabling them by default |
-| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion | LLM ranking of the impact |
+| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion; desktop app (projects, start and stop, ingest, workflows, findings, trace links, ask, graph, settings; [desktop-app.md](desktop-app.md)) | LLM ranking of the impact; token creation and administration in the desktop app |
 
 The stub components exist to exercise the pipeline end to end. Treat their links and findings as demonstration data, not as analysis results.

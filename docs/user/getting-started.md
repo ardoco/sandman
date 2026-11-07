@@ -2,6 +2,8 @@
 
 Goal: a running stack, a logged-in admin account, a project, and an API token.
 
+Alternative: the desktop app can write the keys, start the stack and ingest for you. See [desktop-app.md](desktop-app.md). Steps 5 and 6 below still apply to create the first token.
+
 ## Requirements
 
 - Docker with Compose v2 (`docker compose`), running. The containers' memory limits assume a host with 32 GB RAM (`deploy/docker-compose.yml`); Traverse alone is limited to 10 GB.

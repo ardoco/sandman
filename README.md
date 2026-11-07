@@ -91,6 +91,7 @@ Integration tests need Docker running. On Docker Desktop, Python Testcontainers 
 | `make up` / `make down` / `make logs` | Whole system via Docker Compose |
 | `make test` | `make test-py` (`uv run pytest`) and `make test-java` (`mvn -B verify`, incl. Spotless and the enforcer) |
 | `make lint` | Framework guard, `ruff check`, `ruff format --check`, `mypy libs/python` |
+| `make mutate PKG=<dir>` | Runs mutation tests (mutmut) for the modules in `[tool.mutmut]` of `<dir>/pyproject.toml`, for example `services/query-service`. Show results with `cd <dir> && uv run mutmut results`. Docker is not needed |
 | `make guard` | Fails if Python code under `libs/` or `services/` imports an agent framework |
 | `make contracts` | Validates `contracts/` (schemas, conformance vectors, Agent Cards, OpenAPI, KG schema) |
 | `make images` | Builds all images of the `stubs` profile |

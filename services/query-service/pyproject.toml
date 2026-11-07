@@ -22,3 +22,9 @@ module-name = "sandman_query"
 
 [tool.uv.sources]
 sandman-agent = { workspace = true }
+
+[tool.mutmut]
+source_paths = ["src/sandman_query/guard.py"]
+also_copy = ["tests", "src"]
+pytest_add_cli_args = ["-o", "asyncio_mode=auto", "--import-mode=importlib"]
+pytest_add_cli_args_test_selection = ["tests/test_guard.py"]

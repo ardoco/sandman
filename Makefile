@@ -8,7 +8,7 @@ COMPOSE     = docker compose -f deploy/docker-compose.yml $(if $(filter local,$(
 COMPOSE_DEV = $(COMPOSE) -f deploy/docker-compose.dev.yml
 FRAMEWORKS  := langchain|langgraph|deepagents|llama_index|crewai|autogen
 
-.PHONY: ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill perf site desktop-dev desktop-build desktop-test
+.PHONY: mutate ardoco secrets infra up models down logs images test test-py test-java lint guard contracts e2e record-cassettes replay-twice backup restore backup-drill perf site desktop-dev desktop-build desktop-test
 
 secrets:            ## generate deploy/secrets/* (never overwrites)
 	deploy/gen-secrets.sh
@@ -51,6 +51,9 @@ lint: guard        ## Python lint/format/type checks (Java: Spotless runs in mvn
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy libs/python
+
+mutate:             ## mutation testing, e.g. make mutate PKG=services/query-service (modules and tests: [tool.mutmut] of that pyproject.toml)
+	cd $(PKG) && uv run --no-sync mutmut run $(ARGS)
 
 guard:              ## no agent frameworks in Python code (NFR-3)
 	@! grep -rEn --include='*.py' '^\s*(import|from)\s+($(FRAMEWORKS))\b' libs services || { echo "agent framework import found"; exit 1; }

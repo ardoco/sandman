@@ -120,7 +120,7 @@ aside .close{float:right;font:inherit;border:0;background:none;color:var(--muted
 aside code{font:12px var(--mono);color:var(--muted)}
 aside details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
 aside summary{cursor:pointer;font-weight:600}
-@media (max-width:999px){aside.has{position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:55vh;overflow:auto;border-radius:12px 12px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3)}aside .close{display:block}body.sheet{padding-bottom:55vh}}
+@media (max-width:999px){aside.has{position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:34vh;overflow:auto;border-radius:12px 12px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3)}aside .close{display:block}aside.detail #sidehead{display:none}body.sheet{padding-bottom:34vh}}
 a{color:var(--accent)}
 .tag{display:inline-block;font-size:.75rem;background:var(--raise);border-radius:999px;padding:1px 10px;margin:0 4px 4px 0}
 button.chip{font:inherit;background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0;text-align:left}
@@ -162,7 +162,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <dl class="gloss" id="gloss"></dl>
 </footer>
 <script>
-const NS = "http://www.w3.org/2000/svg", NW = 196, NH = 60, GAP = 10, ZP = 12, ZH = 64, COLGAP = 60, ROWGAP = 36, PAD = 8, STUB = 12;
+const NS = "http://www.w3.org/2000/svg", NW = 196, NH = 60, GAP = 10, ZP = 12, ZH = 64, COLGAP = 60, ROWGAP = 36, PAD = 22;
 const LW = 250, CW = 226, CH = 30, FH = 46, HP = 44, LGAP = 16;
 let data, byId, zoneOf, selected = null, hover = null, filt = { q: "", zone: null }, tour = null, view = null, zoom = 1, shown = null, hit = null, index = [];
 const size = (w, min = 360) => zoom === 1 ? `width:100%;max-width:${Math.max(w, min)}px` : `width:${Math.round(w * zoom)}px;max-width:none`;
@@ -203,20 +203,51 @@ function layout(width) {
   return { zs, pos, ncols, w: 2 * PAD + ncols * ZW + (ncols - 1) * COLGAP, h: rowY[rows - 1] + rowH[rows - 1] + PAD };
 }
 
-function routes(edges, pos) {
-  const cy = id => pos[id].y + NH / 2, cx = id => pos[id].x + NW / 2, ports = {}, ends = edges.map(e => {
-    const dx = cx(e.to) - cx(e.from), same = Math.abs(dx) < NW / 2, d = same ? 1 : Math.sign(dx);
-    return { from: [e.from, d, e.to], to: [e.to, same ? 1 : -d, e.from], same };
+function rounded(pts, r = 6) {
+  pts = pts.filter((p, i) => !i || p[0] !== pts[i - 1][0] || p[1] !== pts[i - 1][1]);
+  let d = `M${pts[0]}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const [p, c, n] = [pts[i - 1], pts[i], pts[i + 1]], l1 = Math.hypot(c[0] - p[0], c[1] - p[1]), l2 = Math.hypot(n[0] - c[0], n[1] - c[1]), k = Math.min(r, l1 / 2, l2 / 2);
+    d += ` L${c[0] + (p[0] - c[0]) * k / l1} ${c[1] + (p[1] - c[1]) * k / l1} Q${c} ${c[0] + (n[0] - c[0]) * k / l2} ${c[1] + (n[1] - c[1]) * k / l2}`;
+  }
+  return d + ` L${pts[pts.length - 1]}`;
+}
+
+// Orthogonal routing: edges leave a card sideways, run in the gutters between zone columns and the channels between zone rows, so they never cross cards or zone titles.
+function routes(edges, L) {
+  const { pos, zs, ncols } = L, zoneOf = Object.fromEntries(zs.flatMap(z => z.members.map(m => [m.id, z]))), ZW = NW + 2 * ZP;
+  const gx = g => g === 0 ? PAD / 2 : g === ncols ? L.w - PAD / 2 : PAD + g * ZW + (g - 1) * COLGAP + COLGAP / 2, gw = g => g === 0 || g === ncols ? PAD : COLGAP;
+  const rows = Math.max(...zs.map(z => z.r)) + 1, top = r => Math.min(...zs.filter(z => z.r === r).map(z => z.y)), bot = r => top(r) + zs.find(z => z.r === r).h;
+  const hy = r => r === 0 ? PAD / 2 : r === rows ? L.h - PAD / 2 : (bot(r - 1) + top(r)) / 2;
+  const cy = id => pos[id].y + NH / 2, used = {}, lanes = {};
+  const ends = edges.map(e => {
+    const za = zoneOf[e.from], zb = zoneOf[e.to];
+    let s = Math.sign(zb.c - za.c);
+    if (!s) { const n = d => (used[e.from + d] || 0) + (used[e.to + d] || 0); s = n(1) <= n(-1) ? 1 : -1; }
+    const sa = s, sb = za.c === zb.c ? s : -s;
+    used[e.from + sa] = (used[e.from + sa] || 0) + 1; used[e.to + sb] = (used[e.to + sb] || 0) + 1;
+    const ga = za.c + (sa > 0 ? 1 : 0), gb = zb.c + (sb > 0 ? 1 : 0), ch = [`v${ga}`];
+    let yc = null;
+    if (ga !== gb) {
+      const c = Array.from({ length: rows + 1 }, (_, r) => r);
+      yc = c.map(hy).reduce((best, y) => Math.abs(y - cy(e.from)) + Math.abs(y - cy(e.to)) < Math.abs(best - cy(e.from)) + Math.abs(best - cy(e.to)) ? y : best);
+      ch.push(`h${yc}`, `v${gb}`);
+    }
+    ch.forEach(k => (lanes[k] ||= []).push(e));
+    return { e, sa, sb, ga, gb, yc, ch, ports: {} };
   });
-  ends.forEach(x => ["from", "to"].forEach(k => { const [id, d, other] = x[k], key = id + ":" + d; (ports[key] ||= []).push({ x, k, other }); }));
+  const ports = {};
+  ends.forEach(x => [["from", x.e.from, x.sa, x.e.to], ["to", x.e.to, x.sb, x.e.from]].forEach(([k, id, sd, other]) => (ports[id + ":" + sd] ||= []).push({ x, k, id, other })));
   Object.values(ports).forEach(list => {
     list.sort((p, q) => cy(p.other) - cy(q.other) || (p.other < q.other ? -1 : 1));
-    list.forEach((p, i) => { p.x[p.k + "Y"] = cy(p.x[p.k][0]) - NH / 2 + 10 + (NH - 20) * (i + .5) / list.length; });
+    list.forEach((p, i) => { p.x.ports[p.k] = pos[p.id].y + 8 + (NH - 16) * (i + .5) / list.length; });
   });
+  const lane = (k, e, g, w) => { const l = lanes[k], sp = Math.min(6, (w - 12) / l.length); return (l.indexOf(e) - (l.length - 1) / 2) * sp; };
   return ends.map(x => {
-    const [a, da] = x.from, [b, db] = x.to, x1 = pos[a].x + (da > 0 ? NW : 0), x2 = pos[b].x + (db > 0 ? NW : 0), y1 = x.fromY, y2 = x.toY;
-    const sx = x1 + da * STUB, ex = x2 + db * STUB, k = x.same ? 16 + Math.min(30, Math.abs(y2 - y1) / 12) : Math.max(24, Math.abs(ex - sx) / 2);
-    return { d: `M${x1} ${y1} L${sx} ${y1} C${sx + da * k} ${y1} ${ex + db * k} ${y2} ${ex} ${y2} L${x2} ${y2}`, x1, y1, x2, y2 };
+    const { e, sa, sb, ga, gb, yc } = x, x1 = pos[e.from].x + (sa > 0 ? NW : 0), x2 = pos[e.to].x + (sb > 0 ? NW : 0), y1 = x.ports.from, y2 = x.ports.to;
+    const xa = gx(ga) + lane(`v${ga}`, e, ga, gw(ga)), xb = gx(gb) + lane(`v${gb}`, e, gb, gw(gb));
+    const pts = ga === gb ? [[x1, y1], [xa, y1], [xa, y2], [x2, y2]] : [[x1, y1], [xa, y1], [xa, yc + lane(`h${yc}`, e, 0, ROWGAP)], [xb, yc + lane(`h${yc}`, e, 0, ROWGAP)], [xb, y2], [x2, y2]];
+    return { d: rounded(pts), x1, y1, x2, y2 };
   });
 }
 
@@ -227,7 +258,7 @@ function marker(id, cls) {
 
 function overviewSvg(width) {
   const L = layout(width), { zs, pos } = L;
-  const svg = el("svg", { class: "map" + (L.ncols === 1 ? " narrow" : ""), viewBox: `0 0 ${L.w} ${L.h}`, role: "group", "aria-label": "Component map", style: size(L.w) });
+  const svg = el("svg", { class: "map" + (L.ncols === 1 ? " narrow" : ""), viewBox: `0 0 ${L.w} ${L.h}`, role: "group", "aria-label": "Component map", style: size(L.w, L.ncols < 4 ? 1e5 : 360) });
   const defs = el("defs"); defs.append(marker("arr", ""), marker("arr-on", "on")); svg.append(defs);
   zs.forEach(z => {
     const g = el("g", { class: "zone" + (z.external ? " external" : ""), style: `--zc:var(--z-${z.id})`, role: "group", "aria-label": `${z.title}: ${z.blurb}` });
@@ -235,7 +266,7 @@ function overviewSvg(width) {
     wrap(z.blurb, Math.floor((z.w - 28) / 6.4)).forEach((l, i) => g.append(el("text", { class: "zblurb", x: z.x + 14, y: z.y + 46 + i * 12 }, l)));
     svg.append(g);
   });
-  const rt = routes(data.edges, pos);
+  const rt = routes(data.edges, L);
   svg._edges = data.edges.map((e, i) => {
     const p = el("path", { class: "edge " + e.kind, d: rt[i].d, "marker-end": "url(#arr)" });
     p.dataset.from = e.from; p.dataset.to = e.to; p.append(el("title", {}, `${byId[e.from].title} ${e.kind === "calls" ? "calls" : "needs"} ${byId[e.to].title}`));
@@ -395,7 +426,7 @@ function syncFilter() {
 
 function paint() {
   const c = selected && byId[selected], p = $("panel"), list = !c || fOn();
-  p.classList.toggle("has", !!c); document.body.classList.toggle("sheet", !!c);
+  p.classList.toggle("has", !!c); p.classList.toggle("detail", !list); document.body.classList.toggle("sheet", !!c);
   const back = Object.assign(h("button", { id: "back", type: "button" }, "← All components"), { onclick: clearSel });
   $("sidebody").replaceChildren(...(list ? compList() : [back, ...panelNodes(c)]));
   bar();
@@ -466,7 +497,7 @@ fetch("components.json").then(r => r.json()).then(d => {
   $("q").onkeydown = e => { if (e.key === "Enter") $("hits").querySelector("button")?.click(); };
   $("graph").addEventListener("wheel", e => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.1 : 1 / 1.1); } }, { passive: false });
   addEventListener("keydown", e => {
-    if (e.key === "Escape") { if (!$("find").hidden) closeFind(); else if (view) up(); else if (tour != null) setTour(null); return; }
+    if (e.key === "Escape") { if (!$("find").hidden) closeFind(); else if (view) up(); else if (selected) clearSel(); else if (tour != null) setTour(null); return; }
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "/") { e.preventDefault(); openFind(); }
     else if (e.key === "Backspace" && view) { e.preventDefault(); up(); }

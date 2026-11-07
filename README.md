@@ -82,6 +82,14 @@ mvn -B -Pmutation -pl libs/java/agent-lib test-compile org.pitest:pitest-maven:m
 
 Open `target/pit-reports/index.html` in the module to see the surviving mutants. The profile excludes `*IntegrationTest` classes because they need Docker.
 
+Run mutation tests for the Rust agent kit with cargo-mutants. Install it once with `cargo install cargo-mutants --locked`. Run one module with this command:
+
+```sh
+cd libs/rust && cargo mutants --in-place --file sandman-agent/src/ids.rs
+```
+
+Use `--in-place` because the tests read `contracts/` relative to the crate. Do not run other builds in `libs/rust` during the run. Read `libs/rust/mutants.out/missed.txt` for the surviving mutants. The settings are in `libs/rust/.cargo/mutants.toml`. Docker is not needed.
+
 Integration tests need Docker running. On Docker Desktop, Python Testcontainers needs `DOCKER_HOST=unix://$HOME/.docker/run/docker.sock`.
 
 | Target | What it does |

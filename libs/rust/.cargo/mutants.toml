@@ -1,0 +1,6 @@
+timeout_multiplier = 3.0
+minimum_test_timeout = 30
+additional_cargo_test_args = ["--locked"]
+exclude_re = [
+  "telemetry.rs.*replace .* with \\(\\)",
+]

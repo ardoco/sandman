@@ -1,7 +1,9 @@
 """Scope guard: accepted queries, bypass corpus and rewriting."""
 
+import re
+
 import pytest
-from sandman_query.guard import GuardError, check, tokenize
+from sandman_query.guard import MAX_DEPTH, MAX_LENGTH, GuardError, check, tokenize
 
 ANCHOR = "(n:Element {projectId: $projectId})"
 
@@ -261,3 +263,138 @@ def test_tokenize_symbols_and_params() -> None:
 def test_nesting_depth_error_message_for_expressions() -> None:
     with pytest.raises(GuardError, match="^expression nested too deeply$"):
         check("RETURN " + "(" * 5000 + "1" + ")" * 5000)
+
+
+OPERATORS = [
+    f"MATCH {ANCHOR} RETURN n.a XOR n.b, n.a xor n.b, n.a OR n.b",
+    f"match {ANCHOR} where n.a in [1] and n.b contains 'x' and n.c ends with 'y' and n.d starts with 'z' return n",
+    f"MATCH {ANCHOR} WHERE n.a IS NOT NULL AND n.b is null AND n.c =~ 'a' AND n.d <> 1 AND n.e != 2 RETURN n",
+    f"MATCH {ANCHOR} WHERE n.j <= 3 AND n.k >= 4 AND n.l < 5 AND n.m > 6 AND NOT NOT n.n RETURN n",
+    f"MATCH {ANCHOR} RETURN 2 ^ 3 * 4 / 5 % 6 - -1 + +1",
+    f"MATCH {ANCHOR} RETURN n.xs[1], n.xs[1..2], n.xs[..2], n.xs[1..], n.xs[..], n:Element, `n`",
+    f"MATCH {ANCHOR} RETURN CASE n.a WHEN 1 THEN 2 ELSE 3 END, CASE WHEN true THEN false END",
+    f"MATCH {ANCHOR} RETURN count(DISTINCT n), count(*), size([]), coalesce(n.a, n.b), EXISTS(n.a)",
+    f"MATCH {ANCHOR} RETURN n ORDER BY n.a asc, n.b ASCENDING, n.c desc, n.d DESCENDING SKIP 1 LIMIT 2",
+    f"MATCH {ANCHOR} WITH n, n.a AS z WHERE z > 1 RETURN z, n ORDER BY z LIMIT 1",
+    f"MATCH {ANCHOR} WHERE EXISTS {{ UNWIND [1] AS i RETURN i }} RETURN n",
+    f"MATCH {ANCHOR} WHERE EXISTS {{ OPTIONAL MATCH (n)-->(c) RETURN c }} RETURN n",
+    f"MATCH {ANCHOR} WHERE EXISTS {{ WITH n RETURN n }} RETURN n",
+    f"MATCH {ANCHOR} WHERE EXISTS {{ MATCH (n)-->(c) }} RETURN n",
+    f"MATCH {ANCHOR} RETURN [x IN [1] | x], [x IN [1] WHERE x > 0], [x IN [1] WHERE x > 0 | x], [1, 2], []",
+    f"MATCH {ANCHOR} WHERE all(x IN [1] WHERE x > 0) AND none(x IN [1]) AND single(x IN [1] WHERE x > 0) RETURN n",
+    "RETURN foo(DISTINCT 1, 2), foo(*), foo()",
+    "RETURN true, FALSE, Null",
+    f"MATCH {ANCHOR} MATCH (m:Element {{projectId: $projectId}}) MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} MATCH (m:Element {{projectId: $projectId}}) MATCH (m)-->(c) RETURN c",
+    f"MATCH {ANCHOR} WITH * MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} WITH n AS k MATCH (k)-->(c) RETURN c",
+    f"MATCH {ANCHOR} WITH n MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} RETURN reduce(s = 0, x IN [1] | s + size([(n)-->(y) WHERE true | 1]))",
+]
+
+
+@pytest.mark.parametrize("query", OPERATORS)
+def test_operators_keywords_and_scope_carry_over(query: str) -> None:
+    check(query)
+
+
+SCOPE_REJECTED = [
+    f"MATCH {ANCHOR} WITH n.a AS k MATCH (k)-->(c) RETURN c",
+    f"MATCH {ANCHOR} WITH n.a MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} WITH n AS k MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} RETURN [n IN [1] WHERE (n)-->() | n]",
+    f"MATCH {ANCHOR} RETURN any(n IN [1] WHERE (n)-->())",
+    f"MATCH {ANCHOR} RETURN reduce(n = 0, x IN [1] | n + size([(n)-->(y) WHERE true | 1]))",
+    f"MATCH {ANCHOR} RETURN reduce(s = 0, n IN [1] | s + size([(n)-->(y) WHERE true | 1]))",
+    f"MATCH {ANCHOR} WHERE EXISTS {{ MATCH (m) RETURN m }} RETURN n",
+    f"MATCH {ANCHOR} RETURN n.a AS a UNION MATCH (x) RETURN x",
+    f"MATCH {ANCHOR} UNWIND [1] AS n MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} WHERE EXISTS {{ MATCH (m) RETURN m }} MATCH (m)-->(c) RETURN c",
+    f"MATCH {ANCHOR} RETURN [(m)-->(c) | c] AS xs",
+    f"MATCH {ANCHOR} WHERE (m)-->(c) RETURN n",
+    f"MATCH {ANCHOR} WHERE (m)-->(c) MATCH (m)-->(d) RETURN n",
+    f"MATCH {ANCHOR} RETURN n UNION MATCH (n)-->(c) RETURN c",
+    f"MATCH {ANCHOR} RETURN n UNION ALL MATCH (n)-->(c) RETURN c",
+    "MATCH (`n`:Element {projectId: $projectId}) WITH `n`.a AS k MATCH (k)-->(c) RETURN c",
+    f"MATCH {ANCHOR} RETURN [`n` IN [1] WHERE (`n`)-->() | 1]",
+]
+
+
+@pytest.mark.parametrize("query", SCOPE_REJECTED)
+def test_scope_is_not_widened(query: str) -> None:
+    with pytest.raises(GuardError, match="^pattern is not anchored to the project: use {projectId: \\$projectId}, "):
+        check(query)
+
+
+def test_anchor_error_message_is_complete() -> None:
+    with pytest.raises(GuardError) as e:
+        check("MATCH (n) RETURN n")
+    assert str(e.value) == (
+        "pattern is not anchored to the project: use {projectId: $projectId}, (:Project {id: $projectId}) "
+        "or a variable bound by an anchored pattern in every MATCH, comprehension and subquery"
+    )
+
+
+SYNTAX_ERRORS = [
+    ("MATCH (n", "syntax error at 8: expected ')', found end of query"),
+    ("RETURN 1 2", "syntax error at 9: expected end of query, found 2"),
+    ("RETURN 1 QUERY", "QUERY MEMORY LIMIT is set by the service"),
+    ("RETURN (1", "syntax error at 9: expected ')', found end of query"),
+    ("RETURN ,", "syntax error at 7: expected an expression, found ,"),
+    ("RETURN foo(", "syntax error at 11: expected an expression, found end of query"),
+    ("FOO", "syntax error at 0: expected MATCH, OPTIONAL MATCH, WITH, UNWIND or RETURN, found FOO"),
+    ("MATCH (1) RETURN 1", "syntax error at 7: expected ')', found 1"),
+    ("RETURN 1 AS", "syntax error at 11: expected a variable, found end of query"),
+    ("RETURN CASE WHEN 1 ELSE 2", "syntax error at 19: expected THEN, found ELSE"),
+    ("RETURN 1 IS 2", "syntax error at 12: expected NULL, found 2"),
+    ("RETURN n.1", "syntax error at 9: expected a name, found 1"),
+    ("RETURN CASE END", "syntax error at 12: expected an expression, found END"),
+    ("RETURN [x IN", "syntax error at 12: expected an expression, found end of query"),
+    ("RETURN n[1", "syntax error at 10: expected ']', found end of query"),
+    ("RETURN foo(DISTINCT)", "syntax error at 19: expected an expression, found )"),
+    ("RETURN foo(*", "syntax error at 12: expected ')', found end of query"),
+    ("RETURN 1 AS x WHERE x", "syntax error at 14: expected end of query, found WHERE"),
+    ("RETURN [1", "syntax error at 9: expected ']', found end of query"),
+    ("RETURN n[1..", "syntax error at 12: expected an expression, found end of query"),
+    ("MATCH ({a: 1, a: 2}) RETURN 1", "duplicate map key a"),
+]
+
+
+@pytest.mark.parametrize(("query", "message"), SYNTAX_ERRORS)
+def test_error_messages_name_position_and_expectation(query: str, message: str) -> None:
+    with pytest.raises(GuardError, match=f"^{re.escape(message)}"):
+        check(query)
+
+
+def test_denied_clause_message_names_the_clause() -> None:
+    with pytest.raises(GuardError, match="^CREATE is not allowed: only read queries are accepted$"):
+        check(f"MATCH {ANCHOR} create (x)")
+
+
+def test_length_limit_boundary() -> None:
+    pad = "RETURN '" + "a" * (MAX_LENGTH - 9) + "'"
+    assert len(pad) == MAX_LENGTH
+    check(pad)
+    with pytest.raises(GuardError, match=f"^query longer than {MAX_LENGTH} characters$"):
+        check(pad + " ")
+
+
+def test_expression_depth_boundary() -> None:
+    def nested(n: int) -> str:
+        return "RETURN " + "(" * n + "1" + ")" * n
+
+    check(nested(MAX_DEPTH - 1))
+    with pytest.raises(GuardError, match="^expression nested too deeply$"):
+        check(nested(MAX_DEPTH))
+
+
+def test_limit_flag_per_union_branch_and_subquery() -> None:
+    assert not check(f"MATCH {ANCHOR} RETURN n LIMIT 1 UNION ALL MATCH {ANCHOR} RETURN n").has_limit
+    assert check(f"MATCH {ANCHOR} RETURN n UNION MATCH {ANCHOR} RETURN n LIMIT 1").has_limit
+    assert not check(f"MATCH {ANCHOR} WHERE EXISTS {{ MATCH (n)-->(c) RETURN c LIMIT 1 }} RETURN n").has_limit
+
+
+def test_trailing_semicolon_is_removed_only_when_last() -> None:
+    assert check("RETURN 1;").text == "RETURN 1"
+    assert check("RETURN ';'").text == "RETURN ';'"
+    assert check("RETURN 1 ; ").text == "RETURN 1"

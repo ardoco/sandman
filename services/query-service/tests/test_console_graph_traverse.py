@@ -168,6 +168,6 @@ async def test_cartesian_product_and_timeout_show_messages(mg: Env, traverse: st
         return await original(cypher, params, 0.001, max_rows)
 
     graph.run = quick
-    slow = "RETURN 1 AS c"
+    slow = "MATCH (a:Requirement {projectId: $projectId}) UNWIND range(1, 2000) AS k RETURN count(*) AS c"
     resp = await post_query(mg, csrf, slow)
     assert resp.status_code == 422 and "timed out" in resp.json()["error"], resp.text

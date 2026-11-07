@@ -4,6 +4,7 @@ import functools
 import glob
 import http.server
 import json
+import os
 import shutil
 import subprocess
 import threading
@@ -166,7 +167,7 @@ f.onload = () => setTimeout(() => {
 
 
 def chromium():
-    env = shutil.which("chromium") or shutil.which("chrome-headless-shell")
+    env = os.environ.get("SANDMAN_CHROMIUM") or shutil.which("chrome-headless-shell")
     found = glob.glob(str(Path.home() / "*/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell"))
     found += glob.glob(
         str(Path.home() / "Library/Caches/ms-playwright/chromium_headless_shell-*/*/chrome-headless-shell")

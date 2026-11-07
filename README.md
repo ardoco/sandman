@@ -72,6 +72,16 @@ uv sync            # Python workspace (libs/python, services, tools/cli, tests/p
 make test          # uv run pytest + mvn -B verify
 ```
 
+Mutation testing for Java uses PIT (pitest-maven, profile `mutation`). The profile is not part of `mvn verify`.
+Run PIT for one module with these steps:
+
+```sh
+mvn -B -Pmutation -pl libs/java/agent-lib test-compile org.pitest:pitest-maven:mutationCoverage \
+  -DtargetClasses='edu.kit.kastel.mcse.ardoco.sandman.agent.Ids' -DtargetTests='edu.kit.kastel.mcse.ardoco.sandman.*'
+```
+
+Open `target/pit-reports/index.html` in the module to see the surviving mutants. The profile excludes `*IntegrationTest` classes because they need Docker.
+
 Integration tests need Docker running. On Docker Desktop, Python Testcontainers needs `DOCKER_HOST=unix://$HOME/.docker/run/docker.sock`.
 
 | Target | What it does |

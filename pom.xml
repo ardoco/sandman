@@ -47,6 +47,8 @@
     <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
     <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
     <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
+    <pitest-maven.version>1.30.2</pitest-maven.version>
+    <pitest-junit5-plugin.version>1.2.3</pitest-junit5-plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -221,4 +223,38 @@
       </plugin>
     </plugins>
   </build>
+
+  <!-- Mutation testing, not part of the normal build. Run: mvn -Pmutation -pl <module> test-compile org.pitest:pitest-maven:mutationCoverage -DtargetClasses=... -DtargetTests=... -->
+  <profiles>
+    <profile>
+      <id>mutation</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>${pitest-maven.version}</version>
+            <configuration>
+              <outputFormats>
+                <outputFormat>XML</outputFormat>
+                <outputFormat>HTML</outputFormat>
+              </outputFormats>
+              <timestampedReports>false</timestampedReports>
+              <failWhenNoMutations>false</failWhenNoMutations>
+              <excludedTestClasses>
+                <excludedTestClass>*IntegrationTest</excludedTestClass>
+              </excludedTestClasses>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-junit5-plugin</artifactId>
+                <version>${pitest-junit5-plugin.version}</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

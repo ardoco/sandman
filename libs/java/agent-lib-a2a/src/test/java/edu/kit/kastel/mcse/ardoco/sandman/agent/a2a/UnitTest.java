@@ -46,4 +46,24 @@ class UnitTest {
         var json = SkillExecutor.toJson(Map.of("a", 1.0, "b", List.of(2.5, 3.0)));
         assertEquals(JsonMapper.shared().readTree("{\"a\":1,\"b\":[2.5,3]}"), json);
     }
+
+    @Test
+    void integralDoubleKeepsExactRangeOnly() {
+        assertEquals(9007199254740992L, SkillExecutor.jsonValue(0x1p53));
+        assertEquals(0x1p54, SkillExecutor.jsonValue(0x1p54));
+        assertEquals(2147483648L, SkillExecutor.jsonValue(2147483648.0));
+        assertEquals(7, SkillExecutor.jsonValue(7.0));
+        assertEquals(0.5, SkillExecutor.jsonValue(0.5));
+    }
+
+    @Test
+    void skillExceptionAndResultExposeTheirFields() {
+        var e = new SkillException("INVALID_INPUT", "bad", true);
+        assertEquals("INVALID_INPUT: bad", e.toString());
+        var out = JsonMapper.shared().readTree("{\"a\":1}");
+        var r = SkillResult.of(out);
+        assertEquals(out, r.output());
+        assertNull(r.eventType());
+        assertNull(r.eventData());
+    }
 }

@@ -8,6 +8,10 @@ pub fn now_rfc3339() -> String {
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| d.as_secs()) as i64;
+    rfc3339_from_unix(secs)
+}
+
+fn rfc3339_from_unix(secs: i64) -> String {
     let (days, rem) = (secs.div_euclid(86_400), secs.rem_euclid(86_400));
     let z = days + 719_468;
     let era = z.div_euclid(146_097);
@@ -87,5 +91,27 @@ impl StatusTracker {
             out["details"] = Value::Object(d);
         }
         out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::rfc3339_from_unix;
+
+    #[test]
+    fn formats_known_unix_times() {
+        for (secs, text) in [
+            (0, "1970-01-01T00:00:00Z"),
+            (951_782_400, "2000-02-29T00:00:00Z"),
+            (1_709_164_799, "2024-02-28T23:59:59Z"),
+            (1_709_251_199, "2024-02-29T23:59:59Z"),
+            (1_709_251_200, "2024-03-01T00:00:00Z"),
+            (1_735_689_599, "2024-12-31T23:59:59Z"),
+            (4_107_542_400, "2100-03-01T00:00:00Z"),
+            (1_000_000_000, "2001-09-09T01:46:40Z"),
+            (1_700_000_000, "2023-11-14T22:13:20Z"),
+        ] {
+            assert_eq!(rfc3339_from_unix(secs), text);
+        }
     }
 }

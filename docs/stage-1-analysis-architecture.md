@@ -802,7 +802,7 @@ Common to all agents: built on the shared agent library (Section 9); stateless a
 | Failure modes | Crash → restart; JetStream redelivers unacked events; in-flight steps resumed by polling persisted task ids. Agent down → step retries; KG/NATS down → readiness false, consumer paused. |
 | LLM usage | None in the rule path. Final version: optional planner for natural-language user requests (Section 6), behind a feature flag. |
 | Language | **Python**: reference A2A SDK, fast iteration on rules, same stack as query-service; no dependency on Java tools. |
-| Stub | Full rule path with the fixed rule table; no planner (`/v1/requests` returns 501). The orchestrator is thin enough that the stub *is* most of the final logic. |
+| Stub | Full rule path with the fixed rule table; planner off by default (`/v1/requests` returns 501 while the flag is off, see T6.4). The orchestrator is thin enough that the stub *is* most of the final logic. |
 | Final | + planner, + per-project TLR/detector configuration, + approval gate for planner plans. |
 
 ### 5.2 Information Extraction Agent (Python)

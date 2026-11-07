@@ -65,3 +65,12 @@ Also in scope: a conformance test suite on the 40 vectors, fake-based unit tests
 - Fake-driver tests show: read uses a read transaction, the memory-limit error is not retried, `init_schema` ignores "already exists".
 - A2A server tests reject missing skill, unknown skill and invalid input with the expected error code.
 - `cargo test` and `cargo clippy` pass in `libs/rust`. The CI job runs both.
+
+## Known divergences (as built)
+
+- The LLM client uses `reqwest`, not `async-openai`.
+- The A2A server supports only `SendMessage` and `GetTask`. It has no streaming and no cancel.
+- `write_tx` takes a statement list, not a callback.
+- JSON Schema formats are not validated.
+- Case folding uses the `caseless` crate (full folding). The TypeScript kit approximates it with `toUpperCase().toLowerCase()`.
+- Not verified: live Traverse over Bolt, live NATS and JetStream, the CI job on GitHub, the Docker build.

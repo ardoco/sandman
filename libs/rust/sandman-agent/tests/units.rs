@@ -8,7 +8,7 @@ use bytes::Bytes;
 use sandman_agent::auth::{
     ForbiddenError, TokenVerifier, actor_from_metadata, authenticator_for, bearer_token,
 };
-use sandman_agent::config::{default_contracts_dir, llm_mode, settings_from_env};
+use sandman_agent::config::{default_contracts_dir, llm_mode, process_env, settings_from_env};
 use sandman_agent::contracts::Contracts;
 use sandman_agent::events::{
     CONSUMER_BACKOFF, Delivery, Event, EventPublisher, EventSink, Handler, JetPublish,
@@ -564,4 +564,37 @@ fn bearer_token_accepts_only_the_bearer_scheme() {
 #[test]
 fn forbidden_error_displays_its_message() {
     assert_eq!(ForbiddenError("nope".into()).to_string(), "nope");
+}
+
+#[test]
+fn config_require_accepts_every_configured_name_and_flags_each_missing_one() {
+    let verify = temp_file("verify", r#"{"orchestrator": "abc"}"#);
+    let pairs = [
+        ("SANDMAN_LLM_BASE_URL", "u"),
+        ("SANDMAN_LLM_KEY", "k"),
+        ("SANDMAN_LLM_LOCAL_KEY", "l"),
+        ("SANDMAN_KG_URI", "bolt://kg"),
+        ("SANDMAN_KG_USER", "neo"),
+        ("SANDMAN_KG_PASSWORD", "pw"),
+        ("SANDMAN_NATS_URL", "nats://n"),
+        ("SANDMAN_SERVICE_TOKEN", "t"),
+        ("SANDMAN_PLUGIN_INBOUND_TOKEN", "in"),
+    ];
+    let mut all: Vec<(&str, &str)> = pairs.to_vec();
+    all.push(("SANDMAN_SERVICE_NAME", "svc"));
+    all.push(("SANDMAN_SERVICE_VERIFY_FILE", verify.to_str().unwrap()));
+    let full = settings_from_env(&env(&all)).unwrap();
+    let mut names: Vec<&str> = pairs.iter().map(|(n, _)| *n).collect();
+    names.push("SANDMAN_SERVICE_VERIFY");
+    assert!(full.require(&names).is_ok());
+    let bare = settings_from_env(&env(&[("SANDMAN_SERVICE_NAME", "svc")])).unwrap();
+    for name in &names {
+        assert!(bare.require(&[name]).is_err(), "{name}");
+    }
+    assert!(full.require(&["SANDMAN_UNKNOWN"]).is_err());
+}
+
+#[test]
+fn process_env_reads_the_process_environment() {
+    assert!(process_env().contains_key("CARGO_PKG_NAME"));
 }

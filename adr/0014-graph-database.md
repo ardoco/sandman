@@ -90,6 +90,6 @@ T1.8 benchmark report (latency p50/p95 for the walking-skeleton and M1 workloads
   * `CREATE INDEX` and `CREATE VECTOR INDEX` have no `IF NOT EXISTS`. `init_schema` ignores the error "already exists".
   * In a read transaction, Traverse rejects any query text that contains the words drop, set, delete, create, merge or remove, also in string literals. Use parameters.
   * The Java Neo4j driver rejects a server that does not identify as Neo4j. The server flag `--server-agent Neo4j/5.26.0` is the workaround.
-  * The licence of Traverse is to be verified before a release.
+  * Licence check, 2026-11-07: the Traverse repository (github.com/truespar/traverse) and the PyPI package `traverse-http` 0.9.1 state MIT OR Apache-2.0. Third-party parts keep their own licences (THIRD-PARTY-NOTICES). Not verified: that the pinned Docker image (`truespar/traverse@sha256:e39b5739…`) is built from that source, and whether older Truespar docs about licence keys and trial limits (databases, nodes, edges, users) still apply to the image. Before a release, read the LICENSE and THIRD-PARTY-NOTICES files of the pinned version and check the image log for a trial notice.
   * Fallback order if Traverse fails: ArcadeDB, then Neo4j.
   * A unique constraint makes inserts slow on Traverse. The cost grows faster than the node count (see `docs/tasks/T-kg-traverse-migration.md`). The batch size has no effect. Keep the constraints in the normal ingest path (ADR-0005). Only the `make perf` filler creates them after the bulk load.

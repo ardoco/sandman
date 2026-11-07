@@ -51,7 +51,7 @@ Chosen: **B** (accepted 2026-10-07). Python and Java remain the languages of the
 * Good, because agents can be written by people in their preferred ecosystem without changing contracts.
 * Good, because the contracts and conformance vectors already make a third, fourth and fifth implementation testable.
 * Bad, because each kit costs about M–L effort plus ongoing maintenance (three more CI jobs, Dockerfile templates, dependency bots).
-* Bad, because Rust depends on pre-1.0/community components (RK-23).
+* Bad, because Rust depends on pre-1.0/community components (RK-23, accepted by the user on 2026-11-07: exact version pin, `a2a-lf` isolated behind one module).
 
 ### Confirmation
 

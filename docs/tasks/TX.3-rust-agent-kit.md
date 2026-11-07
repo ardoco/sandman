@@ -2,7 +2,7 @@
 
 Milestone MX · Effort L · Depends on: M0, V-40 · Risk: RK-23 (pre-1.0 and community dependencies), RK-24
 
-Status: blocked on precondition. No code is written.
+Status: ready (2026-11-07). The user accepted RK-23. The kit is built in `libs/rust/sandman-agent`.
 
 ## Preconditions
 
@@ -11,11 +11,13 @@ The plan starts TX.3 after `a2a-lf` 1.0 or with RK-23 accepted. ADR-0017 also bu
 | Precondition | State (2026-11-07) |
 | --- | --- |
 | `a2a-lf` 1.0 released | Not met. The newest version on crates.io is 0.4.2. |
-| RK-23 accepted | Not met. RK-23 is an open risk. No decision accepts it. |
-| V-40: Rust Bolt driver against Memgraph 3.13 (`neo4rs` 0.9 or `rsmgclient`) | Open. It decides the KG driver. |
-| First Rust agent planned (Q-21) | Not met. No Rust agent is planned. |
+| RK-23 accepted | Met. The user accepted RK-23 on 2026-11-07: the kit uses `a2a-lf` 0.4.x (pre-1.0). |
+| V-40: Rust Bolt driver | The kit uses `neo4rs` 0.9 (Bolt). The target is Traverse, not Memgraph. Unit tests use fakes. The live check against Traverse is open. |
+| First Rust agent planned (Q-21) | Not met. The kit is built on explicit request. No agent uses it yet. |
 
-If `a2a-lf` 1.0 is released or an explicit decision accepts RK-23, change the status and build the kit.
+Pin rule (condition of the RK-23 acceptance):
+- Pin the exact version of `a2a-lf` in `Cargo.toml` (`=0.4.2`) and pin the other pre-1.0 dependencies.
+- Confine all `a2a-lf` types to the single module `a2a/protocol.rs`. The rest of the kit sees only kit types. A 1.0 upgrade stays local to that module.
 
 ## Context
 
@@ -36,7 +38,7 @@ Same modules as TX.1: `ids`, `contracts`, `config`, `auth`, `status`, `events`, 
 | --- | --- |
 | `a2a` | `a2a-lf` (pin the exact version) |
 | `events` | `async-nats` |
-| `kg` | `neo4rs` or `rsmgclient` (decided by V-40) |
+| `kg` | `neo4rs` (Bolt) |
 | `llm` | `async-openai` against the gateway |
 | `contracts` | `jsonschema` |
 | `ids` | `serde_json_canonicalizer` (RFC 8785) |

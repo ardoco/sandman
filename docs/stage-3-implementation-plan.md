@@ -115,7 +115,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | **MX** | | | | |
 | TX.1 | TypeScript agent kit (`@a2a-js/sdk` 1.x, `nats.js` v3, `neo4j-driver` 6, `openai`, Ajv 2020, `canonicalize`, OTel): skill server convention, auth, status, completion events, KG client (auto-commit, memory-limit), run provenance, ids/keys/fingerprints, contract validation; CI job, Dockerfile template | M–L | M0 | [TX.1](tasks/TX.1-typescript-agent-kit.md) |
 | TX.2 | Go agent kit (`a2a-go` v2, `nats.go`, `neo4j-go-driver` v6, `openai-go`, `santhosh-tekuri/jsonschema` v6, cyberphone JCS, OTel); same scope | M–L | M0 | [TX.2](tasks/TX.2-go-agent-kit.md) |
-| TX.3 | Rust agent kit (`a2a-lf`, `async-nats`, `neo4rs` or `rsmgclient` after V-40, `async-openai`, `jsonschema`, `serde_json_canonicalizer`, OTel); same scope; start after `a2a-lf` 1.0 or with RK-23 accepted | L | M0, V-40 | [TX.3](tasks/TX.3-rust-agent-kit.md) (blocked) |
+| TX.3 | Rust agent kit (`a2a-lf`, `async-nats`, `neo4rs` or `rsmgclient` after V-40, `async-openai`, `jsonschema`, `serde_json_canonicalizer`, OTel); same scope; start after `a2a-lf` 1.0 or with RK-23 accepted (accepted 2026-11-07) | L | M0, V-40 | [TX.3](tasks/TX.3-rust-agent-kit.md) (ready) |
 
 ### 1.3 Dependency graph and recommended order
 
@@ -232,7 +232,7 @@ Threats to validity to track: benchmark contamination of LLMs (benchmark project
 | RK-20 | The dashboard is a privileged component (Memgraph and gateway admin credentials, orchestrator token, cAdvisor host mounts) | M | H | Admins only, own login, localhost-only port, KG access in read transactions only, cAdvisor opt-in on the internal network, secrets mounted only there (ADR-0016) | M1 |
 | RK-21 | Large graphs overwhelm the browser graph view | M | L | At most 500 nodes per view, expand on demand, server-side filters | M1 |
 | RK-22 | ArDoCo branch still references `named-architecture-entity-recognition` 2.1.0-SNAPSHOT (NAER 2.1.0 is published since 2026-10-07; patched to 2.1.0 at build time, one-pass build verified); LangChain4j and old CoreNLP dependencies conflict with the Quarkus BOM (protobuf 3→4, JNA) | L | M | `bootstrap.sh` patches the two poms; upstream switch to 2.1.0; T3.3 equivalence test on the Quarkus classpath (spike T0.4: 42 findings unchanged) | M0–M3 |
-| RK-23 | Rust kit depends on pre-1.0 (`a2a-lf` 0.4) and community components (`neo4rs` RC, `async-openai`) | M | M | Tier 2: build only on demand; pin versions; V-40 Memgraph check first; Go/TS preferred for new agents meanwhile | MX |
+| RK-23 | Rust kit depends on pre-1.0 (`a2a-lf` 0.4) and community components (`neo4rs` RC, `async-openai`) | M | M | Tier 2: build only on demand; pin exact versions; `a2a-lf` isolated behind one module; accepted by the user 2026-11-07; live Bolt check against Traverse open; Go/TS preferred for new agents | MX |
 | RK-24 | Each additional language multiplies library maintenance (three more kits, CI jobs, update bots) | M | M | Kits only on demand, minimal scope, shared conformance vectors and interop test as the gate (ADR-0017) | MX |
 | RK-25 | Feedback-driven adaptation breaks reproducibility of experiments | M | H | Feedback snapshot hash in `configHash` and run manifests; adaptation off by default | M8 |
 | RK-26 | Resolution suggestions and clarification questions add LLM cost and user load | M | M | Off by default; only for severity warning or higher; budget stop applies; load measured in T8.1 | M7 |

@@ -260,13 +260,40 @@ function routes(edges, L) {
     list.sort((p, q) => cy(p.other) - cy(q.other) || (p.other < q.other ? -1 : 1));
     list.forEach((p, i) => { p.x.ports[p.k] = pos[p.id].y + 8 + (NH - 16) * (i + .5) / list.length; });
   });
-  const lane = (k, e, g, w) => { const l = lanes[k], sp = Math.min(6, (w - 12) / l.length); return (l.indexOf(e) - (l.length - 1) / 2) * sp; };
-  return ends.map(x => {
+  const lane = (k, e, w) => { const l = lanes[k], sp = Math.min(6, (w - 12) / l.length); return (l.indexOf(e) - (l.length - 1) / 2) * sp; };
+  const mk = x => {
     const { e, sa, sb, ga, gb, yc } = x, x1 = pos[e.from].x + (sa > 0 ? NW : 0), x2 = pos[e.to].x + (sb > 0 ? NW : 0), y1 = x.ports.from, y2 = x.ports.to;
-    const xa = gx(ga) + lane(`v${ga}`, e, ga, gw(ga)), xb = gx(gb) + lane(`v${gb}`, e, gb, gw(gb));
-    const pts = ga === gb ? [[x1, y1], [xa, y1], [xa, y2], [x2, y2]] : [[x1, y1], [xa, y1], [xa, yc + lane(`h${yc}`, e, 0, ROWGAP)], [xb, yc + lane(`h${yc}`, e, 0, ROWGAP)], [xb, y2], [x2, y2]];
-    return { d: rounded(pts), x1, y1, x2, y2 };
-  });
+    const xa = gx(ga) + lane(`v${ga}`, e, gw(ga)), xb = gx(gb) + lane(`v${gb}`, e, gw(gb));
+    if (ga === gb) return [[x1, y1], [xa, y1], [xa, y2], [x2, y2]];
+    const y = yc + lane(`h${yc}`, e, ROWGAP);
+    return [[x1, y1], [xa, y1], [xa, y], [xb, y], [xb, y2], [x2, y2]];
+  };
+  const between = (v, a, b) => v > Math.min(a, b) && v < Math.max(a, b);
+  const crossings = (A, B) => {
+    let n = 0;
+    for (let i = 1; i < A.length; i++) for (let j = 1; j < B.length; j++) {
+      const av = A[i][0] === A[i - 1][0], bv = B[j][0] === B[j - 1][0];
+      if (av === bv) continue;
+      const [v, w] = av ? [[A[i - 1], A[i]], [B[j - 1], B[j]]] : [[B[j - 1], B[j]], [A[i - 1], A[i]]];
+      if (between(v[0][0], w[0][0], w[1][0]) && between(w[0][1], v[0][1], v[1][1])) n++;
+    }
+    return n;
+  };
+  const P = ends.map(mk), at = new Map(ends.map((x, i) => [x.e, i])), redo = l => l.forEach(e => { P[at.get(e)] = mk(ends[at.get(e)]); });
+  const total = () => { let n = 0; for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) n += crossings(P[i], P[j]); return n; };
+  let best = total();
+  routes.initial = best;
+  for (let pass = 0; pass < 12 && best; pass++) {
+    let improved = false;
+    Object.values(lanes).forEach(l => { for (let i = 0; i + 1 < l.length; i++) {
+      [l[i], l[i + 1]] = [l[i + 1], l[i]]; redo(l);
+      const n = total();
+      if (n < best) { best = n; improved = true; } else { [l[i], l[i + 1]] = [l[i + 1], l[i]]; redo(l); }
+    } });
+    if (!improved) break;
+  }
+  routes.crossings = best;
+  return ends.map((x, i) => { const pts = P[i]; return { d: rounded(pts), x1: pts[0][0], y1: pts[0][1], x2: pts[pts.length - 1][0], y2: pts[pts.length - 1][1] }; });
 }
 
 function marker(id, cls) {
@@ -359,8 +386,7 @@ function mark() {
   let rel = null, on = () => false;
   if (step) { rel = new Set(step.components); on = e => rel.has(e.from) && rel.has(e.to); }
   else if (c) { rel = new Set([c.id, ...c.dependsOn, ...c.usedBy]); on = e => e.from === c.id || e.to === c.id; }
-  svg.classList.toggle("flowing", !!step && !step.always);
-  svg.querySelectorAll(".node").forEach(n => {
+    svg.querySelectorAll(".node").forEach(n => {
     const id = n.dataset.id, k = step && !step.always ? step.components.indexOf(id) : -1;
     n.classList.toggle("sel", id === selected); n.classList.toggle("dim", !!rel && !rel.has(id)); n.classList.toggle("rel", !!c && id !== c.id && !!rel && rel.has(id)); n.classList.toggle("fdim", fOn() && !fMatch(byId[id])); n.setAttribute("aria-pressed", id === selected);
     n.querySelector(".fbadge")?.remove();
@@ -370,6 +396,11 @@ function mark() {
     const e = { from: p.dataset.from, to: p.dataset.to }, o = on(e);
     p.classList.toggle("on", o); p.classList.toggle("dim", !!rel && !o); p.setAttribute("marker-end", o ? "url(#arr-on)" : "url(#arr)");
   });
+  const sig = svg._edges.map((p, i) => p.classList.contains("on") ? i : "").join(",");
+  if (svg._sig !== sig) {
+    svg._sig = sig; svg.querySelectorAll(".pulse").forEach(n => n.remove());
+    svg._edges.forEach((p, i) => { if (!p.classList.contains("on")) return; const q = el("path", { class: "pulse", d: p.getAttribute("d"), pathLength: 100, style: `--d:${-(i % 7) * .3}s` }); p.after(q); });
+  }
 }
 
 function chip(i) { const b = h("button", { class: "chip" }, byId[i].title); b.onclick = () => nav(i, !!view); return b; }

@@ -160,7 +160,7 @@ f.onload = () => setTimeout(() => {
   const ok = (b, p) => on(b, p, 1) || on(b, p, -1);
   const paths = [...d.querySelectorAll("path.edge")];
   paths.forEach(p => { const L = p.getTotalLength(), a = p.getPointAtLength(0), z = p.getPointAtLength(L); if (!ok(nodes[p.dataset.from], a) || !ok(nodes[p.dataset.to], z)) bad.push(p.dataset.from + ">" + p.dataset.to); });
-  r.textContent = JSON.stringify({ n: paths.length, bad });
+  r.textContent = JSON.stringify({ n: paths.length, bad, lanes: [f.contentWindow.routes.initial, f.contentWindow.routes.crossings] });
 }, 1500);
 </script>"""  # noqa: E501
 
@@ -202,3 +202,4 @@ def test_edges_start_and_end_on_box_edges_in_browser(data, tmp_path):
         srv.shutdown()
     result = json.loads(out.split('<pre id="r">')[1].split("</pre>")[0])
     assert result["n"] == len(data["edges"]) and result["bad"] == []
+    assert result["lanes"][1] < result["lanes"][0]

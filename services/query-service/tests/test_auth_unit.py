@@ -7,7 +7,15 @@ import pytest
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_query import auth
-from sandman_query.auth import LEVEL, Principal, RateLimiter, authorize, load_min_roles, load_plugin_grants, plugin_principal
+from sandman_query.auth import (
+    LEVEL,
+    Principal,
+    RateLimiter,
+    authorize,
+    load_min_roles,
+    load_plugin_grants,
+    plugin_principal,
+)
 from starlette.exceptions import HTTPException
 
 ROLES = {

@@ -1,0 +1,17 @@
+# Template for a Rust SANDMAN agent. Copy to services/<agent>/Dockerfile and replace <agent>.
+# Caution: pin the base image digests (rust:1.97-slim@sha256:..., debian:bookworm-slim@sha256:...) before use, as the other Dockerfiles do.
+# The agent crate is a member of the libs/rust workspace or depends on libs/rust/sandman-agent by path.
+FROM rust:1.97-slim AS build
+WORKDIR /src
+COPY libs/rust libs/rust
+COPY services/<agent> services/<agent>
+RUN cargo build --release --locked --manifest-path services/<agent>/Cargo.toml
+
+FROM debian:bookworm-slim
+RUN useradd --uid 10001 --create-home sandman
+COPY --from=build /src/services/<agent>/target/release/<agent> /usr/local/bin/<agent>
+COPY contracts /contracts
+ENV SANDMAN_CONTRACTS_DIR=/contracts SANDMAN_AGENT_CARD=/contracts/agent-cards/<agent>.json
+USER sandman
+EXPOSE 8000
+CMD ["/usr/local/bin/<agent>"]

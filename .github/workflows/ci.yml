@@ -20,6 +20,7 @@ jobs:
       java: ${{ steps.filter.outputs.java }}
       typescript: ${{ steps.filter.outputs.typescript }}
       go: ${{ steps.filter.outputs.go }}
+      rust: ${{ steps.filter.outputs.rust }}
       compose: ${{ steps.filter.outputs.compose }}
     steps:
       - uses: actions/checkout@v7
@@ -64,6 +65,10 @@ jobs:
             go:
               - 'contracts/**'
               - 'libs/go/**'
+              - '.github/workflows/**'
+            rust:
+              - 'contracts/**'
+              - 'libs/rust/**'
               - '.github/workflows/**'
             compose:
               - 'deploy/**'
@@ -165,6 +170,21 @@ jobs:
       - run: go vet ./...
       - run: go test ./...
       - run: test -z "$(gofmt -l .)"
+      - run: ./guard.sh
+
+  rust:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: libs/rust
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
       - run: ./guard.sh
 
   compose:

@@ -285,6 +285,44 @@ class HostileInputTest {
     }
 
     @Test
+    void limitsAcceptTheBoundaryValues() {
+        assertEquals(
+                1,
+                Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "1")).maxFiles());
+        assertEquals(
+                Integer.MAX_VALUE,
+                Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "2147483647"))
+                        .maxFiles());
+    }
+
+    @Test
+    void projectPathLengthIsCappedAt4096() throws Exception {
+        Staging.validateProjectPath("a".repeat(4096));
+        assertEquals(
+                "INVALID_INPUT",
+                assertThrows(SkillException.class, () -> Staging.validateProjectPath("a".repeat(4097)))
+                        .code());
+    }
+
+    @Test
+    void errorMessagesCutLongPathsAndMaskControlCharacters() {
+        var e = assertThrows(SkillException.class, () -> Staging.validateProjectPath("/" + "a".repeat(199)));
+        assertTrue(e.getMessage().endsWith("/" + "a".repeat(199)), e.getMessage());
+        e = assertThrows(SkillException.class, () -> Staging.validateProjectPath("/" + "a".repeat(200)));
+        assertTrue(e.getMessage().endsWith("/" + "a".repeat(199) + "..."), e.getMessage());
+        e = assertThrows(SkillException.class, () -> Staging.validateProjectPath("/x\ty"));
+        assertTrue(e.getMessage().endsWith("/x?y"), e.getMessage());
+    }
+
+    @Test
+    void rejectsAHardLinkedFile() throws IOException {
+        Files.createLink(store.resolve("hard.txt"), store.resolve("a.txt"));
+        assertTrue(rejected(List.of(item("h.txt", store.resolve("hard.txt").toString())))
+                .getMessage()
+                .contains("hard link"));
+    }
+
+    @Test
     void limitsReadTheEnvironment() {
         Limits limits = Limits.fromEnv(java.util.Map.of("SANDMAN_CODE_MAX_FILES", "7", "SANDMAN_CODE_MAX_BYTES", "99"));
         assertEquals(new Limits(7, 99), limits);

@@ -141,6 +141,23 @@ class LibraryTest {
     }
 
     @Test
+    void serviceAuthFromSettingsUsesVerifyHashesAndOwnToken(@TempDir Path tmp) throws Exception {
+        Files.writeString(tmp.resolve("verify.json"), "{\"orchestrator\": \"" + Ids.sha256Hex("tok") + "\"}");
+        Files.writeString(tmp.resolve("own"), "mine\n");
+        var auth = ServiceAuth.fromSettings(Settings.fromEnv(Map.of(
+                "SANDMAN_SERVICE_NAME", "tlr-agent",
+                "SANDMAN_SERVICE_VERIFY_FILE", tmp.resolve("verify.json").toString(),
+                "SANDMAN_SERVICE_TOKEN_FILE", tmp.resolve("own").toString())));
+        assertEquals("mine", auth.ownToken());
+        assertEquals("orchestrator", auth.caller("tok"));
+    }
+
+    @Test
+    void sectionSlugLowercasesFirstAndLastAsciiCapital() {
+        assertEquals("sec:a-z/z-a", Ids.sectionLocalKey(List.of("A Z", "Z A"), List.of(1, 1)));
+    }
+
+    @Test
     void serviceAuthVerifiesTokensAndForwarders() {
         var auth = new ServiceAuth(
                 Map.of("query-service", Ids.sha256Hex("qs"), "plugin:x", Ids.sha256Hex("p")), "own-token");

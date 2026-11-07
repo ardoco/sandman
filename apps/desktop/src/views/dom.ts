@@ -58,3 +58,18 @@ export function showError(root: Element, e: unknown): void {
 export function jsonView(v: unknown): HTMLPreElement {
   return h("pre", {}, JSON.stringify(v, null, 2));
 }
+
+export function autoRefresh(load: () => Promise<boolean>, ms = 3000): (() => void) & { kick: () => void } {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let stopped = false;
+  const tick = async () => {
+    clearTimeout(timer);
+    if (stopped || document.hidden) return;
+    const again = await load().catch(() => false);
+    if (again && !stopped) timer = setTimeout(tick, ms);
+  };
+  const onVisible = () => { if (!document.hidden) void tick(); };
+  document.addEventListener("visibilitychange", onVisible);
+  void tick();
+  return Object.assign(() => { stopped = true; clearTimeout(timer); document.removeEventListener("visibilitychange", onVisible); }, { kick: () => void tick() });
+}

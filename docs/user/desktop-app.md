@@ -11,6 +11,7 @@ The start screen shows the list of your projects. Each row shows the name, the i
 | Button | Action |
 |---|---|
 | New project | opens the form for a new project |
+| Continue <name> | opens the project you used last |
 | Open | opens the selected project (a double click does the same) |
 | Remove | removes the selected project from the list |
 
@@ -72,6 +73,15 @@ The project header of a local project shows the state of the stack. The state is
 
 The output of the commands appears in a log below the header. A remote project has no Start and no Stop button.
 
+If a command fails, the log stays open. The app shows a hint and the last 15 lines. The app detects these causes:
+
+- Docker is not running.
+- Port 8080 is in use by another program.
+- A `check-env` message about keys or credentials.
+- No disk space.
+
+At the start of a local project, the app checks for `make`, `docker` and `uv`. It shows a notice for each program that is missing.
+
 ## Close the app or switch the project
 
 The close dialog appears when you close the window or click Switch project. It appears only if the local stack still runs.
@@ -86,16 +96,23 @@ If you keep the stack running, stop it later by hand. See [operations.md](operat
 
 ## Create a token
 
-The app needs a personal API token for each project. A new project without a token shows the notice "No token yet" in the tab Overview. The app cannot create a token itself.
+The app needs a personal API token for each project. A project without a token shows numbered steps in the tab Overview. The app cannot create a token itself.
 
-1. For a local project, click Start and wait until the stack is ready.
-2. Open the tab Settings. Click Open console.
-3. Sign in. A local system has the user `admin`. The initial password is in `deploy/secrets/admin_bootstrap_password` in the checkout.
-4. Change the password if the console asks for it. Sign in again.
-5. Open Tokens in the console. Enter a name and click Create.
-6. Copy the secret. It starts with `sdm_`. The console shows it once.
-7. Return to the app. Paste the secret in the field Token in the tab Settings.
-8. Click Save.
+1. For a local project, click Start and wait until the stack runs. Step 1 shows the state.
+2. Click Copy admin password. The app copies the initial password of the user `admin` to the clipboard. The app never shows the password.
+3. Click Open console login. The system browser opens the console. Sign in as `admin` and change the password if the console asks for it.
+4. Click Open console tokens page. Enter a name and click Create.
+5. Copy the secret. It starts with `sdm_`. The console shows it once.
+6. Return to the app. Paste the secret in the field. Click Save and check.
+
+The app checks the token with `GET /v1/auth/me` before it stores the token. If the check fails, the app shows the reason and keeps the old token.
+
+| Message | Meaning |
+|---|---|
+| The token is not valid | The system answers 401. Create a new token. |
+| The password must be changed | The system answers 403. Open the console login and change the password. |
+
+The initial password is in `deploy/secrets/admin_bootstrap_password` in the checkout. For a remote project, skip steps 1 to 3.
 
 More about users and tokens: [projects-and-access.md](projects-and-access.md).
 
@@ -107,9 +124,12 @@ Ingest needs a token and the `sandman` CLI. The app starts the CLI for you.
 2. Click Pick folder to select one folder. Or click Pick files to select single files.
 3. Select the mode `full` or `partial`. See [ingesting-artifacts.md](ingesting-artifacts.md).
 4. Enter a source revision if you want one. The field is optional.
-5. Click Ingest.
+5. Check the command preview and the number of picked items.
+6. Click Ingest. Click Cancel to stop the CLI.
 
-The log shows the output of the CLI and the exit code. The section Workflow shows the steps of the latest workflow. The app updates it every 2 seconds.
+The log shows the output of the CLI and the exit code. If the CLI fails, the app shows the last lines of the log.
+
+When the CLI ends, the app looks for the new workflow. It shows the steps and updates them every 2 seconds until the workflow ends.
 
 Single files are always sent as mode `partial`. The app copies them first to a temporary folder. The relative paths below their common parent folder stay the same.
 
@@ -119,21 +139,25 @@ The app runs `uv run --project <checkout> sandman ingest`. A remote project has 
 
 | Tab | Content |
 |---|---|
-| Overview | state of the system, number of findings per status, latest workflow |
+| Overview | state of the system, number of findings per status, latest workflow; token steps if no token is set |
 | Ingest | ingest folders and files, log, workflow progress |
-| Workflows | list of workflows with details; run a workflow of type `full`, `extract`, `tlr` or `detect` |
-| Findings | list with filters for status and severity; details with evidence; triage buttons |
-| Trace links | list with filters for status and approach; buttons `confirmed` and `rejected` |
+| Workflows | list of workflows with details and Load more; run a workflow of type `full`, `extract`, `tlr` or `detect` |
+| Findings | list with filters for status and severity (default `OPEN,REOPENED`) and Load more; details with evidence and history; triage buttons |
+| Trace links | list with filters for status and approach and Load more; buttons `confirmed` and `rejected` |
 | Ask | enter a question in natural language; shows answer, rows and Cypher |
 | Graph | graph of elements and relations; click a node to load its neighbours |
 | Settings | token, CLI command, keys (local project), buttons Open console and Open dashboard |
 
-Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEPTED`, `REJECTED` or `DEFERRED` carries a cause. Select the cause before you click the button. See [trace-links-and-findings.md](trace-links-and-findings.md).
+The tabs Overview and Workflows refresh every 3 seconds while a workflow is `PENDING` or `RUNNING`. They stop when the window is hidden.
+
+Press Ctrl+1 to Ctrl+8 (Cmd+1 to Cmd+8 on macOS) to select a tab. The window title shows the project name and the state of the stack.
+
+Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEPTED`, `REJECTED` or `DEFERRED` needs a reason and a cause. Enter both before you click the button. If another user changed the finding, click Reload finding. See [trace-links-and-findings.md](trace-links-and-findings.md).
 
 ## Limitations
 
 - The app has no administration, no password change, no token management and no project creation. Use the console and the REST API.
-- Tokens cannot be created in the app. Use the console.
+- Rejecting a trace link needs a reason. Links of the approaches `explicit-reference` and `user-declared` cannot be reviewed.
 - The app does not update itself. The bundles are not signed.
 - Ingest needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings.
 - Linux and Windows builds were not tested.
@@ -145,7 +169,9 @@ Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEP
 | Symptom | Action |
 |---|---|
 | The app shows `401` or a message about the token | Paste a valid token in the tab Settings. Click Save. |
-| The tab Overview shows "No token yet" | Create a token (see above). |
+| The tab Overview shows "No token yet" | Follow the numbered steps (see above). |
+| Start says that port 8080 is in use | Stop the other program. Start again. |
+| Start says that Docker is not running | Start Docker. Start again. |
 | The state stays `stopped` after Start | Read the log below the header. Check that Docker runs. Run `make up` in the checkout to see the full output. |
 | Start fails with a `check-env` message | Fix the keys or `deploy/secrets/corenlp_credentials`. See [getting-started.md](getting-started.md). |
 | The system is unreachable | For a local project, click Start. For a remote project, check the URL and the network. |

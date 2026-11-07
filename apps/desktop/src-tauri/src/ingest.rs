@@ -2,7 +2,9 @@ use crate::{api, stack, store, AppState};
 use std::{
     fs,
     path::{Path, PathBuf},
+    sync::Arc,
 };
+use tokio::sync::Notify;
 use tauri::{AppHandle, Emitter, State};
 
 pub fn common_parent(files: &[PathBuf]) -> PathBuf {
@@ -87,7 +89,18 @@ pub async fn ingest(
     if let Some(c) = &project.checkout {
         cmd.current_dir(c);
     }
-    stack::run_streamed(&app, "ingest-log", cmd).await
+    let cancel = Arc::new(Notify::new());
+    state.ingests.lock().unwrap().insert(project_id.clone(), cancel.clone());
+    let run = stack::run_streamed(&app, "ingest-log", cmd, Some(cancel)).await;
+    state.ingests.lock().unwrap().remove(&project_id);
+    Ok(run?.code)
+}
+
+#[tauri::command]
+pub fn ingest_cancel(state: State<'_, AppState>, project_id: String) {
+    if let Some(n) = state.ingests.lock().unwrap().get(&project_id) {
+        n.notify_one();
+    }
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-import { cmd, Ctx, hasToken, SettingsInput, SettingsView } from "../api";
+import { cmd, Ctx, hasToken, saveToken, SettingsInput, SettingsView } from "../api";
 import { dashboardUrl } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
 
@@ -11,7 +11,11 @@ export async function renderSettings(root: HTMLElement, ctx: Ctx): Promise<void>
   const save = async (extra?: () => Promise<void>) => {
     clear(msg);
     try {
-      if (token.value) { await cmd("set_token", { projectId: p.id, token: token.value }); token.value = ""; }
+      if (token.value) {
+        const r = await saveToken(p.id, token.value.trim());
+        if (!r.ok) return showError(msg, r.message);
+        token.value = "";
+      }
       await cmd("save_project", { project: { ...p, cliCommand: cli.value || undefined } });
       await extra?.();
       toast("Saved.");

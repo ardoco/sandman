@@ -91,19 +91,25 @@ The app does not start or stop a remote system.
 
 ### Create a token
 
-1. Click Open console in Settings.
-2. Sign in. A local system has the user `admin` and the initial password in `deploy/secrets/admin_bootstrap_password`.
-3. Change the password if the console asks for it.
-4. Create a personal API token.
-5. Paste the token in Settings and click Save.
+The Overview tab shows numbered steps when the project has no token.
+
+1. Click Copy admin password. The initial password is in `deploy/secrets/admin_bootstrap_password`. The app never shows it.
+2. Click Open console login. Sign in as `admin`. Change the password if the console asks for it.
+3. Click Open console tokens page. Create a personal API token.
+4. Paste the token and click Save and check. The app calls `GET /v1/auth/me` before it stores the token.
 
 ### Ingest
 
 1. Open the Ingest tab. Click Pick folder or Pick files.
 2. Select the mode. Enter a revision if you want one.
-3. Click Ingest. The log shows the CLI output. The progress shows the workflow steps.
+3. Check the command preview. Click Ingest. Click Cancel to stop the CLI.
+4. The log shows the CLI output. The app follows the new workflow until it ends.
 
 The app runs `uv run --project <checkout> sandman ingest`. Set a CLI command in Settings to use another command. Single files are staged in a temporary folder and sent with mode partial.
+
+### Shortcuts
+
+Press Ctrl+1 to Ctrl+8 (Cmd on macOS) to select a tab. The start screen offers Continue for the last project.
 
 ## Limitations
 

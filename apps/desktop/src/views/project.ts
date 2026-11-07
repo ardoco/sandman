@@ -1,5 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
-import { cmd, Ctx, Project, StackState } from "../api";
+import { cmd, Ctx, Lifecycle, Project, StackState } from "../api";
+import { lastLines, windowTitle } from "../logic";
 import { clear, h, toast } from "./dom";
 import { renderAsk } from "./ask";
 import { renderFindings } from "./findings";
@@ -31,8 +32,12 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
     clear(log);
     start.disabled = stop.disabled = true;
     try {
-      const code = await cmd<number>(command, { projectId: project.id });
-      toast(code === 0 ? "Done." : `Command failed (exit ${code}).`, code === 0 ? "info" : "error");
+      const r = await cmd<Lifecycle>(command, { projectId: project.id });
+      if (r.code === 0) toast("Done.");
+      else {
+        const tail = lastLines(log.textContent?.split("\n") ?? []);
+        toast(`${r.hint ?? `Command failed (exit ${r.code}).`}${tail ? `\n${tail}` : ""}`, "error");
+      }
     } catch (e) { toast(String(e instanceof Error ? e.message : e), "error"); }
     start.disabled = stop.disabled = false;
     await refresh();
@@ -42,6 +47,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
     if (!local) return;
     try { stack = await cmd<StackState>("stack_state", { projectId: project.id }); } catch { stack = null; }
     clear(state, stack ? `${stack.state}${stack.ready ? " (ready)" : ""}` : "unknown");
+    void cmd("set_title", { title: windowTitle(project.name, local ? (stack?.state ?? "unknown") : null) }).catch(() => undefined);
   }
   async function select(t: string): Promise<void> {
     tab = t;
@@ -52,7 +58,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
     clear(content, view);
     try {
       switch (t) {
-        case "Overview": await renderOverview(view, ctx, stack); break;
+        case "Overview": cleanup = await renderOverview(view, ctx, stack); break;
         case "Ingest": cleanup = await renderIngest(view, ctx); break;
         case "Workflows": cleanup = await renderWorkflows(view, ctx); break;
         case "Findings": await renderFindings(view, ctx); break;
@@ -84,13 +90,27 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
   const unStack = await listen<string>("stack-log", (e) => { log.append(e.payload + "\n"); log.scrollTop = log.scrollHeight; });
   const unClose = await listen("close-requested", async () => { if (await confirmClose()) await cmd("quit_app"); });
   const timer = setInterval(refresh, 5000);
-  const teardown = () => { clearInterval(timer); unStack(); unClose(); cleanup?.(); };
+  const onKey = (e: KeyboardEvent) => {
+    const n = Number(e.key);
+    if ((e.ctrlKey || e.metaKey) && n >= 1 && n <= TABS.length) { e.preventDefault(); void select(TABS[n - 1]); }
+  };
+  document.addEventListener("keydown", onKey);
+  const teardown = () => {
+    clearInterval(timer); unStack(); unClose(); cleanup?.();
+    document.removeEventListener("keydown", onKey);
+    void cmd("set_title", { title: "SANDMAN" }).catch(() => undefined);
+  };
 
   clear(root,
     h("header", {}, h("strong", {}, project.name), state, start, stop,
       h("button", { class: "secondary", onclick: async () => { if (await confirmClose()) { teardown(); leave(); } } }, "Switch project")),
     nav, log, content);
   nav.append(...TABS.map((t) => h("button", { class: "tab", onclick: () => select(t) }, t)));
+  if (local) {
+    const names = project.cliCommand ? ["make", "docker"] : ["make", "docker", "uv"];
+    const missing = await cmd<string[]>("missing_tools", { names }).catch(() => []);
+    if (missing.length) content.before(h("p", { class: "notice" }, `Missing program: ${missing.join(", ")}. Install ${missing.length > 1 ? "them" : "it"} and restart the app.`));
+  }
   await refresh();
   await select("Overview");
 }

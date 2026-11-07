@@ -22,7 +22,7 @@ export async function renderGraph(root: HTMLElement, ctx: Ctx): Promise<() => vo
         elementId
           ? `MATCH (a:Element {id: $eid, projectId: $projectId})-[r]-(b:Element {projectId: $projectId}) RETURN a.id, a.name, type(r), b.id, b.name LIMIT 100`
           : `MATCH (a:Element {projectId: $projectId})-[r]->(b:Element {projectId: $projectId}) RETURN a.id, a.name, type(r), b.id, b.name LIMIT 100`,
-        { projectId: id, eid: elementId });
+        elementId ? { eid: elementId } : {});
       for (const [a, an, t, b, bn] of r.rows as string[][]) {
         for (const [nid, name] of [[a, an], [b, bn]]) if (!cy.getElementById(nid).length) cy.add({ data: { id: nid, label: name } });
         const eid = `${a}|${t}|${b}`;

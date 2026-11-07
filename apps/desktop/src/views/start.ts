@@ -17,6 +17,7 @@ export async function renderStart(root: HTMLElement, open: (p: Project) => void)
     const projects = await cmd<Project[]>("list_projects");
     clear(
       list,
+      projects.length ? h("button", { class: "continue", onclick: () => open(projects[0]) }, `Continue ${projects[0].name}`) : null,
       projects.length === 0 ? h("p", { class: "muted" }, "No project yet. Create one with New project.") : null,
       ...projects.map((p) => {
         const row: HTMLElement = h("div", { class: "project-row", onclick: () => {

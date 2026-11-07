@@ -59,3 +59,27 @@ export function dashboardUrl(url: string): string {
   u.port = "8090";
   return u.origin;
 }
+
+export const reviewable = (approach: string): boolean => !["explicit-reference", "user-declared"].includes(approach);
+
+export const workflowActive = (status: string): boolean => status === "RUNNING" || status === "PENDING";
+
+export function tokenMessage(status: number, body: unknown): string {
+  if (status === 200) return "Token accepted.";
+  if (status === 401) return "The server rejected this token. Copy the whole secret from the console tokens page. It starts with sdm_.";
+  if (status === 403) {
+    const detail = problemMessage(status, body);
+    return /password change/i.test(detail)
+      ? "Password change required. Open the console login, sign in, change the password, then create the token."
+      : detail;
+  }
+  return problemMessage(status, body);
+}
+
+export function windowTitle(name: string, stack: string | null): string {
+  return stack ? `${name} - ${stack} - SANDMAN` : `${name} - SANDMAN`;
+}
+
+export function lastLines(lines: string[], n = 15): string {
+  return lines.slice(-n).join("\n");
+}

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { problemMessage } from "./logic";
+import { problemMessage, tokenMessage } from "./logic";
 
 export interface Project {
   id: string;
@@ -22,6 +22,10 @@ export interface SettingsView {
   selfhostedLlmUrl: string;
   corenlpMode: string;
   keysSet: string[];
+}
+export interface Lifecycle {
+  code: number;
+  hint: string | null;
 }
 export interface StackState {
   state: "stopped" | "starting" | "running" | "partial" | "remote";
@@ -55,6 +59,19 @@ export async function api<T = any>(
   return r.body as T;
 }
 
+export const CALLS = {
+  me: { method: "GET", path: "/v1/auth/me", reads: ["username", "globalRoles", "disabled"] },
+  queryCypher: { method: "POST", path: "/v1/query/cypher", body: ["projectId", "cypher", "params", "limit"], reads: ["columns", "rows", "truncated"] },
+  queryNl: { method: "POST", path: "/v1/query/nl", body: ["projectId", "question"], reads: ["columns", "rows", "answer", "cypher", "warnings"] },
+  listInconsistencies: { method: "GET", path: "/v1/projects/{projectId}/inconsistencies", query: ["status", "severity", "limit", "cursor"], reads: ["items", "counts", "nextCursor"] },
+  getInconsistency: { method: "GET", path: "/v1/inconsistencies/{inconsistencyId}", reads: ["title", "severity", "status", "type", "detector", "description", "involved", "evidence", "history", "allowedTransitions"] },
+  transitionInconsistency: { method: "POST", path: "/v1/inconsistencies/{inconsistencyId}/transitions", body: ["to", "expectedStatus", "reason", "cause"] },
+  reviewTraceLink: { method: "POST", path: "/v1/projects/{projectId}/links/{linkId}/review", body: ["status", "reason"] },
+  listWorkflows: { method: "GET", path: "/v1/projects/{projectId}/workflows", query: ["limit", "cursor"], reads: ["items", "nextCursor"] },
+  createWorkflow: { method: "POST", path: "/v1/projects/{projectId}/workflows", body: ["type"] },
+  getWorkflow: { method: "GET", path: "/v1/workflows/{workflowId}", reads: ["id", "status", "steps", "createdAt", "trigger"] },
+} as const;
+
 export const cypher = (projectId: string, statement: string, params: Record<string, unknown> = {}, limit = 200) =>
   api<{ columns: string[]; rows: unknown[][]; truncated: boolean }>(projectId, "POST", "/v1/query/cypher", undefined, {
     projectId,
@@ -69,3 +86,8 @@ export interface Ctx {
 }
 
 export const hasToken = (projectId: string) => cmd<boolean>("has_token", { projectId });
+
+export async function saveToken(projectId: string, token: string): Promise<{ ok: boolean; message: string }> {
+  const r = await cmd<{ status: number; body: unknown }>("check_token", { projectId, token });
+  return { ok: r.status === 200, message: tokenMessage(r.status, r.body) };
+}

@@ -33,3 +33,11 @@ progress { width: 100%; }
 .toast.error { color: var(--err); }
 .modal { position: fixed; inset: 0; background: #0008; display: flex; align-items: center; justify-content: center; }
 .dialog { background: var(--bg); padding: 16px; border-radius: 8px; max-width: 560px; }
+.steps { padding-left: 20px; }
+.steps li { margin: 8px 0; }
+.steps li.done > strong { color: var(--muted); text-decoration: line-through; }
+.continue { display: block; width: 100%; margin-bottom: 8px; padding: 10px; font-weight: 600; }
+.toast { white-space: pre-wrap; max-width: 480px; }
+.error { white-space: pre-wrap; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.log { max-height: 240px; overflow: auto; }

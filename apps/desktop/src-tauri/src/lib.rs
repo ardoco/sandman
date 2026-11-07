@@ -7,7 +7,7 @@ mod store;
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 use tauri::{AppHandle, Emitter, Manager, State, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
@@ -17,6 +17,7 @@ pub struct AppState {
     pub dir: PathBuf,
     pub tokens: Mutex<HashMap<String, String>>,
     pub starting: Mutex<HashSet<String>>,
+    pub ingests: Mutex<HashMap<String, Arc<tokio::sync::Notify>>>,
 }
 
 #[tauri::command]
@@ -120,6 +121,11 @@ fn open_external(app: AppHandle, url: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_title(window: tauri::WebviewWindow, title: String) -> Result<(), String> {
+    window.set_title(&title).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn quit_app(app: AppHandle) {
     app.exit(0);
 }
@@ -133,6 +139,7 @@ pub fn run() {
                 dir: app.path().app_config_dir()?,
                 tokens: Mutex::new(HashMap::new()),
                 starting: Mutex::new(HashSet::new()),
+                ingests: Mutex::new(HashMap::new()),
             });
             Ok(())
         })
@@ -147,6 +154,11 @@ pub fn run() {
             save_project,
             delete_project,
             api::set_token,
+            api::check_token,
+            api::admin_password,
+            stack::missing_tools,
+            ingest::ingest_cancel,
+            set_title,
             api::has_token,
             get_defaults,
             save_defaults,

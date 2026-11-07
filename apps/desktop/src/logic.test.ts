@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardUrl, latestWorkflow, needsCause, problemMessage, slugify, validSlug, workflowProgress } from "./logic";
+import { dashboardUrl, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -36,5 +36,24 @@ describe("logic", () => {
     expect(needsCause("DEFERRED")).toBe(true);
     expect(needsCause("OPEN")).toBe(false);
     expect(dashboardUrl("http://127.0.0.1:8080")).toBe("http://127.0.0.1:8090");
+  });
+
+  it("explains token check results", () => {
+    expect(tokenMessage(200, {})).toBe("Token accepted.");
+    expect(tokenMessage(401, null)).toContain("rejected");
+    expect(tokenMessage(403, { detail: "password change required" })).toContain("Password change required");
+    expect(tokenMessage(403, { detail: "not allowed" })).toBe("not allowed");
+    expect(tokenMessage(500, null)).toBe("HTTP 500");
+  });
+
+  it("small view helpers", () => {
+    expect(workflowActive("RUNNING") && workflowActive("PENDING")).toBe(true);
+    expect(workflowActive("SUCCEEDED")).toBe(false);
+    expect(reviewable("explicit-reference")).toBe(false);
+    expect(reviewable("user-declared")).toBe(false);
+    expect(reviewable("lissa")).toBe(true);
+    expect(windowTitle("Demo", "running (ready)")).toBe("Demo - running (ready) - SANDMAN");
+    expect(windowTitle("Demo", null)).toBe("Demo - SANDMAN");
+    expect(lastLines(["a", "b", "c"], 2)).toBe("b\nc");
   });
 });

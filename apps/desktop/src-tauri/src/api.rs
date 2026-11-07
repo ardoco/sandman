@@ -76,6 +76,45 @@ pub fn set_token(state: State<'_, AppState>, project_id: String, token: String) 
     Ok(())
 }
 
+pub fn read_secret_file(checkout: &str, name: &str) -> Result<String, String> {
+    let path = std::path::Path::new(checkout).join("deploy/secrets").join(name);
+    let text = std::fs::read_to_string(&path).map_err(|_| format!("{} not found. Start the stack once to create it.", path.display()))?;
+    let value = text.trim().to_string();
+    if value.is_empty() {
+        return Err(format!("{} is empty", path.display()));
+    }
+    Ok(value)
+}
+
+#[tauri::command]
+pub fn admin_password(state: State<'_, AppState>, project_id: String) -> Result<String, String> {
+    let project = store::find(&state.dir, &project_id)?;
+    let checkout = project.checkout.filter(|_| project.mode == "local").ok_or("only a local project has an admin password file")?;
+    read_secret_file(&checkout, "admin_bootstrap_password")
+}
+
+#[tauri::command]
+pub async fn check_token(state: State<'_, AppState>, project_id: String, token: String) -> Result<ApiResponse, String> {
+    let token = token.trim().to_string();
+    if token.is_empty() || !token.chars().all(|c| c.is_ascii_graphic()) {
+        return Err("token must be one printable word without spaces".into());
+    }
+    let project = store::find(&state.dir, &project_id)?;
+    let resp = client(10)
+        .get(format!("{}/v1/auth/me", project.url))
+        .bearer_auth(&token)
+        .send()
+        .await
+        .map_err(|e| format!("system not reachable: {}", e.without_url()))?;
+    let status = resp.status().as_u16();
+    let body = resp.json::<Value>().await.unwrap_or(Value::Null);
+    if status == 200 {
+        store::secret_set(&format!("token:{project_id}"), &token)?;
+        state.tokens.lock().unwrap().insert(project_id, token);
+    }
+    Ok(ApiResponse { status, body })
+}
+
 #[tauri::command]
 pub fn has_token(state: State<'_, AppState>, project_id: String) -> Result<bool, String> {
     Ok(token(&state, &project_id).is_ok())
@@ -84,6 +123,18 @@ pub fn has_token(state: State<'_, AppState>, project_id: String) -> Result<bool,
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_secret_file_trimmed_and_reports_missing() {
+        let d = tempfile::tempdir().unwrap();
+        let co = d.path().to_string_lossy().into_owned();
+        assert!(read_secret_file(&co, "admin_bootstrap_password").unwrap_err().contains("not found"));
+        std::fs::create_dir_all(d.path().join("deploy/secrets")).unwrap();
+        std::fs::write(d.path().join("deploy/secrets/admin_bootstrap_password"), "s3cret\n").unwrap();
+        assert_eq!(read_secret_file(&co, "admin_bootstrap_password").unwrap(), "s3cret");
+        std::fs::write(d.path().join("deploy/secrets/admin_bootstrap_password"), "\n").unwrap();
+        assert!(read_secret_file(&co, "admin_bootstrap_password").unwrap_err().contains("empty"));
+    }
 
     #[test]
     fn path_allow_list() {

@@ -114,7 +114,7 @@ Effort: **S** ≤ 2 days, **M** 3–5 days, **L** 1–2 weeks (one developer, wi
 | T8.2 | Feedback-driven adaptation experiment (few-shot from reviewed links, per-project thresholds); feedback snapshot hash in `configHash`; off by default | L | T6.1 | [T8.2](tasks/T8.2-feedback-adaptation.md) |
 | **MX** | | | | |
 | TX.1 | TypeScript agent kit (`@a2a-js/sdk` 1.x, `nats.js` v3, `neo4j-driver` 6, `openai`, Ajv 2020, `canonicalize`, OTel): skill server convention, auth, status, completion events, KG client (auto-commit, memory-limit), run provenance, ids/keys/fingerprints, contract validation; CI job, Dockerfile template | M–L | M0 | [TX.1](tasks/TX.1-typescript-agent-kit.md) |
-| TX.2 | Go agent kit (`a2a-go` v2, `nats.go`, `neo4j-go-driver` v6, `openai-go`, `santhosh-tekuri/jsonschema` v6, cyberphone JCS, OTel); same scope | M–L | M0 | |
+| TX.2 | Go agent kit (`a2a-go` v2, `nats.go`, `neo4j-go-driver` v6, `openai-go`, `santhosh-tekuri/jsonschema` v6, cyberphone JCS, OTel); same scope | M–L | M0 | [TX.2](tasks/TX.2-go-agent-kit.md) |
 | TX.3 | Rust agent kit (`a2a-lf`, `async-nats`, `neo4rs` or `rsmgclient` after V-40, `async-openai`, `jsonschema`, `serde_json_canonicalizer`, OTel); same scope; start after `a2a-lf` 1.0 or with RK-23 accepted | L | M0, V-40 | [TX.3](tasks/TX.3-rust-agent-kit.md) (blocked) |
 
 ### 1.3 Dependency graph and recommended order

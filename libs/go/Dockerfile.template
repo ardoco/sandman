@@ -1,0 +1,16 @@
+# Template for a Go SANDMAN agent. Copy to services/<agent>/Dockerfile and replace <agent>.
+# Caution: pin the base image digests (golang:1.27@sha256:..., gcr.io/distroless/static@sha256:...) before use, as the other Dockerfiles do.
+FROM golang:1.27 AS build
+WORKDIR /src
+COPY libs/go/sandman-agent libs/go/sandman-agent
+COPY services/<agent> services/<agent>
+WORKDIR /src/services/<agent>
+RUN CGO_ENABLED=0 go build -trimpath -o /out/agent .
+
+FROM gcr.io/distroless/static
+COPY --from=build /out/agent /agent
+COPY contracts /contracts
+ENV SANDMAN_CONTRACTS_DIR=/contracts SANDMAN_AGENT_CARD=/contracts/agent-cards/<agent>.json
+USER 10001
+EXPOSE 8000
+ENTRYPOINT ["/agent"]

@@ -19,6 +19,7 @@ jobs:
       python: ${{ steps.filter.outputs.python }}
       java: ${{ steps.filter.outputs.java }}
       typescript: ${{ steps.filter.outputs.typescript }}
+      go: ${{ steps.filter.outputs.go }}
       compose: ${{ steps.filter.outputs.compose }}
     steps:
       - uses: actions/checkout@v7
@@ -59,6 +60,10 @@ jobs:
             typescript:
               - 'contracts/**'
               - 'libs/typescript/**'
+              - '.github/workflows/**'
+            go:
+              - 'contracts/**'
+              - 'libs/go/**'
               - '.github/workflows/**'
             compose:
               - 'deploy/**'
@@ -143,6 +148,24 @@ jobs:
       - run: npm run typecheck --workspaces
       - run: npm test --workspaces
       - run: npm run guard --workspaces
+
+  go:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: libs/go/sandman-agent
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: libs/go/sandman-agent/go.mod
+          cache-dependency-path: libs/go/sandman-agent/go.sum
+      - run: go vet ./...
+      - run: go test ./...
+      - run: test -z "$(gofmt -l .)"
+      - run: ./guard.sh
 
   compose:
     needs: changes

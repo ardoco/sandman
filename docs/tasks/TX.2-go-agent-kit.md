@@ -2,7 +2,7 @@
 
 Milestone MX · Effort M–L · Depends on: M0 · Risk: RK-14 (maintenance cost per language)
 
-Status: spec only. The kit is not built. The Go toolchain was missing in the authoring environment, so no code was written or tested.
+Status: kit built in `libs/go/sandman-agent` (ids, contracts, config, auth, status, telemetry, kg, events, llm, a2a). Unit tests and the conformance vectors pass. Not yet verified: interop with the Python orchestrator, the Traverse integration, a Docker build, a CI run, and real NATS and Neo4j servers.
 
 ## Context
 

@@ -20,7 +20,7 @@ from sandman_agent.auth import PLUGIN_PREFIX
 from sandman_agent.contracts import Contracts
 from starlette.exceptions import HTTPException
 
-from sandman_query import __version__, impact
+from sandman_query import __version__, impact, traceview
 from sandman_query.auth import (
     LEVEL,
     Principal,
@@ -339,6 +339,14 @@ class Service:
         return {k: doc[k] for k in ("ingestionId", "seq", "sourceRevision") if k in doc} | {
             "workflowStatus": status, "complete": status not in IN_FLIGHT, **{
                 k: doc[k] for k in ("changed", "affected", "truncated", "warnings")}}  # fmt: skip
+
+    async def trace_view(self, project: str) -> dict[str, Any]:
+        return await self.reader.transaction(lambda rows: traceview.trace_view(rows, project), traceview.TIMEOUT)
+
+    async def trace_view_element(self, project: str, element_id: str) -> dict[str, Any] | None:
+        return await self.reader.transaction(
+            lambda rows: traceview.element(rows, project, element_id), traceview.TIMEOUT
+        )
 
     async def ingestion_workflow_status(
         self, who: Principal, project: str, ingestion: str, created: str, has_changes: bool, warnings: list[str]

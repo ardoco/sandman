@@ -422,6 +422,21 @@ def create_app(
             return problem(404, "Not Found", f"ingestion {ingestionId} not found")
         return JSONResponse(doc)
 
+    @app.get("/v1/projects/{projectId}/trace-view")
+    async def trace_view(projectId: ProjectId, who: Annotated[Principal, access("getTraceView")]) -> Response:
+        return JSONResponse(await svc.trace_view(projectId))
+
+    @app.get("/v1/projects/{projectId}/trace-view/elements/{elementId}")
+    async def trace_view_element(
+        projectId: ProjectId,
+        elementId: Annotated[str, PathParam(pattern=r"^el_[0-9a-f]{32}$")],
+        who: Annotated[Principal, access("getTraceViewElement")],
+    ) -> Response:
+        doc = await svc.trace_view_element(projectId, elementId)
+        if doc is None:
+            return problem(404, "Not Found", f"element {elementId} not found")
+        return JSONResponse(doc)
+
     @app.get("/v1/projects/{projectId}/export/tracelinks")
     async def export_tracelinks(
         projectId: ProjectId,

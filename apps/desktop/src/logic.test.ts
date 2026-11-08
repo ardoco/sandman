@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { columnsLayout, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
+import { columnsLayout, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -91,5 +91,18 @@ describe("logic", () => {
     expect(worstSeverity(fs, "a")).toEqual({ severity: "warning", open: 2 });
     expect(worstSeverity(fs, "a", false)).toEqual({ severity: "error", open: 2 });
     expect(worstSeverity(fs, "z")).toEqual({ severity: null, open: 0 });
+  });
+});
+
+describe("key store helpers", () => {
+  it("masks secrets and shows URLs", () => {
+    expect(maskKey("OPENAI_API_KEY", "1234")).toBe("••••1234");
+    expect(maskKey("OPENAI_API_KEY", "")).toBe("••••");
+    expect(maskKey("SELFHOSTED_LLM_URL", "https://llm.example")).toBe("https://llm.example");
+  });
+  it("builds the default label", () => {
+    expect(defaultKeyLabel("Demo", "OPENROUTER_API_KEY")).toBe("Demo OpenRouter key");
+    expect(defaultKeyLabel("  ", "SELFHOSTED_LLM_URL")).toBe("project self-hosted URL");
+    expect(KEY_KINDS.map(kindName)).toHaveLength(4);
   });
 });

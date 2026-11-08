@@ -1,6 +1,7 @@
 mod api;
 mod env;
 mod ingest;
+mod keys;
 mod stack;
 mod store;
 
@@ -71,14 +72,15 @@ fn read_local_settings(checkout: String) -> Result<env::SettingsView, String> {
 }
 
 #[tauri::command]
-async fn write_local_settings(
-    app: AppHandle,
+fn write_local_settings(
     checkout: String,
     mut settings: env::Settings,
     from_defaults: bool,
 ) -> Result<(), String> {
     let (gateway, dotenv, example) = env::paths(&checkout)?;
-    stack::ensure_secrets(&app, &checkout).await?;
+    if !gateway.is_file() {
+        return Err("Secrets are missing. Generate secrets first.".into());
+    }
     if from_defaults {
         for (field, _) in env::SECRET_FIELDS {
             if settings.secret(field).is_none() {
@@ -164,6 +166,13 @@ pub fn run() {
             save_defaults,
             read_local_settings,
             write_local_settings,
+            stack::secrets_state,
+            stack::generate_secrets,
+            keys::list_keys,
+            keys::save_key,
+            keys::get_key_value,
+            keys::rename_key,
+            keys::delete_key,
             stack::stack_state,
             stack::stack_up,
             stack::stack_down,

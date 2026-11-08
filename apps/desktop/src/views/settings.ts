@@ -1,6 +1,8 @@
 import { cmd, Ctx, hasToken, saveToken, SettingsInput, SettingsView } from "../api";
 import { dashboardUrl } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
+import { keyField } from "./keyfield";
+import { secretsBox } from "./secrets";
 
 export async function renderSettings(root: HTMLElement, ctx: Ctx): Promise<void> {
   const p = ctx.project;
@@ -26,17 +28,26 @@ export async function renderSettings(root: HTMLElement, ctx: Ctx): Promise<void>
   if (p.mode === "local" && p.checkout) {
     const s = await cmd<SettingsView>("read_local_settings", { checkout: p.checkout });
     const mk = (n: string) => h("input", { type: "password", autocomplete: "off", placeholder: s.keysSet.includes(n) ? "(set, leave empty to keep)" : "" });
-    const k = { openaiApiKey: mk("openaiApiKey"), openrouterApiKey: mk("openrouterApiKey"), selfhostedLlmKey: mk("selfhostedLlmKey") };
-    const url = h("input", { type: "text", value: s.selfhostedLlmUrl });
+    const pn = () => p.name;
+    const kf = {
+      openaiApiKey: keyField("OpenAI API key", "OPENAI_API_KEY", mk("openaiApiKey"), pn),
+      openrouterApiKey: keyField("OpenRouter API key", "OPENROUTER_API_KEY", mk("openrouterApiKey"), pn),
+      selfhostedLlmKey: keyField("Self-hosted model key", "SELFHOSTED_LLM_KEY", mk("selfhostedLlmKey"), pn),
+      selfhostedLlmUrl: keyField("Self-hosted model URL", "SELFHOSTED_LLM_URL", h("input", { type: "text", value: s.selfhostedLlmUrl }), pn),
+    };
+    const k = { openaiApiKey: kf.openaiApiKey.input, openrouterApiKey: kf.openrouterApiKey.input, selfhostedLlmKey: kf.selfhostedLlmKey.input };
+    const url = kf.selfhostedLlmUrl.input;
+    const secrets = secretsBox();
+    void secrets.check(p.checkout);
     const nlp = select(["remote", "local"], s.corenlpMode || "remote");
-    clear(root, ...Array.from(root.childNodes) as Node[], h("h3", {}, "Keys"),
-      field("OpenAI API key", k.openaiApiKey), field("OpenRouter API key", k.openrouterApiKey),
-      field("Self-hosted model URL", url), field("Self-hosted model key", k.selfhostedLlmKey), field("CoreNLP mode", nlp),
+    clear(root, ...Array.from(root.childNodes) as Node[], secrets.el, h("h3", {}, "Keys"),
+      kf.openaiApiKey.el, kf.openrouterApiKey.el, kf.selfhostedLlmUrl.el, kf.selfhostedLlmKey.el, field("CoreNLP mode", nlp),
       h("p", { class: "muted" }, "Restart the stack to apply key changes."));
-    keys = () => {
+    keys = async () => {
       const settings: SettingsInput = { openaiApiKey: k.openaiApiKey.value, openrouterApiKey: k.openrouterApiKey.value,
         selfhostedLlmKey: k.selfhostedLlmKey.value, selfhostedLlmUrl: url.value, corenlpMode: nlp.value };
-      return cmd("write_local_settings", { checkout: p.checkout, settings, fromDefaults: false });
+      await cmd("write_local_settings", { checkout: p.checkout, settings, fromDefaults: false });
+      for (const f of Object.values(kf)) await f.save();
     };
   }
   root.append(h("div", { class: "row" }, h("button", { onclick: () => save(keys) }, "Save"),

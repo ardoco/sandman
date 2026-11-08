@@ -100,7 +100,7 @@ pub fn load_projects(dir: &Path) -> Result<Vec<Project>, String> {
     }
 }
 
-fn write_json<T: Serialize>(dir: &Path, name: &str, v: &T) -> Result<(), String> {
+pub fn write_json<T: Serialize>(dir: &Path, name: &str, v: &T) -> Result<(), String> {
     fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     let s = serde_json::to_string_pretty(v).map_err(|e| e.to_string())?;
     fs::write(dir.join(name), s).map_err(|e| e.to_string())

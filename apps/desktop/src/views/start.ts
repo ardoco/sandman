@@ -1,6 +1,9 @@
 import { cmd, Project, SettingsInput, SettingsView } from "../api";
 import { slugify, validSlug } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
+import { keyField } from "./keyfield";
+import { renderKeys } from "./keys";
+import { secretsBox } from "./secrets";
 
 export async function renderStart(root: HTMLElement, open: (p: Project) => void): Promise<void> {
   let selected: Project | undefined;
@@ -32,7 +35,8 @@ export async function renderStart(root: HTMLElement, open: (p: Project) => void)
     );
   }
   clear(root, h("h1", {}, "SANDMAN"), list,
-    h("div", { class: "row" }, h("button", { onclick: () => wizard(root, open, () => renderStart(root, open)) }, "New project"), open_, remove));
+    h("div", { class: "row" }, h("button", { onclick: () => wizard(root, open, () => renderStart(root, open)) }, "New project"), open_, remove,
+      h("button", { class: "secondary", onclick: () => renderKeys(root, () => renderStart(root, open)) }, "Keys")));
   await load().catch((e) => showError(root, e));
 }
 
@@ -49,12 +53,18 @@ async function wizard(root: HTMLElement, open: (p: Project) => void, back: () =>
   name.addEventListener("input", () => { if (!idTouched) id.value = slugify(name.value); });
   const mode = select(["local", "remote"], "local");
   const checkout = h("input", { type: "text", placeholder: "path of the SANDMAN checkout" });
-  const keys = {
-    openaiApiKey: secretInput("openai", defaults.keysSet.includes("openaiApiKey")),
-    openrouterApiKey: secretInput("openrouter", defaults.keysSet.includes("openrouterApiKey")),
-    selfhostedLlmKey: secretInput("selfhosted", defaults.keysSet.includes("selfhostedLlmKey")),
+  const pn = () => name.value;
+  const kf = {
+    openaiApiKey: keyField("OpenAI API key", "OPENAI_API_KEY", secretInput("openai", defaults.keysSet.includes("openaiApiKey")), pn),
+    openrouterApiKey: keyField("OpenRouter API key", "OPENROUTER_API_KEY", secretInput("openrouter", defaults.keysSet.includes("openrouterApiKey")), pn),
+    selfhostedLlmKey: keyField("Self-hosted model key", "SELFHOSTED_LLM_KEY", secretInput("selfhosted", defaults.keysSet.includes("selfhostedLlmKey")), pn),
+    selfhostedLlmUrl: keyField("Self-hosted model URL", "SELFHOSTED_LLM_URL",
+      h("input", { type: "text", value: defaults.selfhostedLlmUrl, placeholder: "http://ollama:11434" }), pn),
   };
-  const llmUrl = h("input", { type: "text", value: defaults.selfhostedLlmUrl, placeholder: "http://ollama:11434" });
+  const keys = { openaiApiKey: kf.openaiApiKey.input, openrouterApiKey: kf.openrouterApiKey.input, selfhostedLlmKey: kf.selfhostedLlmKey.input };
+  const llmUrl = kf.selfhostedLlmUrl.input;
+  const secrets = secretsBox();
+  checkout.addEventListener("change", () => void secrets.check(checkout.value));
   const corenlp = select(["remote", "local"], defaults.corenlpMode || "remote");
   const saveDefault = h("input", { type: "checkbox" });
   const url = h("input", { type: "text", placeholder: "https://sandman.example" });
@@ -65,9 +75,9 @@ async function wizard(root: HTMLElement, open: (p: Project) => void, back: () =>
       const p = await cmd<string | null>("pick_folder");
       if (p) checkout.value = p;
     } }, "Browse"))),
+    secrets.el,
     h("h3", {}, "Keys"),
-    field("OpenAI API key", keys.openaiApiKey), field("OpenRouter API key", keys.openrouterApiKey),
-    field("Self-hosted model URL", llmUrl), field("Self-hosted model key", keys.selfhostedLlmKey),
+    kf.openaiApiKey.el, kf.openrouterApiKey.el, kf.selfhostedLlmUrl.el, kf.selfhostedLlmKey.el,
     field("CoreNLP mode", corenlp),
     h("label", {}, saveDefault, " Save as default for new projects"));
   const remoteBox = h("div", {}, field("URL", url), field("Token", token, "Stored in the OS keychain."));
@@ -82,6 +92,7 @@ async function wizard(root: HTMLElement, open: (p: Project) => void, back: () =>
     create.disabled = true;
     try {
       const local = mode.value === "local";
+      if (local && !(await secrets.check(checkout.value))) throw new Error("Secrets are missing. Click Generate secrets first.");
       const warning = await cmd<string | null>("save_project", { project: {
         id: id.value, name: name.value, mode: mode.value, url: local ? "" : url.value, checkout: local ? checkout.value : undefined, lastUsed: 0 } });
       if (local) {
@@ -89,6 +100,7 @@ async function wizard(root: HTMLElement, open: (p: Project) => void, back: () =>
           openaiApiKey: keys.openaiApiKey.value, openrouterApiKey: keys.openrouterApiKey.value,
           selfhostedLlmKey: keys.selfhostedLlmKey.value, selfhostedLlmUrl: llmUrl.value, corenlpMode: corenlp.value };
         await cmd("write_local_settings", { checkout: checkout.value, settings, fromDefaults: true });
+        for (const k of Object.values(kf)) await k.save();
         if (saveDefault.checked) await cmd("save_defaults", { settings });
       } else if (token.value) await cmd("set_token", { projectId: id.value, token: token.value });
       if (warning) toast(warning, "error");

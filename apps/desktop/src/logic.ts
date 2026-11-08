@@ -138,3 +138,20 @@ export function worstSeverity(findings: TvFinding[], id: string, openOnly = true
   }
   return { severity, open };
 }
+
+export const KEY_KINDS = ["OPENAI_API_KEY", "OPENROUTER_API_KEY", "SELFHOSTED_LLM_KEY", "SELFHOSTED_LLM_URL"] as const;
+export type KeyKind = (typeof KEY_KINDS)[number];
+const KIND_NAME: Record<KeyKind, string> = {
+  OPENAI_API_KEY: "OpenAI key",
+  OPENROUTER_API_KEY: "OpenRouter key",
+  SELFHOSTED_LLM_KEY: "self-hosted key",
+  SELFHOSTED_LLM_URL: "self-hosted URL",
+};
+export const kindName = (k: KeyKind): string => KIND_NAME[k];
+
+export const defaultKeyLabel = (project: string, kind: KeyKind): string => `${project.trim() || "project"} ${KIND_NAME[kind]}`;
+
+export function maskKey(kind: KeyKind, hint: string): string {
+  if (kind === "SELFHOSTED_LLM_URL") return hint;
+  return hint ? `••••${hint}` : "••••";
+}

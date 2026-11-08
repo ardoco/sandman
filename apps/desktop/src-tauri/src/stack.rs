@@ -139,14 +139,57 @@ async fn make(app: &AppHandle, checkout: &str, target: &str) -> Result<Run, Stri
     run_streamed(app, "stack-log", cmd, None).await
 }
 
+pub const SECRET_FILES: [&str; 8] = [
+    "gateway.env",
+    "traverse.toml",
+    "traverse_api_key",
+    "svc_tokens_verify.json",
+    "corenlp_credentials",
+    "admin_bootstrap_password",
+    "session_secret",
+    "dashboard_session_secret",
+];
+
+#[derive(Serialize)]
+pub struct SecretsState {
+    present: bool,
+    missing: Vec<&'static str>,
+}
+
+pub fn secrets_missing(checkout: &std::path::Path) -> Vec<&'static str> {
+    SECRET_FILES.iter().copied().filter(|f| !checkout.join("deploy/secrets").join(f).is_file()).collect()
+}
+
+pub fn secrets_failure(code: i32, tail: &str) -> String {
+    if tail.contains("docker: command not found") || tail.contains("docker: not found") {
+        return missing_program_message("docker");
+    }
+    diagnose(tail).unwrap_or_else(|| format!("make secrets failed with exit code {code}.\n{tail}"))
+}
+
+pub async fn generate(app: &AppHandle, checkout: &str) -> Result<(), String> {
+    match make(app, checkout, "secrets").await? {
+        Run { code: 0, .. } => Ok(()),
+        Run { code, tail } => Err(secrets_failure(code, &tail)),
+    }
+}
+
 pub async fn ensure_secrets(app: &AppHandle, checkout: &str) -> Result<(), String> {
     if std::path::Path::new(checkout).join("deploy/secrets/gateway.env").is_file() {
         return Ok(());
     }
-    match make(app, checkout, "secrets").await? {
-        Run { code: 0, .. } => Ok(()),
-        Run { code, tail } => Err(format!("make secrets failed with exit code {code}.\n{tail}")),
-    }
+    generate(app, checkout).await
+}
+
+#[tauri::command]
+pub fn secrets_state(checkout: String) -> Result<SecretsState, String> {
+    let missing = secrets_missing(&store::valid_checkout(&checkout)?);
+    Ok(SecretsState { present: missing.is_empty(), missing })
+}
+
+#[tauri::command]
+pub async fn generate_secrets(app: AppHandle, checkout: String) -> Result<(), String> {
+    generate(&app, &store::valid_checkout(&checkout)?.to_string_lossy()).await
 }
 
 fn local_checkout(state: &AppState, id: &str) -> Result<(String, String), String> {
@@ -319,6 +362,28 @@ mod tests {
         assert_eq!(port_of("http://127.0.0.1:8080"), Some(8080));
         let l = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
         assert!(port_busy(l.local_addr().unwrap().port()));
+    }
+
+    #[test]
+    fn lists_missing_secret_files() {
+        let d = tempfile::tempdir().unwrap();
+        assert_eq!(secrets_missing(d.path()).len(), SECRET_FILES.len());
+        let s = d.path().join("deploy/secrets");
+        std::fs::create_dir_all(&s).unwrap();
+        for f in SECRET_FILES {
+            std::fs::write(s.join(f), "").unwrap();
+        }
+        assert!(secrets_missing(d.path()).is_empty());
+        std::fs::remove_file(s.join("gateway.env")).unwrap();
+        assert_eq!(secrets_missing(d.path()), vec!["gateway.env"]);
+        assert!(secrets_state("/nonexistent-dir".into()).is_err());
+    }
+
+    #[test]
+    fn explains_secrets_failure() {
+        assert!(secrets_failure(127, "sh: docker: command not found").contains("Docker Desktop"));
+        assert!(secrets_failure(1, "Cannot connect to the Docker daemon").contains("Docker is not running"));
+        assert!(secrets_failure(2, "boom").starts_with("make secrets failed with exit code 2."));
     }
 
     #[test]

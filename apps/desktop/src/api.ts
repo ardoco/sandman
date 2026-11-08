@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { problemMessage, tokenMessage } from "./logic";
+import { KeyKind, problemMessage, tokenMessage } from "./logic";
 
 export interface Project {
   id: string;
@@ -92,4 +92,17 @@ export const hasToken = (projectId: string) => cmd<boolean>("has_token", { proje
 export async function saveToken(projectId: string, token: string): Promise<{ ok: boolean; message: string }> {
   const r = await cmd<{ status: number; body: unknown }>("check_token", { projectId, token });
   return { ok: r.status === 200, message: tokenMessage(r.status, r.body) };
+}
+
+export interface KeyInfo {
+  id: string;
+  label: string;
+  kind: KeyKind;
+  createdAt: number;
+  lastUsed: number;
+  hint: string;
+}
+export interface SecretsState {
+  present: boolean;
+  missing: string[];
 }

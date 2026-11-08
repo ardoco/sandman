@@ -9,6 +9,7 @@ import { renderIngest } from "./ingest";
 import { renderLinks } from "./links";
 import { renderOverview } from "./overview";
 import { renderTraceView } from "./traceview";
+import { renderKeys } from "./keys";
 import { renderSettings } from "./settings";
 import { renderWorkflows } from "./workflows";
 
@@ -67,6 +68,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
         case "Trace viewer": cleanup = await renderTraceView(view, ctx); break;
         case "Ask": renderAsk(view, ctx); break;
         case "Graph": cleanup = await renderGraph(view, ctx); break;
+        case "Keys": await renderKeys(view); break;
         default: await renderSettings(view, ctx);
       }
     } catch (e) { view.append(h("p", { class: "error" }, e instanceof Error ? e.message : String(e))); }
@@ -105,6 +107,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
 
   clear(root,
     h("header", {}, h("strong", {}, project.name), state, start, stop,
+      h("button", { class: "secondary", onclick: () => select("Keys") }, "Keys"),
       h("button", { class: "secondary", onclick: async () => { if (await confirmClose()) { teardown(); leave(); } } }, "Switch project")),
     nav, log, content);
   nav.append(...TABS.map((t) => h("button", { class: "tab", onclick: () => select(t) }, t)));

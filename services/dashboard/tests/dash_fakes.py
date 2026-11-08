@@ -59,6 +59,12 @@ class FakeGraph:
                 return rows
         return []
 
+    async def run(
+        self, cypher: str, params: dict[str, Any], timeout: float = 20.0, max_rows: int | None = None
+    ) -> tuple[list[str], list[list[Any]]]:
+        self.statements.append(cypher)
+        return ["id", "n"], [["el_" + "a" * 32, 1]]
+
     async def start(self, project: str | None, label: str | None, labels: list[str] | None = None) -> dict[str, Any]:
         return {"elements": [], "truncated": False}
 

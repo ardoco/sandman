@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Trace viewer{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/graph.css">{% endblock %}
+{% block body %}
+<h1>Trace viewer</h1>
+<div id="tv-app" data-project="{{ selected or '' }}">
+  <form id="tv-project-form" method="get" action="/traceview" class="row">
+    <label>Project
+      <select name="project" id="tv-project">
+        <option value="">Choose a project</option>
+        {% for p in projects %}<option value="{{ p.id }}"{% if p.id == selected %} selected{% endif %}>{{ p.id }}{% if p.name %} ({{ p.name }}){% endif %}</option>{% endfor %}
+      </select>
+    </label>
+    <button type="submit">Load</button>
+  </form>
+  <div id="tv-filters" class="row card" hidden>
+    <fieldset><legend>Columns</legend><span id="tv-columns"></span></fieldset>
+    <fieldset><legend>Link status</legend>
+      <label class="chip"><input type="checkbox" class="tv-status" value="confirmed" checked> confirmed</label>
+      <label class="chip"><input type="checkbox" class="tv-status" value="candidate" checked> candidate</label>
+      <label class="chip"><input type="checkbox" class="tv-status" value="rejected"> rejected</label>
+    </fieldset>
+    <fieldset><legend>Approach</legend><span id="tv-approaches"></span></fieldset>
+    <label>Min confidence <input id="tv-conf" type="number" min="0" max="1" step="0.05" value="0"></label>
+    <label class="chip"><input id="tv-open" type="checkbox" checked> open findings only</label>
+    <label class="chip"><input id="tv-linked" type="checkbox"> only linked or flagged</label>
+    <label>Search <input id="tv-search" type="search" maxlength="200"></label>
+    <button id="tv-fit" type="button" class="secondary">Fit</button>
+  </div>
+  <div id="tv-status" role="status">{% if message %}{{ message }}{% elif not selected %}Choose a project.{% endif %}</div>
+  <div id="tv-workspace">
+    <div id="tv-stage"><div id="tv-cy" aria-label="Trace view"></div></div>
+    <aside id="tv-detail" class="card" hidden></aside>
+  </div>
+</div>
+<script src="/static/cytoscape.min.js"></script>
+<script src="/static/traceview.js"></script>
+{% endblock %}

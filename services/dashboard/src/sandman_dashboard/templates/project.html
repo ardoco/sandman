@@ -4,6 +4,7 @@
 <p><a href="/projects">All projects</a></p>
 {% if project and s %}
 <h1>{{ project.id }}{% if project.name %} ({{ project.name }}){% endif %}</h1>
+<p><a href="/traceview?project={{ project.id }}">Trace viewer</a></p>
 <h2>Artifacts</h2>
 <dl><dt>Current</dt><dd>{{ s.artifacts_current | num }}</dd><dt>Deleted</dt><dd>{{ s.artifacts_deleted | num }}</dd><dt>Versions</dt><dd>{{ s.versions | num }}</dd></dl>
 <h2>Elements of current versions</h2>

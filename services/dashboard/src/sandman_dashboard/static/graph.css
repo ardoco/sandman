@@ -1,4 +1,4 @@
-main:has(#graph-app) { max-width: none; }
+main:has(#graph-app), main:has(#tv-app) { max-width: none; }
 #workspace { display: flex; gap: 1rem; align-items: stretch; background: var(--bg); }
 #workspace:fullscreen { padding: .75rem; height: 100vh; }
 #controls { flex: 0 0 17rem; min-width: 0; align-self: flex-start; max-height: calc(100vh - 7rem); overflow: auto; gap: .5rem; }
@@ -30,3 +30,15 @@ main:has(#graph-app) { max-width: none; }
   #workspace { flex-direction: column; }
   #controls, #properties { flex-basis: auto; max-height: none; align-self: stretch; }
 }
+#tv-workspace { display: flex; gap: 1rem; align-items: stretch; }
+#tv-stage { position: relative; flex: 1 1 0; min-width: 0; height: calc(100vh - 14rem); min-height: 30rem; }
+#tv-cy { position: absolute; inset: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+#tv-detail { flex: 0 0 22rem; min-width: 0; align-self: flex-start; max-height: calc(100vh - 14rem); overflow: auto; }
+#tv-detail[hidden], #tv-filters[hidden] { display: none; }
+#tv-detail h3 { margin: .75rem 0 .25rem; font-size: .9rem; color: var(--muted); }
+#tv-detail pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+#tv-detail ul { margin: 0; padding-left: 1.1rem; }
+#tv-detail .pick { cursor: pointer; color: var(--accent); text-decoration: underline; background: none; border: 0; padding: 0; font: inherit; }
+#tv-filters fieldset { margin: 0; padding: .3rem .6rem; }
+#tv-status.error { color: var(--bad); }
+@media (max-width: 60rem) { #tv-workspace { flex-direction: column; } #tv-detail { flex-basis: auto; max-height: none; align-self: stretch; } }

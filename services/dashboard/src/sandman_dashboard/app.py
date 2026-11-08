@@ -31,7 +31,7 @@ from sandman_agent.telemetry import FASTAPI_TELEMETRY, setup_logging
 from sandman_query.auth import RateLimiter
 from starlette.exceptions import HTTPException
 
-from sandman_dashboard import __version__, insights, ops
+from sandman_dashboard import __version__, insights, ops, traceview
 from sandman_dashboard.events_view import EventViewer
 from sandman_dashboard.gateway import GatewayClient
 from sandman_dashboard.graph import GraphError, GraphService, schema_names
@@ -447,6 +447,8 @@ def create_app(
         session=Session,
         page=page,
     )
+
+    traceview.register(app, graph=graph_service, session=session, page=page)
 
     # --------------------------------------------------------------------- API
 

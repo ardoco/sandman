@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Trace view statements on a real Traverse graph (skipped without Docker)."""
 
 from collections.abc import AsyncIterator

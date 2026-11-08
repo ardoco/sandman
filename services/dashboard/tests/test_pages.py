@@ -102,7 +102,8 @@ def test_templates_have_no_inline_scripts_or_handlers() -> None:
         assert not re.search(r"<script(?![^>]*\bsrc=)", text), path
         assert not re.search(r"\son[a-z]+\s*=", text), path
         assert "javascript:" not in text, path
-    assert "innerHTML" not in (SRC / "static" / "graph.js").read_text()
+    for script in ("graph.js", "traceview.js"):
+        assert "innerHTML" not in (SRC / "static" / script).read_text()
 
 
 def test_vendored_libraries_have_licenses() -> None:
@@ -159,3 +160,53 @@ async def test_graph_page_cypher_box_is_empty_with_placeholder_and_zoom_buttons(
     js = (SRC / "static" / "graph.js").read_text()
     assert 'id="zoom-in"' in text and "wheelSensitivity" in js and "userZoomingEnabled: true" in js
     assert "#fff" not in (SRC / "static" / "graph.css").read_text()
+
+
+EL = "el_" + "a" * 32
+VIEW = {"elements": [], "links": [], "findings": [], "truncated": False}
+
+
+async def test_traceview_page_renders_and_requires_session(env: Env) -> None:
+    resp = await env.http.get("/traceview?project=demo")
+    assert resp.status_code == 303 and resp.headers["location"] == "/login"
+    await env.login()
+    resp = await env.http.get("/traceview?project=demo")
+    assert resp.status_code == 200
+    assert 'id="tv-app" data-project="demo"' in resp.text and "/static/traceview.js" in resp.text
+    assert resp.headers["content-security-policy"].startswith("default-src 'self'")
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in resp.text and "<script>alert" not in resp.text
+    assert '<a href="/traceview"' in resp.text
+    assert (await env.http.get("/projects/demo")).text.count('href="/traceview?project=demo"') == 1
+
+
+async def test_traceview_api_calls_backend_and_validates(env: Env, monkeypatch: pytest.MonkeyPatch) -> None:
+    from sandman_query import traceview as tv
+
+    calls: list[tuple[str, ...]] = []
+
+    async def fake_view(rows: object, p: str) -> dict[str, object]:
+        calls.append(("view", p))
+        return VIEW
+
+    async def fake_element(rows: object, p: str, id: str) -> dict[str, object] | None:
+        calls.append(("element", p, id))
+        return None if id.endswith("b" * 32) else {"element": {"id": id}, "links": [], "findings": [], "neighbours": []}
+
+    monkeypatch.setattr(tv, "trace_view", fake_view)
+    monkeypatch.setattr(tv, "element", fake_element)
+    assert (await env.http.get("/api/traceview?project=demo")).status_code == 401
+    await env.login()
+    assert (await env.http.get("/api/traceview?project=demo")).json() == VIEW
+    assert (await env.http.get(f"/api/traceview/element?project=demo&id={EL}")).json()["element"] == {"id": EL}
+    assert calls == [("view", "demo"), ("element", "demo", EL)]
+    assert (await env.http.get("/api/traceview")).status_code == 422
+    assert (await env.http.get("/api/traceview?project=a b")).status_code == 422
+    assert (await env.http.get("/api/traceview/element?project=demo&id=el_x")).status_code == 422
+    assert (await env.http.get("/api/traceview/element?project=demo&id=el_" + "b" * 32)).status_code == 404
+    assert len(calls) == 3
+
+
+async def test_traceview_adapter_maps_columns_to_dicts(env: Env) -> None:
+    from sandman_dashboard.traceview import tx_rows
+
+    assert await tx_rows(env.graph)("MATCH (n) RETURN n", {"p": "demo"}) == [{"id": EL, "n": 1}]

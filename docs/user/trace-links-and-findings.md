@@ -56,6 +56,39 @@ A review survives a new version of an artifact. At activation of new links, SAND
 
 Default CSV and JSON exports of `tracelinks` have the review columns `reviewed_by`, `reviewed_at` and `review_reason` ([querying.md](querying.md#export)).
 
+### Trace viewer
+
+The trace viewer shows the artifacts of one project in columns. Each trace link is an edge. Each finding is a marker.
+
+| Column | Content |
+|---|---|
+| Requirements | elements with the label `Requirement` |
+| Documentation | elements with the label `TextUnit` or `Decision` |
+| Architecture | elements with the label `ModelElement` (dashed if inferred) |
+| Code | elements with the label `CodeUnit` |
+| Tests | elements with the label `TestCase` |
+
+Read the picture with these rules:
+
+- A `confirmed` link is solid. A `candidate` link is dashed. A `rejected` link is dotted and hidden by default.
+- A thicker edge has a higher confidence.
+- An element with open findings has a colored border for the worst open severity. Its name starts with `[n]`, where n is the number of open findings.
+- A link that a finding involves is thick and colored.
+- Click an element to fade the unlinked elements. The side panel shows text, path, links, findings and neighbours.
+- Click a link to see its approach, confidence, status, rationale and reviewer.
+
+The filter bar sets columns, link status, approach, minimum confidence, open or all findings, and "only linked or flagged". Use the search field to find elements by text.
+
+The viewer shows at most 5000 elements and 5000 links. If the project has more, the viewer shows a notice that the data is cut.
+
+| Interface | How to open it | Review |
+|---|---|---|
+| Desktop app | tab **Trace viewer** (Ctrl/Cmd+6) | **confirmed** and **rejected** buttons for a link. **rejected** needs a reason. The buttons do not appear for the approaches `explicit-reference` and `user-declared`. |
+| Dashboard | `http://127.0.0.1:8090/traceview` (admin login) | none, the page is read-only |
+| API | `GET /v1/projects/<id>/trace-view` and `GET /v1/projects/<id>/trace-view/elements/<elementId>` with role `viewer` | use the review route above |
+
+The API leaves out properties that have no value. See [T-trace-viewer](../tasks/T-trace-viewer.md).
+
 ### Use reviews in later runs (experimental)
 
 By default, reviews do not change how an approach finds links. You can switch on feedback adaptation for one approach. The switch is the approach parameter `feedback` in `config/tlr/approaches.yaml` or in the request `params`.

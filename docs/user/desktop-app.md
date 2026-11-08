@@ -144,13 +144,14 @@ The app runs `uv run --project <checkout> sandman ingest`. A remote project has 
 | Workflows | list of workflows with details and Load more; run a workflow of type `full`, `extract`, `tlr` or `detect` |
 | Findings | list with filters for status and severity (default `OPEN,REOPENED`) and Load more; details with evidence and history; triage buttons |
 | Trace links | list with filters for status and approach and Load more; buttons `confirmed` and `rejected` |
+| Trace viewer | artifacts in columns, links as edges, findings as markers; filters; click an element or link for details; buttons `confirmed` and `rejected` |
 | Ask | enter a question in natural language; shows answer, rows and Cypher |
 | Graph | graph of elements and relations; click a node to load its neighbours |
 | Settings | token, CLI command, keys (local project), buttons Open console and Open dashboard |
 
 The tabs Overview and Workflows refresh every 3 seconds while a workflow is `PENDING` or `RUNNING`. They stop when the window is hidden.
 
-Press Ctrl+1 to Ctrl+8 (Cmd+1 to Cmd+8 on macOS) to select a tab. The window title shows the project name and the state of the stack.
+Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Trace viewer is tab 6 and Settings is tab 9. The window title shows the project name and the state of the stack.
 
 Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEPTED`, `REJECTED` or `DEFERRED` needs a reason and a cause. Enter both before you click the button. If another user changed the finding, click Reload finding. See [trace-links-and-findings.md](trace-links-and-findings.md).
 

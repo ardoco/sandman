@@ -109,7 +109,7 @@ The app runs `uv run --project <checkout> sandman ingest`. Set a CLI command in 
 
 ### Shortcuts
 
-Press Ctrl+1 to Ctrl+8 (Cmd on macOS) to select a tab. The start screen offers Continue for the last project.
+Press Ctrl+1 to Ctrl+9 (Cmd on macOS) to select a tab. The start screen offers Continue for the last project.
 
 ## Limitations
 

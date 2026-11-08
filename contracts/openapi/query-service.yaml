@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN query-service API (user and agent entry point)
-  version: 0.9.0
+  version: 0.10.0
   description: |
     The only user-facing API. Authenticates users (session cookie or personal API token) and services
     (service token), checks roles (ADR-0013) and forwards owner operations with X-Sandman-Actor only; roles are checked here and never forwarded (ADR-0013).
@@ -839,6 +839,160 @@ paths:
                                   description: Only on the start item of a path of a removed element.
                   truncated: { type: boolean }
                   warnings: { type: array, items: { type: string } }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
+  /v1/projects/{projectId}/trace-view:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+    get:
+      summary: Current elements, active trace links and findings of a project for the trace viewer; read-only, no LLM
+      description: |
+        Elements are those of the current version of every artifact, ordered by artifact path and position.
+        At most 5000 elements and 5000 links are returned; truncated is true if a cap was hit.
+        Findings list every inconsistency with the ids of the elements or trace links it involves.
+      operationId: getTraceView
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Trace view
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [elements, links, findings, truncated]
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, key, label, kind, name, artifactId, artifactPath, order]
+                      properties:
+                        id: { $ref: "../common.schema.json#/$defs/StableId" }
+                        key: { type: string }
+                        label: { type: string, description: "Secondary label: Requirement, TextUnit, ModelElement, CodeUnit, TestCase or Decision" }
+                        kind: { type: string }
+                        name: { type: string }
+                        excerpt: { type: string, description: "First 300 characters of the text" }
+                        parentId: { $ref: "../common.schema.json#/$defs/StableId" }
+                        artifactId: { type: string }
+                        artifactPath: { type: string }
+                        order: { type: integer, description: "Position within the artifact (sentence index or start line, else 0)" }
+                        inferred: { type: boolean }
+                  links:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, sourceId, targetId, linkType, approach, confidence, status]
+                      properties:
+                        id: { type: string }
+                        sourceId: { type: string }
+                        targetId: { type: string }
+                        linkType: { type: string }
+                        approach: { type: string }
+                        confidence: { type: number }
+                        status: { enum: [candidate, confirmed, rejected] }
+                        reviewedBy: { type: string }
+                  findings:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, title, severity, status, type, involved]
+                      properties:
+                        id: { type: string }
+                        title: { type: string }
+                        severity: { enum: [info, warning, error] }
+                        status: { type: string }
+                        type: { type: string }
+                        involved:
+                          type: array
+                          items:
+                            type: object
+                            required: [id]
+                            properties:
+                              id: { type: string, description: "Id of an element or a trace link" }
+                              role: { type: string }
+                  truncated: { type: boolean }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "404": { $ref: "shared.yaml#/components/responses/NotFound" }
+        "503": { $ref: "shared.yaml#/components/responses/Unavailable" }
+  /v1/projects/{projectId}/trace-view/elements/{elementId}:
+    parameters:
+      - $ref: "shared.yaml#/components/parameters/ProjectId"
+      - name: elementId
+        in: path
+        required: true
+        schema: { type: string, pattern: "^el_[0-9a-f]{32}$" }
+    get:
+      summary: Detail of one element for the trace viewer; read-only, no LLM
+      operationId: getTraceViewElement
+      x-sandman-min-role: viewer
+      responses:
+        "200":
+          description: Element with its links, findings and neighbours (at most 200 neighbours)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [element, links, findings, neighbours]
+                properties:
+                  element:
+                    type: object
+                    description: All properties of the element except embedding, plus label, artifactId and artifactPath.
+                    required: [id, key, label]
+                    properties:
+                      id: { type: string }
+                      key: { type: string }
+                      label: { type: string }
+                    additionalProperties: true
+                  links:
+                    type: array
+                    description: Active links in both directions
+                    items:
+                      type: object
+                      required: [id, sourceId, targetId, linkType, approach, confidence, status]
+                      properties:
+                        id: { type: string }
+                        sourceId: { type: string }
+                        targetId: { type: string }
+                        linkType: { type: string }
+                        approach: { type: string }
+                        confidence: { type: number }
+                        status: { enum: [candidate, confirmed, rejected] }
+                        reviewedBy: { type: string }
+                        rationale: { type: string }
+                        reviewedAt: { type: string }
+                        reviewReason: { type: string }
+                  findings:
+                    type: array
+                    description: Findings that involve the element or one of its active links
+                    items:
+                      type: object
+                      required: [id, title, severity, status, type]
+                      properties:
+                        id: { type: string }
+                        title: { type: string }
+                        severity: { enum: [info, warning, error] }
+                        status: { type: string }
+                        type: { type: string }
+                        description: { type: string }
+                        evidence: { type: string }
+                        role: { type: string }
+                  neighbours:
+                    type: array
+                    items:
+                      type: object
+                      required: [relation, direction, id, name, label]
+                      properties:
+                        relation: { enum: [CONTAINS, DEPENDS_ON, PROVIDES, REQUIRES] }
+                        direction: { enum: [out, in] }
+                        id: { type: string }
+                        name: { type: string }
+                        label: { type: string }
         "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
         "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
         "403": { $ref: "shared.yaml#/components/responses/Forbidden" }

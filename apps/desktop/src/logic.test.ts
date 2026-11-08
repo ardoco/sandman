@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dashboardUrl, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
+import { columnsLayout, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -55,5 +55,41 @@ describe("logic", () => {
     expect(windowTitle("Demo", "running (ready)")).toBe("Demo - running (ready) - SANDMAN");
     expect(windowTitle("Demo", null)).toBe("Demo - SANDMAN");
     expect(lastLines(["a", "b", "c"], 2)).toBe("b\nc");
+  });
+
+  it("lays out one column per label with indent by depth", () => {
+    const m = columnsLayout([
+      { id: "r1", label: "Requirement" },
+      { id: "r2", label: "Requirement" },
+      { id: "m1", label: "ModelElement" },
+      { id: "m2", label: "ModelElement", parentId: "m1" },
+      { id: "x", label: "Other" },
+    ]);
+    expect(m.get("r2")).toMatchObject({ column: 0, x: 0, y: 64 });
+    expect(m.get("m1")).toMatchObject({ column: 2, x: 720, y: 0 });
+    expect(m.get("m2")).toMatchObject({ x: 744, y: 64, depth: 1 });
+    expect(m.has("x")).toBe(false);
+  });
+
+  it("filters links by status, approach and confidence", () => {
+    const links = [
+      { sourceId: "a", targetId: "b", approach: "lissa", confidence: 0.9, status: "confirmed" },
+      { sourceId: "a", targetId: "c", approach: "tlr", confidence: 0.4, status: "candidate" },
+      { sourceId: "a", targetId: "d", approach: "lissa", confidence: 0.8, status: "rejected" },
+    ];
+    const f = { statuses: new Set(["confirmed", "candidate"]), approaches: new Set<string>(), minConfidence: 0.5 };
+    expect(filterLinks(links, f).map((l) => l.targetId)).toEqual(["b"]);
+    expect(filterLinks(links, { ...f, minConfidence: 0, approaches: new Set(["tlr"]) }).map((l) => l.targetId)).toEqual(["c"]);
+  });
+
+  it("finds the worst open severity", () => {
+    const fs = [
+      { severity: "warning", status: "OPEN", involved: [{ id: "a" }] },
+      { severity: "error", status: "RESOLVED", involved: [{ id: "a" }] },
+      { severity: "info", status: "REOPENED", involved: [{ id: "a" }, { id: "b" }] },
+    ];
+    expect(worstSeverity(fs, "a")).toEqual({ severity: "warning", open: 2 });
+    expect(worstSeverity(fs, "a", false)).toEqual({ severity: "error", open: 2 });
+    expect(worstSeverity(fs, "z")).toEqual({ severity: null, open: 0 });
   });
 });

@@ -83,3 +83,58 @@ export function windowTitle(name: string, stack: string | null): string {
 export function lastLines(lines: string[], n = 15): string {
   return lines.slice(-n).join("\n");
 }
+
+export interface TvElement { id: string; label: string; parentId?: string | null; artifactId?: string; }
+export interface TvLink { sourceId: string; targetId: string; approach?: string | null; confidence?: number | null; status: string; }
+export interface TvFinding { severity: string; status: string; involved: { id: string; role?: string }[]; }
+
+export const COLUMNS = ["Requirements", "Documentation", "Architecture", "Code", "Tests"];
+const COLUMN_OF: Record<string, number> = { Requirement: 0, TextUnit: 1, Decision: 1, ModelElement: 2, CodeUnit: 3, TestCase: 4 };
+export const columnOf = (label: string): number => COLUMN_OF[label] ?? -1;
+
+export function columnsLayout(
+  elements: TvElement[],
+  nodeW = 240, gapX = 120, rowH = 64, indent = 24,
+): Map<string, { x: number; y: number; column: number; depth: number }> {
+  const byId = new Map(elements.map((e) => [e.id, e]));
+  const depthOf = (e: TvElement): number => {
+    let d = 0;
+    for (let p = e.parentId ? byId.get(e.parentId) : undefined; p && d < 20; p = p.parentId ? byId.get(p.parentId) : undefined) d++;
+    return d;
+  };
+  const next: number[] = COLUMNS.map(() => 0);
+  const out = new Map<string, { x: number; y: number; column: number; depth: number }>();
+  for (const e of elements) {
+    const column = columnOf(e.label);
+    if (column < 0) continue;
+    const depth = depthOf(e);
+    out.set(e.id, { x: column * (nodeW + gapX) + depth * indent, y: next[column]++ * rowH, column, depth });
+  }
+  return out;
+}
+
+export interface LinkFilter { statuses: Set<string>; approaches: Set<string>; minConfidence: number; }
+
+export function filterLinks<T extends TvLink>(links: T[], f: LinkFilter): T[] {
+  return links.filter((l) =>
+    f.statuses.has(l.status) &&
+    (f.approaches.size === 0 || f.approaches.has(l.approach ?? "")) &&
+    (l.confidence ?? 0) >= f.minConfidence);
+}
+
+const SEVERITY_RANK: Record<string, number> = { info: 1, warning: 2, error: 3 };
+export const findingOpen = (status: string): boolean => status === "OPEN" || status === "REOPENED";
+
+export function worstSeverity(findings: TvFinding[], id: string, openOnly = true): { severity: string | null; open: number } {
+  let severity: string | null = null;
+  let open = 0;
+  for (const f of findings) {
+    if (!f.involved.some((i) => i.id === id)) continue;
+    const isOpen = findingOpen(f.status);
+    if (isOpen) open++;
+    if (openOnly && !isOpen) continue;
+    const s = f.severity.toLowerCase();
+    if (severity === null || (SEVERITY_RANK[s] ?? 0) > (SEVERITY_RANK[severity] ?? 0)) severity = s;
+  }
+  return { severity, open };
+}

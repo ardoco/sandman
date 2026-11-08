@@ -18,7 +18,7 @@ Tauri system libraries:
 * Linux (Debian, Ubuntu): run `sudo apt-get install libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev build-essential`.
 * Windows: install the Microsoft C++ Build Tools and the WebView2 runtime.
 
-The OS keychain stores tokens. On Linux, a Secret Service provider (for example GNOME Keyring) must run.
+The OS keychain stores tokens and key store values (service `sandman-desktop`, account `key:<id>`). Labels and URL values are in `keystore.json`. On Linux, a Secret Service provider (for example GNOME Keyring) must run.
 
 ## Install dependencies
 
@@ -74,10 +74,11 @@ npm run typecheck         # from apps/desktop
 
 1. Click New project. Enter a name and an id.
 2. Select mode local. Select the SANDMAN checkout folder. The folder must contain `deploy/docker-compose.yml`.
-3. Enter the keys. Tick "Save as default" to reuse them for new projects.
-4. Click Create. The app writes `deploy/secrets/gateway.env` and `deploy/.env`.
-5. Click Start in the project header. The app runs `make up` in the checkout. The URL is `http://127.0.0.1:8080`.
-6. Create a token (see below) and paste it in Settings.
+3. If the line shows `Secrets: missing`, click Generate secrets. The button runs `make secrets` and never overwrites files.
+4. Enter the keys. Use From store to fill a field. Keys are saved to the key store unless you clear "Save to key store". Tick "Save as default" to reuse them for new projects.
+5. Click Create. The app writes `deploy/secrets/gateway.env` and `deploy/.env`.
+6. Click Start in the project header. The app runs `make up` in the checkout. The URL is `http://127.0.0.1:8080`.
+7. Create a token (see below) and paste it in Settings.
 
 When you close the app or switch the project while the stack runs, a dialog asks what to do. Choose Stop containers, Keep running, or Cancel.
 

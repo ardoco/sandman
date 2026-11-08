@@ -30,7 +30,9 @@ Status: initial version implemented (2026-11-07); manual acceptance run against 
 | `list_projects`, `save_project`, `delete_project` | project store |
 | `set_token(projectId, token)`, `has_token(projectId)` | keychain |
 | `get_defaults`, `save_defaults` | default profile (keys in keychain, non-secret values in `defaults.json`) |
-| `read_local_settings(checkout)`, `write_local_settings(checkout, settings)` | `gateway.env` and `deploy/.env` editing |
+| `read_local_settings(checkout)`, `write_local_settings(checkout, settings)` | `gateway.env` and `deploy/.env` editing; fails with "generate secrets first" if `gateway.env` is missing |
+| `secrets_state(checkout)`, `generate_secrets(checkout)` | whether the files of `deploy/gen-secrets.sh` exist; `make secrets` (never overwrites), output as `stack-log`, errors carry the make/docker diagnosis |
+| `list_keys`, `save_key(kind,label,value)`, `get_key_value(id)`, `rename_key`, `delete_key` | key library: metadata and URL values in `keystore.json`, secrets in keychain account `key:<id>`; `list_keys` returns a masked hint, never values; `save_key` dedupes by kind and value |
 | `stack_state(projectId)` | `stopped` / `starting` / `running` / `partial` and ready flag |
 | `stack_up(projectId)`, `stack_down(projectId)` | run `make` targets, stream lines as event `stack-log` |
 | `api(projectId, method, path, query, body)` | authenticated request, returns status and JSON; errors carry the problem `detail` |
@@ -44,7 +46,7 @@ The close dialog is implemented with the window close event: Rust prevents the c
 
 * Start screen: list of projects (last used first), buttons **New project**, **Open**. The list is always shown; double click opens a project.
 * New project wizard: name, id (slug, `^[a-z0-9][a-z0-9-]{1,62}$`), mode. Local: checkout folder (validated: `deploy/docker-compose.yml` exists), keys form pre-filled from defaults, checkbox "save as default". Remote: URL and token.
-* Project view with header (project name, stack state, **Start**/**Stop**, **Switch project**) and tabs: **Overview** (service status, latest workflow, counts of findings by status), **Ingest** (pick folder or files, mode, revision, live log, workflow progress with steps), **Workflows**, **Findings** (list, filters, detail with evidence, triage with cause), **Trace links** (list, filter by status and approach, review), **Trace viewer** (columns with links and findings, link review; see [T-trace-viewer](T-trace-viewer.md)), **Ask**, **Graph**, **Settings** (keys, token, URL, CLI command, "open console" and "open dashboard" buttons). Ctrl/Cmd+1 to 9 select the tabs in this order.
+* Project view with header (project name, stack state, **Start**/**Stop**, **Switch project**) and tabs: **Overview** (service status, latest workflow, counts of findings by status), **Ingest** (pick folder or files, mode, revision, live log, workflow progress with steps), **Workflows**, **Findings** (list, filters, detail with evidence, triage with cause), **Trace links** (list, filter by status and approach, review), **Trace viewer** (columns with links and findings, link review; see [T-trace-viewer](T-trace-viewer.md)), **Ask**, **Graph**, **Settings** (secrets state and **Generate secrets**, keys with **From store** and **Save to key store**, token, URL, CLI command, "open console" and "open dashboard" buttons). Ctrl/Cmd+1 to 9 select the tabs in this order. The header and the start screen have a **Keys** screen (list, copy, rename, delete, add). The new-project wizard shows secrets state and **Generate secrets** in local mode.
 * Token missing in a local project: the Overview shows steps: start the stack, open the console, change the admin password, create a token, paste it.
 * Errors: show the problem `detail`; `401` leads to the token field; unreachable system shows state and a start button (local).
 

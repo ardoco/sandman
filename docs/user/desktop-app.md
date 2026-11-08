@@ -48,6 +48,54 @@ To reuse the keys in other projects, tick "Save as default for new projects". Th
 
 You can change the keys later in the tab Settings. Restart the stack to apply the change.
 
+## Generate secrets
+
+A local stack needs secret files in `deploy/secrets`. The app shows the line `Secrets: present` or `Secrets: missing`.
+
+1. Select the checkout folder in the new-project dialog, or open the tab Settings.
+2. If the line shows `missing`, click Generate secrets.
+3. Read the output in the log. The app runs `make secrets` in the checkout.
+
+The button is off when all files exist. The command never overwrites existing files. If the command fails, the app shows the cause. Install `make` or start Docker if the message asks for it.
+
+If the secrets are missing, saving keys fails. Generate the secrets first, then save the keys.
+
+## Key store
+
+The key store keeps named keys for all projects. Each entry has a label, a kind, and a value.
+
+| Kind | Stored in |
+|---|---|
+| OpenAI API key | OS keychain |
+| OpenRouter API key | OS keychain |
+| Self-hosted model key | OS keychain |
+| Self-hosted model URL | `keystore.json` in the app config folder |
+
+The file `keystore.json` holds labels, kinds, and dates. The OS keychain holds the secret values.
+
+### Use a key from the store
+
+1. Open a key field in the new-project dialog or in the tab Settings.
+2. Select an entry in the list From store. The app fills the field.
+
+### Save a key to the store
+
+Each key field has the box "Save to key store". The box is on by default. The label defaults to `<project name> <kind>`. Change the label if needed. If an entry with the same kind and value exists, the app reuses it and updates the label.
+
+### Manage keys
+
+1. Click Keys on the start screen or in the project header.
+2. Click Add to enter a new key.
+3. Click Copy to put a value on the clipboard.
+4. Click Rename to change a label.
+5. Click Delete and confirm to remove an entry and its keychain value.
+
+The list shows only the last four characters of a key.
+
+Warning: Copy puts the key on the clipboard. Clear the clipboard after use.
+
+Warning: Delete cannot be undone.
+
 ## Create a remote project
 
 A remote project uses a SANDMAN system that runs on another computer. The app does not start or stop it.

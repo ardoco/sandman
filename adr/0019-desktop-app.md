@@ -53,6 +53,10 @@ Unit tests of the Rust logic (project store, env file editing, command building,
 
 The app has a tab **Trace viewer** after **Trace links**. It uses the query-service operations `getTraceView` and `getTraceViewElement` and the existing `reviewTraceLink`. Ctrl/Cmd+1 to 9 select the tabs. The dashboard has a read-only page with the same data. It imports the query-service read logic and makes no runtime call to the query-service. See [T-trace-viewer](../docs/tasks/T-trace-viewer.md).
 
+## Amendment 2026-11-08: generate secrets and key store
+
+The app has a button **Generate secrets**. It runs `make secrets` on request and shows the state of the secret files. `write_local_settings` no longer generates secrets implicitly. It asks the user to generate them first. `stack_up` still generates missing secrets. The app also has a named key library next to the default profile. Metadata and URL values are in `keystore.json`. Secret values are only in the OS keychain (service `sandman-desktop`, account `key:<id>`). Values reach the webview only on explicit use or copy.
+
 ## More Information
 
 * Related: ADR-0011, ADR-0013, ADR-0016. Task spec: [T-desktop-app](../docs/tasks/T-desktop-app.md).

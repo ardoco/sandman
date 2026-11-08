@@ -37,7 +37,7 @@ Both operations need role `viewer`.
 * The routes need an admin session. Without a session the dashboard redirects to the login page.
 * An invalid project id or element id gives `422`. An unknown element gives `404`.
 * The dashboard is read-only. It has no review buttons.
-* The dashboard imports `sandman_query.traceview` and runs the same statements on its own Memgraph connection. It makes no runtime call to the query-service (ADR-0016).
+* The dashboard imports `sandman_query.traceview` and runs the same statements on its own Traverse connection. It makes no runtime call to the query-service (ADR-0016).
 * The script `static/traceview.js` uses Cytoscape, written in plain ES5 without a build step. The content security policy stays `default-src 'self'`.
 
 ## Desktop

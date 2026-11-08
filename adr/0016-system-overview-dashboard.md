@@ -93,7 +93,7 @@ Dashboard tasks T1.9–T1.11: every service reports `/v1/status` (contract tests
 
 ## Amendment 2026-11-08: trace viewer
 
-The dashboard has a read-only page `/traceview` with the routes `/api/traceview` and `/api/traceview/element`. The dashboard imports the read logic `sandman_query.traceview` and runs it on its own Memgraph connection. The dashboard still makes no runtime call to the query-service. See [T-trace-viewer](../docs/tasks/T-trace-viewer.md).
+The dashboard has a read-only page `/traceview` with the routes `/api/traceview` and `/api/traceview/element`. The dashboard imports the read logic `sandman_query.traceview` and runs it on its own Traverse connection. The dashboard still makes no runtime call to the query-service. See [T-trace-viewer](../docs/tasks/T-trace-viewer.md).
 
 ## More Information
 

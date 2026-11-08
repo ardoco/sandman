@@ -45,4 +45,4 @@ Status values:
 | [0016](0016-system-overview-dashboard.md) | System overview dashboard | accepted |
 | [0017](0017-additional-agent-languages.md) | Additional agent languages: TypeScript, Go, Rust | accepted |
 | [0018](0018-query-strategies.md) | Query strategies and automatic strategy selection | accepted |
-| [0019](0019-desktop-app.md) | Desktop application (project-focused GUI) | proposed |
+| [0019](0019-desktop-app.md) | Desktop application (project-focused GUI) | accepted |

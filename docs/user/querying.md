@@ -153,6 +153,7 @@ Base URL `http://127.0.0.1:8080`, header `Authorization: Bearer <token>` ([proje
 | `GET /v1/projects/{id}/inconsistencies`, `GET /v1/inconsistencies/{id}` | viewer |
 | `POST /v1/inconsistencies/{id}/transitions` (body member `cause`) | triager |
 | `POST /v1/projects/{id}/links/{linkId}/review` | triager |
+| `GET /v1/projects/{id}/trace-view`, `GET /v1/projects/{id}/trace-view/elements/{elementId}` | viewer |
 | `GET /v1/projects/{id}/workflows`, `GET /v1/workflows/{id}` | viewer |
 | `POST /v1/projects/{id}/workflows` | maintainer |
 | `POST /v1/projects/{id}/ingestions/check`, `POST /v1/projects/{id}/ingestions` | maintainer |

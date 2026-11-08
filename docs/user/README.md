@@ -14,7 +14,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | [knowledge-file.md](knowledge-file.md) | declare elements, aliases and trace links in `sandman-knowledge.yaml` |
 | [workflows.md](workflows.md) | follow and trigger the processing that follows an ingestion |
 | [querying.md](querying.md) | ask questions, run Cypher, explore the graph in the console, call the REST API, export |
-| [trace-links-and-findings.md](trace-links-and-findings.md) | read and review trace links, read inconsistency findings, triage them with a cause |
+| [trace-links-and-findings.md](trace-links-and-findings.md) | read and review trace links, use the trace viewer, read inconsistency findings, triage them with a cause |
 | [derived-models.md](derived-models.md) | use the architecture models that SANDMAN derives from documentation |
 | [desktop-app.md](desktop-app.md) | use the desktop app: local and remote projects, start and stop, ingest, results |
 | [operations.md](operations.md) | start, stop, logs, profiles, data, troubleshooting |
@@ -52,6 +52,6 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 | Trace links | `explicit-reference` (built in), `stub-name-match` (token overlap, for pipeline checks), `ardoco` (document to model), `transarc` (document to code, default), `lissa` (requirements to code), `ardocode` (document to code, off by default); review by triagers; derived architecture models ([derived-models.md](derived-models.md)) | further approaches |
 | Findings | `stub-untraced` (requirement without active link), `ardoco-id` (model elements missing in the documentation, sentences with entities missing in the model); triage with a cause; evidence view | LLM-based detection `artemis-id` (disabled in `config/inconsistency/plugins.yaml`) |
 | Natural language questions | five fixed question patterns; other questions go to the LLM strategy `cypher`. The strategies `graphrag` and `explore` exist but are disabled in `config/query/strategies.yaml` | enabling them by default |
-| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion; desktop app (projects, start and stop, ingest, workflows, findings, trace links, ask, graph, settings; [desktop-app.md](desktop-app.md)) | LLM ranking of the impact; token creation and administration in the desktop app |
+| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion; trace viewer (dashboard page and desktop tab); desktop app (projects, start and stop, ingest, workflows, findings, trace links, trace viewer, ask, graph, settings; [desktop-app.md](desktop-app.md)) | LLM ranking of the impact; token creation and administration in the desktop app |
 
 The stub components exist to exercise the pipeline end to end. Treat their links and findings as demonstration data, not as analysis results.

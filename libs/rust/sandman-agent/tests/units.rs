@@ -22,6 +22,7 @@ use sandman_agent::kg::{
 use sandman_agent::llm::{ChatRequest, LlmClient, LlmError};
 use sandman_agent::status::StatusTracker;
 use serde_json::{Map, Value, json};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn contracts() -> Arc<Contracts> {
     Arc::new(Contracts::new(&default_contracts_dir()).unwrap())
@@ -647,4 +648,106 @@ fn consumer_config_uses_explicit_acks_and_the_backoff_schedule() {
     assert_eq!(backoff, vec![5, 30, 120, 300]);
     assert_eq!(CONSUMER_BACKOFF, [5, 30, 120, 300]);
     assert_eq!(c.max_ack_pending, 100);
+}
+
+async fn gateway_sequence(statuses: Vec<u16>) -> (String, Arc<AtomicUsize>) {
+    let calls = Arc::new(AtomicUsize::new(0));
+    let seen = calls.clone();
+    let app = axum::Router::new().fallback(move || {
+        let n = seen.fetch_add(1, Ordering::SeqCst);
+        let status = statuses[n.min(statuses.len() - 1)];
+        async move {
+            (
+                axum::http::StatusCode::from_u16(status).unwrap(),
+                axum::Json(json!({"model": "m", "choices": [{"message": {"content": "ok"}}]})),
+            )
+        }
+    });
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+    (url, calls)
+}
+
+#[tokio::test]
+async fn llm_retries_a_server_error_and_then_succeeds() {
+    let (url, calls) = gateway_sequence(vec![503, 200]).await;
+    let resp = LlmClient::new(&url, "k", routes(), false)
+        .chat(&chat_request())
+        .await
+        .unwrap();
+    assert_eq!(resp.message.content, "ok");
+    assert_eq!(calls.load(Ordering::SeqCst), 2);
+}
+
+#[tokio::test]
+async fn llm_gives_up_after_two_retries_on_429_with_backoff() {
+    let (url, calls) = gateway_sequence(vec![429]).await;
+    let err = LlmClient::new(&url, "k", routes(), false)
+        .chat(&chat_request())
+        .await
+        .unwrap_err();
+    assert_eq!(calls.load(Ordering::SeqCst), 3);
+    assert!(matches!(
+        err,
+        LlmError::Gateway {
+            status: Some(429),
+            ..
+        }
+    ));
+    assert!(err.to_string().starts_with("gateway error Some(429): "));
+}
+
+#[tokio::test]
+async fn llm_retries_every_server_error_status() {
+    let (url, calls) = gateway_sequence(vec![500]).await;
+    let err = LlmClient::new(&url, "k", routes(), false)
+        .chat(&chat_request())
+        .await
+        .unwrap_err();
+    assert_eq!(calls.load(Ordering::SeqCst), 3);
+    assert!(matches!(
+        err,
+        LlmError::Gateway {
+            status: Some(500),
+            ..
+        }
+    ));
+}
+
+#[tokio::test]
+async fn llm_does_not_retry_other_client_errors() {
+    let (url, calls) = gateway_sequence(vec![400]).await;
+    let err = LlmClient::new(&url, "k", routes(), false)
+        .chat(&chat_request())
+        .await
+        .unwrap_err();
+    assert_eq!(calls.load(Ordering::SeqCst), 1);
+    assert!(matches!(
+        err,
+        LlmError::Gateway {
+            status: Some(400),
+            ..
+        }
+    ));
+}
+
+#[tokio::test]
+async fn llm_retries_connection_failures_before_giving_up() {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let url = format!("http://{}", listener.local_addr().unwrap());
+    let accepted = Arc::new(AtomicUsize::new(0));
+    let seen = accepted.clone();
+    tokio::spawn(async move {
+        while let Ok((socket, _)) = listener.accept().await {
+            seen.fetch_add(1, Ordering::SeqCst);
+            drop(socket);
+        }
+    });
+    let err = LlmClient::new(&url, "k", routes(), false)
+        .chat(&chat_request())
+        .await
+        .unwrap_err();
+    assert_eq!(accepted.load(Ordering::SeqCst), 3);
+    assert!(matches!(err, LlmError::Gateway { status: None, .. }));
 }

@@ -8,10 +8,11 @@ import { renderGraph } from "./graph";
 import { renderIngest } from "./ingest";
 import { renderLinks } from "./links";
 import { renderOverview } from "./overview";
+import { renderTraceView } from "./traceview";
 import { renderSettings } from "./settings";
 import { renderWorkflows } from "./workflows";
 
-const TABS = ["Overview", "Ingest", "Workflows", "Findings", "Trace links", "Ask", "Graph", "Settings"];
+const TABS = ["Overview", "Ingest", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph", "Settings"];
 
 export async function renderProject(root: HTMLElement, project: Project, leave: () => void): Promise<void> {
   const local = project.mode === "local";
@@ -63,6 +64,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
         case "Workflows": cleanup = await renderWorkflows(view, ctx); break;
         case "Findings": await renderFindings(view, ctx); break;
         case "Trace links": await renderLinks(view, ctx); break;
+        case "Trace viewer": cleanup = await renderTraceView(view, ctx); break;
         case "Ask": renderAsk(view, ctx); break;
         case "Graph": cleanup = await renderGraph(view, ctx); break;
         default: await renderSettings(view, ctx);

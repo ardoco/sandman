@@ -67,6 +67,8 @@ export const CALLS = {
   getInconsistency: { method: "GET", path: "/v1/inconsistencies/{inconsistencyId}", reads: ["title", "severity", "status", "type", "detector", "description", "involved", "evidence", "history", "allowedTransitions"] },
   transitionInconsistency: { method: "POST", path: "/v1/inconsistencies/{inconsistencyId}/transitions", body: ["to", "expectedStatus", "reason", "cause"] },
   reviewTraceLink: { method: "POST", path: "/v1/projects/{projectId}/links/{linkId}/review", body: ["status", "reason"] },
+  getTraceView: { method: "GET", path: "/v1/projects/{projectId}/trace-view", reads: ["elements", "links", "findings", "truncated"] },
+  getTraceViewElement: { method: "GET", path: "/v1/projects/{projectId}/trace-view/elements/{elementId}", reads: ["element", "links", "findings", "neighbours"] },
   listWorkflows: { method: "GET", path: "/v1/projects/{projectId}/workflows", query: ["limit", "cursor"], reads: ["items", "nextCursor"] },
   createWorkflow: { method: "POST", path: "/v1/projects/{projectId}/workflows", body: ["type"] },
   getWorkflow: { method: "GET", path: "/v1/workflows/{workflowId}", reads: ["id", "status", "steps", "createdAt", "trigger"] },

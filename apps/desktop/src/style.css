@@ -41,3 +41,8 @@ progress { width: 100%; }
 .error { white-space: pre-wrap; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .log { max-height: 240px; overflow: auto; }
+.tv { display: flex; gap: 8px; }
+.tv .graph { flex: 1; height: 640px; min-width: 0; }
+.tv-side { width: 340px; max-height: 640px; overflow: auto; border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
+.tv-side li { cursor: pointer; }
+.tv-bar label { display: inline-flex; gap: 4px; align-items: center; }

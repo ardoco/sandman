@@ -18,7 +18,7 @@ from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
 from starlette.exceptions import HTTPException
 
-from sandman_extraction import knowledge
+from sandman_extraction import classify, knowledge
 
 MAX_FILES = 20_000
 MAX_ENTRY_BYTES = 256 * 1024**2
@@ -72,12 +72,16 @@ class Manifest(BaseModel):
             raise ValueError("duplicate paths")
         return files
 
-    def kind_of(self, path: str) -> tuple[str, str | None]:
-        """(kind, format) of the first matching kind rule, else ('other', None)."""
+    def rule_of(self, path: str) -> tuple[str, str | None] | None:
+        """(kind, format) of the first matching kind rule, else None."""
         for rule in self.kindRules:
             if PurePosixPath(path).full_match(rule.glob):
                 return rule.kind, rule.format
-        return "other", None
+        return None
+
+    def kind_of(self, path: str) -> tuple[str, str | None]:
+        """(kind, format) of the first matching kind rule, else ('other', None)."""
+        return self.rule_of(path) or ("other", None)
 
 
 def reject_reserved(manifest: Manifest) -> None:
@@ -215,31 +219,43 @@ async def ingest(
         seq = int(seq_rows[0]["seq"])
         ing_id = stable_id("ing", project_id, str(seq))
         current = {
-            r["id"]: (r["path"], r["current"], r["origin"], r["derivedFrom"])
+            r["id"]: (r["path"], r["current"], r["origin"], r["derivedFrom"], r["kind"])
             for r in await rows(
                 tx,
                 "MATCH (a:Artifact {projectId: $p}) OPTIONAL MATCH (a)-[:CURRENT_VERSION]->(v) "
-                "RETURN a.id AS id, a.path AS path, v.id AS current, a.origin AS origin, v.derivedFrom AS derivedFrom",
+                "RETURN a.id AS id, a.path AS path, v.id AS current, a.origin AS origin, v.derivedFrom AS derivedFrom, "
+                "a.kind AS kind",
                 p=project_id,
             )
         }
-        items, unchanged = [], 0
+        items, reclassified, unchanged = [], [], 0
         for f in manifest.files:
             art = stable_id("art", project_id, f.path)
             ver = stable_id("ver", art, f.sha256)
             source, run = derived.get(f.path, (None, None))
-            _, now_current, _, now_source = current.get(art, (None, None, None, None))
-            if now_current == ver and now_source == source:
+            _, now_current, _, now_source, now_kind = current.get(art, (None, None, None, None, None))
+            uri = f"artifact://{project_id}/{f.sha256}"
+            reclassify = False
+            if f.path == KNOWLEDGE_PATH:
+                kind, fmt = "other", KNOWLEDGE_FORMAT
+            elif (rule := manifest.rule_of(f.path)) is not None:
+                kind, fmt = rule
+                reclassify = art in current and source is None and now_kind != kind
+            else:
+                with store.path_for(uri).open("rb") as blob:
+                    kind, fmt = classify.guess(f.path, blob.read(classify.HEAD_BYTES))
+                reclassify = art in current and source is None and kind != "other" and now_kind != kind
+            if now_current == ver and now_source == source and not reclassify:
                 unchanged += 1
                 continue
-            kind, fmt = ("other", KNOWLEDGE_FORMAT) if f.path == KNOWLEDGE_PATH else manifest.kind_of(f.path)
-            uri = f"artifact://{project_id}/{f.sha256}"
             size = store.path_for(uri).stat().st_size
             items.append({"art": art, "ver": ver, "path": f.path, "kind": kind, "format": fmt, "hash": f.sha256,
                           "uri": uri, "size": size, "origin": "derived" if source else None,
                           "derivedFrom": source, "derivationRunId": run})  # fmt: skip
+            if reclassify:
+                reclassified.append({"art": art, "kind": kind, "format": fmt})
         deleted = (
-            [a for a, (path, cur, origin, _) in current.items()
+            [a for a, (path, cur, origin, _, _) in current.items()
              if cur is not None and path not in wanted and origin != "derived"]
             if manifest.mode == "full"
             else []
@@ -272,6 +288,10 @@ async def ingest(
             "WITH a, v OPTIONAL MATCH (a)-[c:CURRENT_VERSION]->(:ArtifactVersion) DELETE c "
             "WITH a, v CREATE (a)-[:CURRENT_VERSION]->(v)",
             p=project_id, g=ing_id, items=items, now=props["createdAt"], rev=manifest.sourceRevision,
+        )  # fmt: skip
+        await rows(
+            tx, "UNWIND $items AS i MATCH (a:Artifact {id: i.art}) SET a.kind = i.kind, a.format = i.format",
+            items=reclassified,
         )  # fmt: skip
         await rows(
             tx,

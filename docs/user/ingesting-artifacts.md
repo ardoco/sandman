@@ -16,7 +16,7 @@ s2/                                 s1 without docs/old-notes.md; REQ-2 renamed 
 
 ## 1. Prepare the directory
 
-Every file gets a **kind** from the first matching rule; unmatched files are `other`. Rules live in `sandman.yaml` in the root of the directory (the file itself is not uploaded) and/or on the command line:
+Every file gets a **kind** from the first matching rule. If no rule matches, SANDMAN guesses the kind from the path and content (see below); without a signal the kind is `other`. Rules live in `sandman.yaml` in the root of the directory (the file itself is not uploaded) and/or on the command line:
 
 ```yaml
 kindRules:
@@ -33,7 +33,21 @@ kindRules:
 - `--kind-rule 'glob=kind'` can be repeated; command-line rules are checked before `sandman.yaml`. There is no format part on the command line.
 - The CLI skips dot-files and dot-directories (`.git`, ...), symbolic links and `sandman.yaml`.
 
-Pitfall: the kind of a path is fixed when the artifact is first created. Changing a rule later does not re-classify files that already exist in the project (changed content gets a new version, but the artifact keeps its kind). Decide the rules before the first real ingestion.
+Automatic classification (first match wins; only for files that no rule matches):
+
+| Signal | Kind | Format |
+|---|---|---|
+| suffix `.repository`, `.uml`, `.xmi` | `architecture-model` | by suffix |
+| code suffix and path segment `test`, `tests`, `__tests__`, `spec`, or file name `*Test`, `*Tests`, `test_*`, `*_test`, `*.test`, `*.spec` | `test` | none |
+| code suffix (`.java .kt .scala .py .js .jsx .ts .tsx .go .rs .c .h .cpp .hpp .cc .cs .rb .php .swift`) | `code` | none |
+| `.csv` with header columns `id` and `text` | `requirements` | `csv` |
+| document suffix (`.md .markdown .txt .pdf .docx .rst .adoc`) and path segment or file name matching `requirement(s)`, `req`, `reqs`, `srs`, `user-stories`, `stories`, `features` | `requirements` | none |
+| `.md` with at least two headings that start with an id (`REQ-1`, `FR-12`) | `requirements` | none |
+| document suffix and path segment or file name matching `architecture`, `arch`, `design`, `sad`, `adr`, `decisions`, `c4` | `architecture-doc` | `adr` for `.md` under `adr` or `decisions` |
+| other document suffix under `docs`, `doc`, `documentation`, `wiki` | `architecture-doc` | none |
+| anything else | `other` | none |
+
+Re-classification: if a later ingestion gives an existing file a different kind, SANDMAN updates the kind and re-activates the current version. Extraction and trace link recovery run again. A matching rule always applies. A guess of `other` never replaces an existing kind. To set a file to `other`, add a rule.
 
 ### Supported formats
 

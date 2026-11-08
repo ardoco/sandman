@@ -705,3 +705,62 @@ async def test_extract_reports_activity(env: Any, monkeypatch: pytest.MonkeyPatc
     task = await env.extract(resp.json()["createdVersionIds"], None)
     assert task.state == "TASK_STATE_COMPLETED", task
     assert any(t.startswith("extracting ") and "/" in t for t in texts), texts
+
+
+async def classified(env: Any, path: str) -> dict[str, Any]:
+    rows = await cypher(
+        env,
+        "MATCH (a:Artifact {id: $a})-[:CURRENT_VERSION]->(v) RETURN a.kind AS kind, a.format AS format, v.id AS v",
+        a=art(env.project, path),
+    )
+    return rows[0]
+
+
+async def ingest_with(env: Any, files: dict[str, bytes], rules: list[dict[str, Any]]) -> dict[str, Any]:
+    manifest = {"mode": "full", "kindRules": rules,
+                "files": [{"path": p, "sha256": hashlib.sha256(d).hexdigest()} for p, d in files.items()]}  # fmt: skip
+    parts = {"manifest": (None, json.dumps(manifest), "application/json"),
+             "archive": ("a.tar.gz", env.tar_gz(files), "application/octet-stream")}  # fmt: skip
+    resp = await env.http.post(f"/v1/projects/{env.project}/ingestions", files=parts)
+    assert resp.status_code == 201, resp.text
+    return resp.json()
+
+
+async def test_upload_without_rules_is_classified_by_heuristic(env: Any) -> None:
+    await env.put_project()
+    files = env.mini()
+    resp = await env.http.post(
+        f"/v1/projects/{env.project}/ingestions",
+        files={"archive": ("a.tar.gz", env.tar_gz(files), "application/octet-stream")},
+    )
+    assert resp.status_code == 201, resp.text
+    assert (await classified(env, REQ))["kind"] == "requirements"
+    assert (await classified(env, CODE))["kind"] == "code"
+    assert (await classified(env, TEST))["kind"] == "test"
+    model = await classified(env, "model/mini.repository")
+    assert (model["kind"], model["format"]) == ("architecture-model", "pcm-repository")
+
+
+async def test_rule_beats_heuristic_and_rule_change_reclassifies(env: Any) -> None:
+    await env.put_project()
+    files = {"notes.txt": b"plain", CODE: b"class A {}\n"}
+    await ingest_with(env, files, [{"glob": "notes.txt", "kind": "architecture-doc"}])
+    assert (await classified(env, CODE))["kind"] == "code"
+    assert (await classified(env, "notes.txt"))["kind"] == "architecture-doc"
+    second = await ingest_with(env, files, [{"glob": "notes.txt", "kind": "requirements", "format": "text"}])
+    assert second["unchangedCount"] == 1 and second["createdVersionIds"] == []
+    assert second["reactivatedVersionIds"] == [ver(env.project, "notes.txt", b"plain")]
+    assert await classified(env, "notes.txt") == {"kind": "requirements", "format": "text",
+                                                  "v": ver(env.project, "notes.txt", b"plain")}  # fmt: skip
+
+
+async def test_other_fallback_never_downgrades(env: Any) -> None:
+    await env.put_project()
+    files = {"notes.txt": b"plain"}
+    await ingest_with(env, files, [{"glob": "notes.txt", "kind": "architecture-doc"}])
+    again = await ingest_with(env, files, [])
+    assert again["unchangedCount"] == 1 and again["reactivatedVersionIds"] == []
+    assert (await classified(env, "notes.txt"))["kind"] == "architecture-doc"
+    downgraded = await ingest_with(env, files, [{"glob": "notes.txt", "kind": "other"}])
+    assert downgraded["reactivatedVersionIds"] == [ver(env.project, "notes.txt", b"plain")]
+    assert (await classified(env, "notes.txt"))["kind"] == "other"

@@ -180,7 +180,7 @@ components:
     summary: A desktop program for one project at a time. It starts or connects to SANDMAN.
     details: >-
       The app keeps the settings of a project, starts and stops a local stack, and ingests folders and files.
-      It shows workflows, findings, trace links, questions and the graph. It calls the same REST API as the
+      It shows workflows, findings, trace links, a trace viewer with columns, questions and the graph. It calls the same REST API as the
       console and keeps the personal token in the keychain of the operating system.
     flow: Calls the front door like any other client. It runs the make targets and the command line tool on your computer.
   dashboard:
@@ -189,7 +189,7 @@ components:
     summary: An admin-only page that shows whether all parts of the system are healthy.
     details: >-
       It shows service status, running workflows, the event stream, resource usage,
-      project statistics and a graph page with the same layout as the console graph explorer. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
+      project statistics, a read-only trace viewer page and a graph page with the same layout as the console graph explorer. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
     flow: Reads status pages of all services, the message bus and resource data; changes nothing.
   document-converter:
     zone: ingest

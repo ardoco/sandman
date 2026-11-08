@@ -91,6 +91,10 @@ Dashboard tasks T1.9–T1.11: every service reports `/v1/status` (contract tests
 * Good, because no extra container.
 * Bad, because socket access is root-equivalent, even when mounted read-only.
 
+## Amendment 2026-11-08: trace viewer
+
+The dashboard has a read-only page `/traceview` with the routes `/api/traceview` and `/api/traceview/element`. The dashboard imports the read logic `sandman_query.traceview` and runs it on its own Memgraph connection. The dashboard still makes no runtime call to the query-service. See [T-trace-viewer](../docs/tasks/T-trace-viewer.md).
+
 ## More Information
 
 * Versions to pin in the task (2026-10-06): Cytoscape.js 3.34.x (MIT), uPlot 1.6.x (MIT), cAdvisor v0.60.x (Apache-2.0, to verify).

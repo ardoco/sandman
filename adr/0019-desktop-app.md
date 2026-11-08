@@ -49,6 +49,10 @@ Why not embed the console (B): the session cookie is `SameSite=Strict`, the dash
 
 Unit tests of the Rust logic (project store, env file editing, command building, stack state parsing) and of the TypeScript view logic. A manual run against a running stack (`make up`) checks the tabs.
 
+## Amendment 2026-11-08: trace viewer tab
+
+The app has a tab **Trace viewer** after **Trace links**. It uses the query-service operations `getTraceView` and `getTraceViewElement` and the existing `reviewTraceLink`. Ctrl/Cmd+1 to 9 select the tabs. The dashboard has a read-only page with the same data. It imports the query-service read logic and makes no runtime call to the query-service. See [T-trace-viewer](../docs/tasks/T-trace-viewer.md).
+
 ## More Information
 
 * Related: ADR-0011, ADR-0013, ADR-0016. Task spec: [T-desktop-app](../docs/tasks/T-desktop-app.md).

@@ -121,4 +121,4 @@ def test_repository_adrs(path: Path) -> None:
 
 
 def test_repository_adr_count() -> None:
-    assert len(list(ADR_DIR.glob("0*.md"))) == 18
+    assert len(list(ADR_DIR.glob("0*.md"))) == 19

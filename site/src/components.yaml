@@ -58,6 +58,38 @@ flow:
       done, from upload to results. It also lets users restart a workflow by hand.
     components: [orchestrator, nats]
 
+milestones:
+  - id: M0
+    name: Walking skeleton
+    goal: All components as stubs, Compose, CI, one end-to-end flow
+  - id: M1
+    name: Real extraction + dashboard
+    goal: Built-in extractors for documentation, requirements and models; LLM enrichment; record/replay end to end; observability profile; system overview dashboard (ADR-0016)
+  - id: M2
+    name: TLR approaches
+    goal: ArDoCo TLR and LiSSA in-process; evaluation exports and harness
+  - id: M3
+    name: ArDoCo inconsistency detection
+    goal: ArDoCo ID (standard + Artemis variant) running in-process, using the TLR results of M2, mapped to the KG
+  - id: M4
+    name: Query strategies
+    goal: '`cypher` (LLM generation with validation and repair), `graphrag`, `explore`, automatic selection; evaluation set; console Ask page with strategy switch and evidence views'
+  - id: M5
+    name: Continuous use
+    goal: GitHub Action for ingesting user projects, retention/prune skills, backup/restore drill, performance budget
+  - id: M6
+    name: Validate and inform
+    goal: 'Trace-link review in the console with carry-over to new versions; triage cause categories; change impact report per ingestion; graph explorer for users (T6.5); optional LLM planner with approval gate (T6.4). Source: [paper review](notes/paper-review-3774748.3795871.md)'
+  - id: M7
+    name: Knowledge depth
+    goal: "Decision extraction, user-declared knowledge file, model\u2013code inconsistency detection, time-aware queries, resolution suggestions and clarification questions, grounding checks"
+  - id: M8
+    name: Evaluation with people
+    goal: Developer user study; feedback-driven adaptation experiment
+  - id: MX
+    name: (on demand)
+    goal: Agent kits for TypeScript, Go (tier 1) and Rust (tier 2), built when the first agent in that language is planned (ADR-0017)
+
 glossary:
   - term: Knowledge graph
     text: A database that stores things (elements) and the relations between them as a network. SANDMAN keeps all project knowledge here.

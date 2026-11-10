@@ -79,7 +79,7 @@ def test_milestone_text_only_via_planned_field(data):
     assert any("nats.details" in p for p in build_site.sync_problems(ids, bad, ms))
     bad = meta()
     bad["components"]["nats"]["planned"] = "M99"
-    assert any("not in the Stage 3 table" in p for p in build_site.sync_problems(ids, bad, ms))
+    assert any("not in the milestones list" in p for p in build_site.sync_problems(ids, bad, ms))
 
 
 def test_build_does_not_use_git_tags(monkeypatch, tmp_path):

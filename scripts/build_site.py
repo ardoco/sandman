@@ -14,10 +14,9 @@ import yaml
 ROOT = Path(__file__).parents[1]
 REPO = "https://github.com/ardoco/sandman"
 GROUPS = ["platform", "agents", "plugins", "infrastructure", "libraries", "apps"]
-DOC_FILES = ["docs/stage-1-analysis-architecture.md", "docs/stage-2-contracts-repository.md", "docs/plugins.md"]
-DOC_GLOBS = ["docs/tasks/*.md", "adr/*.md"]
+DOC_FILES = ["docs/plugins.md"]
+DOC_GLOBS = ["adr/*.md"]
 MAX_PER_DOC = 5
-PLAN = ROOT / "docs/stage-3-implementation-plan.md"
 META = ROOT / "site/src/components.yaml"
 MAX_FILES = 60
 TEXT_FIELDS = ("zone", "title", "summary", "details", "flow")
@@ -130,9 +129,8 @@ def strings(node, path=""):
 
 
 def milestones() -> list[dict]:
-    """Milestones (id, name, goal) from the Stage 3 table."""
-    rows = re.findall(r"^\| \*\*(M\w+) ([^*]+)\*\* \| ([^|]+) \|", PLAN.read_text(), re.M)
-    return [{"id": i, "name": n.strip(), "goal": g.strip()} for i, n, g in rows]
+    """Milestones (id, name, goal) from components.yaml."""
+    return yaml.safe_load(META.read_text())["milestones"]
 
 
 def status_line(comps: dict, edges: dict) -> str:
@@ -152,8 +150,8 @@ def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> li
     byid = {m["id"]: m for m in ms}
     for i, t in texts.items():
         if "planned" in t and t["planned"] not in byid:
-            problems.append(f"{i}: planned milestone {t['planned']} is not in the Stage 3 table")
-    for path, text in strings(meta):
+            problems.append(f"{i}: planned milestone {t['planned']} is not in the milestones list")
+    for path, text in strings({k: v for k, v in meta.items() if k != "milestones"}):
         if re.search(r"\bM\d+\b|planned", text, re.I) and not path.endswith(".planned"):
             problems.append(f"{path}: milestone or 'planned' text in YAML, use the planned field")
     for step in meta["flow"]:

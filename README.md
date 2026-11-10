@@ -3,14 +3,13 @@ Agent-based system for Software Architecture kNowledge Description and MANagemen
 
 SANDMAN ingests a project snapshot (requirements, documentation, architecture models, code), lets plugin agents extract knowledge into a graph (Traverse), derive trace links and detect inconsistencies, and exposes the results through a query service with a web console and an API. Agents talk A2A over NATS; LLM calls go through a gateway.
 
-- Plan: [docs/stage-3-implementation-plan.md](docs/stage-3-implementation-plan.md)
 - Plugin authors: [docs/plugins.md](docs/plugins.md)
 - Operators and project users: [docs/user/](docs/user/README.md)
 - Component graph (generated with `make site`): <https://ardoco.de/sandman/>
 
 ## Status
 
-The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the trace link approaches ArDoCo, LiSSA and TransArC (default for document to code, with architecture models derived from documentation when a project has none), the ArDoCo code extraction plugin and the ArDoCo inconsistency detector. Files without a matching kind rule are classified automatically, and a changed rule re-classifies existing artifacts. Triagers review trace links and give a cause for each triage decision. The console has a graph explorer. The dashboard shows the system for admins. Retention prune, backup and restore, and the GitHub Action for ingestion exist. LLM calls can be recorded and replayed for reproducible runs. Natural language queries answer fixed question patterns first and use the LLM strategy `cypher` otherwise. The strategies `graphrag` and `explore` exist, but `config/query/strategies.yaml` disables them ([ADR-0018](adr/0018-query-strategies.md)). Planned: the change impact report (T6.3) and the LLM detector `artemis-id`, which is disabled by default. See [the plan](docs/stage-3-implementation-plan.md).
+The walking skeleton runs end to end: upload, extraction, trace link recovery, inconsistency detection, query. It includes the trace link approaches ArDoCo, LiSSA and TransArC (default for document to code, with architecture models derived from documentation when a project has none), the ArDoCo code extraction plugin and the ArDoCo inconsistency detector. Files without a matching kind rule are classified automatically, and a changed rule re-classifies existing artifacts. Triagers review trace links and give a cause for each triage decision. The console has a graph explorer. The dashboard shows the system for admins. Retention prune, backup and restore, and the GitHub Action for ingestion exist. LLM calls can be recorded and replayed for reproducible runs. Natural language queries answer fixed question patterns first and use the LLM strategy `cypher` otherwise. The strategies `graphrag` and `explore` exist, but `config/query/strategies.yaml` disables them ([ADR-0018](adr/0018-query-strategies.md)). Planned: the change impact report (T6.3) and the LLM detector `artemis-id`, which is disabled by default.
 
 ## Components
 
@@ -106,4 +105,4 @@ Integration tests need Docker running. On Docker Desktop, Python Testcontainers 
 | `make e2e` | Walking skeleton, dashboard and replay determinism tests against the stack with plugin stubs |
 | `make backup`, `make restore ARCHIVE=<file>` | Archive and restore the running stack ([operations guide](docs/user/operations.md)) |
 
-Design: [docs/](docs/) (stage 1–3, task specs), decisions: [adr/](adr/README.md), review: [docs/stage-4-review.md](docs/stage-4-review.md).
+Design: [docs/](docs/), decisions: [adr/](adr/README.md).

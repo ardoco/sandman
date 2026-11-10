@@ -12,7 +12,6 @@ Read first:
 - `adr/0017-additional-agent-languages.md` (scope, layout, confirmation)
 - `libs/python/sandman-agent/src/sandman_agent/` (reference behavior)
 - `contracts/conformance/vectors.json` (normative vectors)
-- `docs/tasks/T-kg-traverse-migration.md` (driver quirks of Traverse)
 
 ## Preconditions of ADR-0017
 

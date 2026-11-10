@@ -33,7 +33,7 @@ import tools.jackson.databind.json.JsonMapper;
  * upstream caches answer the gateway, and the approach must reach the upstream result. The upstream data set links
  * requirements to requirements, so the target files enter as code files and the prompt label "source code" maps back
  * to "requirement" for the cache lookup. Run with
- * {@code mvn -Pbenchmark -pl services/tlr-agent/approach-lissa test}. Data: see docs/tasks/T2.2-adapted-lissa.md.
+ * {@code mvn -Pbenchmark -pl services/tlr-agent/approach-lissa test}.
  */
 @Tag("benchmark")
 class WarcEquivalenceTest {

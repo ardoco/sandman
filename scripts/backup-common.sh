@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sourced by backup.sh and restore.sh (T5.3, docs/tasks/T5.3-backup-restore.md).
+# Sourced by backup.sh and restore.sh (T5.3).
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PROJECT=${COMPOSE_PROJECT_NAME:-sandman}
 FORMAT=1

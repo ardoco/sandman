@@ -6,7 +6,7 @@ Status: proposal (2026-11-07) · Effort estimate: M (one language set, one plugi
 
 ADR-0017 admits agents in TypeScript, Go and Rust. The plugin `code-extractor-ardoco` extracts only Java and shell. This note assesses tree-sitter as a way to extract code elements for Go, Rust and TypeScript.
 
-Sources: `adr/0017-additional-agent-languages.md`, `docs/tasks/T2.2-adapted-lissa.md`, `docs/tasks/T2.6-ardoco-code-extraction.md`, `contracts/agent-cards/code-extractor-ardoco.json`, `contracts/skills.schema.json`, `libs/typescript/sandman-agent`, and web checks on 2026-11-07 (links at the end).
+Sources: `adr/0017-additional-agent-languages.md`, `contracts/agent-cards/code-extractor-ardoco.json`, `contracts/skills.schema.json`, `libs/typescript/sandman-agent`, and web checks on 2026-11-07 (links at the end).
 
 ## 1. Scope facts from the repository
 

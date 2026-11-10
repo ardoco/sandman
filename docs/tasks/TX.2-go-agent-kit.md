@@ -14,7 +14,6 @@ Read first:
 - `libs/typescript/sandman-agent/` (surface and tests to mirror)
 - `libs/python/sandman-agent/src/sandman_agent/` (reference behavior)
 - `contracts/conformance/vectors.json` (normative vectors, reused unchanged)
-- `docs/tasks/T-kg-traverse-migration.md` (driver quirks of Traverse)
 
 ## Preconditions of ADR-0017
 

@@ -260,7 +260,7 @@ services:
       SANDMAN_CODE_MAX_FILES: ${SANDMAN_CODE_MAX_FILES:-20000}      # per call; above: INVALID_INPUT
       SANDMAN_CODE_MAX_BYTES: ${SANDMAN_CODE_MAX_BYTES:-67108864}   # 64 MB per call; above: INVALID_INPUT
       SANDMAN_CODE_MAX_FILE_BYTES: ${SANDMAN_CODE_MAX_FILE_BYTES:-4194304}  # 4 MB per file
-      # Worst case (MaxCapInputTest, docs/tasks/T2.6): 64 MB of dense Java needs a heap between 1.5 and 2.0 GB (ArDoCo
+      # Worst case (MaxCapInputTest): 64 MB of dense Java needs a heap between 1.5 and 2.0 GB (ArDoCo
       # keeps every AST), so -Xmx2560m is not exhausted within the caps. mem_limit 4g = heap 2.5g + metaspace 0.25g +
       # threads, code cache and onnx native ~0.6g + /tmp tmpfs at most 0.3g (staged copy and Magika copies of 64 MB).
       JAVA_TOOL_OPTIONS: -Xmx2560m -XX:MaxMetaspaceSize=256m

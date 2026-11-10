@@ -1,4 +1,4 @@
-// Package kg is the knowledge-graph client on neo4j-go-driver, with the Traverse quirks of docs/tasks/T-kg-traverse-migration.md.
+// Package kg is the knowledge-graph client on neo4j-go-driver, with the Traverse quirks.
 package kg
 
 import (

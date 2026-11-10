@@ -93,7 +93,7 @@ The detector `model-code` runs in the inconsistency-agent. It needs no plugin. I
 | `linkApproaches` | `all` | `all` or a list of approach ids whose links count. |
 | `maxFindingsPerType` | `500` | Cap per finding type. A warning reports a cut. |
 
-A link to a type or method counts for its file. A rejected link does not count. If the project has no model-code link, the detector reports no finding and one warning. The evaluation is in `docs/tasks/T7.3-model-code-inconsistency-detector.md`.
+A link to a type or method counts for its file. A rejected link does not count. If the project has no model-code link, the detector reports no finding and one warning.
 
 ## Registering
 

@@ -4,7 +4,6 @@ Run: DOCKER_HOST=... uv run python spikes/T0.4/memgraph_checks.py   (prints one 
 """
 
 import asyncio
-import re
 import sys
 import time
 from pathlib import Path
@@ -22,29 +21,6 @@ def record(check: str, ok: bool | None, evidence: str) -> None:
     verdict = "PASS" if ok else ("FAIL" if ok is False else "INFO")
     results.append((check, verdict, evidence))
     print(f"[{verdict}] {check}: {evidence}", flush=True)
-
-
-def stage1_statements() -> list[str]:
-    text = (ROOT / "docs/stage-1-analysis-architecture.md").read_text()
-    section = text[text.index("### 4.4 Example Cypher") : text.index("## 5. Agent design")]
-    blocks = re.findall(r"```cypher\n(.*?)```", section, re.S)
-    statements = []
-    for block in blocks:
-        body = "\n".join(line.split("//")[0] for line in block.splitlines())
-        statements += [s.strip() for s in body.split(";") if s.strip()]
-    return statements
-
-
-PARAMS = {
-    "projectId": "mini", "ingestionId": "ing_1", "artifactId": "art_1", "path": "a.md", "kind": "requirements",
-    "format": "markdown", "versionId": "ver_1", "hash": "h", "uri": "artifact://mini/h", "size": 1, "now": "t",
-    "rev": "r", "runId": "run_1", "elements": [{"id": "el_1", "key": "art_1#REQ-1", "kind": "file", "name": "n",
-    "qualifiedName": "q", "text": "x", "startLine": 1, "endLine": 2, "contentHash": "c"}], "elementIds": ["el_1"],
-    "links": [{"id": "tl_1", "sourceId": "el_1", "targetId": "el_1", "linkType": "relates", "confidence": 0.5,
-    "rationale": None}], "approach": "a", "approachVersion": "1", "configHash": "c",
-    "sourceVersionIds": ["ver_1"], "targetVersionIds": ["ver_1"], "id": "inc_1", "expectedStatus": "OPEN",
-    "to": "DEFERRED", "actor": "user:bob", "reason": "later", "minConfidence": 0.0, "linkId": "tl_1",
-}  # fmt: skip
 
 
 def main() -> None:
@@ -93,14 +69,6 @@ def main() -> None:
         driver.execute_query("CREATE (:Run {id: 'run_1'})")
         driver.execute_query("CREATE (:Ingestion {id: 'ing_1'})")
         driver.execute_query("CREATE (:Inconsistency {id: 'inc_1', status: 'OPEN', evidenceHash: 'e'})")
-        failed = []
-        for stmt in stage1_statements():
-            try:
-                driver.execute_query(stmt, PARAMS)
-            except Neo4jError as e:
-                failed.append(f"{' '.join(stmt.split())[:70]} -> {e.message[:100]}")
-        record("8 Stage 1 §4.4 statements", not failed, f"{len(stage1_statements())} statements, failures: {failed or 'none'}")
-
         for q in ("EXPLAIN MATCH (n:NoSuchLabel) RETURN n", "EXPLAIN MATCH (n:Element) WHERE n.nope = 1 RETURN n"):
             try:
                 rows = driver.execute_query(q).records

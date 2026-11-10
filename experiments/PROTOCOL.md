@@ -1,6 +1,6 @@
 # Evaluation protocol (D-8)
 
-Version: 2 · Date: 2026-10-20 · Source: `docs/stage-3-implementation-plan.md` §3.3, `docs/tasks/T2.3-evaluation-harness.md`, `docs/tasks/T7.3-model-code-inconsistency-detector.md` (section 9)
+Version: 2 · Date: 2026-10-20 · Source: tasks T2.3 and T7.3 (section 9)
 
 This file is pre-registered. Commit it before the first comparative experiment. The experiment manifest stores its SHA-256 (`evaluation.protocolSha256`). If you change this file after data collection, add an entry to the deviation log at the end and report the deviation with the results.
 
@@ -89,7 +89,7 @@ Section 9 was added before the first removal run. It does not change sections 1 
 
 ## 10. Feedback adaptation (T8.2)
 
-Section 10 was added before the first adaptation run. It does not change sections 1 to 9. The mechanism is in `docs/tasks/T8.2-feedback-adaptation.md`. The human study is part of T8.1 and is not covered here.
+Section 10 was added before the first adaptation run. It does not change sections 1 to 9. The human study is part of T8.1 and is not covered here.
 
 - Hypothesis H1: a threshold derived from reviews raises the F1 of an approach on held-out links of the same project, compared with the same approach without feedback.
 - Hypothesis H2: few-shot examples from reviews raise the F1 of `lissa` on held-out links, compared with `lissa` without feedback.

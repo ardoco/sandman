@@ -4548,9 +4548,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794313403.7366982,
-    "seen": 1794313412.253729,
-    "ast_hash": "b847cef3d375114c001926723f704644",
+    "mtime": 1794405997.0709722,
+    "seen": 1794410723.16704,
+    "ast_hash": "5c12368228963efc277d873e7f9d40f3",
     "semantic_hash": ""
   },
   "adr/0001-language-per-component.md": {
@@ -4746,10 +4746,10 @@
     "semantic_hash": "fe026b1072b7b31edd69c4e658df932c"
   },
   "docs/user/README.md": {
-    "mtime": 1794313403.7530868,
-    "seen": 1794313412.2541618,
-    "ast_hash": "cf68a3d7d28334a3e702e6a83c9c8113",
-    "semantic_hash": "cf68a3d7d28334a3e702e6a83c9c8113"
+    "mtime": 1794405989.5108747,
+    "seen": 1794410723.1670709,
+    "ast_hash": "fa4e417b256276a2ca9783567c40e8b7",
+    "semantic_hash": ""
   },
   "docs/user/derived-models.md": {
     "mtime": 1792421181.7641363,
@@ -4758,10 +4758,10 @@
     "semantic_hash": "b7fbcfdd90e071fe18490b6b8b3f47ba"
   },
   "docs/user/desktop-app.md": {
-    "mtime": 1794313403.7534266,
-    "seen": 1794313412.2541811,
-    "ast_hash": "dd3fd45eae7fdd11c46f77930940edb6",
-    "semantic_hash": "dd3fd45eae7fdd11c46f77930940edb6"
+    "mtime": 1794405989.5098581,
+    "seen": 1794410723.167073,
+    "ast_hash": "4f4347e3eb36843da6491613737592d0",
+    "semantic_hash": ""
   },
   "docs/user/evaluation.md": {
     "mtime": 1794012146.8087814,
@@ -4776,9 +4776,9 @@
     "semantic_hash": "c04df32fa2f9e7e9ff567a3d3b17499a"
   },
   "docs/user/ingesting-artifacts.md": {
-    "mtime": 1794404511.982922,
-    "seen": 1794404655.853875,
-    "ast_hash": "09cd95672d9453318744cadc4af894c3",
+    "mtime": 1794405976.0986586,
+    "seen": 1794410723.1670752,
+    "ast_hash": "4f0d952663ba04d13ccfde0a0ae42d12",
     "semantic_hash": ""
   },
   "docs/user/knowledge-file.md": {
@@ -4788,10 +4788,10 @@
     "semantic_hash": "b8c62959347362d238bce33217ff7a34"
   },
   "docs/user/operations.md": {
-    "mtime": 1794313403.7545574,
-    "seen": 1794313412.254218,
-    "ast_hash": "eed2e0a63564398df60f5c24b9196821",
-    "semantic_hash": "eed2e0a63564398df60f5c24b9196821"
+    "mtime": 1794410707.86881,
+    "seen": 1794410723.167076,
+    "ast_hash": "425cc5aca503f8fca54fb434911fa33c",
+    "semantic_hash": ""
   },
   "docs/user/projects-and-access.md": {
     "mtime": 1792421181.765671,
@@ -5748,15 +5748,15 @@
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/static/classification.js": {
-    "mtime": 1794405724.9832528,
-    "seen": 1794405725.722434,
-    "ast_hash": "450990bfd75ef28a497f4707b37680bd",
+    "mtime": 1794410707.8575134,
+    "seen": 1794410723.16675,
+    "ast_hash": "6dd3e1bc030c802e32c1e9155ead4174",
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/templates/classification.html": {
-    "mtime": 1794405715.3551066,
-    "seen": 1794405725.722816,
-    "ast_hash": "97927cb01d6124f7ed660c4133bc74b7",
+    "mtime": 1794410707.8573587,
+    "seen": 1794410723.167113,
+    "ast_hash": "07fd96cd310d0961a6f3b6e045ee8cf6",
     "semantic_hash": ""
   },
   "apps/desktop/src/classification.test.ts": {
@@ -5766,9 +5766,9 @@
     "semantic_hash": ""
   },
   "services/dashboard/tests/test_classification.py": {
-    "mtime": 1794405745.7323136,
-    "seen": 1794405754.04689,
-    "ast_hash": "5a757c4aad694139c186252feb76b409",
+    "mtime": 1794410707.8684862,
+    "seen": 1794410723.166759,
+    "ast_hash": "293f31441be5237f1467eddf58c40371",
     "semantic_hash": ""
   },
   "apps/desktop/src/views/classification.ts": {

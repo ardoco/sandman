@@ -781,10 +781,8 @@ async def test_artifact_stores_verdict_and_result_has_kinds(env: Any) -> None:
     assert (await cypher(env, props, a=art(env.project, "notes.txt")))[0] == {
         "s": "rule", "r": "rule notes.txt", "w": False, "v": CLASSIFIER_VERSION}  # fmt: skip
     assert (await cypher(env, props, a=art(env.project, CODE)))[0]["s"] == "heuristic"
-    await cypher(
-        env,
-        "MATCH (a:Artifact {projectId: $p}) REMOVE a.kindSource, a.kindReason, a.kindWeak, a.classifierVersion",
-        p=env.project,
+    await cypher_write(
+        env, "MATCH (a:Artifact {projectId: $p}) REMOVE a.kindSource, a.kindReason, a.kindWeak, a.classifierVersion"
     )
     again = await ingest_with(env, files, [{"glob": "notes.txt", "kind": "architecture-doc"}])
     assert again["unchangedCount"] == 2 and again["createdVersionIds"] == []

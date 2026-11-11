@@ -2,6 +2,7 @@ import json
 import os
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sandman_agent.classify_tree import (
@@ -23,7 +24,7 @@ BLOCK = re.compile(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\r?\n?", re.S)
 
 
 @pytest.mark.parametrize("case", CASES, ids=[c["name"] for c in CASES])
-def test_block_cases(case: dict) -> None:
+def test_block_cases(case: dict[str, Any]) -> None:
     existing = case["existing"] or ""
     assert parse_block(existing).status == case["state"]
     block = render_block(case["rules"], case["reviewed"])

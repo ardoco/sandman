@@ -235,6 +235,7 @@ def reviewed_rules(text: str) -> list[Rule]:
     state = parse_block(text)
     if state.status in ("none", "broken"):
         return []
+    assert state.start is not None and state.end is not None
     lines = _lines(text)[state.start : state.end - 1]
     return [{"glob": json.loads(m.group(1)), "kind": m.group(2)} for ln in lines if (m := _RULE.match(ln))]
 
@@ -251,6 +252,7 @@ def apply_block(existing_text: str, block: str) -> str:
             return new
         sep = "" if existing_text.endswith("\n") else eol
         return f"{existing_text}{sep}{eol}{new}"
+    assert state.start is not None and state.end is not None
     parts = existing_text.split("\n")
     before = "\n".join(parts[: state.start - 1])
     after = "\n".join(parts[state.end :])

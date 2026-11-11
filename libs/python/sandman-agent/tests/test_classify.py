@@ -2,6 +2,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 from sandman_agent import classify
@@ -46,7 +47,7 @@ def test_legacy_guess_keeps_old_docs_dir_kind() -> None:
     assert classify.legacy_guess("README.md", b"") == ("other", None)
 
 
-def outputs() -> list[dict]:
+def outputs() -> list[dict[str, Any]]:
     return [
         {"kind": v.kind, "format": v.format, "source": v.source, "reason": v.reason, "weak": v.weak}
         for v in (classify.resolve(c["path"], c["head"].encode(), c["rules"]) for c in CASES["cases"])

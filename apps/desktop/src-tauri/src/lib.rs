@@ -1,4 +1,5 @@
 mod api;
+mod classify;
 mod env;
 mod ingest;
 mod keys;
@@ -180,6 +181,8 @@ pub fn run() {
             pick_folder,
             pick_files,
             ingest::ingest,
+            classify::classify_scan,
+            classify::classify_rules,
             open_external,
             quit_app,
         ])

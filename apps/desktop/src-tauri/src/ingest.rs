@@ -25,22 +25,30 @@ pub fn stage_files(files: &[PathBuf], dest: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+pub fn cli_parts(cli: Option<&str>, checkout: Option<&str>) -> Result<Vec<String>, String> {
+    match (cli, checkout) {
+        (Some(c), _) if !c.trim().is_empty() => Ok(c.split_whitespace().map(String::from).collect()),
+        (_, Some(co)) => Ok(["uv", "run", "--project", co, "sandman"].map(String::from).to_vec()),
+        _ => Err("set the CLI command in the project settings".into()),
+    }
+}
+
 pub fn build_command(
     cli: Option<&str>,
     checkout: Option<&str>,
     project: &str,
     mode: &str,
     revision: Option<&str>,
+    no_review: bool,
     dir: &str,
 ) -> Result<(String, Vec<String>), String> {
-    let mut parts: Vec<String> = match (cli, checkout) {
-        (Some(c), _) if !c.trim().is_empty() => c.split_whitespace().map(String::from).collect(),
-        (_, Some(co)) => ["uv", "run", "--project", co, "sandman"].map(String::from).to_vec(),
-        _ => return Err("set the CLI command in the project settings".into()),
-    };
+    let mut parts = cli_parts(cli, checkout)?;
     parts.extend(["ingest", "--project", project, "--mode", mode].map(String::from));
     if let Some(r) = revision {
         parts.push(format!("--revision={r}"));
+    }
+    if no_review {
+        parts.push("--no-review".into());
     }
     parts.extend(["--".to_string(), dir.to_string()]);
     Ok((parts.remove(0), parts))
@@ -54,6 +62,7 @@ pub async fn ingest(
     paths: Vec<String>,
     mode: String,
     revision: Option<String>,
+    no_review: Option<bool>,
 ) -> Result<i32, String> {
     if !matches!(mode.as_str(), "full" | "partial") {
         return Err("mode must be full or partial".into());
@@ -81,6 +90,7 @@ pub async fn ingest(
         &project_id,
         &mode,
         revision.as_deref(),
+        no_review.unwrap_or(false) || dir == stage.path(),
         &dir.to_string_lossy(),
     )?;
     let _ = app.emit("ingest-log", format!("$ {program} {}", args.join(" ")));
@@ -126,11 +136,11 @@ mod tests {
 
     #[test]
     fn builds_uv_and_custom_commands() {
-        let (p, a) = build_command(None, Some("/co"), "demo", "full", Some("abc"), "/dir").unwrap();
+        let (p, a) = build_command(None, Some("/co"), "demo", "full", Some("abc"), false, "/dir").unwrap();
         assert_eq!(p, "uv");
         assert_eq!(a.join(" "), "run --project /co sandman ingest --project demo --mode full --revision=abc -- /dir");
-        let (p, a) = build_command(Some("uvx  sandman"), None, "demo", "partial", None, "/d").unwrap();
-        assert_eq!((p.as_str(), a.join(" ")), ("uvx", "sandman ingest --project demo --mode partial -- /d".to_string()));
-        assert!(build_command(None, None, "demo", "full", None, "/d").is_err());
+        let (p, a) = build_command(Some("uvx  sandman"), None, "demo", "partial", None, true, "/d").unwrap();
+        assert_eq!((p.as_str(), a.join(" ")), ("uvx", "sandman ingest --project demo --mode partial --no-review -- /d".to_string()));
+        assert!(build_command(None, None, "demo", "full", None, false, "/d").is_err());
     }
 }

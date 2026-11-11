@@ -9,7 +9,9 @@ from typing import Any
 
 import httpx
 import pytest
-from sandman_cli.__main__ import ADR_RULES, build_manifest, kind_of, kind_rule, main, scan
+from sandman_agent import resolve
+from sandman_cli.__main__ import build_manifest, main
+from sandman_cli.classification import ADR_RULES, kind_rule, scan
 
 MINI = Path(__file__).resolve().parents[3] / "tests" / "e2e" / "fixtures" / "mini"
 RULES = [
@@ -22,6 +24,12 @@ RULES = [
         "src/main/**=code",
     )
 ]
+
+
+def kind_of(path: str, rules: list[dict[str, str]]) -> str:
+    return resolve(path, b"", rules).kind
+
+
 WF = "wf_" + "1" * 32
 
 
@@ -36,9 +44,9 @@ def test_kind_rule_matching() -> None:
     assert kind_of("docs/sub/a.md", RULES) == "architecture-doc"
     assert kind_of("src/test/java/mini/MediaCacheTest.java", RULES) == "test"
     assert kind_of("src/main/java/mini/MediaCache.java", RULES) == "code"
-    assert kind_of("README.md", RULES) == "other"
+    assert kind_of("data.bin", RULES) == "other"
     assert kind_of("src/a.java", [kind_rule("src/*.java=code"), kind_rule("**=test")]) == "code"  # first match wins
-    assert kind_of("src/x/a.java", [kind_rule("src/*.java=code")]) == "other"  # '*' stays in one segment
+    assert kind_of("src/x/a.bin", [kind_rule("src/*.bin=code")]) == "other"  # '*' stays in one segment
     with pytest.raises(Exception):  # noqa: B017 - argparse type error
         kind_rule("src/**=binary")
 
@@ -133,6 +141,7 @@ def test_ingest_without_missing_files_sends_manifest_only(tmp_path: Path) -> Non
         "mini",
         "--mode",
         "partial",
+        "--no-review",
         "--kind-rule",
         "*.md=architecture-doc",
         "--token-file",

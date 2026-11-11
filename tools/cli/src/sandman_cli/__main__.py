@@ -12,30 +12,20 @@ import tarfile
 import time
 from collections import Counter
 from collections.abc import Sequence
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 import httpx
-import yaml
-from sandman_agent import RULE_KINDS
+from sandman_agent import CLASSIFIER_VERSION
 
+from sandman_cli import classification
+from sandman_cli.classification import kind_rule
 from sandman_cli.evaluation import labeling, nlquery, removal, stats
 from sandman_cli.evaluation.compare import compare, identical
 from sandman_cli.evaluation.formats import FORMATS, fetch_rows, read_file, rows_to_links, write_links
 from sandman_cli.evaluation.perturb import build_mapping, rename
 
 DEFAULT_URL = "http://127.0.0.1:8080"
-CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
-KINDS = RULE_KINDS
-ADR_FOLDERS = ("adr", "docs/adr/**", "docs/decisions/**", "**/adr")
-ADR_RULES = [
-    {"glob": f"{folder}/{name}", "kind": "architecture-doc", "format": "markdown"}
-    for folder in ADR_FOLDERS
-    for name in ("README.md", "index.md", "template.md")
-] + [
-    {"glob": glob, "kind": "architecture-doc", "format": "adr"}
-    for glob in ("adr/*.md", "docs/adr/**/*.md", "docs/decisions/**/*.md", "**/adr/[0-9][0-9][0-9][0-9]-*.md")
-]
 DONE = {"SUCCEEDED", "FAILED", "CANCELED", "BLOCKED"}  # BLOCKED waits for a user action
 
 
@@ -48,38 +38,10 @@ def _pattern(regex: str, what: str) -> Any:
     return check
 
 
-def kind_rule(value: str) -> dict[str, str]:
-    """--kind-rule 'glob=kind'."""
-    glob, _, kind = value.rpartition("=")
-    if not glob or kind not in KINDS:
-        raise argparse.ArgumentTypeError(f"expected glob=kind with kind in {', '.join(KINDS)}: {value!r}")
-    return {"glob": glob, "kind": kind}
-
-
-def kind_of(path: str, rules: Sequence[dict[str, str]]) -> str:
-    """First matching glob decides; unmatched files are 'other' (the extraction-agent's rule)."""
-    return next((r["kind"] for r in rules if PurePosixPath(path).full_match(r["glob"])), "other")
-
-
-def scan(root: Path) -> dict[str, Path]:
-    """Relative POSIX path -> file, sorted; skips symlinks, dot-files/-dirs (.git, ...) and sandman.yaml."""
-    files = {}
-    for p in sorted(root.rglob("*")):
-        rel = p.relative_to(root)
-        if (
-            p.is_file()
-            and not p.is_symlink()
-            and rel.as_posix() != CONFIG
-            and not any(part.startswith(".") for part in rel.parts)
-        ):
-            files[rel.as_posix()] = p
-    return files
-
-
 def build_manifest(
     files: dict[str, Path], mode: str, revision: str | None, rules: list[dict[str, str]]
 ) -> dict[str, Any]:
-    manifest: dict[str, Any] = {"mode": mode, "kindRules": rules, "files": []}
+    manifest: dict[str, Any] = {"mode": mode, "classifierVersion": CLASSIFIER_VERSION, "kindRules": rules, "files": []}
     if revision:
         manifest["sourceRevision"] = revision
     for rel, p in files.items():
@@ -104,19 +66,15 @@ def _ok(resp: httpx.Response) -> httpx.Response:
 
 
 def ingest(http: httpx.Client, args: argparse.Namespace) -> int:
-    root = Path(args.dir)
-    files = scan(root)
+    proj, verdicts, stop = classification.review_gate(classification.load_project(Path(args.dir), args.kind_rule), args)
+    if stop is not None:
+        return stop
+    files = {rel: p for rel, p in proj.files.items() if verdicts[rel].kind != "ignored"}
     if not files:
-        raise SystemExit(f"sandman: no files in {root}")
-    config = root / CONFIG
-    rules = (
-        args.kind_rule
-        + ((yaml.safe_load(config.read_text()) or {}).get("kindRules", []) if config.is_file() else [])
-        + ADR_RULES
-    )
+        raise SystemExit(f"sandman: no files in {args.dir}")
+    rules = [r for r in proj.rules if r["kind"] != "ignored"]
     manifest = build_manifest(files, args.mode, args.revision, rules)
-    kinds = Counter(kind_of(rel, rules) for rel in files)
-    print(f"{len(files)} files: " + ", ".join(f"{k}={n}" for k, n in sorted(kinds.items())), file=sys.stderr)
+    preview = Counter(verdicts[rel].kind for rel in files)
 
     base = f"/v1/projects/{args.project}/ingestions"
     missing = set(_ok(http.post(base + "/check", json=manifest)).json()["missing"])
@@ -125,7 +83,17 @@ def ingest(http: httpx.Client, args: argparse.Namespace) -> int:
     parts: dict[str, Any] = {"manifest": (None, json.dumps(manifest), "application/json")}
     if upload:
         parts["archive"] = ("archive.tar.gz", build_archive(files, upload), "application/gzip")
-    print(json.dumps(_ok(http.post(base, files=parts)).json(), indent=2))
+    result = _ok(http.post(base, files=parts)).json()
+    print(json.dumps(result, indent=2))
+    if "kinds" in result and result["kinds"] != dict(preview):
+        diffs = ", ".join(
+            f"{k} {preview.get(k, 0)} -> {result['kinds'].get(k, 0)}"
+            for k in sorted(preview.keys() | result["kinds"].keys())
+            if preview.get(k, 0) != result["kinds"].get(k, 0)
+        )
+        print(f"Warning: the server kinds differ from the preview (preview -> server): {diffs}", file=sys.stderr)
+    for w in result.get("warnings", []):
+        print(f"Warning: {w}", file=sys.stderr)
     return 0
 
 
@@ -327,9 +295,61 @@ def parser() -> argparse.ArgumentParser:
     s = sub.add_parser("ingest", parents=[common], help="upload a project snapshot (full) or changed files (partial)")
     s.add_argument("--mode", choices=["full", "partial"], required=True)
     s.add_argument("--revision", help="source revision, e.g. Git commit SHA")
-    s.add_argument("--kind-rule", type=kind_rule, action="append", default=[], help="glob=kind, before sandman.yaml")
+    s.add_argument(
+        "--kind-rule",
+        type=kind_rule,
+        action="append",
+        default=[],
+        help="glob=kind; precedence: --kind-rule, kindRules, reviewedRules (managed block), ADR defaults, heuristic",
+    )
+    s.add_argument(
+        "--review", action="store_true", help="run the interactive classification review first (needs a terminal)"
+    )
+    s.add_argument("--no-review", action="store_true", help="skip the review check of weak classifications")
     s.add_argument("dir")
     s.set_defaults(func=ingest)
+
+    s = sub.add_parser(
+        "classify",
+        help="preview and correct how files are classified (kind, ignore, reviewed rules in sandman.yaml)",
+        description=(
+            "Prints the folded classification tree of DIR. Files ignored by .gitignore or the fixed list "
+            f"({', '.join(classification.FIXED_IGNORES)}) are never uploaded. Corrections go into the managed block "
+            "of DIR/sandman.yaml (key reviewedRules); hand-written kindRules stay untouched and win."
+        ),
+    )
+    s.add_argument("--kind-rule", type=kind_rule, action="append", default=[], help="glob=kind, wins over sandman.yaml")
+    s.add_argument("--open", metavar="PATH", action="append", default=[], help="expand a folder (repeatable)")
+    s.add_argument("--all", action="store_true", help="expand every folder")
+    s.add_argument("--files", action="store_true", help="flat list: path, kind, format, source, reason (tab-separated)")
+    s.add_argument(
+        "--json", action="store_true", help="machine output: folded rows and all files (used by the desktop app)"
+    )
+    s.add_argument(
+        "-i", "--interactive", action="store_true", help="review the weak ('?') folders and files, then write"
+    )
+    s.add_argument(
+        "--write", action="store_true", help="write the managed block in DIR/sandman.yaml (diff, question, atomic)"
+    )
+    s.add_argument(
+        "--rules-stdin",
+        action="store_true",
+        help="read corrections as JSON from stdin (a list of {path, kind}, or {edits: [...]}) and print the generated "
+        "rules, block, diff and file text as JSON; with --write also write without a question",
+    )
+    s.add_argument(
+        "--check",
+        action="store_true",
+        help="exit 1 if weak files are not reviewed; list kinds changed by the classifier",
+    )
+    s.add_argument(
+        "--pin-legacy",
+        action="store_true",
+        help="write rules that keep the previous kind of files the classifier changed",
+    )
+    s.add_argument("--force", action="store_true", help="overwrite a hand-edited managed block without asking")
+    s.add_argument("dir")
+    s.set_defaults(func=classification.classify, offline=True)
 
     s = sub.add_parser("workflows", parents=[common], help="list workflows or wait for one")
     s.add_argument("--wait", metavar="ID", type=_pattern(r"wf_[0-9a-f]{32}", "workflow id"))

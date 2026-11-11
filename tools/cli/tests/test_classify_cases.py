@@ -16,6 +16,6 @@ def test_golden_cases() -> None:
 
 
 def test_cli_accepts_every_rule_kind() -> None:
-    from sandman_cli.__main__ import KINDS
+    from sandman_cli.classification import KINDS
 
     assert KINDS == classify.RULE_KINDS and "documentation" in KINDS and "ignored" in KINDS

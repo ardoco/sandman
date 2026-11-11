@@ -16,7 +16,7 @@ s2/                                 s1 without docs/old-notes.md; REQ-2 renamed 
 
 ## 1. Prepare the directory
 
-Every file gets a **kind** from the first matching rule. If no rule matches, SANDMAN guesses the kind from the path and content (see below); without a signal the kind is `other`. Rules live in `sandman.yaml` in the root of the directory (the file itself is not uploaded) and/or on the command line:
+Every file gets a **kind** from the first matching rule. If no rule matches, SANDMAN guesses the kind from the path and content (see below). Without a signal the kind is `other`. Rules live in `sandman.yaml` in the root of the directory (the file itself is not uploaded) and/or on the command line:
 
 ```yaml
 kindRules:
@@ -27,7 +27,9 @@ kindRules:
   - { glob: "src/main/**", kind: code }
 ```
 
-- Kinds: `requirements`, `architecture-doc`, `architecture-model`, `code`, `test`, `other`.
+- Kinds: `requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `other`.
+- Rules also accept the kind `ignored`. It marks files that you do not want to upload. The server rejects `ignored` in a manifest. The CLI skips such files in a later release.
+- Use `documentation` for project documentation that is not architecture: README, changelog, user guide.
 - Globs match the whole relative path with `/` separators; `**` spans directories.
 - An entry may carry `format: ...` to override format detection (`markdown`, `text`, `csv`, `pcm-repository`, `uml`). Otherwise the format comes from the file suffix.
 - `--kind-rule 'glob=kind'` can be repeated; command-line rules are checked before `sandman.yaml`. There is no format part on the command line.
@@ -44,8 +46,13 @@ Automatic classification (first match wins; only for files that no rule matches)
 | document suffix (`.md .markdown .txt .pdf .docx .rst .adoc`) and path segment or file name matching `requirement(s)`, `req`, `reqs`, `srs`, `user-stories`, `stories`, `features` | `requirements` | none |
 | `.md` with at least two headings that start with an id (`REQ-1`, `FR-12`) | `requirements` | none |
 | document suffix and path segment or file name matching `architecture`, `arch`, `design`, `sad`, `adr`, `decisions`, `c4` | `architecture-doc` | `adr` for `.md` under `adr` or `decisions` |
-| other document suffix under `docs`, `doc`, `documentation`, `wiki` | `architecture-doc` | none |
+| file name `README`, `CHANGELOG`, `CONTRIBUTING`, `LICENSE`, `CODE_OF_CONDUCT` (document suffix or no suffix) | `documentation` | none |
+| other document suffix under `docs`, `doc`, `documentation`, `wiki` | `documentation` (weak) | none |
 | anything else | `other` | none |
+
+Every guess has a source (`rule`, `heuristic` or `default`), a reason and a weak flag. The guess is weak if the signal is only a documentation directory, or if there is no signal. Check weak guesses first. The signal table has the classifier version 1. The same table is in `contracts/classification/cases.json`.
+
+Warning: before classifier version 1, a document under `docs` was `architecture-doc`. It is now `documentation`. On the next ingestion, such a file changes its kind, and trace links from this file can disappear. To keep the old kind, add a rule such as `docs/** = architecture-doc`.
 
 Re-classification: if a later ingestion gives an existing file a different kind, SANDMAN updates the kind and re-activates the current version. Extraction and trace link recovery run again. A matching rule always applies. A guess of `other` never replaces an existing kind. To set a file to `other`, add a rule.
 

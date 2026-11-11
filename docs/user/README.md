@@ -10,7 +10,7 @@ Audience: operators who run the stack and project users (architects, researchers
 |---|---|
 | [getting-started.md](getting-started.md) | install, generate secrets, start the stack, first login |
 | [projects-and-access.md](projects-and-access.md) | users, roles, projects, personal API tokens |
-| [ingesting-artifacts.md](ingesting-artifacts.md) | prepare a repository, run `sandman ingest`, understand versions, limits and partial runs; ingest from GitHub Actions |
+| [ingesting-artifacts.md](ingesting-artifacts.md) | prepare a repository, run `sandman ingest`, classify and review file kinds, understand versions, limits and partial runs; ingest from GitHub Actions |
 | [knowledge-file.md](knowledge-file.md) | declare elements, aliases and trace links in `sandman-knowledge.yaml` |
 | [workflows.md](workflows.md) | follow and trigger the processing that follows an ingestion |
 | [querying.md](querying.md) | ask questions, run Cypher, explore the graph in the console, call the REST API, export |
@@ -27,7 +27,7 @@ Audience: operators who run the stack and project users (architects, researchers
 | Console (web): projects, findings, links, ask, graph explorer, upload, workflows, tokens, administration | `http://127.0.0.1:8080/console` |
 | Desktop app (`apps/desktop`): one project at a time, start and stop of a local stack, ingest, results ([desktop-app.md](desktop-app.md)) | started from the built bundle |
 | REST API | `http://127.0.0.1:8080/v1/...` (bearer token) |
-| CLI | `uv run sandman` (subcommands `ingest`, `workflows`, `export`) from a checkout |
+| CLI | `uv run sandman` (subcommands `ingest`, `classify`, `workflows`, `export`) from a checkout |
 | System overview (dashboard, admins only, profile `dashboard`) | `http://127.0.0.1:8090` ([operations.md](operations.md#dashboard)) |
 
 All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8080`. It is not reachable from other hosts unless you change `deploy/docker-compose.yml`.
@@ -35,7 +35,7 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 ## Concepts
 
 - **Project**: the unit of access and analysis, identified by a slug (`^[a-z0-9][a-z0-9-]{1,62}$`, for example `demo`). It has a display name and an LLM policy (`cloud-allowed` or `local-only`). The policy decides which language model route a component may use (`local-only` never uses a cloud route).
-- **Artifact**: one file of the project, identified by its relative path. It has a **kind** (`requirements`, `architecture-doc`, `architecture-model`, `code`, `test`, `other`) and optionally a format.
+- **Artifact**: one file of the project, identified by its relative path. It has a **kind** (`requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `other`) and optionally a format.
 - **Version**: the immutable content of an artifact (identified by its SHA-256). An artifact has at most one current version. An artifact is deleted when a full snapshot no longer contains its path.
 - **Ingestion**: one upload of a snapshot (`full`) or of changed files (`partial`), numbered per project, with an optional source revision such as a Git commit.
 - **Element**: an extracted unit of a version: a requirement, a document section or sentence, a model component or interface, a code unit, a test. Its **key** is `art_<id>#<local key>`, for example `art_983d...#REQ-1`.
@@ -52,6 +52,6 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 | Trace links | `explicit-reference` (built in), `stub-name-match` (token overlap, for pipeline checks), `ardoco` (document to model), `transarc` (document to code, default), `lissa` (requirements to code), `ardocode` (document to code, off by default); review by triagers; derived architecture models ([derived-models.md](derived-models.md)) | further approaches |
 | Findings | `stub-untraced` (requirement without active link), `ardoco-id` (model elements missing in the documentation, sentences with entities missing in the model); triage with a cause; evidence view | LLM-based detection `artemis-id` (disabled in `config/inconsistency/plugins.yaml`) |
 | Natural language questions | five fixed question patterns; other questions go to the LLM strategy `cypher`. The strategies `graphrag` and `explore` exist but are disabled in `config/query/strategies.yaml` | enabling them by default |
-| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion; trace viewer (dashboard page and desktop tab); desktop app (projects, start and stop, ingest, workflows, findings, trace links, trace viewer, ask, graph, settings; [desktop-app.md](desktop-app.md)) | LLM ranking of the impact; token creation and administration in the desktop app |
+| Web UI | console (projects, findings, links with review, upload, workflows, ask, graph explorer, tokens, administration); dashboard for admins; change impact page of an ingestion; trace viewer (dashboard page and desktop tab); classification review (dashboard page and desktop tab); desktop app (projects, start and stop, ingest, classification, workflows, findings, trace links, trace viewer, ask, graph, settings; [desktop-app.md](desktop-app.md)) | LLM ranking of the impact; token creation and administration in the desktop app |
 
 The stub components exist to exercise the pipeline end to end. Treat their links and findings as demonstration data, not as analysis results.

@@ -19,7 +19,7 @@ The walking skeleton runs end to end: upload, extraction, trace link recovery, i
 - `services/tlr-agent`, `services/inconsistency-agent` (Java, Quarkus): traceability link recovery and inconsistency detection agents
 - `services/orchestrator` (Python): rule-based orchestrator
 - `services/query-service` (Python): API and console (projects, findings with triage causes, trace links with review, trace view queries, ask, graph explorer, upload, workflows, tokens, administration)
-- `services/dashboard` (Python): admin system overview (services, projects, graph page, trace viewer page, gateway, workflows, events, history, resources)
+- `services/dashboard` (Python): admin system overview (services, projects, graph page, trace viewer page, classification page, gateway, workflows, events, history, resources)
 - `services/llm-replay` (Python): OpenAI-compatible record/replay proxy
 - `libs/python/sandman-agent`, `libs/java/agent-lib` (+ `agent-lib-a2a`): agent libraries; `sandman_agent.graphview` is the graph conversion shared by console and dashboard
 - `actions/sandman-ingest`: GitHub Action that ingests a repository, waits for the workflow and writes the change impact to the job summary

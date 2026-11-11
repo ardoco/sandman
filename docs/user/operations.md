@@ -52,6 +52,21 @@ With profile `dashboard`, `http://127.0.0.1:8090` shows (log in as `admin` with 
 
 The dashboard page **Trace viewer** (`/traceview`) shows the trace links and findings of one project. Choose the project in the list or open `/traceview?project=<id>`. The page is read-only. It reads the knowledge graph directly and does not call the query-service. See [trace-links-and-findings.md](trace-links-and-findings.md#trace-viewer).
 
+The dashboard page **Classification** (`/classification`) shows the kind of each artifact of one project. Choose the project in the list or open `/classification?project=<id>`. The page reads the current artifacts of the last ingestion from the knowledge graph. It shows the folded tree, the source and the reason of each kind, and the weak guesses. The page does not ingest and does not store anything.
+
+1. Open the page and choose a project.
+2. Change the kind of a file or folder in its menu.
+3. Optionally paste your current `sandman.yaml` into the text field.
+4. Click Show diff to see the change.
+5. Click Copy or Download sandman.yaml.
+6. Save the text in the project directory and run `sandman ingest` again.
+
+Caution: the new text replaces the managed block in `sandman.yaml`. Do not put manual rules inside the block. See [ingesting-artifacts.md](ingesting-artifacts.md#managed-block-in-sandmanyaml).
+
+The page sends your edits to `POST /api/classification/rules`. The call needs the admin session and returns the block text without storing it. A graph that was written before the classifier existed has no kind source. The page shows these artifacts as unknown until the next ingestion.
+
+Classifier version: the CLI sends its classifier version with each ingestion. If the version differs from the version of the extraction agent, the ingestion result has a warning in `warnings`. The ingestion still succeeds. Update the CLI or the stack so that both use the same version. The page shows the classifier versions that it finds in the graph.
+
 The graph page of the dashboard has the same layout as the console graph explorer ([querying.md](querying.md#graph-explorer-console)): foldout controls, wheel zoom, fullscreen and a canvas that follows the color theme.
 
 The Resources page needs profile `resources` (cAdvisor behind a read-only Docker socket proxy on its own internal network, shared only with the dashboard). Enabling it gives these containers root-equivalent visibility of the host; use it for development and diagnosis only, never in production. Without it the page says so and everything else keeps working. On Docker Desktop add `-f deploy/docker-compose.resources-desktop.yml` (mounts the containerd socket, same warning). See `docs/notes/cadvisor.md` for platform notes.

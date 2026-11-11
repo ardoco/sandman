@@ -175,6 +175,8 @@ Ingest needs a token and the `sandman` CLI. The app starts the CLI for you.
 5. Check the command preview and the number of picked items.
 6. Click Ingest. Click Cancel to stop the CLI.
 
+If you picked a folder, the tab shows a short summary of the classification with its classifier version. The summary says if weak guesses are not reviewed. If weak guesses are not reviewed, a dialog opens when you click Ingest. See [Review the classification](#review-the-classification).
+
 The log shows the output of the CLI and the exit code. If the CLI fails, the app shows the last lines of the log.
 
 When the CLI ends, the app looks for the new workflow. It shows the steps and updates them every 2 seconds until the workflow ends.
@@ -183,12 +185,38 @@ Single files are always sent as mode `partial`. The app copies them first to a t
 
 The app runs `uv run --project <checkout> sandman ingest`. A remote project has no checkout. To ingest from a remote project, enter a CLI command in the tab Settings.
 
+## Review the classification
+
+The tab Classification shows how SANDMAN assigns a kind to each file of a local folder. It runs `sandman classify` for you. It needs the `sandman` CLI, but no token. Details about kinds and rules: [ingesting-artifacts.md](ingesting-artifacts.md#1-prepare-the-directory).
+
+1. Open the tab Classification.
+2. Click Pick folder. Click Rescan after you change files.
+3. Read the folded tree. A folder with one kind is one line. A `?` marks a weak guess.
+4. Click the arrow next to a folder to open or close it.
+5. Select a filter: All, Needs a look or Changed by me. Enter text in the search field to find a path.
+6. Change the kind of a file or folder in its menu.
+7. Read the preview of the managed block. Click View diff to see the change to `sandman.yaml`.
+8. Click Save to write the managed block. Click Reset to drop your changes.
+
+Caution: Save overwrites the managed block in `sandman.yaml` of the folder. Lines outside the block stay unchanged. Put manual rules in `kindRules`.
+
+### Review dialog on Ingest
+
+If a picked folder has weak guesses that you did not review, the dialog shows how many files and folders are affected. Choose one button.
+
+| Button | Effect |
+|---|---|
+| Review now | opens the tab Classification |
+| Ingest anyway | starts the ingestion and skips the review check (`--no-review`) |
+| Cancel | returns to the tab Ingest |
+
 ## Tabs
 
 | Tab | Content |
 |---|---|
 | Overview | state of the system, number of findings per status, latest workflow; token steps if no token is set |
-| Ingest | ingest folders and files, log, workflow progress |
+| Ingest | ingest folders and files, classification summary, log, workflow progress |
+| Classification | folded tree of kinds for a local folder, corrections, preview and save of the managed block |
 | Workflows | list of workflows with details and Load more; run a workflow of type `full`, `extract`, `tlr` or `detect` |
 | Findings | list with filters for status and severity (default `OPEN,REOPENED`) and Load more; details with evidence and history; triage buttons |
 | Trace links | list with filters for status and approach and Load more; buttons `confirmed` and `rejected` |
@@ -199,7 +227,7 @@ The app runs `uv run --project <checkout> sandman ingest`. A remote project has 
 
 The tabs Overview and Workflows refresh every 3 seconds while a workflow is `PENDING` or `RUNNING`. They stop when the window is hidden.
 
-Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Trace viewer is tab 6 and Settings is tab 9. The window title shows the project name and the state of the stack.
+Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Classification is tab 3 and Trace viewer is tab 7. Settings is tab 10 and has no shortcut. The window title shows the project name and the state of the stack.
 
 Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEPTED`, `REJECTED` or `DEFERRED` needs a reason and a cause. Enter both before you click the button. If another user changed the finding, click Reload finding. See [trace-links-and-findings.md](trace-links-and-findings.md).
 

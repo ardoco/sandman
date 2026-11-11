@@ -28,12 +28,23 @@ kindRules:
 ```
 
 - Kinds: `requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `other`.
-- Rules also accept the kind `ignored`. It marks files that you do not want to upload. The server rejects `ignored` in a manifest. The CLI skips such files in a later release.
+- Rules also accept the kind `ignored`. It marks files that you do not want to upload. The CLI skips such files. The server rejects `ignored` in a manifest.
 - Use `documentation` for project documentation that is not architecture: README, changelog, user guide.
 - Globs match the whole relative path with `/` separators; `**` spans directories.
 - An entry may carry `format: ...` to override format detection (`markdown`, `text`, `csv`, `pcm-repository`, `uml`). Otherwise the format comes from the file suffix.
-- `--kind-rule 'glob=kind'` can be repeated; command-line rules are checked before `sandman.yaml`. There is no format part on the command line.
+- `--kind-rule 'glob=kind'` can be repeated. There is no format part on the command line.
 - The CLI skips dot-files and dot-directories (`.git`, ...), symbolic links and `sandman.yaml`.
+- The CLI also skips ignored files (see [Ignored files](#ignored-files)).
+
+Precedence of the sources, first match wins:
+
+| Order | Source |
+|---|---|
+| 1 | `--kind-rule` on the command line |
+| 2 | `kindRules` in `sandman.yaml` (hand-written) |
+| 3 | `reviewedRules` in the managed block of `sandman.yaml` (see [Managed block](#managed-block-in-sandmanyaml)) |
+| 4 | ADR default rules (see below) |
+| 5 | automatic classification (heuristic) |
 
 Automatic classification (first match wins; only for files that no rule matches):
 
@@ -52,7 +63,92 @@ Automatic classification (first match wins; only for files that no rule matches)
 
 Every guess has a source (`rule`, `heuristic` or `default`), a reason and a weak flag. The guess is weak if the signal is only a documentation directory, or if there is no signal. Check weak guesses first. The signal table has the classifier version 1. The same table is in `contracts/classification/cases.json`.
 
-Warning: before classifier version 1, a document under `docs` was `architecture-doc`. It is now `documentation`. On the next ingestion, such a file changes its kind, and trace links from this file can disappear. To keep the old kind, add a rule such as `docs/** = architecture-doc`.
+Release note: before classifier version 1, a document under `docs` was `architecture-doc`. It is now a weak `documentation`.
+
+Warning: on the next ingestion, such a file changes its kind. Trace links from this file can disappear. The documentation to code trace link pair stays inactive.
+
+To find the affected files, run `sandman classify DIR --check`. It lists each file whose kind the classifier changed. To keep the old kinds, run `sandman classify DIR --pin-legacy`. It shows the diff, asks, and writes rules into the managed block. To accept `documentation`, remove the pin rules later. You can also add a rule such as `docs/** = architecture-doc`.
+
+### Review the classification
+
+The command `sandman classify DIR` prints the classification of a directory as a folded tree. It does not contact the server and has no `--project` option.
+
+- A folder whose files all have the same kind is one line, for example `src/main/ (code, 214 files)`.
+- A folder with mixed kinds shows its children.
+- A `?` marks a folder or file with a weak guess. These entries come first.
+
+| Option | Meaning |
+|---|---|
+| `--kind-rule glob=kind` | rule that wins over `sandman.yaml`; repeatable |
+| `--open PATH` | expand one folder; repeatable |
+| `--all` | expand every folder |
+| `--files` | flat list, tab-separated: path, kind, format, source, reason |
+| `--json` | machine output (used by the desktop app) |
+| `-i`, `--interactive` | review the weak folders and files, then write |
+| `--write` | write the managed block in `DIR/sandman.yaml` |
+| `--rules-stdin` | read corrections as JSON from stdin and print the generated rules, block, diff and file text as JSON; with `--write`, also write without a question |
+| `--check` | exit 1 if weak files are not reviewed; list kinds that the classifier changed |
+| `--pin-legacy` | write rules that keep the previous kind of files that the classifier changed |
+| `--force` | overwrite a hand-edited managed block without a question |
+
+Typical use:
+
+```sh
+uv run sandman classify path/to/project            # show the tree
+uv run sandman classify path/to/project -i         # review weak entries, then write
+uv run sandman classify path/to/project --check    # exit 1 if a review is open
+```
+
+A correction of a folder writes one folder rule. A correction of a file writes one file rule. SANDMAN writes no rule if the automatic result already matches your choice.
+
+### Review check before ingestion
+
+`sandman ingest` prints the folded tree to stderr and checks for weak guesses. It uses a fingerprint of the weak files that the managed block stores as `reviewed`.
+
+| State | Behavior of `ingest` |
+|---|---|
+| No weak files | continues |
+| Weak files, and the managed block has the matching fingerprint | continues (reviewed) |
+| Weak files that are new or not reviewed, with a terminal | prints a warning and asks `[r]eview now  [p]roceed anyway  [a]bort` |
+| Weak files that are new or not reviewed, without a terminal | exits with code 2 |
+
+- Use `--review` to start the interactive review first. It needs a terminal.
+- Use `--no-review` to skip the check, for example in CI.
+- Choose `a` to stop with exit code 1.
+
+### Managed block in `sandman.yaml`
+
+`sandman classify --write` stores your corrections as `reviewedRules` in a marked block at the end of `sandman.yaml`. The tool creates the file if it does not exist. The block has this form:
+
+```yaml
+kindRules:                      # your own rules, checked first
+  - { glob: "legacy/**", kind: ignored }
+
+# >>> sandman:classification >>> BEGIN MANAGED BLOCK
+# checksum: 3f9a1c0e   reviewed: 9b21d4aa
+reviewedRules:
+  - { glob: "docs/changelog.md", kind: documentation }
+  - { glob: "docs/legacy/**",    kind: other }
+# <<< sandman:classification <<< END MANAGED BLOCK
+```
+
+Warning: SANDMAN overwrites everything between BEGIN and END on every save. This applies to the CLI, the desktop app and the dashboard text. Do not edit inside the block. Put manual rules in `kindRules` above it.
+
+- The tool changes only the text between the markers. Lines outside the block stay unchanged.
+- The tool shows the diff and asks before it writes.
+- If you edited the block by hand, the tool warns you. Without a terminal, it stops. Use `--force` to overwrite.
+- If a marker is missing, duplicated or in the wrong order, the tool refuses to write and names the line numbers.
+- If a hand-written rule hides a generated rule, the tool prints a warning.
+
+### Ignored files
+
+The CLI never uploads ignored files. A file is ignored in these cases:
+
+- In a Git work tree, `.gitignore` excludes it.
+- Its path has a folder named `node_modules`, `target`, `build`, `dist`, `out`, `venv`, `__pycache__` or `vendor`.
+- A rule gives it the kind `ignored`.
+
+To upload an ignored file, add a rule with a real kind, for example `vendor/keep/** = code`.
 
 Re-classification: if a later ingestion gives an existing file a different kind, SANDMAN updates the kind and re-activates the current version. Extraction and trace link recovery run again. A matching rule always applies. A guess of `other` never replaces an existing kind. To set a file to `other`, add a rule.
 
@@ -135,7 +231,9 @@ uv run sandman ingest --project demo --mode full --revision s1 tests/e2e/fixture
 | `--project` | project id (required) |
 | `--mode full` / `partial` | required. `full`: the directory is the complete state, missing files are marked deleted. `partial`: only the listed files changed, nothing is deleted |
 | `--revision` | free text, for example a Git commit; used by the question `what changed since <revision>` ([querying.md](querying.md)) |
-| `--kind-rule glob=kind` | repeatable |
+| `--kind-rule glob=kind` | repeatable; wins over `sandman.yaml` |
+| `--review` | run the interactive classification review first (needs a terminal) |
+| `--no-review` | skip the review check of weak guesses |
 | `--token-file` | file with the token, instead of `$SANDMAN_TOKEN` |
 
 The CLI hashes all files, asks the server which blobs it lacks, uploads only those as one `tar.gz`, and prints the ingestion as JSON on stdout (progress lines go to stderr):
@@ -145,8 +243,19 @@ The CLI hashes all files, asks the server which blobs it lacks, uploads only tho
 uploading 6 of 6 files
 { "ingestionId": "ing_...", "projectId": "demo", "seq": 1, "mode": "full", "sourceRevision": "s1",
   "createdVersionIds": [ ...6 ids... ], "reactivatedVersionIds": [], "deletedArtifactIds": [],
-  "unchangedCount": 0, "createdAt": "..." }
+  "unchangedCount": 0, "kinds": { "architecture-doc": 2, ... }, "createdAt": "..." }
 ```
+
+The result has two more fields:
+
+| Field | Meaning |
+|---|---|
+| `kinds` | number of files per final kind; absent for old ingestions |
+| `warnings` | non-fatal notes, for example a classifier version mismatch; absent if empty |
+
+The CLI prints each warning to stderr as `Warning: ...`. It also warns if the kinds of the server differ from the preview. A classifier version mismatch between CLI and server only warns; the ingestion continues.
+
+The graph stores `kindSource`, `kindReason`, `kindWeak` and `classifierVersion` on each artifact. The dashboard shows them ([operations.md](operations.md#dashboard)).
 
 Errors end the command with `sandman: <METHOD> <path>: <status> <body>`: `403` (role below maintainer), `404` (unknown project, or not visible to you), `400`/`422` (invalid manifest or archive).
 
@@ -184,7 +293,7 @@ A new or changed ingestion starts a workflow automatically; see [workflows.md](w
 
 Archives with links, special files, absolute paths, `..` segments or duplicate entries are rejected; a SHA-256 that does not match the manifest is rejected with `422`.
 
-If an extractor fails on a file (too large, invalid XML, missing CSV columns), the file still gets its file-level element, the extraction run is recorded as `partial`, and the workflow carries on. Skipped requirements and similar notes become warnings. Today the warning texts are not shown in the console, the CLI or the workflow detail; what you can see is the run status:
+If an extractor fails on a file (too large, invalid XML, missing CSV columns), the file still gets its file-level element, the extraction run is recorded as `partial`, and the workflow carries on. Skipped requirements and similar notes become warnings. The warning texts of extraction runs are not shown in the console, the CLI or the workflow detail. You can see the run status:
 
 ```sh
 curl -s -H "Authorization: Bearer $SANDMAN_TOKEN" -H 'Content-Type: application/json' \

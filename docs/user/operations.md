@@ -59,6 +59,12 @@ The dashboard page **Classification** (`/classification`) shows the kind of each
 3. Optionally paste your current `sandman.yaml` into the text field.
 4. Click Show diff to see the change.
 5. Click Copy or Download sandman.yaml.
+6. Or click Write to file and choose your `sandman.yaml`.
+7. Read the diff and click Confirm and write.
+
+Write to file needs a Chromium browser (Chrome or Edge). Other browsers hide the button. Use Copy or Download there.
+
+Caution: Write to file overwrites the managed block in the chosen file. The page checks the file after writing and shows the result. If the managed block is broken, the page shows an error and writes nothing.
 6. Save the text in the project directory and run `sandman ingest` again.
 
 Caution: the new text replaces the managed block in `sandman.yaml`. Do not put manual rules inside the block. See [ingesting-artifacts.md](ingesting-artifacts.md#managed-block-in-sandmanyaml).

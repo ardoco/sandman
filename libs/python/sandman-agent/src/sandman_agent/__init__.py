@@ -21,6 +21,22 @@ from sandman_agent.classify import (
     legacy_guess,
     resolve,
 )
+from sandman_agent.classify_tree import (
+    BlockError,
+    BlockState,
+    apply_block,
+    build_tree,
+    diff,
+    fold,
+    generate_rules,
+    generate_with_pins,
+    parse_block,
+    pin_rules,
+    render_block,
+    reviewed_rules,
+    weak_fingerprint,
+    write_atomic,
+)
 from sandman_agent.config import ConfigError, Settings
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.events import Event, EventConsumer, EventPublisher, EventSink, PublishError, ensure_stream
@@ -41,6 +57,20 @@ from sandman_agent.status import StatusTracker, status_route
 __version__ = "0.1.0"
 
 __all__ = [
+    "BlockError",
+    "BlockState",
+    "apply_block",
+    "build_tree",
+    "diff",
+    "fold",
+    "generate_rules",
+    "generate_with_pins",
+    "parse_block",
+    "pin_rules",
+    "render_block",
+    "reviewed_rules",
+    "weak_fingerprint",
+    "write_atomic",
     "A2aClient",
     "A2aPluginClient",
     "ARTIFACT_KINDS",

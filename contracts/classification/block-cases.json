@@ -1,0 +1,208 @@
+{
+  "cases": [
+    {
+      "name": "no file",
+      "existing": null,
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "none",
+      "expected": "# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK\n"
+    },
+    {
+      "name": "file without block",
+      "existing": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "none",
+      "expected": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK\n"
+    },
+    {
+      "name": "file without block, no final newline",
+      "existing": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "none",
+      "expected": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK\n"
+    },
+    {
+      "name": "file with block, replaced",
+      "existing": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 49571ceb reviewed: 00000000\nreviewedRules:\n  - { glob: \"docs/x.md\", kind: architecture-doc }  # pinned: was architecture-doc, classifier v1 gives documentation\n# <<< sandman:classification <<< END MANAGED BLOCK\ntail: 1\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "ok",
+      "expected": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK\ntail: 1\n"
+    },
+    {
+      "name": "file with block at the start, no final newline",
+      "existing": "# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 49571ceb reviewed: 00000000\nreviewedRules:\n  - { glob: \"docs/x.md\", kind: architecture-doc }  # pinned: was architecture-doc, classifier v1 gives documentation\n# <<< sandman:classification <<< END MANAGED BLOCK",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "ok",
+      "expected": "# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK"
+    },
+    {
+      "name": "hand-edited block",
+      "existing": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: code }\n# <<< sandman:classification <<< END MANAGED BLOCK\ntail: 1\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "edited",
+      "expected": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK\ntail: 1\n"
+    },
+    {
+      "name": "single BEGIN",
+      "existing": "# Your own settings\nkindRules: &rules   # anchor\n  - { glob: \"legacy/**\", kind: ignored }\n\nother: *rules\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "broken",
+      "error": "BEGIN at line 6"
+    },
+    {
+      "name": "single END",
+      "existing": "a: 1\n# <<< sandman:classification <<< END MANAGED BLOCK\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "broken",
+      "error": "END at line 2"
+    },
+    {
+      "name": "duplicate block",
+      "existing": "a: 1\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 19bda818 reviewed: 9b21d4aa\nreviewedRules:\n  - { glob: \"docs/changelog.md\", kind: documentation }\n  - { glob: \"docs/legacy/**\", kind: other }\n# <<< sandman:classification <<< END MANAGED BLOCK\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\n# checksum: 49571ceb reviewed: 00000000\nreviewedRules:\n  - { glob: \"docs/x.md\", kind: architecture-doc }  # pinned: was architecture-doc, classifier v1 gives documentation\n# <<< sandman:classification <<< END MANAGED BLOCK\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "broken",
+      "error": "BEGIN at lines 2, 10"
+    },
+    {
+      "name": "wrong order",
+      "existing": "a: 1\n# <<< sandman:classification <<< END MANAGED BLOCK\nb: 2\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "broken",
+      "error": "wrong order"
+    },
+    {
+      "name": "CRLF file with block",
+      "existing": "# Your own settings\r\nkindRules: &rules   # anchor\r\n  - { glob: \"legacy/**\", kind: ignored }\r\n\r\nother: *rules\r\n\r\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\r\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\r\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\r\n# checksum: 49571ceb reviewed: 00000000\r\nreviewedRules:\r\n  - { glob: \"docs/x.md\", kind: architecture-doc }  # pinned: was architecture-doc, classifier v1 gives documentation\r\n# <<< sandman:classification <<< END MANAGED BLOCK\r\ntail: 1\r\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "ok",
+      "expected": "# Your own settings\r\nkindRules: &rules   # anchor\r\n  - { glob: \"legacy/**\", kind: ignored }\r\n\r\nother: *rules\r\n\r\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\r\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\r\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\r\n# checksum: 19bda818 reviewed: 9b21d4aa\r\nreviewedRules:\r\n  - { glob: \"docs/changelog.md\", kind: documentation }\r\n  - { glob: \"docs/legacy/**\", kind: other }\r\n# <<< sandman:classification <<< END MANAGED BLOCK\r\ntail: 1\r\n"
+    },
+    {
+      "name": "CRLF file without block",
+      "existing": "# Your own settings\r\nkindRules: &rules   # anchor\r\n  - { glob: \"legacy/**\", kind: ignored }\r\n\r\nother: *rules\r\n",
+      "rules": [
+        {
+          "glob": "docs/changelog.md",
+          "kind": "documentation"
+        },
+        {
+          "glob": "docs/legacy/**",
+          "kind": "other"
+        }
+      ],
+      "reviewed": "9b21d4aa",
+      "state": "none",
+      "expected": "# Your own settings\r\nkindRules: &rules   # anchor\r\n  - { glob: \"legacy/**\", kind: ignored }\r\n\r\nother: *rules\r\n\r\n# >>> sandman:classification >>> BEGIN MANAGED BLOCK\r\n# Warning: `sandman classify --write` and the dashboard and desktop review overwrite\r\n# everything between BEGIN and END. Do not edit here. Put manual rules in kindRules above.\r\n# checksum: 19bda818 reviewed: 9b21d4aa\r\nreviewedRules:\r\n  - { glob: \"docs/changelog.md\", kind: documentation }\r\n  - { glob: \"docs/legacy/**\", kind: other }\r\n# <<< sandman:classification <<< END MANAGED BLOCK\r\n"
+    }
+  ]
+}

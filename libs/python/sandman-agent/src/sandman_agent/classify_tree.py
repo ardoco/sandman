@@ -1,9 +1,16 @@
 """Folder tree, rule generator and managed `sandman.yaml` block for the classification review (text only, no YAML)."""
 
+import difflib
 import glob as _glob
+import hashlib
+import json
+import os
+import re
+import tempfile
 from collections import Counter
 from collections.abc import Collection, Iterable, Mapping, Sequence
-from pathlib import PurePosixPath
+from dataclasses import dataclass
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from sandman_agent.classify import CLASSIFIER_VERSION, Verdict, legacy_guess
@@ -148,3 +155,129 @@ def generate_with_pins(
     merged = {p["path"]: p for p in pin_rules(verdicts, heads)}
     merged.update({e["path"]: dict(e) for e in edits})
     return generate_rules(verdicts, merged.values())
+
+
+class BlockError(ValueError):
+    """The managed block markers are broken; the message names the line numbers."""
+
+
+@dataclass(frozen=True)
+class BlockState:
+    status: str
+    start: int | None = None
+    end: int | None = None
+    checksum: str | None = None
+    reviewed: str | None = None
+    message: str = ""
+
+
+_RULE = re.compile(r'^\s*-\s*\{\s*glob:\s*("(?:[^"\\]|\\.)*")\s*,\s*kind:\s*([\w-]+)\s*\}')
+_SUMS = re.compile(r"^#\s*checksum:\s*(\w+)\s+reviewed:\s*(\w+)\s*$")
+
+
+def _short(data: str) -> str:
+    return hashlib.sha256(data.encode()).hexdigest()[:8]
+
+
+def weak_fingerprint(paths: Iterable[str]) -> str:
+    return _short("\n".join(sorted(paths)))
+
+
+def _lines(text: str) -> list[str]:
+    return [ln.removesuffix("\r") for ln in text.split("\n")]
+
+
+def _rule_line(rule: Mapping[str, str]) -> str:
+    line = f"  - {{ glob: {json.dumps(rule['glob'])}, kind: {rule['kind']} }}"
+    return f"{line}  # {rule['reason']}" if rule.get("reason") else line
+
+
+def _rule_lines(lines: Sequence[str]) -> list[str]:
+    return [ln for ln in lines if _RULE.match(ln)]
+
+
+def _checksum(rule_lines: Sequence[str]) -> str:
+    return _short("\n".join(rule_lines))
+
+
+def _at(label: str, nums: Sequence[int]) -> str:
+    return f"{label} at line{'s' * (len(nums) > 1)} {', '.join(map(str, nums))}" if nums else f"{label} missing"
+
+
+def parse_block(text: str) -> BlockState:
+    """State 'none', 'ok', 'edited' (checksum mismatch) or 'broken' (message names the line numbers)."""
+    lines = _lines(text)
+    begins = [i for i, ln in enumerate(lines, 1) if ln.strip() == BEGIN]
+    ends = [i for i, ln in enumerate(lines, 1) if ln.strip() == END]
+    if not begins and not ends:
+        return BlockState("none")
+    where = f"{_at('BEGIN', begins)}, {_at('END', ends)}"
+    if len(begins) != 1 or len(ends) != 1:
+        kind = "duplicate block" if len(begins) > 1 or len(ends) > 1 else "single marker"
+        return BlockState("broken", message=f"managed block markers broken ({kind}): {where}")
+    if ends[0] < begins[0]:
+        return BlockState("broken", message=f"managed block markers in wrong order: {where}")
+    inner = lines[begins[0] : ends[0] - 1]
+    sums = next((m for ln in inner if (m := _SUMS.match(ln))), None)
+    checksum, reviewed = (sums.group(1), sums.group(2)) if sums else (None, None)
+    status = "ok" if checksum == _checksum(_rule_lines(inner)) else "edited"
+    return BlockState(status, begins[0], ends[0], checksum, reviewed)
+
+
+def render_block(rules: Sequence[Mapping[str, str]], reviewed: str) -> str:
+    """Block text with LF line ends and a final newline."""
+    rule_lines = [_rule_line(r) for r in rules]
+    body = [*WARNING, f"# checksum: {_checksum(rule_lines)} reviewed: {reviewed}", "reviewedRules:", *rule_lines]
+    return "\n".join([BEGIN, *body, END]) + "\n"
+
+
+def reviewed_rules(text: str) -> list[Rule]:
+    state = parse_block(text)
+    if state.status in ("none", "broken"):
+        return []
+    lines = _lines(text)[state.start : state.end - 1]
+    return [{"glob": json.loads(m.group(1)), "kind": m.group(2)} for ln in lines if (m := _RULE.match(ln))]
+
+
+def apply_block(existing_text: str, block: str) -> str:
+    """Append the block, or replace the marker lines and what is between; text outside stays byte-identical."""
+    state = parse_block(existing_text)
+    if state.status == "broken":
+        raise BlockError(state.message)
+    eol = "\r\n" if "\r\n" in existing_text else "\n"
+    new = block.replace("\r\n", "\n").replace("\n", eol)
+    if state.status == "none":
+        if not existing_text:
+            return new
+        sep = "" if existing_text.endswith("\n") else eol
+        return f"{existing_text}{sep}{eol}{new}"
+    parts = existing_text.split("\n")
+    before = "\n".join(parts[: state.start - 1])
+    after = "\n".join(parts[state.end :])
+    tail = parts[state.end - 1].endswith("\r")
+    prefix = before + "\n" if state.start > 1 else ""
+    suffix = "" if state.end == len(parts) else "\n" + after
+    return prefix + new.removesuffix(eol) + ("\r" if tail else "") + suffix
+
+
+def diff(old: str, new: str) -> str:
+    return "".join(
+        difflib.unified_diff(
+            old.splitlines(keepends=True), new.splitlines(keepends=True), "sandman.yaml", "sandman.yaml"
+        )
+    )
+
+
+def write_atomic(path: str | Path, text: str) -> None:
+    """Temp file in the same folder, then os.replace; line ends are written as given."""
+    target = Path(path)
+    fd, tmp = tempfile.mkstemp(dir=target.parent, prefix=f".{target.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(text.encode())
+        if target.exists():
+            os.chmod(tmp, target.stat().st_mode & 0o7777)
+        os.replace(tmp, target)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise

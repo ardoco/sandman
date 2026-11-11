@@ -31,6 +31,15 @@
       <button id="cl-diff-btn" type="button" class="secondary">Show diff</button>
       <button id="cl-copy" type="button">Copy</button>
       <button id="cl-download" type="button">Download sandman.yaml</button>
+      <button id="cl-write" type="button" hidden>Write to file...</button>
+    </div>
+    <div id="cl-confirm" class="card" hidden>
+      <p>Caution: this overwrites the managed block in the chosen file. Check the diff before you confirm.</p>
+      <pre id="cl-confirm-diff"></pre>
+      <div class="row">
+        <button id="cl-confirm-ok" type="button">Confirm and write</button>
+        <button id="cl-confirm-cancel" type="button" class="secondary">Cancel</button>
+      </div>
     </div>
     <pre id="cl-diff" hidden></pre>
   </div>

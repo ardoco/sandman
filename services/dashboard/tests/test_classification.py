@@ -28,6 +28,7 @@ async def test_page_renders_with_csp_nav_and_escaping(env: Env) -> None:
     resp = await env.http.get("/classification?project=demo")
     assert resp.status_code == 200
     assert 'id="cl-app" data-project="demo"' in resp.text and "/static/classification.js" in resp.text
+    assert 'id="cl-write"' in resp.text and 'id="cl-confirm-ok"' in resp.text
     assert resp.headers["content-security-policy"].startswith("default-src 'self'")
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in resp.text and "<script>alert" not in resp.text
     assert '<a href="/classification"' in (await env.http.get("/")).text
@@ -120,3 +121,10 @@ async def test_rules_reject_broken_markers_and_store_nothing(env: Env) -> None:
     assert (await post(env, {"project": "demo", "edits": [], "yaml": broken})).status_code == 422
     await post(env, {"project": "demo", "edits": [{"path": "src", "kind": "test"}]})
     assert all(s.lstrip().upper().startswith("MATCH") for s in env.graph.statements)
+
+
+async def test_write_flow_asset_uses_feature_detect_and_rules_post(env: Env) -> None:
+    await env.login()
+    js = (await env.http.get("/static/classification.js")).text
+    assert "window.showOpenFilePicker" in js and 'mode: "readwrite"' in js
+    assert "createWritable" in js and "/api/classification/rules" in js

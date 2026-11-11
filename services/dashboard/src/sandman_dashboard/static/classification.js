@@ -189,6 +189,44 @@
     URL.revokeObjectURL(a.href);
   }
 
+  var pending = null;
+  function closeConfirm() { pending = null; $("cl-confirm").hidden = true; }
+  function pickAndPreview() {
+    if (!lastBlock) { return; }
+    closeConfirm();
+    var handle;
+    window.showOpenFilePicker({ multiple: false, types: [{ description: "YAML", accept: { "text/yaml": [".yaml", ".yml"] } }] })
+      .then(function (hs) {
+        handle = hs[0];
+        return handle.requestPermission({ mode: "readwrite" });
+      })
+      .then(function (perm) {
+        if (perm !== "granted") { throw new Error("Write permission denied. Nothing was written."); }
+        return handle.getFile();
+      })
+      .then(function (f) { return f.text(); })
+      .then(function (text) {
+        return request("POST", "/api/classification/rules", { project: project, edits: currentEdits(), yaml: text })
+          .then(function (r) { pending = { handle: handle, fileText: r.fileText }; $("cl-confirm-diff").textContent = r.diff || "No changes."; $("cl-confirm").hidden = false; status(""); });
+      })
+      .catch(function (e) {
+        if (e && e.name === "AbortError") { status("Cancelled. Nothing was written."); } else { status(e.message || "Could not read the file.", true); }
+      });
+  }
+  function confirmWrite() {
+    if (!pending) { return; }
+    var p = pending;
+    closeConfirm();
+    p.handle.createWritable()
+      .then(function (w) { return w.write(p.fileText).then(function () { return w.close(); }); })
+      .then(function () { return p.handle.getFile(); })
+      .then(function (f) { return f.text(); })
+      .then(function (back) {
+        if (back === p.fileText) { status("Written and verified."); } else { status("Verification failed: the file differs from the expected text.", true); }
+      })
+      .catch(function (e) { status("Write failed: " + (e.message || "unknown error"), true); });
+  }
+
   function load() {
     status("Loading...");
     request("GET", "/api/classification?project=" + encodeURIComponent(project)).then(function (d) {
@@ -211,6 +249,12 @@
     $("cl-diff-btn").addEventListener("click", function () { var d = $("cl-diff"); d.hidden = !d.hidden; });
     $("cl-copy").addEventListener("click", copy);
     $("cl-download").addEventListener("click", download);
+    if (window.showOpenFilePicker) {
+      $("cl-write").hidden = false;
+      $("cl-write").addEventListener("click", pickAndPreview);
+      $("cl-confirm-ok").addEventListener("click", confirmWrite);
+      $("cl-confirm-cancel").addEventListener("click", function () { closeConfirm(); status("Cancelled. Nothing was written."); });
+    }
     load();
   }
 })();

@@ -432,9 +432,9 @@
     "semantic_hash": "08e8027f267dced617349b1e83afee73"
   },
   "contracts/kg/schema.yaml": {
-    "mtime": 1794404234.5219584,
-    "seen": 1794404655.853369,
-    "ast_hash": "d334906605821d9a16f5094274d263d1",
+    "mtime": 1794404784.8910832,
+    "seen": 1794404805.821853,
+    "ast_hash": "cc2aa5a5b266d619762ce9ad9cdbe47f",
     "semantic_hash": ""
   },
   "contracts/knowledge.schema.json": {
@@ -444,10 +444,10 @@
     "semantic_hash": "51752c42f5f78ddef4bd78d39b9727c0"
   },
   "contracts/openapi/extraction-agent.yaml": {
-    "mtime": 1793568869.5383646,
-    "seen": 1794312116.365966,
-    "ast_hash": "69836de1b95a45a1aef05dbc843cf7c9",
-    "semantic_hash": "69836de1b95a45a1aef05dbc843cf7c9"
+    "mtime": 1794404770.952898,
+    "seen": 1794404805.821855,
+    "ast_hash": "da98551d1c1ec8317afc801322efd6af",
+    "semantic_hash": ""
   },
   "contracts/openapi/inconsistency-agent.yaml": {
     "mtime": 1792421181.7542913,
@@ -1104,9 +1104,9 @@
     "semantic_hash": "59b6603037a7b6e25261256260b6b67b"
   },
   "libs/python/sandman-agent/src/sandman_agent/__init__.py": {
-    "mtime": 1794404216.7991774,
-    "seen": 1794404655.853445,
-    "ast_hash": "636077dfcca47f342bfa25f0a3ad843f",
+    "mtime": 1794404870.5042713,
+    "seen": 1794404884.102592,
+    "ast_hash": "74964bf6d0bccfee6140e2f391102854",
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/src/sandman_agent/a2a.py": {
@@ -2250,10 +2250,10 @@
     "semantic_hash": "aa18a1f9a3b4539cc7826e23c815dad0"
   },
   "services/extraction-agent/src/sandman_extraction/derive.py": {
-    "mtime": 1792421181.7762544,
-    "seen": 1794312116.366112,
-    "ast_hash": "3987bfa1a4f9d5136352607c85850d61",
-    "semantic_hash": "3987bfa1a4f9d5136352607c85850d61"
+    "mtime": 1794404791.3244762,
+    "seen": 1794404805.822082,
+    "ast_hash": "1aee2956452bfe9f36ad026157c5dbec",
+    "semantic_hash": ""
   },
   "services/extraction-agent/src/sandman_extraction/documents.py": {
     "mtime": 1791657384.1602528,
@@ -2280,9 +2280,9 @@
     "semantic_hash": "e8f6dd1bb28caf6d44e544b6658e1ff5"
   },
   "services/extraction-agent/src/sandman_extraction/ingest.py": {
-    "mtime": 1794404626.4358094,
-    "seen": 1794404655.853579,
-    "ast_hash": "0a53409efdff69d7c0c09e156fd3caaa",
+    "mtime": 1794404959.8616102,
+    "seen": 1794404972.51636,
+    "ast_hash": "6a8c9e993cb3694408ca4843b9184b13",
     "semantic_hash": ""
   },
   "services/extraction-agent/src/sandman_extraction/knowledge.py": {
@@ -2574,9 +2574,9 @@
     "semantic_hash": "76d96613b3c37158b2fc56ce4b39dca0"
   },
   "services/extraction-agent/tests/test_extraction.py": {
-    "mtime": 1794404305.8849933,
-    "seen": 1794404655.853612,
-    "ast_hash": "5bee759348226a457e0e2197c8915e4c",
+    "mtime": 1794404812.6205742,
+    "seen": 1794404884.102765,
+    "ast_hash": "1346400ff3e11ce74ae5f465cd4cfce4",
     "semantic_hash": ""
   },
   "services/extraction-agent/tests/test_extraction_models.py": {
@@ -5691,6 +5691,36 @@
     "mtime": 1794404305.9060373,
     "seen": 1794404655.853832,
     "ast_hash": "eeeb23aa4863d9700765a306e27fbc0e",
+    "semantic_hash": ""
+  },
+  "libs/python/sandman-agent/src/sandman_agent/classify_tree.py": {
+    "mtime": 1794404861.9259624,
+    "seen": 1794404884.102596,
+    "ast_hash": "a98cdc8c291650d8e41ad98dc05d51fe",
+    "semantic_hash": ""
+  },
+  "libs/python/sandman-agent/tests/test_classify_tree.py": {
+    "mtime": 1794404792.104304,
+    "seen": 1794404805.82195,
+    "ast_hash": "46c52c998e6ef25fb25fc744a0fcc827",
+    "semantic_hash": ""
+  },
+  "contracts/classification/block-cases.json": {
+    "mtime": 1794404870.383287,
+    "seen": 1794404884.1025028,
+    "ast_hash": "ce2584b771e174183b6ae66311abf59f",
+    "semantic_hash": ""
+  },
+  "libs/python/sandman-agent/tests/test_classify_block.py": {
+    "mtime": 1794404854.9914658,
+    "seen": 1794404884.102607,
+    "ast_hash": "96f16d625a130ab0364afb3202821169",
+    "semantic_hash": ""
+  },
+  "services/extraction-agent/tests/test_ingest_result.py": {
+    "mtime": 1794404812.6242988,
+    "seen": 1794404884.102767,
+    "ast_hash": "5900588f3bc5e18bfebceb7289c2d744",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

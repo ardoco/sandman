@@ -541,8 +541,8 @@
   },
   "deploy/obs/alerts.yaml": {
     "mtime": 1794046358.870199,
-    "seen": 1794413163.175039,
-    "ast_hash": "d226a71fe05263fe83df3660c7eda144",
+    "seen": 1794414857.7835898,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "deploy/obs/dashboards.yaml": {
@@ -1939,14 +1939,14 @@
   },
   "services/dashboard/src/sandman_dashboard/migrations/001_init.sql": {
     "mtime": 1791657384.1468499,
-    "seen": 1794413163.17519,
-    "ast_hash": "a8b6f6fa0b96196fe8f8783d9552da6d",
+    "seen": 1794414857.783746,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/migrations/002_samples.sql": {
     "mtime": 1791657384.1469097,
-    "seen": 1794413163.175191,
-    "ast_hash": "f84af4433559af528c4634246e6e3763",
+    "seen": 1794414857.783747,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/ops.py": {
@@ -2280,8 +2280,8 @@
     "semantic_hash": "e8f6dd1bb28caf6d44e544b6658e1ff5"
   },
   "services/extraction-agent/src/sandman_extraction/ingest.py": {
-    "mtime": 1794413141.5593863,
-    "seen": 1794413163.1752279,
+    "mtime": 1794413175.5298808,
+    "seen": 1794413187.045456,
     "ast_hash": "fb79ef4e5800ae963583e02c7c62c903",
     "semantic_hash": ""
   },
@@ -2574,9 +2574,9 @@
     "semantic_hash": "76d96613b3c37158b2fc56ce4b39dca0"
   },
   "services/extraction-agent/tests/test_extraction.py": {
-    "mtime": 1794410917.1913614,
-    "seen": 1794410929.711904,
-    "ast_hash": "1346400ff3e11ce74ae5f465cd4cfce4",
+    "mtime": 1794414849.842104,
+    "seen": 1794414857.783817,
+    "ast_hash": "6e0f08f67ce9298406946c9f53517a87",
     "semantic_hash": ""
   },
   "services/extraction-agent/tests/test_extraction_models.py": {
@@ -3049,32 +3049,32 @@
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/001_init.sql": {
     "mtime": 1791657384.1794865,
-    "seen": 1794413163.1753118,
-    "ast_hash": "04bfcf78d229dd3600550015a2844b46",
+    "seen": 1794414857.78387,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/002_step_traceparent.sql": {
     "mtime": 1791657384.1795838,
-    "seen": 1794413163.1753118,
-    "ast_hash": "c94a04d7628e76f07eec1bf925b23ce0",
+    "seen": 1794414857.78387,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/003_step_merged_into.sql": {
     "mtime": 1791657384.1796691,
-    "seen": 1794413163.175313,
-    "ast_hash": "558ab6ed4de474b352d9f3fea7d585b8",
+    "seen": 1794414857.783871,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/004_step_activity.sql": {
     "mtime": 1792421181.7835827,
-    "seen": 1794413163.175313,
-    "ast_hash": "c6b8a1dca14cb773f6a465793c1810ab",
+    "seen": 1794414857.783872,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/005_plans.sql": {
     "mtime": 1794012146.8182797,
-    "seen": 1794413163.175314,
-    "ast_hash": "320f3f24e56312b7ec00a87650b83b47",
+    "seen": 1794414857.783872,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/orchestrator.py": {
@@ -3229,14 +3229,14 @@
   },
   "services/query-service/src/sandman_query/migrations/001_init.sql": {
     "mtime": 1791657384.1824934,
-    "seen": 1794413163.1753302,
-    "ast_hash": "e0414939d0a1e6b7e73d980feba35cf1",
+    "seen": 1794414857.7838888,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/query-service/src/sandman_query/migrations/002_suggestions.sql": {
     "mtime": 1794012146.819989,
-    "seen": 1794413163.175331,
-    "ast_hash": "a476d9cd5580966c69137dca46eac736",
+    "seen": 1794414857.78389,
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "services/query-service/src/sandman_query/nl.py": {
@@ -5676,15 +5676,15 @@
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/src/sandman_agent/classify.py": {
-    "mtime": 1794413088.783974,
-    "seen": 1794413163.1750998,
+    "mtime": 1794413175.5292513,
+    "seen": 1794413187.041586,
     "ast_hash": "caa7ca3c7563c5d2012f817b56445814",
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/tests/test_classify.py": {
-    "mtime": 1794413144.426974,
-    "seen": 1794413163.1751099,
-    "ast_hash": "d2b2261666170e293aa91cb010fc9625",
+    "mtime": 1794414007.4737473,
+    "seen": 1794414015.600229,
+    "ast_hash": "84b912f2c9cc2e1624c5f402d1539c7f",
     "semantic_hash": ""
   },
   "tools/cli/tests/test_classify_cases.py": {
@@ -5694,9 +5694,9 @@
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/src/sandman_agent/classify_tree.py": {
-    "mtime": 1794410917.1891823,
-    "seen": 1794410929.706947,
-    "ast_hash": "a98cdc8c291650d8e41ad98dc05d51fe",
+    "mtime": 1794414007.473595,
+    "seen": 1794414015.6002188,
+    "ast_hash": "20a4ecd70aaa0189bce22299d072b09a",
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/tests/test_classify_tree.py": {
@@ -5712,9 +5712,9 @@
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/tests/test_classify_block.py": {
-    "mtime": 1794410917.189316,
-    "seen": 1794410929.7072241,
-    "ast_hash": "96f16d625a130ab0364afb3202821169",
+    "mtime": 1794414007.473868,
+    "seen": 1794414015.60023,
+    "ast_hash": "899362528b6cc28815a78deb485fbc18",
     "semantic_hash": ""
   },
   "services/extraction-agent/tests/test_ingest_result.py": {

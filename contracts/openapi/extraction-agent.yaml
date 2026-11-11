@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: SANDMAN extraction-agent REST API
-  version: 0.9.0
+  version: 0.10.0
   description: |
     Artifact intake and project registration. Owner of Project, Artifact, ArtifactVersion and Element nodes.
     Called by the query-service (user requests, actor forwarded) and by services. The A2A interface is
@@ -181,6 +181,10 @@ components:
           enum: [full, partial]
           description: full = files is the complete project snapshot (missing paths are marked deleted).
         sourceRevision: { type: string, description: "e.g. Git commit SHA" }
+        classifierVersion:
+          type: integer
+          minimum: 1
+          description: CLASSIFIER_VERSION of the client's classifier. If it differs from the server's, the ingestion result carries a warning.
         kindRules:
           type: array
           description: First matching glob decides the artifact kind; unmatched files get kind 'other'.
@@ -222,4 +226,12 @@ components:
           type: array
           items: { $ref: "../common.schema.json#/$defs/StableId" }
         unchangedCount: { type: integer, minimum: 0 }
+        kinds:
+          type: object
+          description: Number of manifest files per final artifact kind. Absent for ingestions made before the property existed.
+          additionalProperties: { type: integer, minimum: 0 }
+        warnings:
+          type: array
+          description: Non-fatal findings, e.g. a classifier version mismatch. Absent when there are none.
+          items: { type: string }
         createdAt: { $ref: "../common.schema.json#/$defs/Timestamp" }

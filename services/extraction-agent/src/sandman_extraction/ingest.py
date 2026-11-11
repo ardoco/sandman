@@ -1,6 +1,7 @@
 """Artifact intake: manifest checks, safe archive reading, the versioning transaction, event (re-)publishing."""
 
 import io
+import json
 import re
 import stat
 import tarfile
@@ -13,7 +14,7 @@ from typing import Any, Literal, LiteralString
 from neo4j import AsyncManagedTransaction
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sandman_agent import ArtifactStore, Contracts, EventSink, KgClient, resolve, stable_id
-from sandman_agent.classify import HEAD_BYTES
+from sandman_agent.classify import CLASSIFIER_VERSION, HEAD_BYTES, Verdict
 from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
 from starlette.exceptions import HTTPException
@@ -67,6 +68,7 @@ class Manifest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mode: Literal["full", "partial"]
     sourceRevision: str | None = None
+    classifierVersion: int | None = Field(default=None, ge=1)
     kindRules: list[KindRule] = []
     files: list[ManifestFile] = Field(max_length=MAX_FILES)
 
@@ -223,7 +225,7 @@ async def ingest(
             )
         }
         rules = [r.model_dump() for r in manifest.kindRules]
-        items, reclassified, unchanged = [], [], 0
+        items, reclassified, verdicts, kinds, unchanged = [], [], [], {}, 0
         for f in manifest.files:
             art = stable_id("art", project_id, f.path)
             ver = stable_id("ver", art, f.sha256)
@@ -232,7 +234,8 @@ async def ingest(
             uri = f"artifact://{project_id}/{f.sha256}"
             reclassify = False
             if f.path == KNOWLEDGE_PATH:
-                kind, fmt = "other", KNOWLEDGE_FORMAT
+                verdict = Verdict("other", KNOWLEDGE_FORMAT, "rule", "knowledge file")
+                kind, fmt = verdict.kind, verdict.format
             else:
                 verdict = resolve(f.path, lambda uri=uri: head_of(store, uri), rules)
                 kind, fmt = verdict.kind, verdict.format
@@ -242,6 +245,11 @@ async def ingest(
                     and now_kind != kind
                     and (verdict.source == "rule" or kind != "other")
                 )
+            final = kind if reclassify or art not in current or now_kind is None else now_kind
+            kinds[final] = kinds.get(final, 0) + 1
+            if final == kind:
+                verdicts.append({"art": art, "source": verdict.source, "reason": verdict.reason,
+                                 "weak": verdict.weak, "version": CLASSIFIER_VERSION})  # fmt: skip
             if now_current == ver and now_source == source and not reclassify:
                 unchanged += 1
                 continue
@@ -258,8 +266,15 @@ async def ingest(
             else []
         )  # fmt: skip
         deleted += [a for a in retire if current.get(a, (None, None))[1] is not None and a not in deleted]
+        warnings = (
+            [f"classifierVersion {manifest.classifierVersion} differs from server classifier version "
+             f"{CLASSIFIER_VERSION}; kinds may differ from the client preview"]
+            if manifest.classifierVersion not in (None, CLASSIFIER_VERSION)
+            else None
+        )  # fmt: skip
         props = {"id": ing_id, "projectId": project_id, "seq": seq, "mode": manifest.mode,
                  "sourceRevision": manifest.sourceRevision, "actor": actor, "unchangedCount": unchanged,
+                 "kindCounts": json.dumps(kinds, sort_keys=True), "warnings": warnings,
                  "eventPublished": not (items or deleted), "createdAt": now()}  # fmt: skip
         await rows(
             tx,
@@ -290,6 +305,12 @@ async def ingest(
             tx, "UNWIND $items AS i MATCH (a:Artifact {id: i.art}) SET a.kind = i.kind, a.format = i.format",
             items=reclassified,
         )  # fmt: skip
+        await rows(
+            tx,
+            "UNWIND $items AS i MATCH (a:Artifact {id: i.art}) SET a.kindSource = i.source, a.kindReason = i.reason, "
+            "a.kindWeak = i.weak, a.classifierVersion = i.version",
+            items=verdicts,
+        )
         await rows(
             tx,
             "MATCH (g:Ingestion {id: $g}) UNWIND $ids AS aid MATCH (a:Artifact {id: aid})-[c:CURRENT_VERSION]->() "
@@ -329,12 +350,19 @@ def response(ing: dict[str, Any]) -> dict[str, Any]:
     """OpenAPI Ingestion."""
     keys = ("projectId", "seq", "mode", "sourceRevision", "createdVersionIds", "reactivatedVersionIds",
             "deletedArtifactIds", "unchangedCount", "createdAt")  # fmt: skip
-    return {"ingestionId": ing["id"], **{k: ing[k] for k in keys if k in ing}}
+    extra = {"kinds": json.loads(ing["kindCounts"])} if "kindCounts" in ing else {}
+    return {"ingestionId": ing["id"], **{k: ing[k] for k in (*keys, "warnings") if k in ing}, **extra}
+
+
+def event_data(ing: dict[str, Any]) -> dict[str, Any]:
+    """Payload of ingestion.completed: the response without the properties the event schema does not carry."""
+    skipped = ("createdAt", "kinds", "warnings")
+    return {k: v for k, v in response(ing).items() if k not in skipped} | {"actor": ing["actor"]}
 
 
 async def publish(kg: KgClient, events: EventSink, ing: dict[str, Any]) -> None:
     """Publish ingestion.completed with an id derived from the ingestion id, then mark it published."""
-    data = {k: v for k, v in response(ing).items() if k != "createdAt"} | {"actor": ing["actor"]}
+    data = event_data(ing)
     await events.publish(
         INGESTION_COMPLETED, ing["projectId"], data, event_id=str(uuid.uuid5(uuid.NAMESPACE_URL, ing["id"]))
     )

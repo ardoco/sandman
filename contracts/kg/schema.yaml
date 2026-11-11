@@ -10,7 +10,8 @@
 # 0.8.0 (additive): TraceLink.reviewedBy, reviewedAt, reviewReason, reviewOrigin (T6.1).
 # 0.9.0 (additive): Element label Decision, Element.decisionStatus, decisionDate (T7.1).
 # 0.10.0 (additive): Element.aliases, TraceLink approach user-declared written by the extraction-agent (T7.2).
-version: 0.10.0
+# 0.11.0 (additive): Artifact.kindSource, kindReason, kindWeak, classifierVersion; Ingestion.kindCounts, warnings (classification review).
+version: 0.11.0
 conventions:
   ids: "Deterministic ids per common.schema.json#/$defs/StableId (prefix_hex32); Run ids random (run_hex32)."
   timestamps: "ISO-8601 UTC strings."
@@ -53,6 +54,8 @@ nodes:
       sourceRevision: { type: string, required: false }
       actor: { type: string, required: true }
       unchangedCount: { type: integer, required: true }
+      kindCounts: { type: string, required: false, description: "JSON object: number of manifest files per final artifact kind. Absent before 0.11.0." }
+      warnings: { type: list, required: false, description: "Non-fatal findings of the intake, e.g. classifier version mismatch." }
       eventPublished: { type: boolean, required: true, description: "Set after the ingestion.completed publish ack (true also when no event is due); unpublished ingestions are re-published at startup and before every intake." }
       createdAt: { type: string, required: true }
 
@@ -65,6 +68,10 @@ nodes:
       path: { type: string, required: true }
       kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, documentation, code, test, other] }
       format: { type: string, required: false, description: "e.g. markdown, pdf, pcm-repository, uml, component-listing, java" }
+      kindSource: { type: string, required: false, enum: [rule, heuristic, default], description: "Why kind has its value: manifest rule, path/content heuristic or no signal. Absent = unknown." }
+      kindReason: { type: string, required: false, description: "Short text of the classifier verdict, e.g. suffix .java, rule docs/**. Absent = unknown." }
+      kindWeak: { type: boolean, required: false, description: "True when the verdict is a weak guess the user should look at. Absent = unknown." }
+      classifierVersion: { type: integer, required: false, description: "CLASSIFIER_VERSION that produced the verdict. Absent = unknown." }
       origin: { type: string, required: false, enum: [user, derived], description: "derived = made by the system (T2.7), only the extraction-agent sets it; absent = user." }
       deletedAt: { type: string, required: false, description: "Set when a full snapshot no longer contains the path; cleared when the path is ingested again." }
 

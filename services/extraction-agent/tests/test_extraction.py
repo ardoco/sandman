@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 from sandman_agent import Contracts, PublishError, stable_id
+from sandman_agent.classify import CLASSIFIER_VERSION
 from sandman_agent.config import DEFAULT_CONTRACTS_DIR
 from sandman_extraction import ingest
 from sandman_extraction.extract import APPROACH, APPROACH_VERSION, match_references
@@ -716,8 +717,8 @@ async def classified(env: Any, path: str) -> dict[str, Any]:
     return rows[0]
 
 
-async def ingest_with(env: Any, files: dict[str, bytes], rules: list[dict[str, Any]]) -> dict[str, Any]:
-    manifest = {"mode": "full", "kindRules": rules,
+async def ingest_with(env: Any, files: dict[str, bytes], rules: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:
+    manifest = {"mode": "full", "kindRules": rules, **extra,
                 "files": [{"path": p, "sha256": hashlib.sha256(d).hexdigest()} for p, d in files.items()]}  # fmt: skip
     parts = {"manifest": (None, json.dumps(manifest), "application/json"),
              "archive": ("a.tar.gz", env.tar_gz(files), "application/octet-stream")}  # fmt: skip
@@ -766,3 +767,36 @@ async def test_other_fallback_never_downgrades(env: Any) -> None:
     downgraded = await ingest_with(env, files, [{"glob": "notes.txt", "kind": "other"}])
     assert downgraded["reactivatedVersionIds"] == [ver(env.project, "notes.txt", b"plain")]
     assert (await classified(env, "notes.txt"))["kind"] == "other"
+
+
+async def test_artifact_stores_verdict_and_result_has_kinds(env: Any) -> None:
+    await env.put_project()
+    files = {"notes.txt": b"plain", CODE: b"class A {}\n"}
+    first = await ingest_with(env, files, [{"glob": "notes.txt", "kind": "architecture-doc"}])
+    assert first["kinds"] == {"architecture-doc": 1, "code": 1} and "warnings" not in first
+    props = (
+        "MATCH (a:Artifact {id: $a}) "
+        "RETURN a.kindSource AS s, a.kindReason AS r, a.kindWeak AS w, a.classifierVersion AS v"
+    )
+    assert (await cypher(env, props, a=art(env.project, "notes.txt")))[0] == {
+        "s": "rule", "r": "rule notes.txt", "w": False, "v": CLASSIFIER_VERSION}  # fmt: skip
+    assert (await cypher(env, props, a=art(env.project, CODE)))[0]["s"] == "heuristic"
+    await cypher(
+        env,
+        "MATCH (a:Artifact {projectId: $p}) REMOVE a.kindSource, a.kindReason, a.kindWeak, a.classifierVersion",
+        p=env.project,
+    )
+    again = await ingest_with(env, files, [{"glob": "notes.txt", "kind": "architecture-doc"}])
+    assert again["unchangedCount"] == 2 and again["createdVersionIds"] == []
+    assert (await cypher(env, props, a=art(env.project, "notes.txt")))[0]["v"] == CLASSIFIER_VERSION
+    assert (await cypher(env, props, a=art(env.project, CODE)))[0]["s"] == "heuristic"
+
+
+async def test_classifier_version_mismatch_warns_and_ingests(env: Any) -> None:
+    await env.put_project()
+    body = await ingest_with(env, {"a.txt": b"x"}, [], classifierVersion=CLASSIFIER_VERSION + 1)
+    env.validate(INGESTION, body)
+    assert len(body["createdVersionIds"]) == 1 and "classifierVersion" in body["warnings"][0]
+    got = await env.http.get(f"/v1/projects/{env.project}/ingestions/{body['ingestionId']}")
+    assert got.json() == body
+    assert "warnings" not in await ingest_with(env, {"a.txt": b"x"}, [], classifierVersion=CLASSIFIER_VERSION)

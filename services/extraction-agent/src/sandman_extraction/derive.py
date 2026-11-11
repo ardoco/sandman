@@ -215,7 +215,7 @@ class DeriveSkill:
             stable_id("ver", stable_id("art", pid, p), i.digest) for p, i in items.items()
         )
         add_warnings(output["warnings"], warnings + [w for i in items.values() for w in i.warnings])
-        data = {k: v for k, v in ingest.response(ing).items() if k != "createdAt"} | {"actor": ing["actor"]}
+        data = ingest.event_data(ing)
         await svc.kg.write("MATCH (g:Ingestion {id: $id}) SET g.eventPublished = true", id=ing_id)
         return SkillResult(output, ingest.INGESTION_COMPLETED, data)
 

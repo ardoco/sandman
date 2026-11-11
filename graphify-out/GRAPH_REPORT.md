@@ -1,7 +1,7 @@
 # Graph Report - sandman  (2026-11-11)
 
 ## Corpus Check
-- 896 files · ~631,092 words
+- 896 files · ~631,149 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 107 file(s) not represented in the graph (top: (none) 25, .csv 19, .repository 12)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a9358f04`
+- Built from commit: `dd76b200`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -517,9 +517,9 @@
 
 ## Import Cycles
 - 1-file cycle: `libs/rust/sandman-agent/src/status.rs -> libs/rust/sandman-agent/src/status.rs`
-- 2-file cycle: `libs/rust/sandman-agent/src/a2a/mod.rs -> libs/rust/sandman-agent/src/a2a/protocol.rs -> libs/rust/sandman-agent/src/a2a/mod.rs`
 - 2-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/events.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
 - 2-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/a2a.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
+- 2-file cycle: `libs/rust/sandman-agent/src/a2a/mod.rs -> libs/rust/sandman-agent/src/a2a/protocol.rs -> libs/rust/sandman-agent/src/a2a/mod.rs`
 - 3-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/a2a.py -> libs/python/sandman-agent/src/sandman_agent/events.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
 - 3-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/a2a.py -> libs/python/sandman-agent/src/sandman_agent/llm.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
 
@@ -2057,24 +2057,24 @@ Cohesion: 0.53
 Nodes (4): by_key(), test_alias_elements_hold_all_names_of_one_reference(), test_content_hashes_do_not_depend_on_key_order(), test_declared_elements_get_decl_keys_under_the_file_element()
 
 ## Knowledge Gaps
-- **200 isolated node(s):** `Completed`, `Failed`, `Rejected`, `Submitted`, `Working` (+195 more)
+- **200 isolated node(s):** `PAIRWISE`, `WHOLE_PROJECT`, `Completed`, `Failed`, `Rejected` (+195 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3470 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **148 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `create_app()` connect `C34: create_app(), alerts_fragment(), api_cypher()` to `GraphService`, `register`, `pytest`, `create_app`, `test_embedding.py`, `C164: BaseException, clean(), nats_details()`, `create_app`, `Env`, `C311: Any, FastAPI, HTMLResponse`, `sandman_cli/classification.py`, `setup_logging`, `FakeGraph`, `Sampler`, `register`, `test_query_path.py`, `typing`, `list`, `gateway.py`, `time`, `C248: OrchestratorClient, ._call(), .cancel()`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
-- **What connects `Completed`, `Failed`, `Rejected` to the rest of the system?**
+- **Why does `auth_rejects_plugin_callers_on_agents_and_accepts_the_inbound_token_on_plugins()` connect `C169: arc, constanttimeeq, auth.rs` to `C64: btreeset, digest, event_from_json`, `C26: bearer_token, classify_code, consumer_backoff`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **What connects `PAIRWISE`, `WHOLE_PROJECT`, `Completed` to the rest of the system?**
   _200 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Reader` be split into smaller, more focused modules?**
   _Cohesion score 0.0352233676975945 - nodes in this community are weakly interconnected._
-- **Why does `auth_rejects_plugin_callers_on_agents_and_accepts_the_inbound_token_on_plugins()` connect `C169: arc, constanttimeeq, auth.rs` to `C64: btreeset, digest, event_from_json`, `C26: bearer_token, classify_code, consumer_backoff`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `agent` connect `C169: arc, constanttimeeq, auth.rs` to `C31: required, type, required`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
 - **Should `Finding` be split into smaller, more focused modules?**
   _Cohesion score 0.1282051282051282 - nodes in this community are weakly interconnected._
 - **Why does `properties` connect `C31: required, type, required` to `C153: schema.yaml, description, owner`, `projectId`, `C169: arc, constanttimeeq, auth.rs`, `C279: description, required, type`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
 - **Should `json` be split into smaller, more focused modules?**
   _Cohesion score 0.03226925746009716 - nodes in this community are weakly interconnected._

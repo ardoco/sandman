@@ -221,7 +221,7 @@ components:
     summary: An admin-only page that shows whether all parts of the system are healthy.
     details: >-
       It shows service status, running workflows, the event stream, resource usage,
-      project statistics, a read-only trace viewer page and a graph page with the same layout as the console graph explorer. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
+      project statistics, a read-only trace viewer page, a graph page with the same layout as the console graph explorer and a classification page. The classification page shows how each file of a project was classified and lets an administrator correct it. The page only builds the new rules block; the user saves it in sandman.yaml. Only administrators can open it. It is a separate service so that it keeps working when the part it monitors fails.
     flow: Reads status pages of all services, the message bus and resource data; changes nothing.
   document-converter:
     zone: ingest
@@ -236,8 +236,9 @@ components:
     title: Extraction agent
     summary: Reads uploaded files and writes their content as elements into the knowledge graph.
     details: >-
-      An upload is only a pile of files. This agent recognises what each file is (requirements, documentation,
-      architecture model, code) and splits it into elements such as sentences, requirements, model components
+      An upload is only a pile of files. This agent recognises what each file is (requirements, architecture
+      documentation, other documentation, architecture model, code, tests) with one shared classifier that the
+      command line uses too, and it stores the reason for each decision and splits it into elements such as sentences, requirements, model components
       and code units. For formats it cannot read itself, it asks plugins. It also records explicit mentions,
       for example a requirement id named in a source file, as trace links.
     flow: Receives work from the orchestrator, writes to the knowledge graph, and calls the document converter and extraction plugins.

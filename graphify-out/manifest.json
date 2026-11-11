@@ -4074,9 +4074,9 @@
     "semantic_hash": "0e46a953d3ae55f757126f004b5461a1"
   },
   "site/src/components.yaml": {
-    "mtime": 1794313403.7914653,
-    "seen": 1794313412.252107,
-    "ast_hash": "695720527b1b7b2f4f45dd837ea0399b",
+    "mtime": 1794410744.1203892,
+    "seen": 1794410775.8342001,
+    "ast_hash": "6a1dfc1225a8b8130c1493cd765310e1",
     "semantic_hash": ""
   },
   "spikes/T0.12/pom.xml": {

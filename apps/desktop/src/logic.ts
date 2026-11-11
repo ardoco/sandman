@@ -155,3 +155,82 @@ export function maskKey(kind: KeyKind, hint: string): string {
   if (kind === "SELFHOSTED_LLM_URL") return hint;
   return hint ? `••••${hint}` : "••••";
 }
+
+export const CLASS_KINDS = ["requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "other", "ignored"] as const;
+
+export interface ClassRow { path: string; name: string; type: "dir" | "file"; kind: string; files: number; weak: boolean; source: string | null; reason: string | null; depth: number; }
+export interface ClassFile { path: string; kind: string; source: string; reason: string; weak: boolean; }
+export interface ClassScan {
+  root: string; classifierVersion: number; fileCount: number; kinds: Record<string, number>; ignored: Record<string, string>;
+  review: { weak: number; reviewed: boolean; fingerprint: string; reviewedFingerprint: string | null };
+  rows: ClassRow[]; files: ClassFile[]; warnings: string[];
+}
+export interface ClassEdit { path: string; kind: string; }
+export type ClassFilter = "all" | "weak" | "changed";
+export interface ClassView extends ClassRow { effKind: string; edited: boolean; changed: boolean; isOpen: boolean; stillWeak: boolean; }
+
+const parentOf = (p: string): string => p.slice(0, Math.max(p.lastIndexOf("/"), 0));
+const under = (p: string, dir: string): boolean => p.startsWith(`${dir}/`);
+
+export const initialOpen = (rows: ClassRow[]): Set<string> => new Set(rows.filter((r) => r.type === "dir" && r.kind === "mixed").map((r) => r.path));
+
+function editOf(edits: Map<string, string>, path: string): string | undefined {
+  for (let p = path; p; p = parentOf(p)) {
+    const k = edits.get(p);
+    if (k) return k;
+  }
+  return undefined;
+}
+
+export function setEdit(edits: Map<string, string>, rows: ClassRow[], path: string, kind: string): Map<string, string> {
+  const next = new Map([...edits].filter(([p]) => !under(p, path)));
+  const row = rows.find((r) => r.path === path);
+  next.delete(path);
+  const inherited = editOf(next, parentOf(path));
+  if (inherited ? inherited !== kind : row?.kind !== kind) next.set(path, kind);
+  return next;
+}
+
+export const editList = (edits: Map<string, string>): ClassEdit[] => [...edits].map(([path, kind]) => ({ path, kind }));
+
+export function classView(rows: ClassRow[], edits: Map<string, string>, open: Set<string>, filter: ClassFilter = "all", search = ""): ClassView[] {
+  const leafKinds = new Map<string, Set<string>>();
+  for (const r of rows.filter((x) => x.type === "file")) {
+    const k = editOf(edits, r.path) ?? r.kind;
+    for (let p = parentOf(r.path); p; p = parentOf(p)) leafKinds.set(p, (leafKinds.get(p) ?? new Set()).add(k));
+  }
+  const all = rows.map((r): ClassView => {
+    const own = editOf(edits, r.path);
+    const below = leafKinds.get(r.path);
+    const effKind = own ?? (r.type === "dir" && below ? (below.size === 1 ? [...below][0] : "mixed") : r.kind);
+    const edited = [...edits.keys()].some((e) => e === r.path || under(e, r.path) || under(r.path, e));
+    return { ...r, effKind, edited, changed: edited, isOpen: open.has(r.path), stillWeak: r.weak && !own };
+  });
+  const q = search.trim().toLowerCase();
+  if (filter === "all" && !q) {
+    const visible = new Set<string>();
+    return all.filter((r) => {
+      const p = parentOf(r.path);
+      const ok = !p || (visible.has(p) && open.has(p));
+      if (ok) visible.add(r.path);
+      return ok;
+    });
+  }
+  const hit = new Set(all.filter((r) => (filter !== "weak" || r.stillWeak) && (filter !== "changed" || r.changed) && (!q || r.path.toLowerCase().includes(q))).map((r) => r.path));
+  const keep = new Set<string>();
+  for (const p of hit) for (let a = p; a; a = parentOf(a)) keep.add(a);
+  return all.filter((r) => keep.has(r.path)).map((r) => ({ ...r, isOpen: r.type === "dir" && [...keep].some((k) => under(k, r.path)) }));
+}
+
+export function unreviewedMessage(files: ClassFile[]): string {
+  const weak = files.filter((f) => f.weak);
+  const folders = new Set(weak.map((f) => parentOf(f.path)));
+  const f = weak.length === 1 ? "1 file" : `${weak.length} files`;
+  const d = folders.size === 1 ? "1 folder" : `${folders.size} folders`;
+  return `${f} in ${d} ${weak.length === 1 ? "was" : "were"} not reviewed.`;
+}
+
+export const needsReview = (s: Pick<ClassScan, "review">): boolean => s.review.weak > 0 && !s.review.reviewed;
+
+export const classSummary = (s: ClassScan): string =>
+  `${s.fileCount} files, classifier v${s.classifierVersion}. ${s.review.weak === 0 ? "Nothing to review." : s.review.reviewed ? "Review done." : `Review open: ${unreviewedMessage(s.files)}`}`;

@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn serializes_edits_for_stdin() {
-        let e = [Edit { path: "docs/".trim_end_matches('/').into(), kind: "other".into() }];
+        let e = [Edit { path: "docs".into(), kind: "other".into() }];
         assert_eq!(edits_json(&e), r#"{"edits":[{"kind":"other","path":"docs"}]}"#);
     }
 }

@@ -4434,9 +4434,9 @@
     "semantic_hash": "c88376e48e05242a1085780c75942b3d"
   },
   "tools/cli/src/sandman_cli/__main__.py": {
-    "mtime": 1794404239.19956,
-    "seen": 1794404655.853826,
-    "ast_hash": "28ee1dee3f6099e5626186f28400d81f",
+    "mtime": 1794405453.9727097,
+    "seen": 1794405549.3522282,
+    "ast_hash": "b24bedd360a729522310c44e07a29d16",
     "semantic_hash": ""
   },
   "tools/cli/src/sandman_cli/evaluation/__init__.py": {
@@ -4488,10 +4488,10 @@
     "semantic_hash": "4dffdc61c3a47b8d6c3dd3b34a3ae2fb"
   },
   "tools/cli/tests/test_cli.py": {
-    "mtime": 1793568869.5534937,
-    "seen": 1794312116.366294,
-    "ast_hash": "ba6db94b1ece03cbcc5b5c843e20e401",
-    "semantic_hash": "ba6db94b1ece03cbcc5b5c843e20e401"
+    "mtime": 1794405458.5134194,
+    "seen": 1794405549.352237,
+    "ast_hash": "db152d2e1f552f3c6cce40732ced23f8",
+    "semantic_hash": ""
   },
   "tools/cli/tests/test_evaluation_formats.py": {
     "mtime": 1793568869.5536149,
@@ -5688,9 +5688,9 @@
     "semantic_hash": ""
   },
   "tools/cli/tests/test_classify_cases.py": {
-    "mtime": 1794404305.9060373,
-    "seen": 1794404655.853832,
-    "ast_hash": "eeeb23aa4863d9700765a306e27fbc0e",
+    "mtime": 1794405453.9728498,
+    "seen": 1794405549.352236,
+    "ast_hash": "639e36f4b567e3ce682f6f5742043402",
     "semantic_hash": ""
   },
   "libs/python/sandman-agent/src/sandman_agent/classify_tree.py": {
@@ -5721,6 +5721,18 @@
     "mtime": 1794404812.6242988,
     "seen": 1794404884.102767,
     "ast_hash": "5900588f3bc5e18bfebceb7289c2d744",
+    "semantic_hash": ""
+  },
+  "tools/cli/src/sandman_cli/classification.py": {
+    "mtime": 1794405521.40872,
+    "seen": 1794405549.352229,
+    "ast_hash": "5397bdaa6185200d161d2056fade2e17",
+    "semantic_hash": ""
+  },
+  "tools/cli/tests/test_classification.py": {
+    "mtime": 1794405532.9527972,
+    "seen": 1794405549.352235,
+    "ast_hash": "3bb538c881ee9165cd00a1ec1dad018e",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

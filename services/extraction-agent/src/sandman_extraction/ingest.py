@@ -225,7 +225,8 @@ async def ingest(
             )
         }
         rules = [r.model_dump() for r in manifest.kindRules]
-        items, reclassified, verdicts, kinds, unchanged = [], [], [], {}, 0
+        kinds: dict[str, int] = {}
+        items, reclassified, verdicts, unchanged = [], [], [], 0
         for f in manifest.files:
             art = stable_id("art", project_id, f.path)
             ver = stable_id("ver", art, f.sha256)

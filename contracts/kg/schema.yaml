@@ -63,7 +63,7 @@ nodes:
       id: { type: string, required: true, description: "art_ = stableId(projectId, path)" }
       projectId: { type: string, required: true }
       path: { type: string, required: true }
-      kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, code, test, other] }
+      kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, documentation, code, test, other] }
       format: { type: string, required: false, description: "e.g. markdown, pdf, pcm-repository, uml, component-listing, java" }
       origin: { type: string, required: false, enum: [user, derived], description: "derived = made by the system (T2.7), only the extraction-agent sets it; absent = user." }
       deletedAt: { type: string, required: false, description: "Set when a full snapshot no longer contains the path; cleared when the path is ingested again." }

@@ -1,0 +1,686 @@
+{
+  "classifierVersion": 1,
+  "versionHashes": {
+    "1": "4182d36c21c310365b0f4674ffadde32411bd521bb165c5cede3bd18f92b8e37"
+  },
+  "cases": [
+    {
+      "path": "model/a.repository",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-model",
+        "format": "pcm-repository",
+        "source": "heuristic",
+        "reason": "suffix .repository",
+        "weak": false
+      }
+    },
+    {
+      "path": "a.xmi",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-model",
+        "format": "uml",
+        "source": "heuristic",
+        "reason": "suffix .xmi",
+        "weak": false
+      }
+    },
+    {
+      "path": "m/b.uml",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-model",
+        "format": "uml",
+        "source": "heuristic",
+        "reason": "suffix .uml",
+        "weak": false
+      }
+    },
+    {
+      "path": "src/test/java/A.java",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'test'",
+        "weak": false
+      }
+    },
+    {
+      "path": "web/__tests__/a.ts",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment '__tests__'",
+        "weak": false
+      }
+    },
+    {
+      "path": "spec/a.rb",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'spec'",
+        "weak": false
+      }
+    },
+    {
+      "path": "src/FooTest.java",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'FooTest'",
+        "weak": false
+      }
+    },
+    {
+      "path": "src/FooTests.java",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'FooTests'",
+        "weak": false
+      }
+    },
+    {
+      "path": "pkg/test_a.py",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'test_a'",
+        "weak": false
+      }
+    },
+    {
+      "path": "pkg/a_test.go",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'a_test'",
+        "weak": false
+      }
+    },
+    {
+      "path": "web/a.test.js",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'a.test'",
+        "weak": false
+      }
+    },
+    {
+      "path": "web/a.spec.ts",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "test",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'a.spec'",
+        "weak": false
+      }
+    },
+    {
+      "path": "src/main/A.java",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "code",
+        "format": null,
+        "source": "heuristic",
+        "reason": "suffix .java",
+        "weak": false
+      }
+    },
+    {
+      "path": "a.kt",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "code",
+        "format": null,
+        "source": "heuristic",
+        "reason": "suffix .kt",
+        "weak": false
+      }
+    },
+    {
+      "path": "a.swift",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "code",
+        "format": null,
+        "source": "heuristic",
+        "reason": "suffix .swift",
+        "weak": false
+      }
+    },
+    {
+      "path": "tests/data.csv",
+      "head": "ID,Text\n1,x\n",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": "csv",
+        "source": "heuristic",
+        "reason": "csv columns id, text",
+        "weak": false
+      }
+    },
+    {
+      "path": "data.csv",
+      "head": "a,b\n",
+      "rules": [],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "default",
+        "reason": "no signal",
+        "weak": true
+      }
+    },
+    {
+      "path": "requirements/r.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'requirements'",
+        "weak": false
+      }
+    },
+    {
+      "path": "srs.pdf",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'srs'",
+        "weak": false
+      }
+    },
+    {
+      "path": "user-stories.txt",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'user-stories'",
+        "weak": false
+      }
+    },
+    {
+      "path": "features/a.rst",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'features'",
+        "weak": false
+      }
+    },
+    {
+      "path": "notes.md",
+      "head": "# REQ-1 A\nx\n# FR-12 B\ny\n",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "2 REQ headings",
+        "weak": false
+      }
+    },
+    {
+      "path": "notes.md",
+      "head": "# REQ-1 A\n",
+      "rules": [],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "default",
+        "reason": "no signal",
+        "weak": true
+      }
+    },
+    {
+      "path": "architecture.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'architecture'",
+        "weak": false
+      }
+    },
+    {
+      "path": "design/a.adoc",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'design'",
+        "weak": false
+      }
+    },
+    {
+      "path": "c4/model.txt",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'c4'",
+        "weak": false
+      }
+    },
+    {
+      "path": "adr/0001.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": "adr",
+        "source": "heuristic",
+        "reason": "path segment 'adr'",
+        "weak": false
+      }
+    },
+    {
+      "path": "decisions/0001.txt",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'decisions'",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/decisions/0002.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": "adr",
+        "source": "heuristic",
+        "reason": "path segment 'decisions'",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/guide.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'docs'",
+        "weak": true
+      }
+    },
+    {
+      "path": "doc/a.txt",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'doc'",
+        "weak": true
+      }
+    },
+    {
+      "path": "documentation/a.pdf",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'documentation'",
+        "weak": true
+      }
+    },
+    {
+      "path": "wiki/Home.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'wiki'",
+        "weak": true
+      }
+    },
+    {
+      "path": "docs/architecture/overview.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'architecture'",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/requirements.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'requirements'",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/a.md",
+      "head": "# REQ-1 A\nx\n# FR-12 B\ny\n",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "2 REQ headings",
+        "weak": false
+      }
+    },
+    {
+      "path": "README.md",
+      "head": "# hi\n",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'README.md'",
+        "weak": false
+      }
+    },
+    {
+      "path": "CHANGELOG.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'CHANGELOG.md'",
+        "weak": false
+      }
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'CONTRIBUTING.md'",
+        "weak": false
+      }
+    },
+    {
+      "path": "LICENSE",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'LICENSE'",
+        "weak": false
+      }
+    },
+    {
+      "path": "LICENSE.txt",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'LICENSE.txt'",
+        "weak": false
+      }
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'CODE_OF_CONDUCT.md'",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/README.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'README.md'",
+        "weak": false
+      }
+    },
+    {
+      "path": "architecture/README.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'architecture'",
+        "weak": false
+      }
+    },
+    {
+      "path": "requirements/README.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "requirements",
+        "format": null,
+        "source": "heuristic",
+        "reason": "path segment 'requirements'",
+        "weak": false
+      }
+    },
+    {
+      "path": "src/README.md",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'README.md'",
+        "weak": false
+      }
+    },
+    {
+      "path": "logo.png",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "default",
+        "reason": "no signal",
+        "weak": true
+      }
+    },
+    {
+      "path": "Makefile",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "default",
+        "reason": "no signal",
+        "weak": true
+      }
+    },
+    {
+      "path": "docs/logo.png",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "default",
+        "reason": "no signal",
+        "weak": true
+      }
+    },
+    {
+      "path": "src/main/A.java",
+      "head": "",
+      "rules": [
+        {
+          "glob": "**/*.java",
+          "kind": "other"
+        }
+      ],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "rule",
+        "reason": "rule **/*.java",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/a.md",
+      "head": "",
+      "rules": [
+        {
+          "glob": "docs/**",
+          "kind": "architecture-doc",
+          "format": "markdown"
+        }
+      ],
+      "expected": {
+        "kind": "architecture-doc",
+        "format": "markdown",
+        "source": "rule",
+        "reason": "rule docs/**",
+        "weak": false
+      }
+    },
+    {
+      "path": "docs/a.md",
+      "head": "",
+      "rules": [
+        {
+          "glob": "docs/b.md",
+          "kind": "test"
+        },
+        {
+          "glob": "docs/**",
+          "kind": "documentation"
+        }
+      ],
+      "expected": {
+        "kind": "documentation",
+        "format": null,
+        "source": "rule",
+        "reason": "rule docs/**",
+        "weak": false
+      }
+    },
+    {
+      "path": "a/B.py",
+      "head": "",
+      "rules": [
+        {
+          "glob": "src/**",
+          "kind": "code"
+        }
+      ],
+      "expected": {
+        "kind": "code",
+        "format": null,
+        "source": "heuristic",
+        "reason": "suffix .py",
+        "weak": false
+      }
+    },
+    {
+      "path": "legacy/x.md",
+      "head": "",
+      "rules": [
+        {
+          "glob": "legacy/**",
+          "kind": "ignored"
+        }
+      ],
+      "expected": {
+        "kind": "ignored",
+        "format": null,
+        "source": "rule",
+        "reason": "rule legacy/**",
+        "weak": false
+      }
+    }
+  ]
+}

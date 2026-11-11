@@ -1,40 +1,24 @@
+import json
+from pathlib import Path
+
 import pytest
-from sandman_extraction import classify, ingest
+from pydantic import ValidationError
+from sandman_agent import classify
+from sandman_extraction import ingest
 
-CSV = b"ID,Text\n1,x\n"
-REQS = b"# REQ-1 A\nx\n# FR-12 B\ny\n"
-
-
-@pytest.mark.parametrize(
-    ("path", "head", "expected"),
-    [
-        ("model/a.repository", b"", ("architecture-model", "pcm-repository")),
-        ("a.xmi", b"", ("architecture-model", "uml")),
-        ("src/test/java/A.java", b"", ("test", None)),
-        ("src/FooTest.java", b"", ("test", None)),
-        ("pkg/test_a.py", b"", ("test", None)),
-        ("web/a.spec.ts", b"", ("test", None)),
-        ("src/main/A.java", b"", ("code", None)),
-        ("tests/data.csv", CSV, ("requirements", "csv")),
-        ("data.csv", b"a,b\n", ("other", None)),
-        ("requirements/r.md", b"", ("requirements", None)),
-        ("srs.pdf", b"", ("requirements", None)),
-        ("notes.md", REQS, ("requirements", None)),
-        ("notes.md", b"# REQ-1 A\n", ("other", None)),
-        ("architecture.md", b"", ("architecture-doc", None)),
-        ("adr/0001.md", b"", ("architecture-doc", "adr")),
-        ("decisions/0001.txt", b"", ("architecture-doc", None)),
-        ("docs/guide.md", b"", ("architecture-doc", None)),
-        ("README.md", b"# hi\n", ("other", None)),
-        ("logo.png", b"", ("other", None)),
-    ],
-)
-def test_guess(path: str, head: bytes, expected: tuple[str, str | None]) -> None:
-    assert classify.guess(path, head) == expected
+CASES = json.loads((Path(__file__).resolve().parents[3] / "contracts" / "classification" / "cases.json").read_text())
 
 
-def test_rule_beats_heuristic_and_fallback_is_distinguishable() -> None:
-    m = ingest.Manifest(mode="partial", kindRules=[ingest.KindRule(glob="**/*.java", kind="other")], files=[])
-    assert m.rule_of("a/B.java") == ("other", None)
-    assert m.rule_of("a/B.py") is None
-    assert m.kind_of("a/B.py") == ("other", None)
+def test_golden_cases() -> None:
+    assert CASES["classifierVersion"] == classify.CLASSIFIER_VERSION
+    for c in CASES["cases"]:
+        v = classify.resolve(c["path"], c["head"].encode(), c["rules"])
+        assert {"kind": v.kind, "format": v.format, "source": v.source, "reason": v.reason, "weak": v.weak} == c[
+            "expected"
+        ], c["path"]
+
+
+def test_manifest_accepts_documentation_and_rejects_ignored_rule() -> None:
+    assert ingest.KindRule(glob="docs/**", kind="documentation").kind == "documentation"
+    with pytest.raises(ValidationError):
+        ingest.KindRule(glob="legacy/**", kind="ignored")

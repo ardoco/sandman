@@ -8,17 +8,17 @@ import uuid
 import zipfile
 import zlib
 from collections.abc import Mapping, Sequence
-from pathlib import PurePosixPath
 from typing import Any, Literal, LiteralString
 
 from neo4j import AsyncManagedTransaction
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sandman_agent import ArtifactStore, Contracts, EventSink, KgClient, stable_id
+from sandman_agent import ArtifactStore, Contracts, EventSink, KgClient, resolve, stable_id
+from sandman_agent.classify import HEAD_BYTES
 from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
 from starlette.exceptions import HTTPException
 
-from sandman_extraction import classify, knowledge
+from sandman_extraction import knowledge
 
 MAX_FILES = 20_000
 MAX_ENTRY_BYTES = 256 * 1024**2
@@ -28,7 +28,12 @@ INGESTION_COMPLETED = "sandman.ingestion.completed"
 RESERVED_PREFIX = ".sandman/"
 KNOWLEDGE_PATH = "sandman-knowledge.yaml"
 KNOWLEDGE_FORMAT = "sandman-knowledge"
-Kind = Literal["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
+Kind = Literal["requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "other"]
+
+
+def head_of(store: ArtifactStore, uri: str) -> bytes:
+    with store.path_for(uri).open("rb") as blob:
+        return blob.read(HEAD_BYTES)
 
 
 def safe_path(path: str) -> str:
@@ -71,17 +76,6 @@ class Manifest(BaseModel):
         if len({f.path for f in files}) != len(files):
             raise ValueError("duplicate paths")
         return files
-
-    def rule_of(self, path: str) -> tuple[str, str | None] | None:
-        """(kind, format) of the first matching kind rule, else None."""
-        for rule in self.kindRules:
-            if PurePosixPath(path).full_match(rule.glob):
-                return rule.kind, rule.format
-        return None
-
-    def kind_of(self, path: str) -> tuple[str, str | None]:
-        """(kind, format) of the first matching kind rule, else ('other', None)."""
-        return self.rule_of(path) or ("other", None)
 
 
 def reject_reserved(manifest: Manifest) -> None:
@@ -228,6 +222,7 @@ async def ingest(
                 p=project_id,
             )
         }
+        rules = [r.model_dump() for r in manifest.kindRules]
         items, reclassified, unchanged = [], [], 0
         for f in manifest.files:
             art = stable_id("art", project_id, f.path)
@@ -238,13 +233,15 @@ async def ingest(
             reclassify = False
             if f.path == KNOWLEDGE_PATH:
                 kind, fmt = "other", KNOWLEDGE_FORMAT
-            elif (rule := manifest.rule_of(f.path)) is not None:
-                kind, fmt = rule
-                reclassify = art in current and source is None and now_kind != kind
             else:
-                with store.path_for(uri).open("rb") as blob:
-                    kind, fmt = classify.guess(f.path, blob.read(classify.HEAD_BYTES))
-                reclassify = art in current and source is None and kind != "other" and now_kind != kind
+                verdict = resolve(f.path, lambda uri=uri: head_of(store, uri), rules)
+                kind, fmt = verdict.kind, verdict.format
+                reclassify = (
+                    art in current
+                    and source is None
+                    and now_kind != kind
+                    and (verdict.source == "rule" or kind != "other")
+                )
             if now_current == ver and now_source == source and not reclassify:
                 unchanged += 1
                 continue

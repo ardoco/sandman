@@ -12,6 +12,15 @@ from sandman_agent.a2a import (
 )
 from sandman_agent.artifacts import ArtifactStore
 from sandman_agent.auth import TokenVerifier, require_service, trusted_actor
+from sandman_agent.classify import (
+    ARTIFACT_KINDS,
+    CLASSIFIER_VERSION,
+    RULE_KINDS,
+    Verdict,
+    guess,
+    legacy_guess,
+    resolve,
+)
 from sandman_agent.config import ConfigError, Settings
 from sandman_agent.contracts import ContractError, Contracts
 from sandman_agent.events import Event, EventConsumer, EventPublisher, EventSink, PublishError, ensure_stream
@@ -34,7 +43,9 @@ __version__ = "0.1.0"
 __all__ = [
     "A2aClient",
     "A2aPluginClient",
+    "ARTIFACT_KINDS",
     "ArtifactStore",
+    "CLASSIFIER_VERSION",
     "ChatMessage",
     "ChatRequest",
     "ChatResponse",
@@ -51,6 +62,7 @@ __all__ = [
     "OpenAiLlmClient",
     "PluginError",
     "PublishError",
+    "RULE_KINDS",
     "RunRecorder",
     "Settings",
     "Skill",
@@ -62,11 +74,15 @@ __all__ = [
     "TaskSnapshot",
     "TokenVerifier",
     "Usage",
+    "Verdict",
     "ensure_stream",
     "fingerprint",
+    "guess",
+    "legacy_guess",
     "new_run_id",
     "new_workflow_id",
     "require_service",
+    "resolve",
     "normalize_concept_name",
     "section_local_key",
     "sentence_local_key",

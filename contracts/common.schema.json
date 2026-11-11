@@ -33,6 +33,7 @@
         "requirements",
         "architecture-doc",
         "architecture-model",
+        "documentation",
         "code",
         "test",
         "other"

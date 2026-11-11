@@ -17,6 +17,7 @@ from typing import Any
 
 import httpx
 import yaml
+from sandman_agent import RULE_KINDS
 
 from sandman_cli.evaluation import labeling, nlquery, removal, stats
 from sandman_cli.evaluation.compare import compare, identical
@@ -25,7 +26,7 @@ from sandman_cli.evaluation.perturb import build_mapping, rename
 
 DEFAULT_URL = "http://127.0.0.1:8080"
 CONFIG = "sandman.yaml"  # optional project-level config in DIR (not ingested)
-KINDS = ("requirements", "architecture-doc", "architecture-model", "code", "test", "other")
+KINDS = RULE_KINDS
 ADR_FOLDERS = ("adr", "docs/adr/**", "docs/decisions/**", "**/adr")
 ADR_RULES = [
     {"glob": f"{folder}/{name}", "kind": "architecture-doc", "format": "markdown"}

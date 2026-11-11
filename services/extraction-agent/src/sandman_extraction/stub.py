@@ -5,8 +5,9 @@ from typing import Any
 
 FILE_KEY = "file"
 # requirements files get a TextUnit file element so only the requirements extractor yields Requirement nodes
-LABEL_BY_KIND = {"requirements": "TextUnit", "architecture-doc": "TextUnit", "architecture-model": "ModelElement",
-                 "code": "CodeUnit", "test": "TestCase", "other": "TextUnit"}  # fmt: skip
+LABEL_BY_KIND = {"requirements": "TextUnit", "architecture-doc": "TextUnit", "documentation": "TextUnit",
+                 "architecture-model": "ModelElement", "code": "CodeUnit", "test": "TestCase",
+                 "other": "TextUnit"}  # fmt: skip
 
 
 def stub_elements(path: str, kind: str, content: bytes) -> list[dict[str, Any]]:

@@ -17,6 +17,7 @@ from typing import Any, BinaryIO
 import jinja2
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from sandman_agent import ARTIFACT_KINDS
 from starlette.datastructures import FormData, UploadFile
 from starlette.exceptions import HTTPException
 
@@ -34,7 +35,7 @@ LOGIN_CSRF = "sandman_login_csrf"
 STATUSES = ["OPEN", "REOPENED", "DEFERRED", "ACCEPTED", "REJECTED", "RESOLVED"]
 REASON_REQUIRED = {"ACCEPTED", "REJECTED", "DEFERRED"}
 CAUSES = ["extraction-error", "link-error", "detector-error", "artifact-inconsistency", "planned-change", "intentional"]
-KINDS = ["requirements", "architecture-doc", "architecture-model", "code", "test", "other"]
+KINDS = list(ARTIFACT_KINDS)
 MAX_FILES = 20000
 DEFAULT_RULES = "\n".join(
     ["requirements/** = requirements:markdown", "docs/** = architecture-doc", "model/** = architecture-model",

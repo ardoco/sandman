@@ -737,6 +737,8 @@ async def test_upload_without_rules_is_classified_by_heuristic(env: Any) -> None
     assert (await classified(env, REQ))["kind"] == "requirements"
     assert (await classified(env, CODE))["kind"] == "code"
     assert (await classified(env, TEST))["kind"] == "test"
+    assert (await classified(env, ARCH))["kind"] == "architecture-doc"
+    assert (await classified(env, OLD))["kind"] == "documentation"
     model = await classified(env, "model/mini.repository")
     assert (model["kind"], model["format"]) == ("architecture-model", "pcm-repository")
 

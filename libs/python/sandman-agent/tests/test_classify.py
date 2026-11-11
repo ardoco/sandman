@@ -85,3 +85,8 @@ def test_kinds_equal_contract_and_java() -> None:
     assert set(classify.ARTIFACT_KINDS) == set(schema["$defs"]["ArtifactKind"]["enum"])
     assert set(classify.ARTIFACT_KINDS) == set(re.findall(r'"([^"]+)"', listed.group(1)))
     assert classify.RULE_KINDS == (*classify.ARTIFACT_KINDS, "ignored")
+
+
+def test_knowledge_file_is_a_strong_other_verdict() -> None:
+    v = classify.resolve("sandman-knowledge.yaml", lambda: b"")
+    assert (v.kind, v.format, v.source, v.weak) == ("other", "sandman-knowledge", "rule", False)

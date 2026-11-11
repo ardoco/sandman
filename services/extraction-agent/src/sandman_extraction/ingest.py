@@ -14,7 +14,7 @@ from typing import Any, Literal, LiteralString
 from neo4j import AsyncManagedTransaction
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sandman_agent import ArtifactStore, Contracts, EventSink, KgClient, resolve, stable_id
-from sandman_agent.classify import CLASSIFIER_VERSION, HEAD_BYTES, Verdict
+from sandman_agent.classify import CLASSIFIER_VERSION, HEAD_BYTES, KNOWLEDGE_PATH
 from sandman_agent.ids import sha256_hex
 from sandman_agent.kg import now
 from starlette.exceptions import HTTPException
@@ -27,8 +27,6 @@ SPECIAL_MODES = (stat.S_IFLNK, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFIFO, stat.S_
 _DRIVE = re.compile(r"^[A-Za-z]:")
 INGESTION_COMPLETED = "sandman.ingestion.completed"
 RESERVED_PREFIX = ".sandman/"
-KNOWLEDGE_PATH = "sandman-knowledge.yaml"
-KNOWLEDGE_FORMAT = "sandman-knowledge"
 Kind = Literal["requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "other"]
 
 
@@ -234,12 +232,9 @@ async def ingest(
             _, now_current, _, now_source, now_kind = current.get(art, (None, None, None, None, None))
             uri = f"artifact://{project_id}/{f.sha256}"
             reclassify = False
-            if f.path == KNOWLEDGE_PATH:
-                verdict = Verdict("other", KNOWLEDGE_FORMAT, "rule", "knowledge file")
-                kind, fmt = verdict.kind, verdict.format
-            else:
-                verdict = resolve(f.path, lambda uri=uri: head_of(store, uri), rules)
-                kind, fmt = verdict.kind, verdict.format
+            verdict = resolve(f.path, lambda uri=uri: head_of(store, uri), rules)
+            kind, fmt = verdict.kind, verdict.format
+            if f.path != KNOWLEDGE_PATH:
                 reclassify = (
                     art in current
                     and source is None

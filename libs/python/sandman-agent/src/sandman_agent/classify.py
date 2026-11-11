@@ -83,8 +83,14 @@ def heuristic(path: str, head: bytes) -> Verdict:
     return Verdict("other", None, "default", "no signal", True)
 
 
+KNOWLEDGE_PATH = "sandman-knowledge.yaml"
+KNOWLEDGE_FORMAT = "sandman-knowledge"
+
+
 def resolve(path: str, head: bytes | Callable[[], bytes], rules: Sequence[Mapping[str, str | None]] = ()) -> Verdict:
-    """First matching rule (keys glob, kind, format), else the heuristic; `head` is read only without a rule."""
+    """The knowledge file, else the first matching rule (keys glob, kind, format), else the heuristic."""
+    if path == KNOWLEDGE_PATH:
+        return Verdict("other", KNOWLEDGE_FORMAT, "rule", "knowledge file")
     for rule in rules:
         if PurePosixPath(path).full_match(rule["glob"] or ""):
             return Verdict(rule["kind"] or "other", rule.get("format"), "rule", f"rule {rule['glob']}")

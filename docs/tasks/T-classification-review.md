@@ -36,15 +36,16 @@ Move `classify.py` to `libs/python/sandman-agent` as `sandman_agent.classify`. T
 New function next to `guess`:
 
 ```python
-CLASSIFIER_VERSION = 1       # raise on every behavior change
+CLASSIFIER_VERSION = 1  # raise on every behavior change
+
 
 @dataclass(frozen=True)
 class Verdict:
     kind: str
     format: str | None
     source: Literal["rule", "heuristic", "default"]
-    reason: str          # "suffix .java", "path segment 'docs'", "2 REQ headings", "rule docs/legacy/**", "no signal"
-    weak: bool           # True for "docs dir" and "default": user should look at it
+    reason: str  # "suffix .java", "path segment 'docs'", "2 REQ headings", "rule docs/legacy/**", "no signal"
+    weak: bool  # True for "docs dir" and "default": user should look at it
 ```
 
 `guess` stays and calls the new function. Both the CLI and the server resolve one file the same way: rules first (the manifest rules), then the heuristic.

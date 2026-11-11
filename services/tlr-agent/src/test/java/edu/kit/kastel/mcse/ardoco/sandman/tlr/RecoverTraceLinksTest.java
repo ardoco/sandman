@@ -1078,7 +1078,7 @@ class RecoverTraceLinksTest {
                 .findFirst()
                 .orElseThrow();
         assertEquals("1", stub.get("version").asString());
-        assertEquals(36, stub.get("kindPairs").size());
+        assertEquals(49, stub.get("kindPairs").size());
         assertFalse(stub.get("usesLlm").asBoolean());
         assertEquals("pairwise", stub.get("scopeMode").asString());
         assertEquals(

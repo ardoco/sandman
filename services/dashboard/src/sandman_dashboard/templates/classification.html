@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Classification{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/classification.css">{% endblock %}
+{% block body %}
+<h1>Classification</h1>
+<div id="cl-app" data-project="{{ selected or '' }}" data-csrf="{{ csrf }}">
+  <form method="get" action="/classification" class="row">
+    <label>Project
+      <select name="project" id="cl-project">
+        <option value="">Choose a project</option>
+        {% for p in projects %}<option value="{{ p.id }}"{% if p.id == selected %} selected{% endif %}>{{ p.id }}{% if p.name %} ({{ p.name }}){% endif %}</option>{% endfor %}
+      </select>
+    </label>
+    <button type="submit">Load</button>
+  </form>
+  <div id="cl-status" role="status">{% if not selected %}Choose a project.{% endif %}</div>
+  <div id="cl-summary" class="card" hidden></div>
+  <div id="cl-filters" class="row" hidden>
+    <label>Show <select id="cl-kind"><option value="">all kinds</option></select></label>
+    <label class="chip"><input id="cl-weak" type="checkbox"> needs a look</label>
+    <label class="chip"><input id="cl-changed" type="checkbox"> changed by me</label>
+    <label>Search <input id="cl-search" type="search" maxlength="200"></label>
+  </div>
+  <div id="cl-tree"></div>
+  <div id="cl-block" class="card" hidden>
+    <h2>Managed block</h2>
+    <p>Caution: this replaces the managed block in your sandman.yaml. Optionally paste your current sandman.yaml to get the complete new file.</p>
+    <textarea id="cl-yaml" rows="6" maxlength="500000" aria-label="Current sandman.yaml"></textarea>
+    <pre id="cl-text"></pre>
+    <div class="row">
+      <button id="cl-diff-btn" type="button" class="secondary">Show diff</button>
+      <button id="cl-copy" type="button">Copy</button>
+      <button id="cl-download" type="button">Download sandman.yaml</button>
+    </div>
+    <pre id="cl-diff" hidden></pre>
+  </div>
+</div>
+<script src="/static/classification.js"></script>
+{% endblock %}

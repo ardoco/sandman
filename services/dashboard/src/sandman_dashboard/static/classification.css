@@ -1,0 +1,9 @@
+#cl-tree details { margin-left: 1.2rem; }
+#cl-tree .cl-row { display: flex; gap: .75rem; align-items: center; padding: .1rem 0; }
+#cl-tree .cl-leaf { margin-left: 1.2rem; }
+#cl-tree .cl-weak { color: var(--warn); font-weight: 700; }
+#cl-tree .cl-note, #cl-summary .cl-note { color: var(--muted); font-size: .85em; }
+#cl-tree .cl-edited { font-weight: 700; }
+#cl-yaml { width: 100%; font-family: var(--mono); }
+#cl-bar { display: flex; height: .8rem; border: 1px solid var(--border); }
+#cl-bar span { background: var(--accent); border-right: 1px solid var(--surface); }

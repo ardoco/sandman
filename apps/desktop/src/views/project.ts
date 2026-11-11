@@ -3,6 +3,7 @@ import { cmd, Ctx, Lifecycle, Project, StackState } from "../api";
 import { lastLines, windowTitle } from "../logic";
 import { clear, h, toast } from "./dom";
 import { renderAsk } from "./ask";
+import { renderClassification } from "./classification";
 import { renderFindings } from "./findings";
 import { renderGraph } from "./graph";
 import { renderIngest } from "./ingest";
@@ -13,7 +14,7 @@ import { renderKeys } from "./keys";
 import { renderSettings } from "./settings";
 import { renderWorkflows } from "./workflows";
 
-const TABS = ["Overview", "Ingest", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph", "Settings"];
+const TABS = ["Overview", "Ingest", "Classification", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph", "Settings"];
 
 export async function renderProject(root: HTMLElement, project: Project, leave: () => void): Promise<void> {
   const local = project.mode === "local";
@@ -62,6 +63,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
       switch (t) {
         case "Overview": cleanup = await renderOverview(view, ctx, stack); break;
         case "Ingest": cleanup = await renderIngest(view, ctx); break;
+        case "Classification": cleanup = await renderClassification(view, ctx); break;
         case "Workflows": cleanup = await renderWorkflows(view, ctx); break;
         case "Findings": await renderFindings(view, ctx); break;
         case "Trace links": await renderLinks(view, ctx); break;

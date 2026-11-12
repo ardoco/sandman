@@ -11,7 +11,9 @@ COPY services/inconsistency-agent/detector-spi/pom.xml services/inconsistency-ag
 COPY services/inconsistency-agent/detector-ardoco/pom.xml services/inconsistency-agent/detector-ardoco/pom.xml
 COPY services/code-extractor-ardoco services/code-extractor-ardoco
 COPY contracts contracts
-RUN --mount=type=cache,target=/root/.m2 mvn -B -q -pl services/code-extractor-ardoco -am package -DskipTests
+COPY scripts/ardoco-id-bootstrap.sh scripts/ardoco-id-bootstrap.sh
+RUN --mount=type=cache,target=/root/.m2 scripts/ardoco-id-bootstrap.sh \
+ && mvn -B -q -pl services/code-extractor-ardoco -am package -DskipTests
 # onnxruntime would unpack its native library to java.io.tmpdir at run time; compose mounts /tmp noexec (tmpfs), where
 # dlopen fails, so ship it unpacked and point -Donnxruntime.native.path at it.
 RUN mkdir /onnx-unpack /opt/onnxruntime && cd /onnx-unpack \

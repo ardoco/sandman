@@ -21,6 +21,12 @@
       <artifactId>common</artifactId>
       <version>${ardoco.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.github.ardoco</groupId>
+          <artifactId>named-architecture-entity-recognition</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 </project>

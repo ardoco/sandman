@@ -14,11 +14,6 @@
   <artifactId>sandman-inconsistency-detector-ardoco</artifactId>
   <name>Inconsistency detector ardoco-id (ArDoCo inconsistency detection).</name>
 
-  <properties>
-    <!-- Built from the pinned ArDoCo main commit 21ef682 by scripts/ardoco-id-bootstrap.sh (make ardoco); not on Maven Central. -->
-    <ardoco.id.version>2.2.0-SNAPSHOT</ardoco.id.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>io.github.ardoco</groupId>
@@ -33,7 +28,7 @@
     <dependency>
       <groupId>io.github.ardoco.id</groupId>
       <artifactId>pipeline-id</artifactId>
-      <version>${ardoco.id.version}</version>
+      <version>${ardoco.version}</version>
       <exclusions>
         <!-- Only the code extractors of model-provider use them (Magika file typing, JDT Java parsing); the ID path reads PCM and UML. -->
         <exclusion>

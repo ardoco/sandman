@@ -1,3 +1,8 @@
 edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArdocoApproach
 edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArdocodeApproach
 edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.TransarcApproach
+edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArtemisApproach
+edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArtemisClassApproach
+edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArtemisDatafileApproach
+edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArtemisTransarcApproach
+edu.kit.kastel.mcse.ardoco.sandman.tlr.ardoco.ArtemisExarchApproach

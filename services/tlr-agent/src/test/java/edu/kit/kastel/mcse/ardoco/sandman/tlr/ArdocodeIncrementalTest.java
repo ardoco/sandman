@@ -289,7 +289,7 @@ class ArdocodeIncrementalTest {
         var incremental = activeIds();
 
         var first = runRow(done.taskId());
-        assertEquals("2.1.0+a1", first.get("v"));
+        assertEquals("2.2.0-SNAPSHOT+21ef682.a1", first.get("v"));
         Set<String> current = new TreeSet<>(code.stream().map(Seeded::versionId).toList());
         current.add(doc2.versionId());
         assertEquals(current, used(done.taskId()), "USED: the current versions of the project, nothing superseded");

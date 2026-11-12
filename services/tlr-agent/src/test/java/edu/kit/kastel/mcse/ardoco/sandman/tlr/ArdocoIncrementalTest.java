@@ -261,7 +261,7 @@ class ArdocoIncrementalTest {
         var first = kg.read(
                 "MATCH (r:Run {tool: 'ardoco', a2aTaskId: $t}) RETURN r.configHash AS hash, r.toolVersion AS v",
                 Map.of("t", done.taskId()));
-        assertEquals("2.1.0+a2", first.get(0).get("v"));
+        assertEquals("2.2.0-SNAPSHOT+21ef682.a1", first.get(0).get("v"));
         // determinism: the same input again gives the same ids and configHash
         var again = run(merged);
         assertEquals(incremental, activeIds());

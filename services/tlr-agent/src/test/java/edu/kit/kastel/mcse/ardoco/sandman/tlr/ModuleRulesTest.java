@@ -1,5 +1,6 @@
 package edu.kit.kastel.mcse.ardoco.sandman.tlr;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -64,6 +65,15 @@ class ModuleRulesTest {
     @Test
     void codeExtractionLibrariesAreNotOnTheRuntimeClasspath() {
         var loader = getClass().getClassLoader();
+        assertNull(loader.getResource("org/eclipse/jdt/core/dom/ASTParser.class"));
+        assertNull(loader.getResource("ai/onnxruntime/OrtEnvironment.class"));
+        assertNull(loader.getResource("edu/kit/kastel/mcse/ardoco/magika/FileTypePredictor.class"));
+    }
+
+    @Test
+    void theArtemisModuleIsAllowedAndBringsNoCodeExtractionLibraries() {
+        var loader = getClass().getClassLoader();
+        assertNotNull(loader.getResource("edu/kit/kastel/mcse/ardoco/tlr/artemis/strategies/ArtemisNerStrategy.class"));
         assertNull(loader.getResource("org/eclipse/jdt/core/dom/ASTParser.class"));
         assertNull(loader.getResource("ai/onnxruntime/OrtEnvironment.class"));
         assertNull(loader.getResource("edu/kit/kastel/mcse/ardoco/magika/FileTypePredictor.class"));

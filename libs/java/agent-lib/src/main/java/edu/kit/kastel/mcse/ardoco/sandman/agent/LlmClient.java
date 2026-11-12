@@ -66,6 +66,23 @@ public final class LlmClient {
                 response.path("model").asString(""));
     }
 
+    /**
+     * One chat completion with OpenAI tool calling: {@code messages} and {@code tools} are OpenAI JSON arrays ({@code tools}
+     * may be empty). Returns the first choice's {@code message} node ({@code content} and {@code tool_calls}).
+     */
+    public JsonNode chatWithTools(String route, ArrayNode messages, ArrayNode tools, double temperature, Integer seed) {
+        ObjectNode body = body(route);
+        body.set("messages", messages);
+        if (!tools.isEmpty()) {
+            body.set("tools", tools);
+        }
+        body.put("temperature", temperature);
+        if (seed != null) {
+            body.put("seed", seed);
+        }
+        return post("/chat/completions", body).path("choices").path(0).path("message");
+    }
+
     /** One embedding of one text; one request per text, so a cassette key depends on one text only. */
     public float[] embed(String route, String text) {
         ObjectNode body = body(route);

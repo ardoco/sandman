@@ -1,6 +1,6 @@
 # Spike T3.9: programming-language and architectural-style checks
 
-Status: source analysis only. Not measured. No LLM was available.
+Status: source analysis plus one live run on `sandman-example` (TeaStore) on 2026-11-12. Route: `local-only` policy, so the chat route is `ollama/qwen3:4b` on the remote Ollama.
 
 ## Result
 
@@ -10,8 +10,9 @@ Status: source analysis only. Not measured. No LLM was available.
 | Tools | `CodeDirectoryReadOnlyTools` runs on that directory. The ACM variant offers fewer tools and needs a code model service. |
 | LLM injection (decision 3) | Build the NER and validation agents from public classes. The chat model is `ArtemisChatModel` over the gateway client. |
 | Tool calls over the gateway | `LlmClient.chatWithTools` sends OpenAI `tools` and returns `tool_calls`. `ArtemisChatModel` maps them. Tested with a stub gateway. |
-| Cost and time | Not measured. One NER call per document. One validation agent run per statement, with several tool round trips. |
-| Quality | Not measured. Step 8 measures it. |
+| Cost and time | Measured on TeaStore. `programming-language-id`: 247 s, `artemis-id`: 429 s, `architectural-style-id`: 51 s. Single gateway calls take 18 to 96 s. The model is local, so the money cost is zero. |
+| Quality | TeaStore has no inconsistency gold standard. `programming-language-id` raised 3 findings (the first one: sentence says HTML, the code contradicts). `architectural-style-id` raised none. Not rated for precision. |
+| Severity | The finding severity is `warning`. The task text says `medium`. The contract allows only `info`, `warning`, `error`, so `warning` stays. |
 
 ## Not used from upstream
 
@@ -21,5 +22,5 @@ Status: source analysis only. Not measured. No LLM was available.
 
 ## Open
 
-* Measure cost, time and precision on `sandman-example` and the benchmark projects.
+* Measure precision on the benchmark projects with an inconsistency gold standard (not vendored yet).
 * Compare the directory input with the ACM input.

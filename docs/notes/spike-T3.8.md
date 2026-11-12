@@ -65,3 +65,23 @@ Old cached ACMs were written before `codeFiles` existed. New values come from `w
 * The staged trees also changed (more files per project). The growth mixes both effects.
 * NOT measured: the effect on the F-1 shared code model budget. Compare with the T5.4 limit.
 * NOT measured: Magika time on the larger trees. TEAMMATES extraction took 40.9 s with 359 MiB peak heap.
+
+## Live run on TeaStore (2026-11-12, `qwen3:4b`, `local-only`)
+
+Setup: `sandman-example`, all `artemis*` approaches enabled temporarily, one full workflow.
+
+| Item | Result |
+|------|--------|
+| Full workflow time | 1507 s with the ArTEMiS approaches. 126 to 162 s without them. |
+| Links | `artemis` 46, `artemis-class` 6, `ardoco` 40, `transarc` 603, `stub-name-match` 3209. |
+| `artemis-datafile`, `artemis-transarc`, `artemis-exarch` | 0 links. TeaStore has no data files. Not investigated for the other two. |
+| Cost | Zero money cost (local model). Each LLM call takes 18 to 96 s. |
+| SAD to SAM, `artemis` against gold (27 links) | Precision 0.913, recall 0.778, F1 0.84. |
+| SAD to SAM, `ardoco` against the same gold | Precision 1.0, recall 0.741, F1 0.851. |
+| Difference in F1 | -0.011 for `artemis`, 95 % CI [-0.12, 0.15], McNemar p = 1.0. Not significant. |
+| SAD to code | Not comparable. The gold file lists package directories. The exports list class files. |
+
+* U1 is not resolved. A 4B model is a weak test for the NER step. A stronger route may change the numbers.
+* TeaStore equivalence against the standalone upstream runner with recorded LLM answers: NOT done.
+* Production `CodeModelSource` for the class and datafile strategies: NOT wired.
+* MediaStore 18 against 29 links: NOT re-checked.

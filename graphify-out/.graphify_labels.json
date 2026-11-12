@@ -33,7 +33,6 @@
   "97": "C97: ambiguous_python_import_9048e1732800, strategies/_",
   "100": "C100: EventPublisher, fakeMsg, .Ack()",
   "101": "C101: pages.yml, runs-on, steps",
-  "102": "C102: BudgetExceededError, The gateway budget of the vir",
   "105": "C105: rules.yaml, debounceSeconds, source",
   "106": "C106: go_pkg_crypto_rand, go_pkg_crypto_sha256, go_pkg_e",
   "108": "C108: Knowledge graph page template, History page templa",

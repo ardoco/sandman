@@ -22,7 +22,7 @@ public class CodeModelSkill implements Skill {
 
     @Override
     public SkillResult run(SkillContext ctx, JsonNode input) throws SkillException {
-        CodeService.requireCaller(ctx, "tlr-agent");
+        CodeService.requireCaller(ctx, "tlr-agent", "inconsistency-agent");
         return SkillResult.of(service.codeModel(input));
     }
 }

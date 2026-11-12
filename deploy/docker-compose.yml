@@ -255,7 +255,7 @@ services:
     environment:
       SANDMAN_SERVICE_NAME: code-extractor-ardoco
       # one inbound token per caller (caller=file); the plugin knows who calls. No service token: the plugin makes no outbound call
-      SANDMAN_PLUGIN_INBOUND_TOKEN_FILES: extraction-agent=/run/secrets/plugin_in_code-extractor-ardoco,tlr-agent=/run/secrets/plugin_in_code-extractor-ardoco_tlr
+      SANDMAN_PLUGIN_INBOUND_TOKEN_FILES: extraction-agent=/run/secrets/plugin_in_code-extractor-ardoco,tlr-agent=/run/secrets/plugin_in_code-extractor-ardoco_tlr,inconsistency-agent=/run/secrets/plugin_in_code-extractor-ardoco_inc
       SANDMAN_ARTIFACT_STORE: /artifacts
       SANDMAN_CODE_MAX_FILES: ${SANDMAN_CODE_MAX_FILES:-20000}      # per call; above: INVALID_INPUT
       SANDMAN_CODE_MAX_BYTES: ${SANDMAN_CODE_MAX_BYTES:-67108864}   # 64 MB per call; above: INVALID_INPUT
@@ -269,7 +269,7 @@ services:
       - artifact-store:/artifacts:ro
     tmpfs:
       - /tmp:size=320m,mode=1777,noexec,nosuid,nodev   # staged copy and Magika copies (2 x max bytes), deleted after each call
-    secrets: [plugin_in_code-extractor-ardoco, plugin_in_code-extractor-ardoco_tlr]
+    secrets: [plugin_in_code-extractor-ardoco, plugin_in_code-extractor-ardoco_tlr, plugin_in_code-extractor-ardoco_inc]
     networks: [internal]                         # no egress, no published port
     read_only: true
     cap_drop: [ALL]
@@ -298,13 +298,16 @@ services:
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75     # of mem_limit
       SANDMAN_CORENLP_URL: http://corenlp-gateway:8080   # detector ardoco-id: only its own gateway token (T2.5)
       SANDMAN_CORENLP_TOKEN_FILE: /run/secrets/corenlp_client_token_inconsistency-agent
+      SANDMAN_CODE_MODEL_URL: http://code-extractor-ardoco:8000   # detector artemis-id, strategies class and datafile (T3.9)
+      SANDMAN_CODE_MODEL_TOKEN_FILE: /run/secrets/plugin_in_code-extractor-ardoco_inc   # the inconsistency-agent's own token
     group_add: ["${SANDMAN_LOG_GID:-10001}"]   # shared group of data/logs (deploy/gen-secrets.sh)
     volumes:
       - ../config:/config:ro
       - ../data/logs:/logs
       - artifact-store:/artifacts:ro
     secrets: [traverse_password, svc_tokens_verify, svc_token_inconsistency-agent, plugin_in_plugin-stubs,
-              llm_key_inconsistency, llm_key_inconsistency_local, corenlp_client_token_inconsistency-agent]
+              llm_key_inconsistency, llm_key_inconsistency_local, corenlp_client_token_inconsistency-agent,
+              plugin_in_code-extractor-ardoco_inc]
     networks: [internal, corenlp]               # corenlp: only to reach corenlp-gateway, no egress
     mem_limit: 5g
     depends_on:
@@ -576,6 +579,7 @@ secrets:
   plugin_in_plugin-stubs: { file: ./secrets/plugin_in_plugin-stubs }
   plugin_in_code-extractor-ardoco: { file: ./secrets/plugin_in_code-extractor-ardoco }          # caller extraction-agent
   plugin_in_code-extractor-ardoco_tlr: { file: ./secrets/plugin_in_code-extractor-ardoco_tlr }  # caller tlr-agent
+  plugin_in_code-extractor-ardoco_inc: { file: ./secrets/plugin_in_code-extractor-ardoco_inc }  # caller inconsistency-agent
   llm_key_orchestrator: { file: ./secrets/llm_key_orchestrator }
   llm_key_extraction: { file: ./secrets/llm_key_extraction }
   llm_key_extraction_local: { file: ./secrets/llm_key_extraction_local }

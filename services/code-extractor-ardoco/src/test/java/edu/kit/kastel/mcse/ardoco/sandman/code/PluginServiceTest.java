@@ -97,6 +97,20 @@ class PluginServiceTest {
     }
 
     @Test
+    void theInconsistencyAgentGetsTheCodeModelButNotExtract() throws Exception {
+        var codeModel = call(
+                Fixtures.INCONSISTENCY_TOKEN,
+                "sandman.plugin.code-model",
+                CodeModelSkillTest.codeModelInput(Fixtures.mappingFixture()));
+        assertEquals("TASK_STATE_COMPLETED", codeModel.state());
+        var extract = call(
+                Fixtures.INCONSISTENCY_TOKEN,
+                "sandman.plugin.extract",
+                Fixtures.extractInput(Fixtures.mappingFixture(), null));
+        assertEquals("FORBIDDEN", extract.error().get("code").asString());
+    }
+
+    @Test
     void extractReturnsContractValidElements() throws Exception {
         var task = call(
                 Fixtures.EXTRACTION_TOKEN,

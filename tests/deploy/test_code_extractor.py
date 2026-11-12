@@ -25,11 +25,12 @@ def test_artifacts_read_only_and_root_filesystem_read_only() -> None:
 
 
 def test_only_the_inbound_tokens_are_mounted_one_per_caller() -> None:
-    assert SERVICE["secrets"] == ["plugin_in_code-extractor-ardoco", "plugin_in_code-extractor-ardoco_tlr"]
+    assert SERVICE["secrets"] == ["plugin_in_code-extractor-ardoco", "plugin_in_code-extractor-ardoco_tlr", "plugin_in_code-extractor-ardoco_inc"]
     callers = dict(e.split("=") for e in SERVICE["environment"]["SANDMAN_PLUGIN_INBOUND_TOKEN_FILES"].split(","))
     assert callers == {
         "extraction-agent": "/run/secrets/plugin_in_code-extractor-ardoco",
         "tlr-agent": "/run/secrets/plugin_in_code-extractor-ardoco_tlr",
+        "inconsistency-agent": "/run/secrets/plugin_in_code-extractor-ardoco_inc",
     }
     assert "SANDMAN_PLUGIN_INBOUND_TOKEN_FILE" not in SERVICE["environment"]
     assert not any(k.startswith(("SANDMAN_KG", "SANDMAN_LLM", "SANDMAN_SERVICE_TOKEN")) for k in SERVICE["environment"])
@@ -67,3 +68,14 @@ def test_base_images_are_pinned_by_digest() -> None:
         if line.startswith("FROM ")
     ]
     assert froms and all("@sha256:" in line for line in froms)
+
+
+def test_inconsistency_agent_mounts_only_its_own_code_model_token() -> None:
+    inc = COMPOSE["services"]["inconsistency-agent"]
+    assert "plugin_in_code-extractor-ardoco_inc" in inc["secrets"]
+    assert "plugin_in_code-extractor-ardoco_tlr" not in inc["secrets"]
+    assert "plugin_in_code-extractor-ardoco" not in inc["secrets"]
+    assert inc["environment"]["SANDMAN_CODE_MODEL_TOKEN_FILE"] == "/run/secrets/plugin_in_code-extractor-ardoco_inc"
+    assert inc["environment"]["SANDMAN_CODE_MODEL_URL"] == "http://code-extractor-ardoco:8000"
+    assert "plugin_in_code-extractor-ardoco_inc" not in COMPOSE["services"]["tlr-agent"]["secrets"]
+    assert "plugin_in_code-extractor-ardoco_inc" in COMPOSE["secrets"]

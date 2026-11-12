@@ -29,7 +29,7 @@ case "$mode" in
     ;;
   *) echo "check-env: SANDMAN_CORENLP_MODE must be remote or local, got '$mode'" >&2; exit 1 ;;
 esac
-for t in plugin_in_plugin-stubs plugin_in_code-extractor-ardoco plugin_in_code-extractor-ardoco_tlr; do
+for t in plugin_in_plugin-stubs plugin_in_code-extractor-ardoco plugin_in_code-extractor-ardoco_tlr plugin_in_code-extractor-ardoco_inc; do
   [ -s "$here/secrets/$t" ] || { echo "check-env: $here/secrets/$t missing or empty; run 'make secrets' (deploy/gen-secrets.sh) again" >&2; exit 1; }
 done
 f="$(cd "$(dirname "$0")" && pwd)/secrets/gateway.env"

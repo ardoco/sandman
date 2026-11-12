@@ -692,7 +692,7 @@
           "properties": {
             "codeFiles": {
               "type": "array",
-              "description": "One entry per compilation unit and one per other file that the file type detection finds. The array is sorted by path, then by compilationUnitId. The plugin assigns the ids in that order.",
+              "description": "One entry per compilation unit and one per other file that the file type detection finds. The plugin keeps one entry per path and compilationUnitId. The array is sorted by path, then by compilationUnitId. The plugin assigns the ids in that order.",
               "items": {
                 "type": "object",
                 "required": [

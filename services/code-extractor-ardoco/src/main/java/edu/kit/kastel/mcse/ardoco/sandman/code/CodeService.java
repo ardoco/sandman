@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -114,14 +115,21 @@ public class CodeService {
     /**
      * Magika returns its files in an order that depends on the random staging directory, and ArDoCo numbers
      * {@code codeFiles} in that order. Sort them by path and reuse the same ids in that order, so equal input gives an
-     * equal ACM.
+     * equal ACM. Upstream also lists a unit once for each package that contains it (nested packages are endpoints too),
+     * so drop repeated entries of the same path and unit.
      */
     static void canonicalizeCodeFiles(JsonNode codeFiles) {
         if (!(codeFiles instanceof ArrayNode array)) {
             return;
         }
         List<ObjectNode> files = new ArrayList<>();
-        array.forEach(f -> files.add((ObjectNode) f));
+        Set<String> seen = new HashSet<>();
+        array.forEach(f -> {
+            if (seen.add(codeFilePath((ObjectNode) f) + "\0"
+                    + f.path("compilationUnitId").asString(""))) {
+                files.add((ObjectNode) f);
+            }
+        });
         List<String> ids =
                 files.stream().map(f -> f.path("id").asString()).sorted().toList();
         files.sort(Comparator.comparing(CodeService::codeFilePath)

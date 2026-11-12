@@ -78,7 +78,7 @@ class MixedLanguagesTest {
                         "py/my app/odd name.py",
                         "scripts/run.sh",
                         "src/main/java/com/acme/Greeter.java"),
-                paths.stream().distinct().toList());
+                paths);
         Set<String> languages = new TreeSet<>();
         extract1.get("elements").forEach(e -> {
             if ("file".equals(e.get("kind").asString()) && e.has("properties")) {

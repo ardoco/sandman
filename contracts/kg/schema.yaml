@@ -160,11 +160,11 @@ nodes:
       id: { type: string, required: true, description: "inc_ = stableId(projectId, fingerprint)" }
       fingerprint: { type: string, required: true, description: "conventions.fingerprint (detector id without version)" }
       projectId: { type: string, required: true }
-      type: { type: string, required: true }
+      type: { type: string, required: true, description: "Free string. ArDoCo and ArTEMiS types: undocumented-model-element, missing-model-element (element-level), programming-language-mismatch, architectural-style-mismatch (statement-level: involve the sentence only, no model element)." }
       severity: { type: string, required: true, enum: [info, warning, error] }
       title: { type: string, required: true }
       description: { type: string, required: false }
-      evidence: { type: string, required: false, description: "JSON string" }
+      evidence: { type: string, required: false, description: "JSON string. Artemis findings carry target (component, class or datafile; comma-separated when one sentence has several). Statement-level findings carry docVersionId, sentence, sentenceText and statements (a list of statement and explanation)." }
       status: { type: string, required: true, enum: [OPEN, DEFERRED, ACCEPTED, REJECTED, RESOLVED, REOPENED] }
       verification: { type: string, required: true, enum: [none, pending, confirmed] }
       confidence: { type: float, required: false }

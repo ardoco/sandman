@@ -143,3 +143,11 @@ Decision 6 needs ArTEMiS to match or beat classic on the benchmark projects.
 * With `gpt-6-luna`, `artemis` matches or beats `ardoco` on both projects that were run. The time is 564 s against 126 to 162 s for the full workflow, and the model is a cloud model.
 * Not evaluated: beets, scons, zengarden, rod, coronawarnapp, teammates, bigbluebutton (not vendored), the SAD-to-code gold (class against package granularity), the inconsistency gold files, the standalone-runner equivalence, `make perf` and the T5.4 F-1 column.
 * Verdict: decision 6 is SUPPORTED on two projects with a strong cloud model, and NOT shown for the whole benchmark set or for a local model. Two projects are not the full set. The defaults stay unchanged. No ADR, site or release-notes change.
+
+## Decision and evidence limits (2026-11-12)
+
+* The user decided to flip the defaults after reading this note. The verdict above is a limit, not a pass for the whole set.
+* The evidence covers 2 projects (TeaStore, MediaStore) and 1 strong cloud model (`gpt-6-luna`). The TeaStore gain is not significant after Holm. With `qwen3:4b` the result equals classic.
+* The cost is about 4 times the runtime (564 s against 126 to 162 s). Token cost is not measured.
+* Projects not evaluated: beets, scons, zengarden, rod, coronawarnapp, teammates, bigbluebutton. No inconsistency gold was run.
+* The defaults changed: `artemis`, `artemis-transarc`, `artemis-id` on; `ardoco`, `transarc`, `ardoco-id` run only without an LLM route. Rollback: set `enabled: false` on the ArTEMiS entries and remove `fallbackFor`.

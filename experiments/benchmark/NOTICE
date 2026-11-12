@@ -1,0 +1,4 @@
+Gold standards, code models: ArDoCo benchmark, MIT (LICENSE-Benchmark), Copyright (c) 2022 Sophie Corallo, Dominik Fuchss, Jan Keim.
+Texts beets.txt, rod.txt, zengarden.txt, scons.txt, coronawarnapp.txt: taken from ArDoCo core tests-base at 21ef682. Upstream gives
+no text licence. The texts may derive from the documentation of the described projects (beets MIT, ROD MIT, ZenGarden LGPL-3.0,
+SCons MIT, cwa-server Apache-2.0). This is not verified. Used for evaluation only.

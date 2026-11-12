@@ -1,7 +1,8 @@
 {
-  "classifierVersion": 1,
+  "classifierVersion": 2,
   "versionHashes": {
-    "1": "4182d36c21c310365b0f4674ffadde32411bd521bb165c5cede3bd18f92b8e37"
+    "1": "4182d36c21c310365b0f4674ffadde32411bd521bb165c5cede3bd18f92b8e37",
+    "2": "3be43981e4db27e113dd27f9a7bce73f56f07e0fe2d004bfccdd35ebb1d3f991"
   },
   "cases": [
     {
@@ -573,11 +574,11 @@
       "head": "",
       "rules": [],
       "expected": {
-        "kind": "other",
+        "kind": "build",
         "format": null,
-        "source": "default",
-        "reason": "no signal",
-        "weak": true
+        "source": "heuristic",
+        "reason": "file name 'Makefile'",
+        "weak": false
       }
     },
     {
@@ -680,6 +681,114 @@
         "source": "rule",
         "reason": "rule legacy/**",
         "weak": false
+      }
+    },
+    {
+      "path": "Dockerfile",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'Dockerfile'",
+        "weak": false
+      }
+    },
+    {
+      "path": "svc/Dockerfile.prod",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'Dockerfile.prod'",
+        "weak": false
+      }
+    },
+    {
+      "path": "pom.xml",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'pom.xml'",
+        "weak": false
+      }
+    },
+    {
+      "path": "build.gradle",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'build.gradle'",
+        "weak": false
+      }
+    },
+    {
+      "path": "app/build.gradle.kts",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'build.gradle.kts'",
+        "weak": false
+      }
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'ci.yml'",
+        "weak": false
+      }
+    },
+    {
+      "path": "docker-compose.yml",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'docker-compose.yml'",
+        "weak": false
+      }
+    },
+    {
+      "path": "deploy/app.yaml",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "build",
+        "format": null,
+        "source": "heuristic",
+        "reason": "file name 'app.yaml'",
+        "weak": false
+      }
+    },
+    {
+      "path": "config/x.yml",
+      "head": "",
+      "rules": [],
+      "expected": {
+        "kind": "other",
+        "format": null,
+        "source": "default",
+        "reason": "no signal",
+        "weak": true
       }
     }
   ]

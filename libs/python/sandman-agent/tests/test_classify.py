@@ -36,6 +36,17 @@ REQS = b"# REQ-1 A\nx\n# FR-12 B\ny\n"
         ("docs/guide.md", b"", ("documentation", None)),
         ("README.md", b"# hi\n", ("documentation", None)),
         ("logo.png", b"", ("other", None)),
+        ("Dockerfile", b"", ("build", None)),
+        ("svc/Dockerfile.prod", b"", ("build", None)),
+        ("svc/pom.xml", b"", ("build", None)),
+        ("app/build.gradle", b"", ("build", None)),
+        ("app/build.gradle.kts", b"", ("build", None)),
+        ("Makefile", b"", ("build", None)),
+        (".github/workflows/ci.yml", b"", ("build", None)),
+        ("docker-compose.yml", b"", ("build", None)),
+        ("deploy/app.yaml", b"", ("build", None)),
+        ("config/app.yml", b"", ("other", None)),
+        ("src/pom.xml.bak", b"", ("other", None)),
     ],
 )
 def test_guess(path: str, head: bytes, expected: tuple[str, str | None]) -> None:

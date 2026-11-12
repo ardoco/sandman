@@ -66,7 +66,7 @@ nodes:
       id: { type: string, required: true, description: "art_ = stableId(projectId, path)" }
       projectId: { type: string, required: true }
       path: { type: string, required: true }
-      kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, documentation, code, test, other] }
+      kind: { type: string, required: true, enum: [requirements, architecture-doc, architecture-model, documentation, code, test, build, other] }
       format: { type: string, required: false, description: "e.g. markdown, pdf, pcm-repository, uml, component-listing, java" }
       kindSource: { type: string, required: false, enum: [rule, heuristic, default], description: "Why kind has its value: manifest rule, path/content heuristic or no signal. Absent = unknown." }
       kindReason: { type: string, required: false, description: "Short text of the classifier verdict, e.g. suffix .java, rule docs/**. Absent = unknown." }

@@ -156,7 +156,7 @@ export function maskKey(kind: KeyKind, hint: string): string {
   return hint ? `••••${hint}` : "••••";
 }
 
-export const CLASS_KINDS = ["requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "other", "ignored"] as const;
+export const CLASS_KINDS = ["requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "build", "other", "ignored"] as const;
 
 export interface ClassRow { path: string; name: string; type: "dir" | "file"; kind: string; files: number; weak: boolean; source: string | null; reason: string | null; depth: number; }
 export interface ClassFile { path: string; kind: string; source: string; reason: string; weak: boolean; }

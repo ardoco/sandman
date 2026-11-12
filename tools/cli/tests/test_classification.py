@@ -45,7 +45,7 @@ def run(capsys: pytest.CaptureFixture[str], *argv: str) -> tuple[int, str, str]:
 def test_folded_output(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     code, out, _ = run(capsys, str(project(tmp_path)))
     lines = out.splitlines()
-    assert code == 0 and "7 files" in lines[0] and "classifier v1" in lines[0]
+    assert code == 0 and "7 files" in lines[0] and "classifier v2" in lines[0]
     assert any(ln.split()[:3] == ["code", "src/", "2"] for ln in lines)
     assert any(ln.split()[:3] == ["documentation", "?", "docs/"] for ln in lines)
     assert any(ln.split()[:2] == ["mixed", "tools/"] and "2 kinds" in ln for ln in lines)
@@ -135,7 +135,7 @@ def test_edited_block_needs_force(
 def test_check_exit_code_and_pin_legacy(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     root = project(tmp_path)
     code, out, _ = run(capsys, str(root), "--check")
-    assert code == 1 and "were not reviewed" in out and "kind changed in classifier v1: docs/api.md" in out
+    assert code == 1 and "were not reviewed" in out and "kind changed in classifier v2: docs/api.md" in out
     assert run(capsys, str(root), "--pin-legacy", "--force")[0] == 0
     cfg = (root / "sandman.yaml").read_text()
     assert '"docs/api.md"' in cfg or '"docs/**"' in cfg
@@ -201,7 +201,7 @@ def test_ingest_skips_ignored_and_sends_version(tmp_path: Path, capsys: pytest.C
     requests: list[httpx.Request] = []
     assert ingest(root, requests, "--no-review") == 0
     manifest = json.loads(requests[0].content)
-    assert manifest["classifierVersion"] == 1
+    assert manifest["classifierVersion"] == 2
     assert "node_modules/x/i.js" not in {f["path"] for f in manifest["files"]} and len(manifest["files"]) == 7
     assert "ignored (node_modules/)" in capsys.readouterr().err
 

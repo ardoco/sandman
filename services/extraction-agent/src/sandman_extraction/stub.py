@@ -6,7 +6,7 @@ from typing import Any
 FILE_KEY = "file"
 # requirements files get a TextUnit file element so only the requirements extractor yields Requirement nodes
 LABEL_BY_KIND = {"requirements": "TextUnit", "architecture-doc": "TextUnit", "documentation": "TextUnit",
-                 "architecture-model": "ModelElement", "code": "CodeUnit", "test": "TestCase",
+                 "architecture-model": "ModelElement", "code": "CodeUnit", "test": "TestCase", "build": "CodeUnit",
                  "other": "TextUnit"}  # fmt: skip
 
 

@@ -35,7 +35,7 @@ All user-facing traffic goes through one address, the edge proxy on `127.0.0.1:8
 ## Concepts
 
 - **Project**: the unit of access and analysis, identified by a slug (`^[a-z0-9][a-z0-9-]{1,62}$`, for example `demo`). It has a display name and an LLM policy (`cloud-allowed` or `local-only`). The policy decides which language model route a component may use (`local-only` never uses a cloud route).
-- **Artifact**: one file of the project, identified by its relative path. It has a **kind** (`requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `other`) and optionally a format.
+- **Artifact**: one file of the project, identified by its relative path. It has a **kind** (`requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `build`, `other`) and optionally a format.
 - **Version**: the immutable content of an artifact (identified by its SHA-256). An artifact has at most one current version. An artifact is deleted when a full snapshot no longer contains its path.
 - **Ingestion**: one upload of a snapshot (`full`) or of changed files (`partial`), numbered per project, with an optional source revision such as a Git commit.
 - **Element**: an extracted unit of a version: a requirement, a document section or sentence, a model component or interface, a code unit, a test. Its **key** is `art_<id>#<local key>`, for example `art_983d...#REQ-1`.

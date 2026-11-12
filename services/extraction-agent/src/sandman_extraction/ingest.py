@@ -27,7 +27,9 @@ SPECIAL_MODES = (stat.S_IFLNK, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFIFO, stat.S_
 _DRIVE = re.compile(r"^[A-Za-z]:")
 INGESTION_COMPLETED = "sandman.ingestion.completed"
 RESERVED_PREFIX = ".sandman/"
-Kind = Literal["requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "other"]
+Kind = Literal[
+    "requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "build", "other"
+]
 
 
 def head_of(store: ArtifactStore, uri: str) -> bytes:

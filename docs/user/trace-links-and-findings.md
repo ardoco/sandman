@@ -120,7 +120,7 @@ Caution: reviews only cover links that an approach proposed. The threshold can f
 
 ## Findings
 
-A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`. The detector `artemis-id` (LLM based) exists but is disabled in `config/inconsistency/plugins.yaml`.
+A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`. Three LLM based detectors exist but are disabled in `config/inconsistency/plugins.yaml`: `artemis-id`, `programming-language-id` and `architectural-style-id`.
 
 The detector `ardoco-id` runs the ArDoCo inconsistency detection on each current document and architecture model (PCM or UML). It uses the active trace links of all approaches. It reports two types:
 
@@ -128,6 +128,13 @@ The detector `ardoco-id` runs the ArDoCo inconsistency detection on each current
 |---|---|---|
 | `undocumented-model-element` | `warning` | A model component has no mention in the documentation. The involved element is the model element. |
 | `missing-model-element` | `info` | A sentence names an entity that is not in the model. One finding per sentence. The evidence lists the words with their confidence. |
+
+The detectors `programming-language-id` and `architectural-style-id` check statements in the documentation against the code of the project. They need an LLM route and at least one code artifact. They report one finding per sentence. The finding has no involved model element. The evidence lists each statement and its explanation. Severity is `warning`.
+
+| Type | Meaning |
+|---|---|
+| `programming-language-mismatch` | A sentence names a programming language that the code does not use. |
+| `architectural-style-mismatch` | A sentence names an architectural style that the code does not follow. |
 
 The detector needs the CoreNLP service. If the service is down, the run is `partial` and the detector reports `failed`. No `ardoco-id` finding resolves in that run.
 

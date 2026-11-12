@@ -492,10 +492,10 @@
     "semantic_hash": ""
   },
   "deploy/check-env.sh": {
-    "mtime": 1791735164.1038675,
-    "seen": 1794312116.36597,
-    "ast_hash": "144c3507f47d128a2a0ef38642b5e9da",
-    "semantic_hash": "144c3507f47d128a2a0ef38642b5e9da"
+    "mtime": 1794526648.6123388,
+    "seen": 1794526798.296252,
+    "ast_hash": "55b56954df696daf6a26a637a80c1505",
+    "semantic_hash": ""
   },
   "deploy/corenlp-gateway/entrypoint.sh": {
     "mtime": 1791695462.2021017,
@@ -522,9 +522,9 @@
     "semantic_hash": "1eba0012bbdba68902d818a709152f17"
   },
   "deploy/docker-compose.yml": {
-    "mtime": 1794313403.7481709,
-    "seen": 1794313412.238082,
-    "ast_hash": "efbdbe60f4877074b1f760d7deee9af0",
+    "mtime": 1794526648.613272,
+    "seen": 1794526798.2962549,
+    "ast_hash": "c8eaa258c3c1da045f1fb128b3bceadb",
     "semantic_hash": ""
   },
   "deploy/gateway/config.json": {
@@ -534,10 +534,10 @@
     "semantic_hash": "e3096ab7b6239baab089cb9de63b3306"
   },
   "deploy/gen-secrets.sh": {
-    "mtime": 1794012146.806894,
-    "seen": 1794312116.365974,
-    "ast_hash": "732bfcbe09e94d233a9d324d5d6e7c47",
-    "semantic_hash": "732bfcbe09e94d233a9d324d5d6e7c47"
+    "mtime": 1794526648.6118555,
+    "seen": 1794526798.296256,
+    "ast_hash": "eddcada5f31eda41b14f077b55006a57",
+    "semantic_hash": ""
   },
   "deploy/obs/alerts.yaml": {
     "mtime": 1794046358.870199,
@@ -1758,15 +1758,15 @@
     "semantic_hash": "6539a260b32c735692071e9de8ee8ccf"
   },
   "services/code-extractor-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/code/CodeModelSkill.java": {
-    "mtime": 1791727561.1296935,
-    "seen": 1794312116.366071,
-    "ast_hash": "01ebd30c0d63dfbbb4e684d9520be07c",
-    "semantic_hash": "01ebd30c0d63dfbbb4e684d9520be07c"
+    "mtime": 1794526648.6140773,
+    "seen": 1794526798.296392,
+    "ast_hash": "7a4cd6ab2e9f669b7a9c52d92e55bedb",
+    "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/code/CodeService.java": {
-    "mtime": 1794517226.8914697,
-    "seen": 1794517238.993025,
-    "ast_hash": "211b6145b30517cd332c63a6943a7b46",
+    "mtime": 1794526660.0511653,
+    "seen": 1794526798.296393,
+    "ast_hash": "2feaf1419b2bfc229f47ab5ba16e5095",
     "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/code/ElementMapping.java": {
@@ -1824,10 +1824,10 @@
     "semantic_hash": "f01dcab36ba30ef9083ba20cfb980ea2"
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/Fixtures.java": {
-    "mtime": 1791727554.9528077,
-    "seen": 1794312116.366076,
-    "ast_hash": "c3bee29693f795654b6841dab8b22fcc",
-    "semantic_hash": "c3bee29693f795654b6841dab8b22fcc"
+    "mtime": 1794526706.4023848,
+    "seen": 1794526798.296399,
+    "ast_hash": "b1c3ed58beed28730e86948560bb06bc",
+    "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/HostileInputTest.java": {
     "mtime": 1794313403.7828138,
@@ -1842,9 +1842,9 @@
     "semantic_hash": "b8b73c2889e50d4f5a0683bc27a7fb6f"
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/PluginServiceTest.java": {
-    "mtime": 1794517226.8925605,
-    "seen": 1794517238.9933372,
-    "ast_hash": "201e5c1d40f9c22b57d92bd5d12a267b",
+    "mtime": 1794526660.051688,
+    "seen": 1794526798.296402,
+    "ast_hash": "480886e93ad081525eaa49e4543a3efa",
     "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/test/resources/fixtures/mapping/NoPackage.java": {
@@ -2646,9 +2646,9 @@
     "semantic_hash": "c1bd888c7bf20d026f2a40058c62ee25"
   },
   "services/inconsistency-agent/detector-ardoco/pom.xml": {
-    "mtime": 1794517226.8941903,
-    "seen": 1794517238.9960792,
-    "ast_hash": "53311a3c0f1e35a7d066113c9ae63ae6",
+    "mtime": 1794526686.0596259,
+    "seen": 1794526798.2964962,
+    "ast_hash": "709989b0a73334aec2f4f0da16009250",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArdocoIdDetector.java": {
@@ -2664,9 +2664,9 @@
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisIdDetector.java": {
-    "mtime": 1794517226.8946817,
-    "seen": 1794517238.996083,
-    "ast_hash": "68505a68ff8e04b96e07d86ccb3c60c4",
+    "mtime": 1794526686.0598598,
+    "seen": 1794526798.296499,
+    "ast_hash": "f361210f7467d2a42ec4bfa112933872",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisRunner.java": {
@@ -4182,15 +4182,15 @@
     "semantic_hash": "dc30f2cbfffa3a7ff1429204aaed89a6"
   },
   "tests/deploy/test_check_env.py": {
-    "mtime": 1791735164.1039803,
-    "seen": 1794312116.36627,
-    "ast_hash": "36a24456f259d092e5e74b33288266f4",
-    "semantic_hash": "36a24456f259d092e5e74b33288266f4"
+    "mtime": 1794526660.052453,
+    "seen": 1794526798.296675,
+    "ast_hash": "73934378a40e262bf76ec31c1e35f29e",
+    "semantic_hash": ""
   },
   "tests/deploy/test_code_extractor.py": {
-    "mtime": 1794517226.9011245,
-    "seen": 1794517239.002115,
-    "ast_hash": "b245e9387842df43a05e054ef045222e",
+    "mtime": 1794526660.0519388,
+    "seen": 1794526798.2966762,
+    "ast_hash": "a494d7015f5b0fab51a0dc633cf040bd",
     "semantic_hash": ""
   },
   "tests/deploy/test_corenlp_gateway.py": {
@@ -4206,10 +4206,10 @@
     "semantic_hash": "f579b6ea626f21448395c7b0e17bd46f"
   },
   "tests/deploy/test_gen_secrets.py": {
-    "mtime": 1794012146.8247077,
-    "seen": 1794312116.366272,
-    "ast_hash": "83c8e67a7397f498ee03a6bc832053f3",
-    "semantic_hash": "83c8e67a7397f498ee03a6bc832053f3"
+    "mtime": 1794526660.0521982,
+    "seen": 1794526798.2966778,
+    "ast_hash": "ea06a633cee85f1f1ae1e576ce81ccba",
+    "semantic_hash": ""
   },
   "tests/deploy/test_open_webui_proxy.py": {
     "mtime": 1791657384.1930988,
@@ -4728,9 +4728,9 @@
     "semantic_hash": "2102b7840c5c7d3311718cdc6e43ca4a"
   },
   "docs/plugins.md": {
-    "mtime": 1794517226.873205,
-    "seen": 1794517239.0038111,
-    "ast_hash": "2159ee793cf59207f7b3d57cd2bfdbd2",
+    "mtime": 1794526726.8445234,
+    "seen": 1794526798.296739,
+    "ast_hash": "8c6383f9371834c00dc2c82323aaba16",
     "semantic_hash": ""
   },
   "docs/tasks/T-desktop-app.md": {
@@ -6057,6 +6057,18 @@
     "mtime": 1794526314.61343,
     "seen": 1794526489.244551,
     "ast_hash": "2efeeece735442ef3bf9203f8d172bbb",
+    "semantic_hash": ""
+  },
+  "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/PluginCodeModelSource.java": {
+    "mtime": 1794526704.8418198,
+    "seen": 1794526798.296505,
+    "ast_hash": "9d7bd6be60feb075b58fdfa17fa3e0d8",
+    "semantic_hash": ""
+  },
+  "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/PluginCodeModelSourceTest.java": {
+    "mtime": 1794526704.7236211,
+    "seen": 1794526798.296511,
+    "ast_hash": "8bb307e117a41dcaefc006d6ea0d5a4f",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

@@ -373,7 +373,9 @@ class CodeModelEquivalenceTest {
         Path file = Files.createTempFile("acm-", ".json");
         try {
             extractor.writeOutCodeModel(extractor.extractModel(), file.toFile());
-            return Files.readString(file);
+            JsonNode acm = JSON.readTree(Files.readString(file));
+            CodeService.canonicalizeCodeFiles(acm.path("codeFiles"));
+            return JSON.writeValueAsString(acm);
         } finally {
             Files.deleteIfExists(file);
         }

@@ -176,7 +176,7 @@ final class ElementMapping {
             CodeCompilationUnit unit = unitByPath.get(artifact.path());
             if (unit == null) {
                 elements.add(fileElement(artifact, null));
-                warnings.add(artifact.path() + ": no Java or shell code recognized, only the file element is returned");
+                warnings.add(artifact.path() + ": no code elements recognized, only the file element is returned");
                 continue;
             }
             elements.add(fileElement(artifact, unit));

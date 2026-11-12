@@ -70,7 +70,6 @@
   "169": "C169: arc, constanttimeeq, auth.rs",
   "170": "C170: inconsistency/plugins.yaml, enabled, params",
   "172": "C172: sandman_query/static/graph.js, add(), applyFilters",
-  "174": "C174: Element, DecisionMention, .id()",
   "177": "C177: cap_add, cap_drop, depends_on",
   "178": "C178: http_client, test_corenlp_gateway.py, caller()",
   "180": "C180: Testing index, Testing and CI, Path-filtered GitHu",

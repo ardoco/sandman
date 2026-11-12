@@ -17,6 +17,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
 /**
@@ -96,7 +98,9 @@ public class CodeService {
                 try {
                     extractor.writeOutCodeModel(model, file.toFile());
                     ObjectNode out = JsonMapper.shared().createObjectNode();
-                    out.set("acm", JsonMapper.shared().readTree(Files.readAllBytes(file)));
+                    JsonNode acm = JsonMapper.shared().readTree(Files.readAllBytes(file));
+                    canonicalizeCodeFiles(acm.path("codeFiles"));
+                    out.set("acm", acm);
                     return out;
                 } finally {
                     Files.deleteIfExists(file);
@@ -105,6 +109,38 @@ public class CodeService {
                 throw new UncheckedIOException(e);
             }
         });
+    }
+
+    /**
+     * Magika returns its files in an order that depends on the random staging directory, and ArDoCo numbers
+     * {@code codeFiles} in that order. Sort them by path and reuse the same ids in that order, so equal input gives an
+     * equal ACM.
+     */
+    static void canonicalizeCodeFiles(JsonNode codeFiles) {
+        if (!(codeFiles instanceof ArrayNode array)) {
+            return;
+        }
+        List<ObjectNode> files = new ArrayList<>();
+        array.forEach(f -> files.add((ObjectNode) f));
+        List<String> ids =
+                files.stream().map(f -> f.path("id").asString()).sorted().toList();
+        files.sort(Comparator.comparing(CodeService::codeFilePath)
+                .thenComparing(f -> f.path("compilationUnitId").asString("")));
+        array.removeAll();
+        for (int i = 0; i < files.size(); i++) {
+            files.get(i).put("id", ids.get(i));
+            array.add(files.get(i));
+        }
+    }
+
+    private static String codeFilePath(ObjectNode f) {
+        List<String> parts = new ArrayList<>();
+        f.path("pathElements").forEach(e -> parts.add(e.asString()));
+        parts.add(f.path("name").asString()
+                + (f.path("extension").asString("").isEmpty()
+                        ? ""
+                        : "." + f.path("extension").asString()));
+        return String.join("/", parts);
     }
 
     private static Staging.Item item(JsonNode a) {

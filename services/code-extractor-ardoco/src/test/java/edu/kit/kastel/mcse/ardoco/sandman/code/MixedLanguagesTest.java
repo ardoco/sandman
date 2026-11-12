@@ -65,6 +65,7 @@ class MixedLanguagesTest {
         JsonNode acm1 = service.codeModel(codeModelInput(store));
         JsonNode acm2 = service.codeModel(codeModelInput(store));
         assertEquals(acm1, acm2);
+        Fixtures.CONTRACTS.validate("skills.schema.json#/$defs/PluginCodeModelOutput", acm1);
         List<String> paths = new ArrayList<>();
         acm1.get("acm").get("codeFiles").forEach(f -> paths.add(path(f)));
         assertEquals(

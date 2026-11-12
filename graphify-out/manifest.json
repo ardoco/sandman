@@ -541,8 +541,8 @@
   },
   "deploy/obs/alerts.yaml": {
     "mtime": 1794046358.870199,
-    "seen": 1794414857.7835898,
-    "ast_hash": "",
+    "seen": 1794475228.019126,
+    "ast_hash": "d226a71fe05263fe83df3660c7eda144",
     "semantic_hash": ""
   },
   "deploy/obs/dashboards.yaml": {
@@ -1939,14 +1939,14 @@
   },
   "services/dashboard/src/sandman_dashboard/migrations/001_init.sql": {
     "mtime": 1791657384.1468499,
-    "seen": 1794414857.783746,
-    "ast_hash": "",
+    "seen": 1794475228.0192761,
+    "ast_hash": "a8b6f6fa0b96196fe8f8783d9552da6d",
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/migrations/002_samples.sql": {
     "mtime": 1791657384.1469097,
-    "seen": 1794414857.783747,
-    "ast_hash": "",
+    "seen": 1794475228.019277,
+    "ast_hash": "f84af4433559af528c4634246e6e3763",
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/ops.py": {
@@ -3049,32 +3049,32 @@
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/001_init.sql": {
     "mtime": 1791657384.1794865,
-    "seen": 1794414857.78387,
-    "ast_hash": "",
+    "seen": 1794475228.019397,
+    "ast_hash": "04bfcf78d229dd3600550015a2844b46",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/002_step_traceparent.sql": {
     "mtime": 1791657384.1795838,
-    "seen": 1794414857.78387,
-    "ast_hash": "",
+    "seen": 1794475228.019397,
+    "ast_hash": "c94a04d7628e76f07eec1bf925b23ce0",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/003_step_merged_into.sql": {
     "mtime": 1791657384.1796691,
-    "seen": 1794414857.783871,
-    "ast_hash": "",
+    "seen": 1794475228.019398,
+    "ast_hash": "558ab6ed4de474b352d9f3fea7d585b8",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/004_step_activity.sql": {
     "mtime": 1792421181.7835827,
-    "seen": 1794414857.783872,
-    "ast_hash": "",
+    "seen": 1794475228.019398,
+    "ast_hash": "c6b8a1dca14cb773f6a465793c1810ab",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/005_plans.sql": {
     "mtime": 1794012146.8182797,
-    "seen": 1794414857.783872,
-    "ast_hash": "",
+    "seen": 1794475228.019399,
+    "ast_hash": "320f3f24e56312b7ec00a87650b83b47",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/orchestrator.py": {
@@ -3229,14 +3229,14 @@
   },
   "services/query-service/src/sandman_query/migrations/001_init.sql": {
     "mtime": 1791657384.1824934,
-    "seen": 1794414857.7838888,
-    "ast_hash": "",
+    "seen": 1794475228.0194151,
+    "ast_hash": "e0414939d0a1e6b7e73d980feba35cf1",
     "semantic_hash": ""
   },
   "services/query-service/src/sandman_query/migrations/002_suggestions.sql": {
     "mtime": 1794012146.819989,
-    "seen": 1794414857.78389,
-    "ast_hash": "",
+    "seen": 1794475228.019416,
+    "ast_hash": "a476d9cd5580966c69137dca46eac736",
     "semantic_hash": ""
   },
   "services/query-service/src/sandman_query/nl.py": {
@@ -5502,9 +5502,9 @@
     "semantic_hash": ""
   },
   "docs/tasks/T3.5-ardoco-release-switch.md": {
-    "mtime": 1794313403.750863,
-    "seen": 1794313412.254121,
-    "ast_hash": "7caeaa7acfe7ead34311823f0f145666",
+    "mtime": 1794475057.5942404,
+    "seen": 1794475228.019583,
+    "ast_hash": "9f0d9000c44a7fdfd44f57cd1220ec6b",
     "semantic_hash": ""
   },
   "docs/tasks/T3.6-labeling-study.md": {
@@ -5514,9 +5514,9 @@
     "semantic_hash": ""
   },
   "docs/tasks/T3.7-ardoco-version-raise.md": {
-    "mtime": 1792421181.7600093,
-    "seen": 1794313260.1749172,
-    "ast_hash": "ec0dd072c131c0bd940c3a77c235e2cd",
+    "mtime": 1794475057.8238828,
+    "seen": 1794475228.019584,
+    "ast_hash": "07571570b46bef003813e0fba274affa",
     "semantic_hash": ""
   },
   "docs/tasks/T4.2-nl-query-evaluation-set.md": {
@@ -5775,6 +5775,18 @@
     "mtime": 1794410917.1659214,
     "seen": 1794410929.7032971,
     "ast_hash": "ec60b1ecb57c5967d17e9e1d1848b153",
+    "semantic_hash": ""
+  },
+  "docs/tasks/T3.8-artemis-tlr-and-code-extractor.md": {
+    "mtime": 1794475052.0662339,
+    "seen": 1794475228.019586,
+    "ast_hash": "eb0ea1bc53ca8d5b46fc09596fe8bd32",
+    "semantic_hash": ""
+  },
+  "docs/tasks/T3.9-artemis-inconsistency-detectors-and-defaults.md": {
+    "mtime": 1794475052.3711693,
+    "seen": 1794475228.019586,
+    "ast_hash": "3f80d5c4b23dddfcdd3474c1287e4d04",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

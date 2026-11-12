@@ -111,7 +111,6 @@
   "252": "C252: enrichment.yaml, concurrency, elements",
   "253": "C253: extraction-agent, inconsistency-agent, tlr-agent",
   "254": "C254: run, defaults, if",
-  "255": "C255: config.rs, ConfigError, .fmt()",
   "265": "C265: desktop/tsconfig.json, compilerOptions, lib",
   "267": "C267: APP_HOST, APP_PORT, LOG_LEVEL",
   "268": "C268: docx, reportlab_lib_pagesizes, reportlab_lib_style",

@@ -44,7 +44,9 @@ class CodeModelSkillTest {
                 new CodeItemRepository(), store.toString(), Metamodel.CODE_WITH_COMPILATION_UNITS_AND_PACKAGES);
         Path file = tmp.resolve("codeModel.acm");
         extractor.writeOutCodeModel(extractor.extractModel(), file.toFile());
-        String written = Files.readString(file);
+        JsonNode writtenTree = JsonMapper.shared().readTree(Files.readString(file));
+        CodeService.canonicalizeCodeFiles(writtenTree.path("codeFiles"));
+        String written = JsonMapper.shared().writeValueAsString(writtenTree);
         assertEquals(written, JsonMapper.shared().writeValueAsString(first.get("acm")));
         assertTrue(written.contains("\"language\":\"JAVA\""));
     }

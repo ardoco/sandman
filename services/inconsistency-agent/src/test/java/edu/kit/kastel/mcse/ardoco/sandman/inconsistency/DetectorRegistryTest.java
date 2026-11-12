@@ -86,6 +86,49 @@ class DetectorRegistryTest {
     }
 
     @Test
+    void fallbackDetectorRunsOnlyWithoutLlmRoute(@TempDir Path dir) throws Exception {
+        Path file = yaml(
+                dir,
+                "detectors:\n"
+                        + "  stub-untraced: { enabled: true }\n"
+                        + "  ardoco-id: { enabled: true, fallbackFor: artemis-id }\n"
+                        + "  artemis-id: { enabled: true }\n");
+        var registry = DetectorRegistry.load(file, contracts);
+        assertEquals(List.of("stub-untraced", "artemis-id"), ids(registry.defaults(true)));
+        assertEquals(List.of("stub-untraced", "ardoco-id"), ids(registry.defaults(false)));
+    }
+
+    @Test
+    void skippedDetectorsCarryTheReason(@TempDir Path dir) throws Exception {
+        Path file = yaml(
+                dir,
+                "detectors:\n"
+                        + "  ardoco-id: { enabled: true, fallbackFor: artemis-id }\n"
+                        + "  artemis-id: { enabled: true }\n");
+        var registry = DetectorRegistry.load(file, contracts);
+        assertEquals(List.of("artemis-id"), List.copyOf(registry.skipped(false).keySet()));
+        assertTrue(registry.skipped(false).get("artemis-id").contains("needs an LLM route"));
+        assertEquals(List.of("ardoco-id"), List.copyOf(registry.skipped(true).keySet()));
+        assertTrue(registry.skipped(true).get("ardoco-id").contains("fallback for artemis-id"));
+    }
+
+    @Test
+    void fallbackDetectorAlwaysRunsIfThePrimaryIsDisabled(@TempDir Path dir) throws Exception {
+        Path file = yaml(
+                dir,
+                "detectors:\n"
+                        + "  ardoco-id: { enabled: true, fallbackFor: artemis-id }\n"
+                        + "  artemis-id: { enabled: false }\n");
+        var registry = DetectorRegistry.load(file, contracts);
+        assertEquals(List.of("ardoco-id"), ids(registry.defaults(true)));
+        assertEquals(List.of("ardoco-id"), ids(registry.defaults(false)));
+    }
+
+    private static List<String> ids(List<InconsistencyDetector> detectors) {
+        return detectors.stream().map(InconsistencyDetector::id).toList();
+    }
+
+    @Test
     void unreadableTokenFileFailsAtStartup(@TempDir Path dir) throws Exception {
         Path file = yaml(
                 dir,

@@ -5,7 +5,9 @@ import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Ids;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Jcs;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.KgClient;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmAccess;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.RunRecorder;
+import edu.kit.kastel.mcse.ardoco.sandman.agent.Settings;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.a2a.SkillException;
 import edu.kit.kastel.mcse.ardoco.sandman.inconsistency.InconsistencyStore.Item;
 import edu.kit.kastel.mcse.ardoco.sandman.inconsistency.Lifecycle.Status;
@@ -22,6 +24,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.neo4j.driver.TransactionContext;
 import tools.jackson.databind.json.JsonMapper;
@@ -92,6 +95,7 @@ public final class DetectionService {
     private final String queryServiceUrl;
     private final Consumer<ObjectNode> notifications;
     private final ArtifactStore artifacts;
+    private Predicate<String> llmAvailable = DetectionService::llmRouteExists;
 
     public DetectionService(
             KgClient kg,
@@ -120,13 +124,28 @@ public final class DetectionService {
         this.notifications = notifications;
     }
 
+    /** True if the gateway settings give the project's LLM policy a chat route. */
+    static boolean llmRouteExists(String policy) {
+        try {
+            LlmAccess.forPolicy(Settings.fromEnv(), policy).chatModel();
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    void llmAvailable(Predicate<String> check) {
+        this.llmAvailable = check;
+    }
+
     public Result detect(Request req) throws SkillException {
         String projectId = req.projectId();
         var project = kg.read("MATCH (p:Project {id: $id}) RETURN p.llmPolicy AS policy", Map.of("id", projectId));
         if (project.isEmpty()) {
             throw new SkillException("INVALID_INPUT", "unknown project " + projectId, false);
         }
-        List<InconsistencyDetector> selected = select(req.detectors());
+        boolean llm = llmAvailable.test((String) project.get(0).get("policy"));
+        List<InconsistencyDetector> selected = select(req.detectors(), llm);
         Map<String, String> currentVersions = currentVersions(projectId);
         boolean whole = req.scopeArtifactIds() == null;
         Set<String> scope = whole ? currentVersions.keySet() : new TreeSet<>(req.scopeArtifactIds());
@@ -149,6 +168,15 @@ public final class DetectionService {
             Set<String> completed = new HashSet<>();
             ArrayNode detectorRuns = JSON.createArrayNode();
             int position = 0;
+            if (req.detectors() == null) {
+                registry.skipped(llm)
+                        .forEach((id, reason) -> detectorRuns
+                                .addObject()
+                                .put("detector", id)
+                                .put("status", "skipped")
+                                .put("findingCount", 0)
+                                .put("reason", reason));
+            }
             for (InconsistencyDetector d : selected) {
                 req.progress().accept("running detector " + d.id() + " (" + ++position + "/" + selected.size() + ")");
                 ObjectNode entry = detectorRuns.addObject().put("detector", d.id());
@@ -195,9 +223,9 @@ public final class DetectionService {
                 .collect(Collectors.toSet());
     }
 
-    private List<InconsistencyDetector> select(List<String> ids) throws SkillException {
+    private List<InconsistencyDetector> select(List<String> ids, boolean llm) throws SkillException {
         if (ids == null) {
-            return registry.all();
+            return registry.defaults(llm);
         }
         List<InconsistencyDetector> selected = new ArrayList<>();
         for (String id : ids) {

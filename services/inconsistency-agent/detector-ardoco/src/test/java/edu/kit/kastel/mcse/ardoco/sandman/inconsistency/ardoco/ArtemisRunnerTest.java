@@ -104,7 +104,7 @@ class ArtemisRunnerTest {
     void findingsComeFromTheGatewayAnswers() {
         var access = access();
         var client = new LlmClient(access, "t");
-        var raw = IdRunner.extract(ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, client, access));
+        var raw = ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, client, access);
 
         assertFalse(raw.models().stream().anyMatch(m -> m.modelId().equals(FACADE_ID)), "Facade is documented");
         assertTrue(raw.models().size() > 3);
@@ -185,7 +185,7 @@ class ArtemisRunnerTest {
     }
 
     private List<String> fingerprints(LlmClient client, LlmAccess access) {
-        var raw = IdRunner.extract(ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, client, access));
+        var raw = ArtemisRunner.run(LINES, MODEL, ModelFormat.PCM, client, access);
         var sentences =
                 List.of(new Mapping.Sentence("d#s1"), new Mapping.Sentence("d#s2"), new Mapping.Sentence("d#s3"));
         Map<String, Mapping.ModelEl> byId = new java.util.HashMap<>();
@@ -199,11 +199,44 @@ class ArtemisRunnerTest {
     }
 
     @Test
-    void artemisIdStaysDisabledInTheShippedConfig() throws Exception {
+    void artemisIdIsTheDefaultWithArdocoIdAsFallbackInTheShippedConfig() throws Exception {
         var node = new YAMLMapper().readTree(Files.readString(Path.of("../../../config/inconsistency/plugins.yaml")));
         var entry = node.path("detectors").path("artemis-id");
         assertFalse(entry.isMissingNode());
-        assertFalse(entry.path("enabled").asBoolean(true));
+        assertTrue(entry.path("enabled").asBoolean(false));
+        assertEquals(
+                "artemis-id",
+                node.path("detectors").path("ardoco-id").path("fallbackFor").asString());
+    }
+
+    @Test
+    void classAndDatafileStrategiesRunOnTheCodeModelWithoutAModel() {
+        var access = access();
+        var acm = Path.of("src/test/resources/fixtures/code-model-with-code-files.acm");
+        var raw = ArtemisRunner.run(
+                LINES,
+                null,
+                null,
+                acm,
+                List.of(ArtemisRunner.CLASS, ArtemisRunner.DATAFILE),
+                new LlmClient(access, "t"),
+                access);
+
+        assertTrue(raw.models().isEmpty(), "no component strategy, no model hits");
+        assertTrue(raw.words().stream()
+                .allMatch(w -> w.target().equals("class") || w.target().equals("datafile")));
+    }
+
+    @Test
+    void codeStrategiesNeedACodeModelAndComponentNeedsAModel() {
+        var access = access();
+        var client = new LlmClient(access, "t");
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> ArtemisRunner.run(LINES, null, null, null, List.of(ArtemisRunner.CLASS), client, access));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> ArtemisRunner.run(LINES, null, null, null, List.of(ArtemisRunner.COMPONENT), client, access));
     }
 
     @Test
@@ -217,7 +250,7 @@ class ArtemisRunnerTest {
     void declaresTheContract() {
         var d = new ArtemisIdDetector();
         assertEquals("artemis-id", d.id());
-        assertEquals(java.util.Set.of("textKinds", "modelKinds"), d.paramKeys());
+        assertEquals(java.util.Set.of("textKinds", "modelKinds", "codeKinds", "strategies"), d.paramKeys());
         assertTrue(d.usesLlm());
         assertEquals(
                 edu.kit.kastel.mcse.ardoco.sandman.inconsistency.InconsistencyDetector.ScopeMode.WHOLE_PROJECT,

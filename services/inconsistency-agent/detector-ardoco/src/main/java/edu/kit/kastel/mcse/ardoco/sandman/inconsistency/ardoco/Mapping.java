@@ -19,8 +19,24 @@ final class Mapping {
     /** ModelEntityAbsentFromText: ArDoCo model id, element name and ArDoCo element type. */
     record ModelHit(String modelId, String name, String type) {}
 
-    /** TextEntityAbsentFromModel: 1-based sentence number, word and confidence. */
-    record WordHit(int sentence, String word, double confidence) {}
+    /**
+     * TextEntityAbsentFromModel: 1-based sentence number, word, confidence and the ArTEMiS strategy (component, class or
+     * datafile) that found it. ArDoCo's own detector has no strategy; its hits are components.
+     */
+    record WordHit(int sentence, String word, double confidence, String target) {
+        WordHit(int sentence, String word, double confidence) {
+            this(sentence, word, confidence, "component");
+        }
+    }
+
+    /** A word of one strategy: the unit that is compared across runs. */
+    private record TargetWord(String target, String word) implements Comparable<TargetWord> {
+        @Override
+        public int compareTo(TargetWord o) {
+            int c = target.compareTo(o.target);
+            return c != 0 ? c : word.compareTo(o.word);
+        }
+    }
 
     record Raw(List<ModelHit> models, List<WordHit> words) {}
 
@@ -54,8 +70,10 @@ final class Mapping {
     private static List<Finding> modelFindings(List<RunResult> runs) {
         // key: model version id; element reported if every run with that model reports it
         Map<String, List<RunResult>> byModel = new TreeMap<>();
-        runs.forEach(r -> byModel.computeIfAbsent(r.modelVersionId(), k -> new ArrayList<>())
-                .add(r));
+        runs.stream()
+                .filter(r -> r.modelVersionId() != null)
+                .forEach(r -> byModel.computeIfAbsent(r.modelVersionId(), k -> new ArrayList<>())
+                        .add(r));
         List<Finding> out = new ArrayList<>();
         for (var entry : byModel.entrySet()) {
             List<RunResult> modelRuns = entry.getValue();
@@ -83,6 +101,7 @@ final class Mapping {
                 evidence.put("modelId", hit.modelId());
                 evidence.put("elementName", hit.name());
                 evidence.put("elementType", hit.type());
+                evidence.put("target", "component");
                 evidence.put("docVersionIds", List.copyOf(docs));
                 if (el.inferred()) {
                     evidence.put("inferredModel", true);
@@ -108,9 +127,9 @@ final class Mapping {
         List<Finding> out = new ArrayList<>();
         for (var entry : byDoc.entrySet()) {
             List<RunResult> docRuns = entry.getValue();
-            Map<Integer, Map<String, Double>> common = null;
+            Map<Integer, Map<TargetWord, Double>> common = null;
             for (RunResult run : docRuns) {
-                Map<Integer, Map<String, Double>> perSentence = new TreeMap<>();
+                Map<Integer, Map<TargetWord, Double>> perSentence = new TreeMap<>();
                 for (WordHit hit : run.raw().words()) {
                     int index = hit.sentence() - 1;
                     if (index < 0 || index >= run.sentences().size()) {
@@ -119,14 +138,14 @@ final class Mapping {
                     }
                     perSentence
                             .computeIfAbsent(index, k -> new TreeMap<>())
-                            .merge(hit.word(), hit.confidence(), Math::max);
+                            .merge(new TargetWord(hit.target(), hit.word()), hit.confidence(), Math::max);
                 }
                 if (common == null) {
                     common = perSentence;
                 } else {
                     for (var it = common.entrySet().iterator(); it.hasNext(); ) {
                         var e = it.next();
-                        Map<String, Double> other = perSentence.get(e.getKey());
+                        Map<TargetWord, Double> other = perSentence.get(e.getKey());
                         if (other == null) {
                             it.remove();
                         } else {
@@ -138,9 +157,15 @@ final class Mapping {
             for (var e : common.entrySet()) {
                 Sentence sentence = docRuns.get(0).sentences().get(e.getKey());
                 List<Map<String, Object>> words = new ArrayList<>();
-                e.getValue().forEach((w, c) -> words.add(Map.of("word", w, "confidence", c)));
-                words.sort(Comparator.<Map<String, Object>, String>comparing(m -> (String) m.get("word"))
+                e.getValue()
+                        .forEach((w, c) -> words.add(Map.of("word", w.word(), "confidence", c, "target", w.target())));
+                words.sort(Comparator.<Map<String, Object>, String>comparing(m -> (String) m.get("target"))
+                        .thenComparing(m -> (String) m.get("word"))
                         .thenComparing(m -> (Double) m.get("confidence")));
+                Set<String> targets = new TreeSet<>();
+                e.getValue().keySet().forEach(w -> targets.add(w.target()));
+                Set<String> wordNames = new TreeSet<>();
+                e.getValue().keySet().forEach(w -> wordNames.add(w.word()));
                 double max = e.getValue().values().stream()
                         .mapToDouble(Double::doubleValue)
                         .max()
@@ -148,6 +173,7 @@ final class Mapping {
                 Map<String, Object> evidence = new LinkedHashMap<>();
                 evidence.put("docVersionId", entry.getKey());
                 evidence.put("sentence", e.getKey() + 1);
+                evidence.put("target", String.join(",", targets));
                 evidence.put("words", words);
                 if (docRuns.stream()
                         .anyMatch(r -> r.modelByLocalKey().values().stream().anyMatch(ModelEl::inferred))) {
@@ -156,8 +182,7 @@ final class Mapping {
                 out.add(new Finding(
                         MISSING,
                         "info",
-                        cut("Sentence mentions elements missing from the model: "
-                                + String.join(", ", e.getValue().keySet())),
+                        cut("Sentence mentions elements missing from the model: " + String.join(", ", wordNames)),
                         "The text suggests that these words denote architecture elements that the model does not contain.",
                         max,
                         List.of(Finding.Involved.element(sentence.key(), "subject")),

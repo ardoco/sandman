@@ -7,14 +7,34 @@ from dataclasses import dataclass
 from pathlib import PurePosixPath
 from typing import Literal
 
-CLASSIFIER_VERSION = 1
+CLASSIFIER_VERSION = 2
 HEAD_BYTES = 4096
-ARTIFACT_KINDS = ("requirements", "architecture-doc", "architecture-model", "documentation", "code", "test", "other")
+ARTIFACT_KINDS = (
+    "requirements",
+    "architecture-doc",
+    "architecture-model",
+    "documentation",
+    "code",
+    "test",
+    "build",
+    "other",
+)
 RULE_KINDS = (*ARTIFACT_KINDS, "ignored")
 CODE = {".java", ".kt", ".scala", ".py", ".js", ".jsx", ".ts", ".tsx", ".go", ".rs", ".c", ".h", ".cpp", ".hpp", ".cc",
         ".cs", ".rb", ".php", ".swift"}  # fmt: skip
 DOCS = {".md", ".markdown", ".txt", ".pdf", ".docx", ".rst", ".adoc"}
 MODELS = {".repository": "pcm-repository", ".uml": "uml", ".xmi": "uml"}
+BUILD_NAMES = {
+    "dockerfile",
+    "makefile",
+    "gnumakefile",
+    "pom.xml",
+    "jenkinsfile",
+    ".gitlab-ci.yml",
+    "azure-pipelines.yml",
+}
+BUILD_SUFFIXES = {".gradle", ".dockerfile"}
+BUILD_YAML_DIRS = {".github", ".circleci", "deploy", "deployment", "k8s", "kubernetes"}
 TEST_DIRS = {"test", "tests", "__tests__", "spec"}
 REQUIREMENT_NAMES = {"requirement", "requirements", "req", "reqs", "srs", "user-stories", "stories", "features"}
 ARCHITECTURE_NAMES = {"architecture", "arch", "design", "sad", "adr", "decisions", "c4"}
@@ -50,12 +70,22 @@ def heuristic(path: str, head: bytes) -> Verdict:
     p = PurePosixPath(path)
     suffix = p.suffix.lower()
     dirs = {d.lower() for d in p.parts[:-1]}
+    name = p.name.lower()
 
     def found(kind: str, fmt: str | None, reason: str, weak: bool = False) -> Verdict:
         return Verdict(kind, fmt, "heuristic", reason, weak)
 
     if suffix in MODELS:
         return found("architecture-model", MODELS[suffix], f"suffix {suffix}")
+    yaml = suffix in {".yml", ".yaml"}
+    if (
+        name in BUILD_NAMES
+        or suffix in BUILD_SUFFIXES
+        or name.endswith(".gradle.kts")
+        or name.startswith("dockerfile.")
+        or (yaml and (name.startswith("docker-compose") or dirs & BUILD_YAML_DIRS))
+    ):
+        return found("build", None, f"file name '{p.name}'")
     if suffix in CODE:
         if hit := next((d for d in p.parts[:-1] if d.lower() in TEST_DIRS), None):
             return found("test", None, f"path segment '{hit.lower()}'")

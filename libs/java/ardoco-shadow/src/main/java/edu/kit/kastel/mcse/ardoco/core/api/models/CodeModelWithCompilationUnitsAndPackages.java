@@ -1,5 +1,6 @@
 package edu.kit.kastel.mcse.ardoco.core.api.models;
 
+import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeFile;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItem;
 import edu.kit.kastel.mcse.ardoco.core.api.models.code.CodeItemRepository;
 import java.util.ArrayList;
@@ -8,13 +9,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Replaces the ArDoCo 2.1.0 class of the same name (this module comes first on the class path). ArDoCo calls
+ * Replaces the ArDoCo 2.2.0-SNAPSHOT (21ef682) class of the same name (this module comes first on the class path). ArDoCo calls
  * {@code getEndpoints} and {@code getTypeIdentifiers} for every word and rebuilds both from the whole code model each
  * time (58 % of an ardocode run, F-1). The model never changes after it is read, so both results are computed once
  * and returned as copies. {@code CodeModelWithCompilationUnitsAndPackagesCacheTest} fails if this class is not the one
  * that is loaded.
  */
-// ponytail: copy of ArDoCo 2.1.0; raise ardoco.version only after comparing with the new original (VersionTest and the
+// ponytail: copy of ArDoCo 2.2.0-SNAPSHOT (21ef682); raise ardoco.version only after comparing with the new original
+// (VersionTest and the
 // benchmark equivalence test guard the pipeline copy, this file needs the same check). Upgrade path: ask ArDoCo to
 // cache.
 public final class CodeModelWithCompilationUnitsAndPackages extends CodeModel {
@@ -24,7 +26,7 @@ public final class CodeModelWithCompilationUnitsAndPackages extends CodeModel {
     private SortedSet<String> typeIdentifiers;
 
     public CodeModelWithCompilationUnitsAndPackages(CodeModelDto codeModelDto) {
-        super(codeModelDto.id(), codeModelDto.codeItemRepository(), codeModelDto.content());
+        super(codeModelDto.id(), codeModelDto.codeItemRepository(), codeModelDto.content(), codeModelDto.codeFiles());
         this.codeModel = new CodeModelWithCompilationUnits(codeModelDto);
     }
 
@@ -32,6 +34,12 @@ public final class CodeModelWithCompilationUnitsAndPackages extends CodeModel {
             CodeItemRepository codeItemRepository, SortedSet<? extends CodeItem> content) {
         super(codeItemRepository, content);
         this.codeModel = new CodeModelWithCompilationUnits(codeItemRepository, content);
+    }
+
+    public CodeModelWithCompilationUnitsAndPackages(
+            CodeItemRepository codeItemRepository, SortedSet<? extends CodeItem> content, List<CodeFile> codeFiles) {
+        super(codeItemRepository, content, codeFiles);
+        this.codeModel = new CodeModelWithCompilationUnits(codeItemRepository, content, codeFiles);
     }
 
     @Override

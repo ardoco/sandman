@@ -27,7 +27,7 @@ kindRules:
   - { glob: "src/main/**", kind: code }
 ```
 
-- Kinds: `requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `other`.
+- Kinds: `requirements`, `architecture-doc`, `architecture-model`, `documentation`, `code`, `test`, `build`, `other`.
 - Rules also accept the kind `ignored`. It marks files that you do not want to upload. The CLI skips such files. The server rejects `ignored` in a manifest.
 - Use `documentation` for project documentation that is not architecture: README, changelog, user guide.
 - Globs match the whole relative path with `/` separators; `**` spans directories.
@@ -51,6 +51,7 @@ Automatic classification (first match wins; only for files that no rule matches)
 | Signal | Kind | Format |
 |---|---|---|
 | suffix `.repository`, `.uml`, `.xmi` | `architecture-model` | by suffix |
+| file name `Dockerfile`, `Dockerfile.*`, `Makefile`, `pom.xml`, `Jenkinsfile`, `.gitlab-ci.yml`, `azure-pipelines.yml`, suffix `.gradle`, `.gradle.kts`, `.dockerfile`, `docker-compose*.yml`, or a YAML file under `.github`, `.circleci`, `deploy`, `deployment`, `k8s`, `kubernetes` | `build` | none |
 | code suffix and path segment `test`, `tests`, `__tests__`, `spec`, or file name `*Test`, `*Tests`, `test_*`, `*_test`, `*.test`, `*.spec` | `test` | none |
 | code suffix (`.java .kt .scala .py .js .jsx .ts .tsx .go .rs .c .h .cpp .hpp .cc .cs .rb .php .swift`) | `code` | none |
 | `.csv` with header columns `id` and `text` | `requirements` | `csv` |
@@ -61,7 +62,9 @@ Automatic classification (first match wins; only for files that no rule matches)
 | other document suffix under `docs`, `doc`, `documentation`, `wiki` | `documentation` (weak) | none |
 | anything else | `other` | none |
 
-Every guess has a source (`rule`, `heuristic` or `default`), a reason and a weak flag. The guess is weak if the signal is only a documentation directory, or if there is no signal. Check weak guesses first. The signal table has the classifier version 1. The same table is in `contracts/classification/cases.json`.
+Every guess has a source (`rule`, `heuristic` or `default`), a reason and a weak flag. The guess is weak if the signal is only a documentation directory, or if there is no signal. Check weak guesses first. The signal table has the classifier version 2. The same table is in `contracts/classification/cases.json`.
+
+Release note: classifier version 2 adds the kind `build`. A build file such as `pom.xml` was `other` before. On the next ingestion, it changes its kind. The extraction agent sends `build` files to the code extractor only.
 
 Release note: before classifier version 1, a document under `docs` was `architecture-doc`. It is now a weak `documentation`.
 

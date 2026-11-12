@@ -79,7 +79,17 @@ public class RecoverTraceLinks implements Skill {
                 Stream.concat(sourceIds.stream(), targetIds.stream()).distinct().toList());
         Set<KindPair> pairs = new LinkedHashSet<>();
         sourceIds.forEach(s -> targetIds.forEach(t -> pairs.add(new KindPair(kinds.get(s), kinds.get(t)))));
-        List<Approaches.Entry> selected = select(input, pairs);
+        boolean llmRoute = input.has("approaches") || llmRouteExists(llmPolicy(projectId));
+        List<Approaches.Entry> selected = select(input, pairs, llmRoute);
+        ArrayNode skipped = JsonMapper.shared().createArrayNode();
+        if (!input.has("approaches")) {
+            approaches.skipped(llmRoute).forEach((id, reason) -> {
+                if (selected.stream().noneMatch(e -> e.approach().id().equals(id))
+                        && approaches.get(id).approach().supports().stream().anyMatch(pairs::contains)) {
+                    skipped.addObject().put("approach", id).put("reason", reason);
+                }
+            });
+        }
         for (Approaches.Entry entry : selected) {
             Set<String> allowed = entry.approach().paramKeys();
             ObjectNode effective = Approaches.effective(
@@ -187,6 +197,9 @@ public class RecoverTraceLinks implements Skill {
         }
         ObjectNode output = JsonMapper.shared().createObjectNode();
         output.set("runs", runs);
+        if (!skipped.isEmpty()) {
+            output.set("skipped", skipped);
+        }
         ObjectNode event = JsonMapper.shared().createObjectNode();
         event.put("projectId", projectId);
         event.set("sourceVersionIds", withChanged(sourceIds, changedSources));
@@ -453,9 +466,9 @@ public class RecoverTraceLinks implements Skill {
                         projectId, targets.stream().map(TlrInput.Version::id).toList()));
     }
 
-    private List<Approaches.Entry> select(JsonNode input, Set<KindPair> pairs) throws SkillException {
+    private List<Approaches.Entry> select(JsonNode input, Set<KindPair> pairs, boolean llmRoute) throws SkillException {
         if (!input.has("approaches")) {
-            return approaches.enabled().stream()
+            return approaches.defaults(llmRoute).stream()
                     .filter(e -> e.approach().supports().stream().anyMatch(pairs::contains))
                     .toList();
         }
@@ -482,6 +495,16 @@ public class RecoverTraceLinks implements Skill {
             throw new SkillException("INVALID_INPUT", "unknown artifact versions in project " + projectId, false);
         }
         return kinds;
+    }
+
+    /** True if the gateway settings give the project's LLM policy a chat route. */
+    private boolean llmRouteExists(String policy) {
+        try {
+            LlmAccess.forPolicy(settings, policy).chatModel();
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     private String llmPolicy(String projectId) {

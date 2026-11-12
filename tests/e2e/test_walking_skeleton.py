@@ -243,12 +243,13 @@ def test_walking_skeleton(stack: Stack, capsys: pytest.CaptureFixture[str], tmp_
     ]
     tools = {r[0] for r in stack.rows("MATCH (r:Run {projectId: $projectId}) RETURN r.tool")}
     assert {"code-extractor", "stub-name-match"} <= tools
-    assert any("ardoco-id" in t and "stub-untraced" in t and "detect-stub" in t for t in tools), tools
+    assert any("artemis-id" in t and "stub-untraced" in t and "detect-stub" in t for t in tools), tools
 
     # the plugin stub's warning is passed through to detectorRuns[].warnings (R-021)
     detect = stack.a2a_result("inconsistency-agent", w1["steps"][2]["a2aTaskId"])["detectorRuns"]
-    ardoco_run = next(run for run in detect if run["detector"] == "ardoco-id")
+    ardoco_run = next(run for run in detect if run["detector"] == "artemis-id")
     assert ardoco_run["status"] == "completed", ardoco_run
+    assert any(run["detector"] == "ardoco-id" and run["status"] == "skipped" for run in detect), detect
     warnings = [w for run in detect for w in run.get("warnings", [])]
     assert any(w.startswith(f"plugin-stubs: project {project} has ") for w in warnings), detect
 

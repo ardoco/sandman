@@ -74,7 +74,7 @@ public final class TransarcApproach implements TraceLinkApproach {
 
     public static final String ID = "transarc";
     /** Raise the +aN suffix when the mapping of ArDoCo results to links changes. */
-    public static final String VERSION = "2.1.0+a1";
+    public static final String VERSION = "2.2.0-SNAPSHOT+21ef682.a1";
 
     /**
      * SAM to code links as (architecture item id, code item id) by approach version, model file hash and ACM hash.

@@ -192,6 +192,19 @@
             },
             "additionalProperties": false
           }
+        },
+        "skipped": {
+          "type": "array",
+          "description": "Default approaches left out and why (LLM-route fallback rule). Absent if none.",
+          "items": {
+            "type": "object",
+            "required": ["approach", "reason"],
+            "properties": {
+              "approach": {"type": "string"},
+              "reason": {"type": "string"}
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false,
@@ -347,7 +360,8 @@
               "status": {
                 "enum": [
                   "completed",
-                  "failed"
+                  "failed",
+                  "skipped"
                 ]
               },
               "findingCount": {
@@ -356,6 +370,10 @@
               },
               "error": {
                 "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why the detector did not run (status skipped), e.g. the LLM-route fallback rule."
               },
               "warnings": {
                 "type": "array",
@@ -683,7 +701,49 @@
       "properties": {
         "acm": {
           "type": "object",
-          "description": "Code model as ArDoCo writes it (CodeExtractor.writeOutCodeModel, codeModel.acm: JSON of CodeModelDto). The consumer passes it to ArDoCo unchanged; the schema of the model belongs to ArDoCo."
+          "description": "Code model as ArDoCo writes it (CodeExtractor.writeOutCodeModel, codeModel.acm: JSON of CodeModelDto). The consumer passes it to ArDoCo unchanged; the schema of the model belongs to ArDoCo, except the member codeFiles that this contract describes.",
+          "properties": {
+            "codeFiles": {
+              "type": "array",
+              "description": "One entry per compilation unit and one per other file that the file type detection finds. The plugin keeps one entry per path and compilationUnitId. The array is sorted by path, then by compilationUnitId. The plugin assigns the ids in that order.",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name",
+                  "pathElements",
+                  "extension"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "File name without extension."
+                  },
+                  "pathElements": {
+                    "type": "array",
+                    "description": "Directories from the code root to the file.",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "extension": {
+                    "type": "string",
+                    "description": "File extension without the dot, empty if none."
+                  },
+                  "compilationUnitId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Id of the compilation unit of the file, null for a file without one."
+                  }
+                }
+              }
+            }
+          }
         },
         "warnings": {
           "type": "array",

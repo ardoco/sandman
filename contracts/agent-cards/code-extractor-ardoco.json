@@ -1,7 +1,7 @@
 {
   "name": "code-extractor-ardoco",
   "description": "Code extraction plugin built on ArDoCo's code extractors (Eclipse JDT for Java, ShellExtractor, Magika file typing). Returns CodeUnit and TestCase elements and the ArDoCo code model (ACM). No egress, no LLM, never writes the KG.",
-  "version": "2.1.0+c1",
+  "version": "2.2.0-SNAPSHOT+21ef682.c4",
   "supportedInterfaces": [
     {
       "url": "http://code-extractor-ardoco:8000/a2a",

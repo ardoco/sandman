@@ -23,6 +23,7 @@ public final class DetectorRegistry {
 
     private final Map<String, InconsistencyDetector> detectors = new LinkedHashMap<>();
     private final Map<String, Map<String, Object>> params = new LinkedHashMap<>();
+    private final Map<String, String> fallbackFor = new LinkedHashMap<>();
 
     public DetectorRegistry(List<InconsistencyDetector> enabled) {
         enabled.forEach(d -> detectors.put(d.id(), d));
@@ -35,6 +36,7 @@ public final class DetectorRegistry {
         ServiceLoader.load(InconsistencyDetector.class).forEach(d -> available.put(d.id(), d));
         List<InconsistencyDetector> enabled = new java.util.ArrayList<>();
         Map<String, Map<String, Object>> params = new LinkedHashMap<>();
+        Map<String, String> fallbacks = new LinkedHashMap<>();
         config.path("detectors").properties().forEach(e -> {
             if (e.getValue().path("enabled").asBoolean(false)) {
                 InconsistencyDetector d = available.get(e.getKey());
@@ -51,6 +53,9 @@ public final class DetectorRegistry {
                     values.put(p.getKey(), JSON.treeToValue(p.getValue(), Object.class));
                 });
                 params.put(d.id(), values);
+                if (e.getValue().hasNonNull("fallbackFor")) {
+                    fallbacks.put(d.id(), e.getValue().path("fallbackFor").asString());
+                }
                 enabled.add(d);
             }
         });
@@ -74,6 +79,7 @@ public final class DetectorRegistry {
         }
         DetectorRegistry registry = new DetectorRegistry(enabled);
         registry.params.putAll(params);
+        registry.fallbackFor.putAll(fallbacks);
         return registry;
     }
 
@@ -93,6 +99,43 @@ public final class DetectorRegistry {
 
     public List<InconsistencyDetector> all() {
         return List.copyOf(detectors.values());
+    }
+
+    /**
+     * Detectors of a run without explicit ids. A detector with fallbackFor=X runs only if X is enabled but has no LLM
+     * route; X runs only with an LLM route. Detectors without this pairing always run.
+     */
+    public List<InconsistencyDetector> defaults(boolean llmAvailable) {
+        return detectors.values().stream()
+                .filter(d -> {
+                    String primary = fallbackFor.get(d.id());
+                    if (primary != null && detectors.containsKey(primary)) {
+                        return !llmAvailable;
+                    }
+                    return llmAvailable || !hasEnabledFallback(d.id());
+                })
+                .toList();
+    }
+
+    /** Detectors that {@link #defaults} leaves out, with the reason (detector id to reason). */
+    public Map<String, String> skipped(boolean llmAvailable) {
+        Map<String, String> skipped = new LinkedHashMap<>();
+        for (InconsistencyDetector d : detectors.values()) {
+            String primary = fallbackFor.get(d.id());
+            if (primary != null && detectors.containsKey(primary)) {
+                if (llmAvailable) {
+                    skipped.put(d.id(), "fallback for " + primary + "; an LLM route exists, so " + primary + " runs");
+                }
+            } else if (!llmAvailable && hasEnabledFallback(d.id())) {
+                skipped.put(d.id(), "needs an LLM route; the project policy has none, so the fallback detector runs");
+            }
+        }
+        return skipped;
+    }
+
+    private boolean hasEnabledFallback(String primary) {
+        return fallbackFor.entrySet().stream()
+                .anyMatch(e -> e.getValue().equals(primary) && detectors.containsKey(e.getKey()));
     }
 
     public Map<String, Object> params(String id) {

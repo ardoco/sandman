@@ -33,7 +33,7 @@ class CodeModelClientTest {
 
         @Override
         public String identity(String url) {
-            return "code-extractor-ardoco@2.1.0+c1";
+            return "code-extractor-ardoco@2.2.0-SNAPSHOT+21ef682.c2";
         }
 
         @Override
@@ -158,7 +158,7 @@ class CodeModelClientTest {
     @Test
     void identityIsPluginNameAndVersionAndAnUnreachableCardIsUnavailable() {
         assertEquals(
-                "code-extractor-ardoco@2.1.0+c1",
+                "code-extractor-ardoco@2.2.0-SNAPSHOT+21ef682.c2",
                 client(new Script(working()), Duration.ofSeconds(5)).identity());
         var broken = new CodeModelClient("http://plugin", Duration.ofSeconds(5), Duration.ZERO, new Script(working()) {
             @Override

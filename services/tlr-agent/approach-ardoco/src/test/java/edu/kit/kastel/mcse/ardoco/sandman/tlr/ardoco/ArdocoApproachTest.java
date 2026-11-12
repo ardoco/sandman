@@ -115,7 +115,7 @@ class ArdocoApproachTest {
 
     @Test
     void versionIncreasedForTheProviderChange() {
-        assertEquals("2.1.0+a2", ArdocoApproach.VERSION);
+        assertEquals("2.2.0-SNAPSHOT+21ef682.a1", ArdocoApproach.VERSION);
     }
 
     @Test

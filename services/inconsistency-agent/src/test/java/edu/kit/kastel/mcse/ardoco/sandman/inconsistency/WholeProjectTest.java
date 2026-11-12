@@ -3,6 +3,7 @@ package edu.kit.kastel.mcse.ardoco.sandman.inconsistency;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.kit.kastel.mcse.ardoco.sandman.agent.Contracts;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.KgClient;
@@ -92,6 +93,28 @@ class WholeProjectTest {
         var r = detect(List.of(docArt));
         assertEquals(1, r.output().get("autoResolvedIds").size());
         assertEquals("RESOLVED", status());
+    }
+
+    @Test
+    void skippedFallbackDetectorIsReportedWithReason(@TempDir Path dir) throws Exception {
+        var file = Files.writeString(
+                dir.resolve("plugins.yaml"),
+                "detectors:\n  ardoco-id: { enabled: true, fallbackFor: artemis-id }\n  artemis-id: { enabled: true }\n");
+        service = service(DetectorRegistry.load(file, contracts));
+        service.llmAvailable(p -> false);
+        var runs = service.detect(new DetectionService.Request(PROJECT, null, null, null, null, null))
+                .output()
+                .get("detectorRuns");
+        var skipped = runs.valueStream()
+                .filter(r -> "skipped".equals(r.get("status").asString()))
+                .toList();
+        assertEquals(1, skipped.size());
+        assertEquals("artemis-id", skipped.get(0).get("detector").asString());
+        assertTrue(skipped.get(0).get("reason").asString().contains("LLM route"));
+        contracts.validate(
+                "skills.schema.json#/$defs/DetectInconsistenciesOutput",
+                service.detect(new DetectionService.Request(PROJECT, null, null, null, null, null))
+                        .output());
     }
 
     @Test

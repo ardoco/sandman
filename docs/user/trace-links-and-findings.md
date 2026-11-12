@@ -12,9 +12,14 @@ Read links on the console links page (see [Review](#review-trace-links)), throug
 |---|---|---|
 | `explicit-reference` | extraction agent | a requirement id mentioned in a file links the requirement to the element containing the mention; confidence 1.0; `relates` for built-in extraction ([ingesting-artifacts.md](ingesting-artifacts.md)) |
 | `stub-name-match` | TLR agent | links two elements whose names share a word of at least 4 letters (camelCase and punctuation split, lower-cased); `relates`, confidence 0.5, rationale `shared tokens: ...`. It exists to exercise the pipeline and is not a quality approach |
-| `ardoco` | TLR agent | ArDoCo links the sentences of an architecture document to the components of an architecture model (PCM or UML); `documents`, confidence 1.0 |
-| `transarc` | TLR agent | TransArC links the sentences of an architecture document to the source files through an architecture model. It is the default approach for document to code. It uses the model of the project or, if there is none, a [derived model](derived-models.md). It needs the container `code-extractor-ardoco` |
+| `ardoco` | TLR agent | ArDoCo links the sentences of an architecture document to the components of an architecture model (PCM or UML); `documents`, confidence 1.0. It is the fallback for `artemis`: it runs only if the project has no LLM route |
+| `transarc` | TLR agent | TransArC links the sentences of an architecture document to the source files through an architecture model. It is the fallback for `artemis-transarc`: it runs only if the project has no LLM route. It uses the model of the project or, if there is none, a [derived model](derived-models.md). It needs the container `code-extractor-ardoco` |
 | `ardocode` | TLR agent | ArDoCo links the sentences of an architecture document to the source files of the project without a model; `documents`, confidence 1.0. ArDoCo links a sentence to a package or directory too. The approach then links the sentence to every file in it. It is off by default (`enabled: false` in `config/tlr/approaches.yaml`). It needs the container `code-extractor-ardoco` |
+| `artemis` | TLR agent | ArTEMiS asks an LLM for the named components of an architecture document. It links the sentences to the components of the architecture model; `documents`, rationale `target=component`. It is a default approach for document to model. It needs an LLM route in the gateway. Without a route, `ardoco` runs instead |
+| `artemis-class` | TLR agent | Same as `artemis`, but the sentences link to the source files of the classes with the same name; `documents`, rationale `target=class`. It is off by default. It needs an LLM route and the container `code-extractor-ardoco` |
+| `artemis-datafile` | TLR agent | Same as `artemis`, but the sentences link to the code files with the same file name (for example `Dockerfile` or `pom.xml`); `documents`, rationale `target=datafile`. It is off by default. It needs an LLM route and the container `code-extractor-ardoco` |
+| `artemis-transarc` | TLR agent | ArTEMiS replaces SWATTR in TransArC. The links from sentence to file and from component to file come from the combination of the ArTEMiS links and the SAM-code links. It is the default approach for document to code. Without an LLM route, `transarc` runs instead. It needs an LLM route and the container `code-extractor-ardoco` |
+| `artemis-exarch` | TLR agent | ArTEMiS in ExArch: the LLM derives the components from the document. The approach does not use an architecture model. It is off by default. It needs an LLM route and the container `code-extractor-ardoco` |
 | `lissa` | TLR agent | LiSSA links requirements to source code. It ranks the code files of each requirement by embedding similarity. A language model then confirms each candidate pair. It calls the LLM gateway |
 
 In the mini example, REQ-1 gets a `stub-name-match` link to the `MediaCache` code unit and component (shared words "cache" and "media") and an `explicit-reference` link to `MediaCacheTest` (type `verifies`, supplied by the stub code extractor); REQ-2 and REQ-3 get none. Because the link-recovery steps of the configured kind pairs are merged while they wait, links between other kind combinations can appear too, for example a requirement to a model component.
@@ -115,7 +120,9 @@ Caution: reviews only cover links that an approach proposed. The threshold can f
 
 ## Findings
 
-A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`. The detector `artemis-id` (LLM based) exists but is disabled in `config/inconsistency/plugins.yaml`.
+A finding is a potential inconsistency reported by a detector. Three detectors run by default: `stub-untraced`, `model-code` and one of `artemis-id` and `ardoco-id`. The detectors `programming-language-id` and `architectural-style-id` are disabled in `config/inconsistency/plugins.yaml`, because they have no gold standard yet. The entry `ardoco-id` has `fallbackFor: artemis-id`. If the project has an LLM route, a run without detector ids uses `artemis-id` and skips `ardoco-id`. If the project has no LLM route, the run uses `ardoco-id` and skips `artemis-id`. The run result lists each skipped detector in `detectorRuns` with `status: skipped` and a `reason`. The output of `recover-trace-links` lists each skipped approach in `skipped` with a `reason`.
+
+Warning: ArTEMiS is the default since 2026-11-12. The full TLR workflow takes about 4 times longer than with the classic approaches (measured: 564 s against 126 to 162 s). It needs a capable model: with a 4B local model the F1 equals the classic result, and the benefit appears only with a strong (cloud) model. LLM cost rises with it. A project with the policy `local-only` and no local chat model gets the classic approaches and detector automatically. The evidence covers two benchmark projects (TeaStore, MediaStore). The approaches `artemis-class`, `artemis-datafile` and `artemis-exarch` and the detectors `programming-language-id` and `architectural-style-id` stay disabled. They have no validation yet.
 
 The detector `ardoco-id` runs the ArDoCo inconsistency detection on each current document and architecture model (PCM or UML). It uses the active trace links of all approaches. It reports two types:
 
@@ -123,6 +130,13 @@ The detector `ardoco-id` runs the ArDoCo inconsistency detection on each current
 |---|---|---|
 | `undocumented-model-element` | `warning` | A model component has no mention in the documentation. The involved element is the model element. |
 | `missing-model-element` | `info` | A sentence names an entity that is not in the model. One finding per sentence. The evidence lists the words with their confidence. |
+
+The detectors `programming-language-id` and `architectural-style-id` check statements in the documentation against the code of the project. They need an LLM route and at least one code artifact. They report one finding per sentence. The finding has no involved model element. The evidence lists each statement and its explanation. Severity is `warning`.
+
+| Type | Meaning |
+|---|---|
+| `programming-language-mismatch` | A sentence names a programming language that the code does not use. |
+| `architectural-style-mismatch` | A sentence names an architectural style that the code does not follow. |
 
 The detector needs the CoreNLP service. If the service is down, the run is `partial` and the detector reports `failed`. No `ardoco-id` finding resolves in that run.
 

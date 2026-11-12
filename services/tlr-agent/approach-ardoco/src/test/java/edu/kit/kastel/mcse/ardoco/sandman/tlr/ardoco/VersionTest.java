@@ -19,5 +19,7 @@ class VersionTest {
         assertTrue(ArdocoApproach.VERSION.startsWith(ardoco + "+"), "ardoco " + ArdocoApproach.VERSION + HINT);
         assertTrue(ArdocodeApproach.VERSION.startsWith(ardoco + "+"), "ardocode " + ArdocodeApproach.VERSION + HINT);
         assertTrue(TransarcApproach.VERSION.startsWith(ardoco + "+"), "transarc " + TransarcApproach.VERSION + HINT);
+        assertTrue(
+                ArtemisApproachBase.VERSION.startsWith(ardoco + "+"), "artemis " + ArtemisApproachBase.VERSION + HINT);
     }
 }

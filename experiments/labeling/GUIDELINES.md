@@ -102,6 +102,54 @@ Examples (constructed):
 | "The facade uses a cache and the TagWatermarking component." | cache; TagWatermarking | contains `Cache`, no `TagWatermarking` | `true` | One term is missing in the model. |
 | "The media layer handles all requests." | media | – | `unclear` | "media layer" can be a subsystem or a general phrase. Write the reason in `note`. |
 
+### 5.3 `programming-language-mismatch`
+
+Claim: the sentence states a programming language for the system, and the code of the project does not use that language. `statements` lists the claims of the finding with the explanation of the detector.
+
+Procedure:
+
+1. Read the sentence and its neighbors in the documentation.
+2. Check the file extensions and build files in the code of the project.
+3. Decide if the named language applies to the part of the system that the sentence describes.
+
+Label:
+
+- `true` if the part of the system that the sentence describes does not use the named language.
+- `false` if the code uses the named language for that part.
+- `unclear` if the sentence does not say which part it describes, and the code uses several languages.
+
+Examples (constructed):
+
+| sentence | Code | Label | Reason |
+|---|---|---|---|
+| "The backend is written in Python." | Java files and a `pom.xml` only | `true` | No Python code. |
+| "The backend is written in Java." | Java files and a `pom.xml` | `false` | The language matches. |
+| "The tools use Go." | Java backend, Go only in one build helper | `unclear` | "tools" can mean the helper or the backend. |
+
+### 5.4 `architectural-style-mismatch`
+
+Claim: the sentence states an architectural style or pattern (for example layers, microservices, MVC), and the code does not follow it. `statements` lists the claims of the finding with the explanation of the detector.
+
+Procedure:
+
+1. Read the sentence and its neighbors in the documentation.
+2. Look at the directory structure and the dependencies between packages in the code.
+3. Decide if the code follows the named style.
+
+Label:
+
+- `true` if the structure or the dependencies of the code contradict the named style.
+- `false` if the code follows the named style.
+- `unclear` if the style cannot be decided from the files that you can see.
+
+Examples (constructed):
+
+| sentence | Code | Label | Reason |
+|---|---|---|---|
+| "The system has a strict layered architecture." | A data package imports the UI package | `true` | The dependencies break the layers. |
+| "The system uses MVC." | Packages `model`, `view` and `controller` with matching dependencies | `false` | The code follows MVC. |
+| "The system is event driven." | A message bus library, but mostly direct calls | `unclear` | Both styles are visible. |
+
 ## 6. Calibration
 
 Before the study, both raters label the same 10 calibration findings. These findings are not in the sample. Then both raters and the study lead discuss differences. If the discussion shows a gap in these guidelines, the study lead updates the guidelines before the sample is drawn.

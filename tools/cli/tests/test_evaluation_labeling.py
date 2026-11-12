@@ -13,7 +13,7 @@ from sandman_cli.evaluation import labeling, stats
 def _model(fid: str, detector: str, project: str, name: str, status: str = "OPEN") -> dict[str, Any]:
     return {
         "id": fid, "projectId": project, "type": "undocumented-model-element", "detector": detector,
-        "detectorVersion": "0.1.0+0d1f22b", "confidence": 0.9, "status": status, "severity": "warning",
+        "detectorVersion": "0.1.0+21ef682", "confidence": 0.9, "status": status, "severity": "warning",
         "title": f"Undocumented model element: {name}",
         "evidence": {"modelId": f"_{name}", "elementName": name, "elementType": "BasicComponent"},
         "involved": [{"role": "subject", "element": {"id": f"e_{name}", "key": f"m#_{name}", "label": "ModelElement",

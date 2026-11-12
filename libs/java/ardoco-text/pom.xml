@@ -20,18 +20,30 @@
       <artifactId>sandman-agent-lib</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- Compiled against the release; the consumer brings its own ArDoCo (release for TLR, pinned branch for ID). The text classes are identical in both (git diff v2.1.0 0d1f22b). -->
+    <!-- Compiled against the pinned ArDoCo build (2.2.0-SNAPSHOT, commit 21ef682); the consumer brings its own ArDoCo. NAER (LangChain4j) is excluded: only the consumers that run the ArDoCo pipelines may have it. -->
     <dependency>
       <groupId>io.github.ardoco.core</groupId>
       <artifactId>common</artifactId>
       <version>${ardoco.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.github.ardoco</groupId>
+          <artifactId>named-architecture-entity-recognition</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.github.ardoco.core</groupId>
       <artifactId>text-provider-json</artifactId>
       <version>${ardoco.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.github.ardoco</groupId>
+          <artifactId>named-architecture-entity-recognition</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>

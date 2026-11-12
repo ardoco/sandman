@@ -70,7 +70,7 @@ milestones:
     goal: ArDoCo TLR and LiSSA in-process; evaluation exports and harness
   - id: M3
     name: ArDoCo inconsistency detection
-    goal: ArDoCo ID (standard + Artemis variant) running in-process, using the TLR results of M2, mapped to the KG
+    goal: ArDoCo ID (ArTEMiS variant default with an LLM route, standard variant as fallback) running in-process, using the TLR results of M2, mapped to the KG
   - id: M4
     name: Query strategies
     goal: '`cypher` (LLM generation with validation and repair), `graphrag`, `explore`, automatic selection; evaluation set; console Ask page with strategy switch and evidence views'

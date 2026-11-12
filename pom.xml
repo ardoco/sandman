@@ -32,7 +32,7 @@
     <a2a-java.version>1.4.0.Final</a2a-java.version>
     <quarkus.platform.version>3.33.4</quarkus.platform.version>
     <neo4j-java-driver.version>6.3.0</neo4j-java-driver.version>
-    <ardoco.version>2.1.0</ardoco.version>
+    <ardoco.version>2.2.0-SNAPSHOT</ardoco.version>
     <corenlp.version>4.5.10</corenlp.version>
     <archunit.version>1.4.1</archunit.version>
     <jnats.version>2.26.4</jnats.version>
@@ -115,7 +115,7 @@
         <artifactId>jackson-dataformat-yaml</artifactId>
         <version>${jackson3.version}</version>
       </dependency>
-      <!-- The version pipeline-tlr ${ardoco.version} declares. Only the code jar: the models stay out of the image (T2.5). -->
+      <!-- The version pipeline-tlr ${ardoco.version} declares (4.5.10 in 2.2.0-SNAPSHOT, ArDoCo 21ef682). Only the code jar: the models stay out of the image (T2.5). -->
       <dependency>
         <groupId>edu.stanford.nlp</groupId>
         <artifactId>stanford-corenlp</artifactId>
@@ -189,12 +189,13 @@
                     <exclude>org.bsc.langgraph4j</exclude>
                   </excludes>
                 </bannedDependencies>
-                <!-- ArDoCo's parent pom lists a snapshot repository; a snapshot of ArDoCo or anything else must fail the build. -->
+                <!-- The pinned ArDoCo build is a snapshot by design (ADR-0015 B1); anything else must be a release. -->
                 <requireReleaseDeps>
-                  <message>No snapshot dependencies: ArDoCo must resolve to the release from Maven Central.</message>
+                  <message>No snapshot dependencies except the pinned ArDoCo build (scripts/ardoco-id-bootstrap.sh).</message>
                   <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
                   <excludes>
-                    <exclude>io.github.ardoco:sandman-*</exclude>
+                    <exclude>io.github.ardoco:*</exclude>
+                    <exclude>io.github.ardoco.*:*</exclude>
                   </excludes>
                 </requireReleaseDeps>
               </rules>

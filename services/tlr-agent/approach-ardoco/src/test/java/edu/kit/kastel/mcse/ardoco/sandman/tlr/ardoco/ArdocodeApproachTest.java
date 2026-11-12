@@ -97,7 +97,7 @@ class ArdocodeApproachTest {
     void supportsDocumentsToCodeAsOneWholeProjectRunWithoutParameters() {
         var approach = new ArdocodeApproach();
         assertEquals("ardocode", approach.id());
-        assertEquals("2.1.0+a1", approach.version());
+        assertEquals("2.2.0-SNAPSHOT+21ef682.a1", approach.version());
         assertEquals(
                 Set.of(new edu.kit.kastel.mcse.ardoco.sandman.tlr.KindPair("architecture-doc", "code")),
                 approach.supports());
@@ -179,9 +179,11 @@ class ArdocodeApproachTest {
     @Test
     void environmentNamesTheProviderAndThePlugin() {
         var approach = new ArdocodeApproach(
-                corenlp(() -> new CorenlpClient.Provider(true, "v1")), plugin(() -> "code-extractor-ardoco@2.1.0+c1"));
+                corenlp(() -> new CorenlpClient.Provider(true, "v1")),
+                plugin(() -> "code-extractor-ardoco@2.2.0-SNAPSHOT+21ef682.c2"));
         assertEquals(
-                "provider=v1;eolonly=true;codeModel=code-extractor-ardoco@2.1.0+c1", approach.environment(envCtx()));
+                "provider=v1;eolonly=true;codeModel=code-extractor-ardoco@2.2.0-SNAPSHOT+21ef682.c2",
+                approach.environment(envCtx()));
     }
 
     @Test

@@ -66,7 +66,7 @@ class PluginServiceTest {
         assertEquals(200, response.statusCode());
         JsonNode card = JsonMapper.shared().readTree(response.body());
         assertEquals("code-extractor-ardoco", card.get("name").asString());
-        assertEquals("2.1.0+c1", card.get("version").asString());
+        assertEquals("2.2.0-SNAPSHOT+21ef682.c4", card.get("version").asString());
         assertTrue(response.body().contains("sandman.plugin.extract"));
         assertTrue(response.body().contains("sandman.plugin.code-model"));
         HttpResponse<String> health = HttpClient.newHttpClient()

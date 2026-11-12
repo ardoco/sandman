@@ -62,7 +62,7 @@ public final class ArdocodeApproach implements TraceLinkApproach {
 
     public static final String ID = "ardocode";
     /** Raise the +aN suffix when the mapping of ArDoCo results to links changes. */
-    public static final String VERSION = "2.1.0+a1";
+    public static final String VERSION = "2.2.0-SNAPSHOT+21ef682.a1";
 
     /**
      * Links of a document as (sentence number, path) by CoreNLP identity, ACM hash and the sentences. ArDoCo is

@@ -39,7 +39,7 @@ def test_extraction_agent_calls_the_plugin_with_the_inbound_token() -> None:
     entry = next(p for p in PLUGINS["plugins"] if p["id"] == "code-extractor")
     assert entry["url"] == "http://code-extractor-ardoco:8000"
     assert entry["tokenFile"] == "/run/secrets/plugin_in_code-extractor-ardoco"
-    assert entry["match"] == {"kinds": ["code", "test"]}
+    assert entry["match"] == {"kinds": ["code", "test", "build"]}
     assert "plugin_in_code-extractor-ardoco" in COMPOSE["services"]["extraction-agent"]["secrets"]
 
 

@@ -40,9 +40,15 @@ Links per approach, cost and time per approach are NOT measured.
 
 ## Upstream quirk: duplicate codeFiles
 
-* Upstream emits several `codeFiles` entries for one Java unit (for example `Greeter` three times).
-* SANDMAN does not deduplicate them.
-* This can affect datafile linking. Check it in step 6.
+Root cause (`CodeExtractor.extractCodeFiles`, `21ef682`): the method loops over `codeEndpoints` and adds one `CodeFile` for each unit of `codeEndpoint.getAllCompilationUnits()`. With `CODE_WITH_COMPILATION_UNITS_AND_PACKAGES` the endpoints hold every package, and `getAllCompilationUnits()` is recursive. A unit therefore appears once for each package above it, including the nested packages.
+
+* Magika is NOT the cause. In the cached ACMs of MediaStore and TeaStore no path has both an entry with a unit and an entry without one.
+* MediaStore: 1097 entries, 419 distinct paths. 777 entries with a unit (99 units, 96 of them 8 times, one 7 times, two once), 320 without a unit (Magika only, no duplicates).
+* TeaStore: 1563 entries, 558 distinct paths. 1214 with a unit (209 units, 200 repeated), 349 without a unit.
+* All repeated entries are `java`, have the same `compilationUnitId` and differ only in `id`. Entries for several types of one file do not exist (one unit per file).
+* Impact: the `ElementMapping` of the extract skill reads the model content, not `codeFiles`, so elements are unaffected. The datafile strategy and the read-only tools of ArDoCo read `codeFiles` and see each Java file several times. The ACM carries about 2.6 times too many entries. Determinism is unaffected, because `canonicalizeCodeFiles` already sorts.
+* Decision: deduplicate in `CodeService.canonicalizeCodeFiles` by path and `compilationUnitId`. It is safe: the entries are identical apart from `id`, and the ids are reassigned in sorted order afterwards. The agent card version is now `2.2.0-SNAPSHOT+21ef682.c4`. `MixedLanguagesTest` no longer uses `distinct()` and so covers the case on a mixed tree. `docs/plugins.md` and `skills.schema.json` say it.
+* Not run: `mvn -Pbenchmark verify` (`CodeModelEquivalenceTest`). It canonicalizes both sides with the same method, so the dedupe is symmetric. Cached benchmark ACMs and the tlr-agent fixtures are unchanged and still hold the duplicates.
 
 ## Mapping notes
 

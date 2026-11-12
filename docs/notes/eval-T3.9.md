@@ -42,3 +42,22 @@ Verdict: decision 6 is NOT shown. The defaults stay unchanged. No ADR, site or r
 * Inconsistency precision and recall.
 * A run with a stronger chat route.
 * `make perf` and the T5.4 F-1 column.
+
+## Run with `openai/gpt-6-luna` (cloud): NOT run
+
+Date: 2026-11-12. The task was to repeat the TeaStore run with the `chat-default` route. It was not started.
+
+* Missing: `OPENAI_API_KEY`. It is not set in the environment of the agent. The key belongs in `deploy/secrets/gateway.env`, which agents must not read, so its presence is not verified. Nobody can send cloud traffic until the owner confirms it.
+* The stack is not up (only `traverse`, `nats`, `llm-gateway`, `corenlp-provider` run). A run needs `make up` and a project with the `cloud-allowed` policy (the `local-only` policy blocks the cloud route; committed policies stay unchanged).
+* The container tool returned `XPC connection error` for `exec` and `logs`, so the gateway could not be inspected either.
+* MediaStore was not run for the same reason.
+
+### Why `artemis-transarc` and `artemis-exarch` gave 0 links
+
+* They are not stubs. `ArtemisApproachBase` runs the real ArDoCo stages for both flavors (NER stage, then `SamCodeTraceabilityLinkRecovery` and `SadSamCodeTraceabilityLinkRecovery`; ExArch adds `docArchitecture` with the gateway).
+* The two flavors read the code model (`supports()` is `architecture-doc` or `architecture-model` to `code`). `artemis-datafile` gave 0 links because TeaStore has no data files.
+* The cause of the 0 links is NOT established. It needs a run with the log (look for the `no element for file` and skip warnings) and with a stronger model. A 4B model that finds few NER entities is a plausible cause, a config or wiring cause is not excluded.
+
+### Verdict
+
+Unchanged: decision 6 is NOT shown. No default changes.

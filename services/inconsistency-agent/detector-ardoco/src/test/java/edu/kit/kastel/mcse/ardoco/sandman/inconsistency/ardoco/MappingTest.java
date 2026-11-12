@@ -74,7 +74,9 @@ class MappingTest {
         assertEquals("doc#sec:/aaa", s1.involved().get(0).elementKey());
         assertEquals(0.65, s1.confidence(), 1e-9);
         assertEquals(
-                List.of(Map.of("word", "Aaa", "confidence", 0.5), Map.of("word", "Media", "confidence", 0.65)),
+                List.of(
+                        Map.of("word", "Aaa", "confidence", 0.5, "target", "component"),
+                        Map.of("word", "Media", "confidence", 0.65, "target", "component")),
                 s1.evidence().get("words"));
         assertEquals("doc#sec:/ccc", findings.get(1).involved().get(0).elementKey());
     }
@@ -134,5 +136,40 @@ class MappingTest {
         var findings = Mapping.map(List.of(new RunResult("d1", "m1", SENTENCES, inferred, raw)));
         assertEquals("info", findings.get(0).severity());
         assertEquals(true, findings.get(0).evidence().get("inferredModel"));
+    }
+
+    @Test
+    void teamStateOfEachStrategyCarriesItsTarget() {
+        for (String target : List.of("component", "class", "datafile")) {
+            var raw = new Raw(List.of(), List.of(new WordHit(1, "Foo", 0.92, target)));
+            var findings = Mapping.map(List.of(run("d1", null, raw)));
+            assertEquals(1, findings.size(), target);
+            assertEquals("missing-model-element", findings.get(0).type());
+            assertEquals(target, findings.get(0).evidence().get("target"));
+        }
+    }
+
+    @Test
+    void meatStateIsComponentOnlyAndRunsWithoutModelAreIgnoredForIt() {
+        var raw = new Raw(List.of(new ModelHit("id-cache", "Cache", "Component")), List.of());
+        var findings = Mapping.map(List.of(run("d1", "m1", raw), run("d1", null, new Raw(List.of(), List.of()))));
+        assertEquals(1, findings.size());
+        assertEquals("undocumented-model-element", findings.get(0).type());
+        assertEquals("component", findings.get(0).evidence().get("target"));
+    }
+
+    @Test
+    void strategiesOfOneSentenceShareOneFindingSoFingerprintsStayDistinct() {
+        var raw = new Raw(
+                List.of(),
+                List.of(
+                        new WordHit(1, "Billing", 0.92, "component"),
+                        new WordHit(1, "Billing", 0.92, "class"),
+                        new WordHit(1, "config.xml", 0.92, "datafile")));
+        var findings = Mapping.map(List.of(run("d1", null, raw)));
+        assertEquals(1, findings.size());
+        assertEquals("class,component,datafile", findings.get(0).evidence().get("target"));
+        assertEquals(3, ((List<?>) findings.get(0).evidence().get("words")).size());
+        assertTrue(findings.get(0).title().contains("Billing, config.xml"));
     }
 }

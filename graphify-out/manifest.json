@@ -2664,15 +2664,15 @@
     "semantic_hash": "d7aa1a07adbb76116020748b74128f02"
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisIdDetector.java": {
-    "mtime": 1794475308.0465527,
-    "seen": 1794475611.877314,
-    "ast_hash": "7c7f889f4db55afd24d9085a7800c9cd",
+    "mtime": 1794488385.6340108,
+    "seen": 1794489580.282403,
+    "ast_hash": "68505a68ff8e04b96e07d86ccb3c60c4",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisRunner.java": {
-    "mtime": 1794475374.8011487,
-    "seen": 1794475611.877315,
-    "ast_hash": "5a9c71a781611853392dc4884943b66c",
+    "mtime": 1794488376.508647,
+    "seen": 1794489580.2824042,
+    "ast_hash": "9a245aa8e4c1e442049cfde1ee861f0a",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ExternalLink.java": {
@@ -2700,10 +2700,10 @@
     "semantic_hash": "ff10a2e33424fdd0fd04f6fcaad52a70"
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/Mapping.java": {
-    "mtime": 1792421181.7793732,
-    "seen": 1794312116.366148,
-    "ast_hash": "c6090501baee882e94081e4e5dd7f7d2",
-    "semantic_hash": "c6090501baee882e94081e4e5dd7f7d2"
+    "mtime": 1794488376.3905618,
+    "seen": 1794489580.282408,
+    "ast_hash": "d5f4bbb6238f387a42d7383a05ff2e72",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArdocoIdDetectorTest.java": {
     "mtime": 1792421181.7798998,
@@ -2712,10 +2712,10 @@
     "semantic_hash": "c4e167bf5fa9850eab97c286c443dd39"
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisRunnerTest.java": {
-    "mtime": 1792439275.5107734,
-    "seen": 1794312116.3661492,
-    "ast_hash": "57059b9fdb28a76c5fdb7b85ffbb3760",
-    "semantic_hash": "57059b9fdb28a76c5fdb7b85ffbb3760"
+    "mtime": 1794489382.5400999,
+    "seen": 1794489580.282409,
+    "ast_hash": "70393ddb743974cbf21078c09dd97db6",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/BenchmarkEquivalenceTest.java": {
     "mtime": 1792421181.7800646,
@@ -2730,10 +2730,10 @@
     "semantic_hash": "9b56ebbdc245f864461bee78e356887c"
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/MappingTest.java": {
-    "mtime": 1792421181.7802246,
-    "seen": 1794312116.36615,
-    "ast_hash": "4653eeb6a49d7388a540bb94dae0efd4",
-    "semantic_hash": "4653eeb6a49d7388a540bb94dae0efd4"
+    "mtime": 1794488393.0803003,
+    "seen": 1794489580.282412,
+    "ast_hash": "7a129b9b3d99db665958de65327932e9",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/StandaloneBaseline.java": {
     "mtime": 1792421181.7802873,

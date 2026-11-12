@@ -21,6 +21,10 @@
           },
           "params": {
             "type": "object"
+          },
+          "fallbackFor": {
+            "type": "string",
+            "description": "Id of an LLM approach. This approach runs in its place when the project has no LLM route."
           }
         },
         "additionalProperties": false

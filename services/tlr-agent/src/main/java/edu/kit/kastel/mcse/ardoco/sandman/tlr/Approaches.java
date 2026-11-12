@@ -20,6 +20,7 @@ public final class Approaches {
 
     private final Map<String, Entry> enabled = new LinkedHashMap<>();
     private final Set<String> disabled;
+    private final Map<String, String> fallbackFor = new LinkedHashMap<>();
 
     public Approaches(Path file, Iterable<TraceLinkApproach> available, Contracts contracts) {
         JsonNode config = contracts.loadConfig("tlr-approaches", file).path("approaches");
@@ -33,6 +34,9 @@ public final class Approaches {
                                 c.path("params") instanceof ObjectNode p
                                         ? p
                                         : JsonMapper.shared().createObjectNode()));
+                if (c.hasNonNull("fallbackFor")) {
+                    fallbackFor.put(a.id(), c.path("fallbackFor").asString());
+                }
             }
         }
         List<String> off = new ArrayList<>();
@@ -46,6 +50,40 @@ public final class Approaches {
 
     public List<Entry> enabled() {
         return List.copyOf(enabled.values());
+    }
+
+    /**
+     * Approaches of a run without explicit ids. An approach with fallbackFor=X runs only if X is enabled but has no LLM
+     * route; X runs only with an LLM route. Other approaches always run.
+     */
+    public List<Entry> defaults(boolean llmAvailable) {
+        return enabled.values().stream()
+                .filter(e -> !skipReason(e.approach().id(), llmAvailable).isPresent())
+                .toList();
+    }
+
+    /** Enabled approaches that {@link #defaults} leaves out, with the reason (approach id to reason). */
+    public Map<String, String> skipped(boolean llmAvailable) {
+        Map<String, String> skipped = new LinkedHashMap<>();
+        enabled.keySet().forEach(id -> skipReason(id, llmAvailable).ifPresent(r -> skipped.put(id, r)));
+        return skipped;
+    }
+
+    private java.util.Optional<String> skipReason(String id, boolean llmAvailable) {
+        String primary = fallbackFor.get(id);
+        if (primary != null && enabled.containsKey(primary)) {
+            return llmAvailable
+                    ? java.util.Optional.of(
+                            "fallback for " + primary + "; an LLM route exists, so " + primary + " runs")
+                    : java.util.Optional.empty();
+        }
+        if (!llmAvailable
+                && fallbackFor.entrySet().stream()
+                        .anyMatch(e -> e.getValue().equals(id) && enabled.containsKey(e.getKey()))) {
+            return java.util.Optional.of(
+                    "needs an LLM route; the project policy has none, so the fallback approach runs");
+        }
+        return java.util.Optional.empty();
     }
 
     /** Enabled approach or null. */

@@ -12,7 +12,7 @@ Nothing in this note is a measured LLM result.
 
 | Item | Question | Result | Method |
 |------|----------|--------|--------|
-| U1 | Do `Artemis` class and datafile strategies give usable links on a staged tree? | NOT measured | No LLM available |
+| U1 | Do `Artemis` class and datafile strategies give usable links on a staged tree? | Partly. With `gpt-6-luna` on TeaStore: `artemis-class` 7 links, no data files in TeaStore. Class links do not match the package-level gold. | Live run, see eval-T3.9 |
 | U2 | Can `ArtemisInExArch` use the gateway for both LLM roles? | Feasible by source reading. NOT run. | Source of `21ef682` |
 | U3 | Are the Python and C++ extractors deterministic? | Not out of the box. Equal after canonicalization in SANDMAN. | `MixedLanguagesTest` |
 | U4 | Does the ACM growth break the F-1 budget? | ACM grows by 40 to 90 percent. See table below. | `mvn -Pbenchmark` |
@@ -87,7 +87,20 @@ Setup: `sandman-example`, all `artemis*` approaches enabled temporarily, one ful
 | Difference in F1 | -0.011 for `artemis`, 95 % CI [-0.12, 0.15], McNemar p = 1.0. Not significant. |
 | SAD to code | Not comparable. The gold file lists package directories. The exports list class files. |
 
-* U1 is not resolved. A 4B model is a weak test for the NER step. A stronger route may change the numbers.
+## Live run on TeaStore and MediaStore (2026-11-12, `openai/gpt-6-luna`, `cloud-allowed`)
+
+Details and numbers: [eval-T3.9.md](eval-T3.9.md).
+
+| Item | Result |
+|------|--------|
+| Full workflow time (TeaStore) | 564 s (`qwen3:4b`: 1507 s) |
+| Links | `artemis` 58, `artemis-class` 7, `artemis-datafile` 0, `artemis-transarc` 777, `artemis-exarch` 552 |
+| SAD to SAM, `artemis` (27 gold links) | Precision 0.931, recall 1.000, F1 0.964. `ardoco`: 0.851. |
+| MediaStore, `artemis` (31 gold links) | F1 0.954. `ardoco`: 0.694. |
+| `artemis-transarc`, `artemis-exarch` | 0 links with `qwen3:4b` was NOT caused by the model or the wiring. See eval-T3.9. |
+| Code extractor | The new extractor (without repeated `codeFiles`) fed all runs: ACM of 115 files. |
+
+* U1: the class strategy gives links (7) with a strong model, the datafile strategy has no test data in TeaStore. Usefulness against a class-level gold is NOT measured (the gold lists packages).
+* MediaStore 18 against 29 links: this run gives 18 `ardoco` and 34 `artemis` links. Equivalence with the standalone upstream runner is NOT checked.
 * TeaStore equivalence against the standalone upstream runner with recorded LLM answers: NOT done.
-* Production `CodeModelSource` for the class and datafile strategies: NOT wired.
-* MediaStore 18 against 29 links: NOT re-checked.
+* The tlr approaches `artemis-class`, `artemis-transarc` and `artemis-exarch` read the code model through `CodeModelClient` and ran live. The old note "Production `CodeModelSource` NOT wired" was not re-checked for the inconsistency agent.

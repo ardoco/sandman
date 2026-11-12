@@ -47,7 +47,6 @@
   "134": "C134: test_planner.py, Harness, .calls()",
   "135": "C135: ambiguous_python_import_2d2c25cb8c66, test_auto.py",
   "136": "C136: description, owner, properties",
-  "144": "C144: extraction-agent/tests/test_derive.py, current(), ",
   "146": "C146: description, required, type",
   "148": "C148: go_pkg_github_com_openai_openai_go_v3, go_pkg_gith",
   "150": "C150: sink, .count(), .Publish()",

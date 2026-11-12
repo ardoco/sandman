@@ -14,6 +14,13 @@ Status: source analysis plus one live run on `sandman-example` (TeaStore) on 202
 | Quality | TeaStore has no inconsistency gold standard. `programming-language-id` raised 3 findings (the first one: sentence says HTML, the code contradicts). `architectural-style-id` raised none. Not rated for precision. |
 | Severity | The finding severity is `warning`. The task text says `medium`. The contract allows only `info`, `warning`, `error`, so `warning` stays. |
 
+## Live run with `openai/gpt-6-luna` (2026-11-12, TeaStore)
+
+* Tool calls over the gateway work with `gpt-6-luna`. `programming-language-id`: 30 s, `architectural-style-id`: 142 s, `artemis-id`: 70 s.
+* Findings: `programming-language-id` 0 (`qwen3:4b`: 3, not reproduced), `architectural-style-id` 0, `artemis-id` 10 `undocumented-model-element`.
+* Still no inconsistency gold standard, so precision is NOT measured.
+* Code input (decision 4): the directory input works with both models. The comparison with the ACM input was NOT made, so the choice is not settled by data.
+
 ## Not used from upstream
 
 * The architectural-style validator registry with specialised validators. The detector asks the LLM agent for every statement.

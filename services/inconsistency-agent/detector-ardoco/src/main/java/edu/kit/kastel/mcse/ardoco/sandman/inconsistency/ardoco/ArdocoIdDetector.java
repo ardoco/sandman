@@ -42,7 +42,7 @@ public final class ArdocoIdDetector implements InconsistencyDetector {
 
     public static final String ID = "ardoco-id";
     /** Raise the first part when the mapping of ArDoCo results to findings changes. */
-    public static final String VERSION = "0.1.0+0d1f22b";
+    public static final String VERSION = "0.1.0+21ef682";
 
     private static final Logger LOG = LoggerFactory.getLogger(ArdocoIdDetector.class);
     private static final Map<String, ModelFormat> FORMATS = Map.of(

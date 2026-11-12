@@ -22,7 +22,6 @@ import edu.kit.kastel.mcse.ardoco.naer.model.SoftwareArchitectureDocumentation;
 import edu.kit.kastel.mcse.ardoco.naer.recognizer.NamedEntityRecognizer;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmAccess;
 import edu.kit.kastel.mcse.ardoco.sandman.agent.LlmClient;
-import edu.kit.kastel.mcse.ardoco.tlr.artemis.ArtemisPostprocessing;
 import edu.kit.kastel.mcse.ardoco.tlr.artemis.ArtemisPreprocessing;
 import edu.kit.kastel.mcse.ardoco.tlr.artemis.informants.ComponentArtemisConnectionInformant;
 import edu.kit.kastel.mcse.ardoco.tlr.artemis.states.ArtemisConnectionStatesImpl;
@@ -64,7 +63,6 @@ final class ArtemisRunner {
                 new ArchitectureConfiguration(model.toFile(), format, Metamodel.ARCHITECTURE_WITH_COMPONENTS),
                 null));
         ardoco.addPipelineStep(new GatewayStage(repo, client, access));
-        ardoco.addPipelineStep(ArtemisPostprocessing.get(NO_CONFIG, repo));
         ardoco.addPipelineStep(ArtemisInconsistencyChecker.get(NO_CONFIG, repo, List.of(STRATEGY)));
         ardoco.run();
         var states = repo.getData(ArtemisInconsistencyStates.ID, ArtemisInconsistencyStatesImpl.class)

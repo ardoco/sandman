@@ -30,7 +30,7 @@ public final class ArtemisIdDetector implements InconsistencyDetector {
 
     public static final String ID = "artemis-id";
     /** Raise the first part when the mapping of Artemis results to findings changes. */
-    public static final String VERSION = "0.1.0+0d1f22b";
+    public static final String VERSION = "0.1.0+21ef682";
 
     private static final Logger LOG = LoggerFactory.getLogger(ArtemisIdDetector.class);
 

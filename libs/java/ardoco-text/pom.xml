@@ -20,7 +20,7 @@
       <artifactId>sandman-agent-lib</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- Compiled against the release; the consumer brings its own ArDoCo (release for TLR, pinned branch for ID). The text classes are identical in both (git diff v2.1.0 0d1f22b). -->
+    <!-- Compiled against the release; the consumer brings its own ArDoCo (release for TLR, pinned main commit 21ef682 for ID). The text classes are identical in both (git diff v2.1.0 21ef682). -->
     <dependency>
       <groupId>io.github.ardoco.core</groupId>
       <artifactId>common</artifactId>

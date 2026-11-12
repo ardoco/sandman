@@ -15,8 +15,8 @@
   <name>Inconsistency detector ardoco-id (ArDoCo inconsistency detection).</name>
 
   <properties>
-    <!-- Built from the pinned branch commit by scripts/ardoco-id-bootstrap.sh (make ardoco); not on Maven Central. -->
-    <ardoco.id.version>2.1.0-SNAPSHOT</ardoco.id.version>
+    <!-- Built from the pinned ArDoCo main commit 21ef682 by scripts/ardoco-id-bootstrap.sh (make ardoco); not on Maven Central. -->
+    <ardoco.id.version>2.2.0-SNAPSHOT</ardoco.id.version>
   </properties>
 
   <dependencies>

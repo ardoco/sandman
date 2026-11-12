@@ -18,6 +18,10 @@
           },
           "params": {
             "type": "object"
+          },
+          "fallbackFor": {
+            "type": "string",
+            "description": "Id of an LLM detector. This detector runs in its place when the project has no LLM route."
           }
         },
         "additionalProperties": false

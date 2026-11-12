@@ -89,7 +89,6 @@
   "220": "C220: cap_drop, environment, group_add",
   "221": "C221: config.ts, ConfigError, DEFAULT_CONTRACTS_DIR",
   "223": "C223: test_decisions.py, Any, parametrize",
-  "225": "C225: ModelCodeDetectorTest, .capsFindingsPerType(), .cl",
   "226": "C226: Cytoscape MIT license, htmx Zero-Clause BSD licens",
   "227": "C227: site fonts README (SIL OFL 1.1), Inter font, JetBr",
   "231": "C231: extraction/plugins.yaml, builtin, converter",

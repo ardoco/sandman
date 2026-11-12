@@ -120,7 +120,7 @@ Caution: reviews only cover links that an approach proposed. The threshold can f
 
 ## Findings
 
-A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`. Three LLM based detectors exist but are disabled in `config/inconsistency/plugins.yaml`: `artemis-id`, `programming-language-id` and `architectural-style-id`.
+A finding is a potential inconsistency reported by a detector. Two detectors run by default: `stub-untraced` and `ardoco-id`. Three LLM based detectors exist but are disabled in `config/inconsistency/plugins.yaml`: `artemis-id`, `programming-language-id` and `architectural-style-id`. The entry `ardoco-id` has `fallbackFor: artemis-id`. If `artemis-id` is enabled and the project has an LLM route, a run without detector ids uses `artemis-id` and skips `ardoco-id`. If the project has no LLM route, the run uses `ardoco-id` and skips `artemis-id`. While `artemis-id` is disabled, `ardoco-id` always runs.
 
 The detector `ardoco-id` runs the ArDoCo inconsistency detection on each current document and architecture model (PCM or UML). It uses the active trace links of all approaches. It reports two types:
 

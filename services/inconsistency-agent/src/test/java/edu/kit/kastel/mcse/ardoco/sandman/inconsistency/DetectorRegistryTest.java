@@ -99,6 +99,20 @@ class DetectorRegistryTest {
     }
 
     @Test
+    void skippedDetectorsCarryTheReason(@TempDir Path dir) throws Exception {
+        Path file = yaml(
+                dir,
+                "detectors:\n"
+                        + "  ardoco-id: { enabled: true, fallbackFor: artemis-id }\n"
+                        + "  artemis-id: { enabled: true }\n");
+        var registry = DetectorRegistry.load(file, contracts);
+        assertEquals(List.of("artemis-id"), List.copyOf(registry.skipped(false).keySet()));
+        assertTrue(registry.skipped(false).get("artemis-id").contains("needs an LLM route"));
+        assertEquals(List.of("ardoco-id"), List.copyOf(registry.skipped(true).keySet()));
+        assertTrue(registry.skipped(true).get("ardoco-id").contains("fallback for artemis-id"));
+    }
+
+    @Test
     void fallbackDetectorAlwaysRunsIfThePrimaryIsDisabled(@TempDir Path dir) throws Exception {
         Path file = yaml(
                 dir,

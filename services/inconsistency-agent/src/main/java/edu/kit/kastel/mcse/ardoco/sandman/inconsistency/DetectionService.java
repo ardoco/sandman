@@ -144,8 +144,8 @@ public final class DetectionService {
         if (project.isEmpty()) {
             throw new SkillException("INVALID_INPUT", "unknown project " + projectId, false);
         }
-        List<InconsistencyDetector> selected = select(
-                req.detectors(), llmAvailable.test((String) project.get(0).get("policy")));
+        boolean llm = llmAvailable.test((String) project.get(0).get("policy"));
+        List<InconsistencyDetector> selected = select(req.detectors(), llm);
         Map<String, String> currentVersions = currentVersions(projectId);
         boolean whole = req.scopeArtifactIds() == null;
         Set<String> scope = whole ? currentVersions.keySet() : new TreeSet<>(req.scopeArtifactIds());
@@ -168,6 +168,15 @@ public final class DetectionService {
             Set<String> completed = new HashSet<>();
             ArrayNode detectorRuns = JSON.createArrayNode();
             int position = 0;
+            if (req.detectors() == null) {
+                registry.skipped(llm)
+                        .forEach((id, reason) -> detectorRuns
+                                .addObject()
+                                .put("detector", id)
+                                .put("status", "skipped")
+                                .put("findingCount", 0)
+                                .put("reason", reason));
+            }
             for (InconsistencyDetector d : selected) {
                 req.progress().accept("running detector " + d.id() + " (" + ++position + "/" + selected.size() + ")");
                 ObjectNode entry = detectorRuns.addObject().put("detector", d.id());

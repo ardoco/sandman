@@ -117,6 +117,22 @@ public final class DetectorRegistry {
                 .toList();
     }
 
+    /** Detectors that {@link #defaults} leaves out, with the reason (detector id to reason). */
+    public Map<String, String> skipped(boolean llmAvailable) {
+        Map<String, String> skipped = new LinkedHashMap<>();
+        for (InconsistencyDetector d : detectors.values()) {
+            String primary = fallbackFor.get(d.id());
+            if (primary != null && detectors.containsKey(primary)) {
+                if (llmAvailable) {
+                    skipped.put(d.id(), "fallback for " + primary + "; an LLM route exists, so " + primary + " runs");
+                }
+            } else if (!llmAvailable && hasEnabledFallback(d.id())) {
+                skipped.put(d.id(), "needs an LLM route; the project policy has none, so the fallback detector runs");
+            }
+        }
+        return skipped;
+    }
+
     private boolean hasEnabledFallback(String primary) {
         return fallbackFor.entrySet().stream()
                 .anyMatch(e -> e.getValue().equals(primary) && detectors.containsKey(e.getKey()));

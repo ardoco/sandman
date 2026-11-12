@@ -347,7 +347,8 @@
               "status": {
                 "enum": [
                   "completed",
-                  "failed"
+                  "failed",
+                  "skipped"
                 ]
               },
               "findingCount": {
@@ -356,6 +357,10 @@
               },
               "error": {
                 "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why the detector did not run (status skipped), e.g. the LLM-route fallback rule."
               },
               "warnings": {
                 "type": "array",

@@ -7,7 +7,7 @@ Re-check on every ArDoCo upgrade (`ardoco.version` in the root `pom.xml`).
 
 | Component | Version | License | Note |
 |---|---|---|---|
-| ArDoCo (`io.github.ardoco.tlr:model-provider`, `io.github.ardoco.core:common`) | 2.1.0 | MIT | Maven Central, unmodified. LangChain4j and its transitive libraries are excluded. |
+| ArDoCo (`io.github.ardoco.tlr:model-provider`, `io.github.ardoco.core:common`) | 2.2.0-SNAPSHOT (commit `21ef682`) | MIT | built unmodified by `scripts/ardoco-id-bootstrap.sh`. LangChain4j and its transitive libraries are excluded. |
 | Eclipse JDT core, ECJ and the Eclipse platform jars it needs (`org.eclipse.jdt:*`, `org.eclipse.platform:*`) | 3.46.0 and later platform versions | EPL-2.0 | unmodified, parse Java files |
 | Magika for Java (`io.github.ardoco:magika`), with the Magika model of Google | 0.6.1 | Apache-2.0 | unmodified, file type prediction, the model is inside the jar |
 | ONNX Runtime (`com.microsoft.onnxruntime:onnxruntime`) | 1.20.0 | MIT | runs the Magika model; its native libraries are unpacked to `/opt/onnxruntime` at build time |

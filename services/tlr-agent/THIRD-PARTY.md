@@ -6,7 +6,7 @@ Re-check on every ArDoCo upgrade (`ardoco.version` in the root `pom.xml`).
 
 | Component | Version | License | Note |
 |---|---|---|---|
-| ArDoCo (`io.github.ardoco.tlr:*`, `io.github.ardoco.core:*`) | 2.1.0 | MIT | Maven Central, unmodified |
+| ArDoCo (`io.github.ardoco.tlr:*`, `io.github.ardoco.core:*`) | 2.2.0-SNAPSHOT (commit `21ef682`) | MIT | built unmodified by `scripts/ardoco-id-bootstrap.sh`; NAER and LangChain4j are on the class path, no LLM call on `ardoco` path |
 | Stanford CoreNLP code jar (`edu.stanford.nlp:stanford-corenlp`, no models jar) | 4.5.10 | GPL-3.0-or-later | unmodified; ArDoCo classes link against it, but nothing annotates in this process (T2.5); the models jar is not in the image |
 | LangChain4j (`dev.langchain4j:*`), transitive of ArDoCo `model-provider` | 1.18.1 | Apache-2.0 | no LLM call on the `ardoco` path (R-030) |
 | ONNX Runtime (`com.microsoft.onnxruntime:onnxruntime`), transitive of `magika` | 1.20.0 | MIT | not used on the `ardoco` path |

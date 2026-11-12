@@ -2,11 +2,11 @@ approaches:
   stub-name-match: { enabled: true, params: { minTokenLength: 4, confidence: 0.5 } }
   decision-mention: { enabled: true, params: { minNameLength: 4 } }
   lissa: { enabled: true, params: { retrieval: { k: 20 }, classifier: simple, concurrency: 8 } }
-  ardoco: { enabled: true, params: {} }
+  ardoco: { enabled: true, fallbackFor: artemis, params: {} }
   ardocode: { enabled: false, params: {} }
-  transarc: { enabled: true, params: {} }
-  artemis: { enabled: false, params: {} }
+  transarc: { enabled: true, fallbackFor: artemis-transarc, params: {} }
+  artemis: { enabled: true, params: {} }
   artemis-class: { enabled: false, params: {} }
   artemis-datafile: { enabled: false, params: {} }
-  artemis-transarc: { enabled: false, params: {} }
+  artemis-transarc: { enabled: true, params: {} }
   artemis-exarch: { enabled: false, params: {} }

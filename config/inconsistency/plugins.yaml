@@ -2,7 +2,7 @@
 detectors:
   stub-untraced: { enabled: true }
   ardoco-id: { enabled: true, fallbackFor: artemis-id, params: { textKinds: [architecture-doc], modelKinds: [architecture-model], linkApproaches: all } }   # T3.1
-  artemis-id: { enabled: false, params: { textKinds: [architecture-doc], modelKinds: [architecture-model] } }   # T3.2, LLM via gateway
+  artemis-id: { enabled: true, params: { textKinds: [architecture-doc], modelKinds: [architecture-model] } }   # T3.2, LLM via gateway
   programming-language-id: { enabled: false, params: { textKinds: [architecture-doc], codeKinds: [code] } }   # T3.9, LLM via gateway
   architectural-style-id: { enabled: false, params: { textKinds: [architecture-doc], codeKinds: [code] } }   # T3.9, LLM via gateway
   model-code: { enabled: true, params: { modelKinds: [architecture-model], codeKinds: [code], linkApproaches: all } }   # T7.3

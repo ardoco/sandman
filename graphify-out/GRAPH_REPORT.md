@@ -6,40 +6,40 @@
 - Unclassified: 110 file(s) not represented in the graph (top: (none) 26, .csv 19, .repository 12)
 
 ## Summary
-- 12335 nodes · 32433 edges · 538 communities (402 shown, 136 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 2303 edges (avg confidence: 0.88)
+- 12338 nodes · 32434 edges · 552 communities (390 shown, 162 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 2302 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6f9fafc7`
+- Built from commit: `7096bb56`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - TlrContext
-- plan
+- test_cli.py
 - TlrContext
 - time
 - vid
-- serve
-- test_enrichment.py
+- Inconsistency Agent
+- requirements.py
 - C7: sandman_dashboard/static/cytoscape.min.js, a(), ah
 - Raw
 - create_app
 - perf.py
 - C11: sandman_query/static/cytoscape.min.js, a(), ah()
 - C12: Fl(), k(), uplot.min.js
-- ChatRequest
+- CodeModelEquivalenceTest
 - C14: sandman_dashboard/static/htmx.min.js, A(), ae()
 - T3.8 ArTEMiS TLR approaches, ArTEMiS SAD-SAM-code approaches and the new code extractor
 - org.junit.jupiter.api.BeforeAll
-- re
-- A2aClient.java
+- test_convert.py
+- SentenceRendering
 - C19: sandman_query/static/htmx.min.js, A(), ae()
 - HostileInputTest
 - dashboard/tests/test_traverse.py
 - C22: ambiguous_python_import_c1354da98944, ambiguous_py
-- CodeModelClient
+- Flavor
 - Orchestrator
 - Telemetry
 - C26: bearer_token, classify_code, consumer_backoff
@@ -48,12 +48,12 @@
 - llm-replay/tests/test_app.py
 - C30: B, K, kg.rs
 - C31: required, type, required
-- TransarcApproach
+- TransarcApproachTest
 - RecoverTraceLinksTest
 - test_console_graph_traverse.py
-- ScriptedLlmClient
+- json
 - C36: go_pkg_github_com_neo4j_neo4j_go_driver_v6_neo4j_a
-- yaml
+- hashlib
 - validate
 - rows
 - document-converter/tests/test_app.py
@@ -65,9 +65,9 @@
 - ADR index and MADR process
 - Streams.java
 - C48: description, required, type
-- test_telemetry.py
+- TransitionTableTest
 - ScriptedLlmClient
-- LlmClient
+- models.py
 - logic.ts
 - C54: required, type, required
 - System Overview
@@ -75,7 +75,7 @@
 - traceview.ts
 - .extract
 - sandman_cli/classification.py
-- json
+- sandman_cli/__main__.py
 - Env
 - Env
 - PluginTest
@@ -104,7 +104,7 @@
 - text.py
 - Element
 - C88: newRunId(), kg.ts, isMemoryLimit()
-- map
+- list
 - C90: ambiguous_python_import_eca093903662, test_query.p
 - DetectionService
 - C92: mediacache, mini/src/main/java/mini/MediaCache.jav
@@ -127,13 +127,13 @@
 - register
 - ArtemisRunner.java
 - test_query_path.py
-- Contracts
+- TriageService
 - ArdocodeIncrementalTest
 - test_extraction.py
 - tests/test_console_graph.py
 - scan
 - C117: ambiguous_python_import_0f11bdba2b85, ambiguous_py
-- httpx
+- fixture
 - C119: desktop/package.json, dependencies, cytoscape@^3.3
 - C120: cmd(), hasToken(), KeyInfo
 - C121: TokenVerifier, .Caller(), .CallerFromHeader()
@@ -143,11 +143,11 @@
 - A2aServerTest
 - Stack
 - C127: test_dashboard.py, compose_command(), dashboard()
-- _Executor
+- ADR-0010 Minimal agent library per language
 - C129: required, type, properties
 - a2a.ts
 - .stableId
-- A2aClient
+- Contracts
 - DecisionMentionTest
 - C134: test_planner.py, Harness, .calls()
 - C135: ambiguous_python_import_2d2c25cb8c66, test_auto.py
@@ -162,14 +162,14 @@
 - generate_rules
 - test_evidence.py
 - C146: description, required, type
-- TransitionTableTest
+- Status
 - C148: go_pkg_github_com_openai_openai_go_v3, go_pkg_gith
 - LissaApproach
 - C150: sink, .count(), .Publish()
 - create_app
-- .sha256Hex
+- .run
 - C153: schema.yaml, description, owner
-- ArdocodeApproach
+- .sha256Hex
 - C155: traceview.js, applyFilters(), build()
 - .run
 - TransarcApproach.java
@@ -183,7 +183,7 @@
 - C165: description, owner, properties
 - C166: required, type, description
 - C167: edu.kit.kastel.mcse.ardoco.core.api.text.Sentence,
-- ConfigError
+- llm.py
 - C169: arc, constanttimeeq, auth.rs
 - C170: inconsistency/plugins.yaml, enabled, params
 - llm.rs
@@ -191,16 +191,16 @@
 - Artifact
 - ArdocoIncrementalTest
 - test_stubs.py
-- Notifications
+- ArdocoIdDetectionTest
 - C177: cap_add, cap_drop, depends_on
 - C178: http_client, test_corenlp_gateway.py, caller()
-- embed
+- extraction-agent/tests/conftest.py
 - C180: Testing index, Testing and CI, Path-filtered GitHu
 - ProjectStats
 - NlService
 - C183: concepts.schema.json, additionalProperties, items
 - clear
-- ContractError
+- A2aClient
 - C186: tlr-agent THIRD-PARTY licenses, ArDoCo (MIT, 2.1.0
 - C187: ambiguous_python_import_ff583931b56e, test_asof.py
 - C188: api.rs, admin_password(), api()
@@ -213,12 +213,12 @@
 - CodeModelClient
 - C196: test_check_env.py, Path, run()
 - C197: Env, Error, .Error()
-- test_perf.py
+- ArtifactStore
 - register
 - C200: tauri.conf.json, app, security
 - C201: approaches, ardoco, ardocode
 - extraction-agent/tests/test_derive.py
-- SkillContext
+- ModelCodeDetectorTest
 - ChatRequest
 - C205: g(), h(), m()
 - ArDoCo 2.1.0 release
@@ -242,13 +242,13 @@
 - ModelCodeDetectorTest
 - C226: Cytoscape MIT license, htmx Zero-Clause BSD licens
 - C227: site fonts README (SIL OFL 1.1), Inter font, JetBr
-- protocol.rs
+- tlr/ModuleRulesTest.java
 - test_build_site.py
 - api
 - C231: extraction/plugins.yaml, builtin, converter
 - C232: models.yaml, openrouterProviders, anthropic/claude
-- sandman_dashboard/app.py
-- convert.py
+- register
+- create_app
 - .execute
 - config.rs
 - C237: test_sandman_ingest.py, CompletedProcess, HTTPServ
@@ -271,12 +271,12 @@
 - C254: run, defaults, if
 - test_explicit_links.py
 - RateLimiter
-- classify_tree.py
+- sandman_agent/__init__.py
 - .run
 - test_sampler.py
 - test_evaluation_removal.py
 - SessionStore
-- seed_kg.py
+- .runPair
 - ingest.rs
 - C265: desktop/tsconfig.json, compilerOptions, lib
 - Evaluation protocol D-8
@@ -286,10 +286,10 @@
 - EventViewer
 - ArtemisApproachTest
 - Knowledge
-- HttpPluginClient
+- .detect
 - C274: details, flow, summary
 - C275: sandman-knowledge.yaml, elements, id
-- AgentTest
+- ArdocodeApproach
 - ADR-0012 Pluggable TLR approaches, extractors and detectors
 - test_evaluation_nlquery.py
 - C279: description, required, type
@@ -300,7 +300,7 @@
 - Override
 - test_authz.py
 - C286: INPUT_BASE, INPUT_IMPACT_SUMMARY, INPUT_MODE
-- Version
+- setup_logging
 - ArtifactStore
 - C289: llm-gateway, condition, build
 - C290: orchestrator, condition, build
@@ -309,7 +309,7 @@
 - ingest
 - StubNameMatch
 - C295: test_extraction_models.py, components(), current()
-- params
+- with_span
 - .cypher
 - Cypher guard note (T0.9)
 - C299: CredentialStore component, MediaCache component, R
@@ -324,7 +324,7 @@
 - C308: if, runs-on, steps
 - T2.7 ExArch-derived and TransArC SAD-code
 - C310: el(), kl(), wl()
-- parse
+- TelemetryTest
 - C312: summary.schema.json, additionalProperties, propert
 - rows
 - C314: el(), kl(), wl()
@@ -344,30 +344,31 @@
 - C329: group_add, mem_limit, networks
 - C330: dashboards.yaml, apiVersion, path
 - test_graphview.py
-- ArtemisIdDetector
-- ModelSelector
-- CodeModelWithCompilationUnitsAndPackages.java
+- Spike T3.8: ArTEMiS runners and the new code extractor
+- LlmClientTest
+- parse
 - test_requirements.py
-- test_evaluation_labeling.py
-- register
+- io
+- TextCacheTest
 - C339: corpus.yaml, reject, id
-- dashboard/tests/test_classification.py
+- .inSpan
 - C341: steps, id, run
 - test_gateway_config.py
 - C343: image, mem_limit, networks
 - orchestrator/tests/conftest.py
 - T4.2 NL query evaluation set
-- .run
+- ClientCli
 - C347: config:recommended, docker:pinDigests, renovate.js
 - C348: backup-common.sh, dc(), die()
 - C349: Element, SentenceRendering, .assertHashes()
+- Upstream
 - C351: query-service, details, flow
 - zones
 - C353: blurb, col, external
 - C354: default.json, description, identifier
 - C355: gen-secrets.sh, fix_log_modes(), rand()
 - register
-- FakeMsg
+- ArtemisIdDetector
 - C358: fakeJS, .PublishMsg(), .PublishMsg()
 - C359: typescript/package.json, engines, node
 - User docs index
@@ -375,7 +376,7 @@
 - C362: Auth service, Image Provider service, PersistenceP
 - .adapterEqualsStandaloneTransarc
 - T3.9 ArTEMiS inconsistency detectors and ArTEMiS as the default
-- os
+- create_detect_app
 - C366: details, flow, summary
 - C367: blurb, col, glyph
 - C368: details, flow, summary
@@ -396,7 +397,7 @@
 - C383: nats, details, flow
 - C384: ollama, details, flow
 - C385: orchestrator, details, flow
-- llm_mode
+- test_evaluation_stats.py
 - C387: plugin-stubs, details, flow
 - C388: sandman-agent, details, flow
 - C389: tlr-agent, details, flow
@@ -405,16 +406,16 @@
 - C392: blurb, col, glyph
 - C393: blurb, col, glyph
 - C394: blurb, col, glyph
-- is_memory_limit
+- MonkeyPatch
 - C397: callerInterceptor, .Before(), github.com/a2aprojec
 - C398: action.yml, description, name
 - C399: intents.yaml, intents, cypher
 - C401: dockerclientfactory, Docker.java, Docker
 - mount
-- list
+- tools.jackson.databind.node.ObjectNode
 - C404: if, needs, runs-on
 - C405: on, pull_request, push
-- test_enrichment_on_recorded_model_output
+- build_env
 - C407: restore.sh, field(), in_volume()
 - test_knowledge_extract.py
 - C409: MediaStore benchmark documentation, Facade compone
@@ -499,21 +500,29 @@
 - C504: REQ-2 Print invoices into cache
 - .run
 - embeddingModel
-- ReasoningClassifierPrompt
 - Spike T3.9: programming-language and architectural-style checks
-- derive.py
-- write_atomic
+- StubUntracedDetector
+- PruneTraceLinksTest
 - Checked
-- ExarchStubDriver
+- .call
+- test_obs_smoke.py
 - Mock
 - collect
 - LlmCallException
-- Color
-- PluginError
+- test_sentence_keys_match_text_extraction
+- IntegrationTest
 - NoPackage.java
-- BudgetExceededException.java
-- fit
+- match_references
+- CappedHttpClientTest
+- EventsTest
+- zipped
+- SentenceRenderingTest
 - hidden_in
+- .publish
+- test_ingest_result.py
+- test_component_listing.py
+- test_invalid_config_fails_at_startup
+- test_extract_reports_activity
 
 ## God Nodes (most connected - your core abstractions)
 1. `Env` - 95 edges
@@ -523,8 +532,8 @@
 5. `Env` - 73 edges
 6. `KgClient` - 69 edges
 7. `RecoverTraceLinksTest` - 68 edges
-8. `Contracts` - 65 edges
-9. `TlrContext` - 65 edges
+8. `TlrContext` - 65 edges
+9. `Contracts` - 65 edges
 10. `Element` - 64 edges
 
 ## Surprising Connections (you probably didn't know these)
@@ -541,9 +550,9 @@
 
 ## Import Cycles
 - 1-file cycle: `libs/rust/sandman-agent/src/status.rs -> libs/rust/sandman-agent/src/status.rs`
+- 2-file cycle: `libs/rust/sandman-agent/src/a2a/mod.rs -> libs/rust/sandman-agent/src/a2a/protocol.rs -> libs/rust/sandman-agent/src/a2a/mod.rs`
 - 2-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/events.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
 - 2-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/a2a.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
-- 2-file cycle: `libs/rust/sandman-agent/src/a2a/mod.rs -> libs/rust/sandman-agent/src/a2a/protocol.rs -> libs/rust/sandman-agent/src/a2a/mod.rs`
 - 3-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/a2a.py -> libs/python/sandman-agent/src/sandman_agent/events.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
 - 3-file cycle: `libs/python/sandman-agent/src/sandman_agent/__init__.py -> libs/python/sandman-agent/src/sandman_agent/a2a.py -> libs/python/sandman-agent/src/sandman_agent/llm.py -> libs/python/sandman-agent/src/sandman_agent/__init__.py`
 
@@ -566,51 +575,51 @@
 - **Desktop application documentation** — apps_desktop_readme, apps_desktop_index, docs_tasks_t_desktop_app, adr_readme_adr_0019_desktop_app [INFERRED 0.85]
 - **A2A skill invocation flow with completion event** — openwiki_concepts_a2a_skills_invocation_convention, openwiki_concepts_a2a_skills_completion_event_rule, openwiki_architecture_agent_libraries_validate_publish_complete [INFERRED 0.95]
 
-## Communities (538 total, 136 thin omitted)
+## Communities (552 total, 162 thin omitted)
 
 ### Community 0 - "TlrContext"
-Cohesion: 0.02
-Nodes (31): ArtifactStore, Stored, KeyGenerator, WarcEquivalenceTest, CandidateLink, Feedback, KindPair, ScopeMode (+23 more)
+Cohesion: 0.03
+Nodes (33): BudgetExceededException, LlmUnavailableException, ReasoningClassifierPrompt, REASON_WITH_NAME, REASON_WITH_NAME_CONCEIVABLE, REASON_WITH_NAME_YES_IF_CERTAIN, CandidateLink, Feedback (+25 more)
 
-### Community 1 - "plan"
-Cohesion: 0.10
-Nodes (12): expand(), derive(), detect(), Graph, ids(), manual(), merge(), plan() (+4 more)
+### Community 1 - "test_cli.py"
+Cohesion: 0.11
+Nodes (20): kind_rule(), main(), env(), kind_of(), multipart(), server(), test_adr_rules_come_after_user_rules(), test_default_adr_rules() (+12 more)
 
 ### Community 2 - "TlrContext"
 Cohesion: 0.17
 Nodes (4): BenchmarkEquivalenceTest, CorenlpClient, Case, ExarchPortTest
 
 ### Community 3 - "time"
-Cohesion: 0.04
-Nodes (37): _bolt_ping(), _nats_ping(), nats_url(), test_memory_limit_is_not_retried(), test_publish_consume_round_trip_with_deduplication(), traverse(), _traverse(), traverse_limited() (+29 more)
+Cohesion: 0.07
+Nodes (21): check_passthrough(), main(), post(), Stub, attempt(), main(), record(), secret() (+13 more)
 
 ### Community 4 - "vid"
-Cohesion: 0.14
-Nodes (31): event(), ingestion(), vid(), skills(), test_created_versions_alone_do_not_derive(), test_deleted_artifacts_derive(), test_derivation_ingestion_never_derives(), test_derived_model_version_never_derives() (+23 more)
+Cohesion: 0.17
+Nodes (30): aid(), event(), ingestion(), vid(), skills(), test_created_versions_alone_do_not_derive(), test_deleted_artifacts_derive(), test_derivation_ingestion_never_derives() (+22 more)
 
-### Community 5 - "serve"
+### Community 5 - "Inconsistency Agent"
 Cohesion: 0.11
-Nodes (5): load_card(), serve(), status_route(), endpoint(), StatusTracker
+Nodes (28): Inconsistency Lifecycle (ADR-0007), Plugin System (Extractors and Detectors), deploy/gen-secrets.sh secret generation, Extraction Agent, eventPublished outbox flag (at-least-once), extract-artifact-versions skill, Deduplicating ingestion flow, Content-hash versioning transaction (+20 more)
 
-### Community 6 - "test_enrichment.py"
-Cohesion: 0.15
-Nodes (30): BudgetExceededError, _gateway_error(), embed(), counts(), cypher(), default_reply(), enable(), factory() (+22 more)
+### Community 6 - "requirements.py"
+Cohesion: 0.11
+Nodes (13): clean_kind(), component_listing(), document_format(), drop_lines(), extract(), stub(), _cell(), _csv() (+5 more)
 
 ### Community 7 - "C7: sandman_dashboard/static/cytoscape.min.js, a(), ah"
 Cohesion: 0.04
 Nodes (92): a(), ah(), Ai(), b(), Be(), c(), cc(), Ce() (+84 more)
 
 ### Community 8 - "Raw"
-Cohesion: 0.17
+Cohesion: 0.18
 Nodes (9): Mapping, ModelEl, ModelHit, Raw, RunResult, Sentence, TargetWord, WordHit (+1 more)
 
 ### Community 9 - "create_app"
 Cohesion: 0.04
-Nodes (18): build(), create_app(), access(), check_ingestion(), create_ingestion(), create_token(), export_inconsistencies(), export_tracelinks() (+10 more)
+Nodes (19): build(), create_app(), access(), check_ingestion(), create_ingestion(), create_token(), export_inconsistencies(), export_tracelinks() (+11 more)
 
 ### Community 10 - "perf.py"
-Cohesion: 0.12
-Nodes (18): Compose, docker_api(), http_latency(), impact_latency(), ingest_phase(), iso(), main(), oom_killed() (+10 more)
+Cohesion: 0.07
+Nodes (35): Compose, count_workload(), docker_api(), evaluate(), file_mix(), filler_schema(), http_latency(), impact_latency() (+27 more)
 
 ### Community 11 - "C11: sandman_query/static/cytoscape.min.js, a(), ah()"
 Cohesion: 0.04
@@ -620,25 +629,25 @@ Nodes (82): a(), ah(), Ai(), b(), Be(), c(), cc(), Ce() (+74 more)
 Cohesion: 0.05
 Nodes (97): Fl(), k(), A(), Ae(), Al(), B(), bl(), bt() (+89 more)
 
-### Community 13 - "ChatRequest"
-Cohesion: 0.17
-Nodes (12): ChatResponse, FailingLlm, answer(), ask(), reply(), test_answer_with_valid_citations(), test_foreign_citation_is_regenerated_once(), test_injection_in_rows_stays_inside_the_data_block() (+4 more)
+### Community 13 - "CodeModelEquivalenceTest"
+Cohesion: 0.16
+Nodes (3): BenchmarkCode, Entry, CodeModelEquivalenceTest
 
 ### Community 14 - "C14: sandman_dashboard/static/htmx.min.js, A(), ae()"
 Cohesion: 0.08
 Nodes (100): A(), ae(), an(), at(), B(), be(), bn(), bt() (+92 more)
 
 ### Community 15 - "T3.8 ArTEMiS TLR approaches, ArTEMiS SAD-SAM-code approaches and the new code extractor"
-Cohesion: 0.18
-Nodes (10): Acceptance criteria, Constraints, Context, Decisions (defaults taken 2026-11-12), Findings (2026-11-12, source of `21ef682`), Goal, Risks, Rollback (+2 more)
+Cohesion: 0.12
+Nodes (11): Acceptance criteria, Constraints, Context, Decisions (defaults taken 2026-11-12), Findings (2026-11-12, source of `21ef682`), Goal, Risks, Rollback (+3 more)
 
 ### Community 16 - "org.junit.jupiter.api.BeforeAll"
-Cohesion: 0.08
-Nodes (5): CorenlpProvider, RemovalDriver, BenchmarkEquivalenceTest, CorenlpInterimSplitTest, CorenlpParityTest
-
-### Community 17 - "re"
 Cohesion: 0.05
-Nodes (31): evidence_hash(), normalize_concept_name(), section_local_key(), sentence_local_key(), _slug(), run_conformance(), outputs(), test_changed_outputs_need_new_classifier_version() (+23 more)
+Nodes (9): ContractException, Contracts, HttpPluginClient, PluginException, RemovalDriver, BenchmarkEquivalenceTest, CorenlpInterimSplitTest, CodeStatementDetectionTest (+1 more)
+
+### Community 17 - "test_convert.py"
+Cohesion: 0.18
+Nodes (16): ConversionError, blob(), fake(), pdf_pages(), test_converter_env_has_no_secrets(), test_crash_by_signal(), test_garbage_output_is_decoded_lossily(), test_memory_limit() (+8 more)
 
 ### Community 19 - "C19: sandman_query/static/htmx.min.js, A(), ae()"
 Cohesion: 0.09
@@ -656,73 +665,69 @@ Nodes (15): count(), node_names(), seed(), service(), test_cartesian_product_hit
 Cohesion: 0.13
 Nodes (4): Parser, Part, src_text(), Tok
 
-### Community 23 - "CodeModelClient"
-Cohesion: 0.07
-Nodes (13): ArtemisApproach, ArtemisApproachBase, Flavor, CLASS, COMPONENT, DATAFILE, EXARCH, TRANSARC (+5 more)
+### Community 23 - "Flavor"
+Cohesion: 0.25
+Nodes (6): Flavor, CLASS, COMPONENT, DATAFILE, EXARCH, TRANSARC
 
 ### Community 24 - "Orchestrator"
 Cohesion: 0.06
-Nodes (8): plan_outcome(), action_key(), Conflict, error(), Orchestrator, PlanForbidden, workflow_status(), test_upgrade_from_v1_keeps_rows_and_is_atomic()
+Nodes (7): plan_outcome(), Conflict, error(), Orchestrator, PlanForbidden, workflow_status(), test_upgrade_from_v1_keeps_rows_and_is_atomic()
 
 ### Community 25 - "Telemetry"
-Cohesion: 0.05
-Nodes (8): A2aClient, TaskSnapshot, MemoryLimitException, Body, Instruments, Telemetry, TelemetryTest, ClientCli
+Cohesion: 0.13
+Nodes (3): Body, Instruments, Telemetry
 
 ### Community 26 - "C26: bearer_token, classify_code, consumer_backoff"
 Cohesion: 0.05
-Nodes (38): required, type, agent, default_contracts_dir(), auth_maps_bearer_tokens_to_callers(), auth_rejects_plugin_callers_on_agents_and_accepts_the_inbound_token_on_plugins(), chat_request(), config_reads_settings_and_file_secrets() (+30 more)
+Nodes (34): default_contracts_dir(), auth_maps_bearer_tokens_to_callers(), chat_request(), config_reads_settings_and_file_secrets(), config_require_accepts_every_configured_name_and_flags_each_missing_one(), contracts(), delivery(), env() (+26 more)
 
 ### Community 27 - "C27: Config, context, E"
-Cohesion: 0.05
-Nodes (32): async_nats::jetstream::Context, build_event(), connect_jetstream(), CONSUMER_ACK_WAIT, CONSUMER_BACKOFF, consumer_config(), CONSUMER_MAX_DELIVER, Delivery (+24 more)
+Cohesion: 0.06
+Nodes (30): async_nats::jetstream::Context, build_event(), connect_jetstream(), CONSUMER_ACK_WAIT, CONSUMER_BACKOFF, consumer_config(), CONSUMER_MAX_DELIVER, Delivery (+22 more)
 
 ### Community 28 - "C28: actor_from_metadata, Authenticator, canonical_json"
-Cohesion: 0.07
-Nodes (32): ACTIVITY_INTERVAL, ACTOR_KEY, agent_card(), AppState, bearer(), ERROR_KEY, Executor, finish() (+24 more)
+Cohesion: 0.05
+Nodes (52): ACTIVITY_INTERVAL, ACTOR_KEY, agent_card(), AppState, bearer(), ERROR_KEY, Executor, finish() (+44 more)
 
 ### Community 29 - "llm-replay/tests/test_app.py"
 Cohesion: 0.07
 Nodes (40): canonical(), cassette_key(), create_app(), authorized(), counted(), dispatch(), log(), passthrough() (+32 more)
 
 ### Community 30 - "C30: B, K, kg.rs"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (28): new_run_id(), classify_code(), KgBackend, KgClient, KgClient<B>, KgClient<Neo4rsBackend>, KgError, MemoryLimit (+20 more)
 
 ### Community 31 - "C31: required, type, required"
 Cohesion: 0.05
 Nodes (41): description, required, type, required, type, required, type, description (+33 more)
 
-### Community 32 - "TransarcApproach"
-Cohesion: 0.08
-Nodes (6): CachedArCoTL, SamCodeStage, PipelineAgent, TransarcApproach, TransarcRunner, TransarcApproachTest
-
 ### Community 34 - "test_console_graph_traverse.py"
 Cohesion: 0.20
 Nodes (19): bulk(), by_key(), get(), labels_of(), mg(), node_id(), nodes_of(), post_query() (+11 more)
 
-### Community 35 - "ScriptedLlmClient"
-Cohesion: 0.08
-Nodes (30): Answer, ask(), _concepts(), enrich(), _enrich_element(), EnrichConfig, _marker_safe(), _plain() (+22 more)
+### Community 35 - "json"
+Cohesion: 0.03
+Nodes (52): outputs(), test_changed_outputs_need_new_classifier_version(), test_golden_cases(), test_guess(), test_kinds_equal_contract_and_java(), test_rule_beats_heuristic_and_head_is_lazy(), _number(), _pjson() (+44 more)
 
 ### Community 36 - "C36: go_pkg_github_com_neo4j_neo4j_go_driver_v6_neo4j_a"
 Cohesion: 0.08
 Nodes (18): Client, Driver, fakeDriver, fakeSession, fakeTx, MemoryLimitError, neo4jDriver, neo4jSession (+10 more)
 
-### Community 37 - "yaml"
+### Community 37 - "hashlib"
 Cohesion: 0.04
-Nodes (38): contracts(), settings(), build(), config_hashes(), docker_images(), evaluation(), git_state(), main() (+30 more)
+Nodes (43): build(), cmd_gold(), cmd_run(), execute(), work(), inc(), jsonable(), load() (+35 more)
 
 ### Community 38 - "validate"
 Cohesion: 0.15
 Nodes (25): validate(), validate_shared(), login(), sent(), test_admin_user_and_membership_management(), test_approval_is_refused_before_forwarding_without_maintainer_on_the_workflow_project(), test_bootstrap_admin_must_change_password(), test_disabled_user_and_forced_password_change_block_tokens() (+17 more)
 
 ### Community 39 - "rows"
-Cohesion: 0.11
-Nodes (16): missing(), work(), work(), work(), work(), work(), rows(), _count() (+8 more)
+Cohesion: 0.16
+Nodes (9): _count(), _delete(), _DryRun, _old_prune_runs(), PruneSkill, batch(), rollback(), work() (+1 more)
 
 ### Community 40 - "document-converter/tests/test_app.py"
-Cohesion: 0.05
-Nodes (48): create_app(), ConversionError, Limits, blob(), env(), Env, fake(), make() (+40 more)
+Cohesion: 0.16
+Nodes (22): blob(), env(), Env, fake(), make(), test_conversion_errors_are_422_with_bounded_detail(), test_conversions_are_serialized(), test_convert() (+14 more)
 
 ### Community 41 - "test_traceview.py"
 Cohesion: 0.33
@@ -737,36 +742,32 @@ Cohesion: 0.10
 Nodes (55): environment, environment, JAVA_TOOL_OPTIONS, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_SDK_DISABLED, QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT, QUARKUS_OTEL_SDK_DISABLED, SANDMAN_ADMIN_PASSWORD_FILE (+47 more)
 
 ### Community 44 - "test_documents.py"
-Cohesion: 0.11
-Nodes (13): ConversionError, converter_client(), to_markdown(), client(), run_skill(), test_converter_down_falls_back(), test_converter_rejection_falls_back_and_others_extract(), test_error_detail_is_bounded_and_network_errors_are_wrapped() (+5 more)
+Cohesion: 0.12
+Nodes (12): ConversionError, converter_client(), to_markdown(), client(), run_skill(), test_converter_down_falls_back(), test_converter_rejection_falls_back_and_others_extract(), test_error_detail_is_bounded_and_network_errors_are_wrapped() (+4 more)
 
 ### Community 45 - "DetectorContext"
-Cohesion: 0.09
-Nodes (8): ArdocoIdDetector, Cached, KgInput, LinkPair, ModelElement, Sentence, Version, ArdocoIdDetectorTest
+Cohesion: 0.13
+Nodes (3): ArdocoIdDetector, Version, ArdocoIdDetectorTest
 
 ### Community 46 - "ADR index and MADR process"
-Cohesion: 0.10
-Nodes (27): ADR-0005 KG schema, provenance and artifact versioning, Run nodes for provenance, Immutable artifact version snapshots with stable element keys, Reified TraceLink nodes, ADR-0007 Inconsistency lifecycle and re-detection, evidenceHash, Inconsistency fingerprint over element keys, Inconsistency states (OPEN, DEFERRED, ACCEPTED, REJECTED, RESOLVED, REOPENED) (+19 more)
+Cohesion: 0.13
+Nodes (19): Single-writer rule, ADR-0009 NL-to-Cypher approach, Schema-grounded single-shot Cypher generation with validation and repair, Driver read transaction as primary write guard, Parse-tree scope guard (project anchoring), ADR-0013 Users and roles, X-Sandman-Actor forwarding by trusted query-service, Built-in user store in query-service (+11 more)
 
 ### Community 47 - "Streams.java"
-Cohesion: 0.14
+Cohesion: 0.12
 Nodes (3): Streams, ApiError, StreamsTest
 
 ### Community 48 - "C48: description, required, type"
 Cohesion: 0.04
 Nodes (52): description, required, type, description, required, type, description, enum (+44 more)
 
-### Community 49 - "test_telemetry.py"
-Cohesion: 0.07
-Nodes (15): by_name(), clean(), FakeMsg, FakeSession, FakeTx, Js, metric_points(), _noop() (+7 more)
-
 ### Community 50 - "ScriptedLlmClient"
-Cohesion: 0.20
+Cohesion: 0.17
 Nodes (19): ScriptedLlmClient, answer(), ask(), call(), explore_queries(), setup(), test_budgets_stop_the_loop_without_rows(), test_cypher_only_runs_nothing() (+11 more)
 
-### Community 52 - "LlmClient"
-Cohesion: 0.11
-Nodes (6): LlmAccess, PolicyException, ChatResult, LlmClient, Message, LissaEmbedder
+### Community 52 - "models.py"
+Cohesion: 0.18
+Nodes (8): add_warnings(), _attr(), extract(), _Lines, _local(), _parse(), _pcm_items(), _uml_items()
 
 ### Community 53 - "logic.ts"
 Cohesion: 0.11
@@ -781,36 +782,32 @@ Cohesion: 0.14
 Nodes (17): Agent Libraries (Python and Java), Cross-language conformance vectors, KgClient and RunRecorder, Contract-First Interfaces, Five event types catalog, validate_contracts.py validation pipeline, Architecture wiki index, Knowledge Graph Schema and Persistence (+9 more)
 
 ### Community 56 - "build_router"
-Cohesion: 0.11
-Nodes (46): answer_parts(), build_router(), admin(), admin_create_user(), admin_disable(), admin_only(), admin_page(), admin_remove_member() (+38 more)
+Cohesion: 0.09
+Nodes (49): answer_parts(), build_router(), admin(), admin_create_user(), admin_disable(), admin_only(), admin_page(), admin_remove_member() (+41 more)
 
 ### Community 57 - "traceview.ts"
 Cohesion: 0.14
 Nodes (26): columnOf(), COLUMNS, columnsLayout(), filterLinks(), findingOpen(), problemMessage(), reviewable(), tokenMessage() (+18 more)
 
 ### Community 58 - ".extract"
-Cohesion: 0.06
-Nodes (10): Body, CodeService, BenchmarkCode, Entry, CodeModelEquivalenceTest, CodeModelSkillTest, Fixtures, MaxCapInputTest (+2 more)
+Cohesion: 0.09
+Nodes (7): Body, CodeService, CodeModelSkillTest, Fixtures, MaxCapInputTest, MixedLanguagesTest, PluginServiceTest
 
 ### Community 59 - "sandman_cli/classification.py"
 Cohesion: 0.15
-Nodes (31): weak_fingerprint(), Verdict, _ask(), build_update(), classify(), edits_of(), _file_json(), _hit() (+23 more)
+Nodes (30): Verdict, _ask(), build_update(), classify(), edits_of(), _file_json(), _hit(), _how() (+22 more)
 
-### Community 60 - "json"
-Cohesion: 0.04
-Nodes (64): tar_gz(), load_cassettes(), archive_manifest(), cell(), inconsistencies_csv(), to_csv(), test_inconsistencies_csv_has_cause_column(), kind_rule() (+56 more)
+### Community 60 - "sandman_cli/__main__.py"
+Cohesion: 0.10
+Nodes (26): fetch_rows(), read_file(), build_mapping(), rename(), build_archive(), build_manifest(), _cell(), eval_compare() (+18 more)
 
 ### Community 61 - "Env"
-Cohesion: 0.13
-Nodes (18): SessionStore, Env, test_csrf_required_on_post(), test_cypher_endpoint_with_csrf(), test_fragment_polling_does_not_extend_the_idle_session(), test_html_routes_redirect_to_login(), test_json_routes_return_401(), test_login_body_is_capped() (+10 more)
+Cohesion: 0.12
+Nodes (28): Env, test_cookie_secure_flag(), test_csrf_required_on_post(), test_cypher_endpoint_with_csrf(), test_fragment_polling_does_not_extend_the_idle_session(), test_html_routes_redirect_to_login(), test_json_routes_return_401(), test_login_body_is_capped() (+20 more)
 
 ### Community 62 - "Env"
-Cohesion: 0.10
-Nodes (31): SkillError, Env, output_and_event(), run_manual(), statuses(), test_action_key_vectors(), test_agent_activity_is_stored_while_running_and_dropped_after(), test_blocked_workflow_retry_resumes_and_non_blocked_conflicts() (+23 more)
-
-### Community 63 - "PluginTest"
-Cohesion: 0.09
-Nodes (3): StubUntracedDetector, DetectorRegistryTest, PluginTest
+Cohesion: 0.14
+Nodes (31): SkillError, Env, run_manual(), statuses(), test_agent_activity_is_stored_while_running_and_dropped_after(), test_blocked_workflow_retry_resumes_and_non_blocked_conflicts(), test_budget_exceeded_blocks_step(), test_cancel_sends_cancel_task() (+23 more)
 
 ### Community 64 - "C64: btreeset, digest, event_from_json"
 Cohesion: 0.10
@@ -841,16 +838,16 @@ Cohesion: 0.06
 Nodes (41): dependencies, @a2a-js/sdk@^1.3.0, ajv@^8.20.0, ajv-formats@^3.0.1, canonicalize@^5.1.0, express@^5.3.0, @nats-io/jetstream@^3.4.0, @nats-io/transport-node@^3.4.0 (+33 more)
 
 ### Community 72 - "pytest"
-Cohesion: 0.07
-Nodes (41): test_manifest_accepts_documentation_and_rejects_ignored_rule(), test_manifest_classifier_version_is_optional_and_positive(), check(), GuardError, tokenize(), expand(), test_bounded_entry_accepted_by_guard(), test_oversized_query_is_refused_before_tokenizing() (+33 more)
+Cohesion: 0.11
+Nodes (35): test_manifest_accepts_documentation_and_rejects_ignored_rule(), check(), GuardError, tokenize(), expand(), test_bounded_entry_accepted_by_guard(), test_oversized_query_is_refused_before_tokenizing(), test_reject_entry_refused() (+27 more)
 
 ### Community 73 - ".classify"
-Cohesion: 0.17
+Cohesion: 0.19
 Nodes (3): TraceLink, AnyResultAggregator, ResultAggregator
 
 ### Community 74 - "compare"
 Cohesion: 0.09
-Nodes (10): compare(), identical(), cohens_g(), holm(), odds_ratio(), row(), test_cli_export_and_compare(), test_compare_and_identical() (+2 more)
+Nodes (9): compare(), identical(), holm(), odds_ratio(), row(), test_cli_export_and_compare(), test_compare_and_identical(), test_fetch_rows_pages() (+1 more)
 
 ### Community 76 - "C76: vectorCase, go_pkg_github_com_nats_io_nats_go, go_"
 Cohesion: 0.12
@@ -858,11 +855,11 @@ Nodes (23): vectorCase, errorCode(), find(), send(), setup(), stateOf(), taskOf(
 
 ### Community 77 - "removal.py"
 Cohesion: 0.11
-Nodes (23): agreement(), baseline_agreement(), baseline_links(), components(), counts(), detect(), drop_component(), drop_files() (+15 more)
+Nodes (24): agreement(), baseline_agreement(), baseline_links(), components(), counts(), detect(), drop_component(), drop_files() (+16 more)
 
 ### Community 78 - "KgClient"
-Cohesion: 0.10
-Nodes (11): KgClient, work(), work(), _migrate(), now(), RunRecorder, test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(), test_init_schema_is_idempotent() (+3 more)
+Cohesion: 0.09
+Nodes (13): KgClient, work(), work(), _migrate(), _no_retry_on_memory_limit(), RunRecorder, test_cleanup_stale_removes_only_facts_created_by_unfinished_runs(), test_init_schema_is_idempotent() (+5 more)
 
 ### Community 79 - "Override"
 Cohesion: 0.11
@@ -876,13 +873,9 @@ Nodes (30): archive(), console_login(), csrf_of(), link_row(), logged_in(), post
 Cohesion: 0.05
 Nodes (37): environment, image, profiles, CONTAINERS, INFO, name, command, image (+29 more)
 
-### Community 82 - "serve"
-Cohesion: 0.14
-Nodes (3): _Authenticator, _authenticator(), _RequireToken
-
 ### Community 83 - "Principal"
 Cohesion: 0.12
-Nodes (4): Principal, _evidence_item(), _json(), Service
+Nodes (6): plugin_principal(), Principal, _evidence_item(), _json(), Service, test_plugin_principal_strips_prefix()
 
 ### Community 84 - "store.rs"
 Cohesion: 0.18
@@ -894,7 +887,7 @@ Nodes (9): answers_a_repeated_message_id_without_running_the_skill_again(), comp
 
 ### Community 86 - "text.py"
 Cohesion: 0.03
-Nodes (55): add_warnings(), clean_kind(), component_listing(), drop_lines(), extract(), extract_document(), _body(), _date() (+47 more)
+Nodes (65): evidence_hash(), fingerprint(), normalize_concept_name(), section_local_key(), sentence_local_key(), _slug(), run_conformance(), test_broken_schema_and_vector_are_reported() (+57 more)
 
 ### Community 87 - "Element"
 Cohesion: 0.14
@@ -904,13 +897,13 @@ Nodes (7): ElementStore, SourceElementStore, CosineSimilarity, RetrievalStrategy
 Cohesion: 0.09
 Nodes (14): llmMode(), newRunId(), isMemoryLimit(), KgClient, KgDriver, KgSession, KgTx, MemoryLimitError (+6 more)
 
-### Community 89 - "map"
-Cohesion: 0.06
-Nodes (7): ids, A2aTelemetryTest, Ids, RunRecorder, CodeStatementDetectionTest, CappedHttpClientTest, ArdocodePluginDownTest
+### Community 89 - "list"
+Cohesion: 0.04
+Nodes (7): ids, A2aTelemetryTest, Ids, Jcs, KgClient, RunRecorder, ArdocodePluginDownTest
 
 ### Community 90 - "C90: ambiguous_python_import_eca093903662, test_query.p"
 Cohesion: 0.14
-Nodes (28): ask(), cypher(), llm(), test_agreement_count_is_the_number_of_distinct_approaches_per_pair(), test_cypher_binds_project_and_limit(), test_exports_with_empty_graph(), test_forged_row_of_another_project_is_rejected_and_logged(), test_guard_rejection_is_422_problem() (+20 more)
+Nodes (29): factory(), ask(), cypher(), llm(), test_cypher_binds_project_and_limit(), test_exports_with_empty_graph(), test_forged_row_of_another_project_is_rejected_and_logged(), test_guard_rejection_is_422_problem() (+21 more)
 
 ### Community 91 - "DetectionService"
 Cohesion: 0.08
@@ -946,7 +939,7 @@ Nodes (16): INVOCATION_EXTENSION, ServeOptions, SkillContext, Settings, Contract
 
 ### Community 99 - "KgClient"
 Cohesion: 0.03
-Nodes (18): A2aServer, Outcome, Seen, SkillExecutor, TelemetryBridge, ContractException, Contracts, EventPublisher (+10 more)
+Nodes (13): Outcome, Seen, SkillExecutor, TelemetryBridge, EventConsumer, Handler, EventPublisher, ForbiddenException (+5 more)
 
 ### Community 100 - "C100: EventPublisher, fakeMsg, .Ack()"
 Cohesion: 0.10
@@ -957,12 +950,12 @@ Cohesion: 0.06
 Nodes (33): runs-on, steps, concurrency, cancel-in-progress, group, environment, needs, permissions (+25 more)
 
 ### Community 102 - "create_app"
-Cohesion: 0.09
-Nodes (11): require_service(), trusted_actor(), create_app(), get_project(), http_problem(), invalid(), project_or_404(), put_project() (+3 more)
+Cohesion: 0.11
+Nodes (10): require_service(), trusted_actor(), create_app(), get_project(), http_problem(), invalid(), project_or_404(), put_project() (+2 more)
 
 ### Community 103 - "gateway.py"
 Cohesion: 0.10
-Nodes (21): add_rates(), Budget, GatewayClient, GatewaySnapshot, _group(), parse_budgets(), parse_metrics(), quantile() (+13 more)
+Nodes (20): add_rates(), Budget, GatewaySnapshot, _group(), parse_budgets(), parse_metrics(), quantile(), Row (+12 more)
 
 ### Community 104 - "IdRunner"
 Cohesion: 0.13
@@ -978,7 +971,7 @@ Nodes (22): canonCases, vecFile, load(), TestConformance(), TestGeneratedIDs(), 
 
 ### Community 107 - "AlertEngine"
 Cohesion: 0.13
-Nodes (14): Alert, AlertEngine, budget_alert(), Clock, clock(), engine(), lines(), test_dead_events_and_budgets() (+6 more)
+Nodes (16): Alert, AlertEngine, budget_alert(), Clock, clock(), engine(), entries(), lines() (+8 more)
 
 ### Community 108 - "C108: Knowledge graph page template, History page templa"
 Cohesion: 0.08
@@ -986,39 +979,39 @@ Nodes (33): Knowledge graph page template, History page template, Login page tem
 
 ### Community 109 - "register"
 Cohesion: 0.08
-Nodes (23): create_app(), alerts_fragment(), api_cypher(), api_services(), gateway_fragment(), gateway_page(), graph_page(), http_error() (+15 more)
+Nodes (22): create_app(), alerts_fragment(), api_cypher(), api_services(), gateway_fragment(), gateway_page(), graph_page(), http_error() (+14 more)
 
 ### Community 110 - "ArtemisRunner.java"
-Cohesion: 0.04
-Nodes (18): ArtemisChatModel, ArtemisRunner, Connection, GatewayStage, PipelineAgent, PipelineAgent, Ner, LangChain4jOutsideArdocoPackage (+10 more)
+Cohesion: 0.03
+Nodes (26): LlmAccess, PolicyException, ChatResult, LlmClient, Message, ArchitecturalStyleIdDetector, ArtemisChatModel, ArtemisRunner (+18 more)
 
 ### Community 111 - "test_query_path.py"
 Cohesion: 0.08
 Nodes (35): Checked, alice(), ask(), entries(), hostile_queries(), HostileLlm, strategy(), test_authz_before_strategy_for_cypher_endpoint() (+27 more)
 
-### Community 112 - "Contracts"
-Cohesion: 0.18
-Nodes (22): Settings, InMemoryEventBus, Recover, setup(), test_actor_rejected_from_non_orchestrator(), test_card_is_public(), test_eviction_never_drops_pending_entries(), run() (+14 more)
+### Community 112 - "TriageService"
+Cohesion: 0.17
+Nodes (5): InconsistencyStore, Item, Filter, TriageException, TriageService
 
 ### Community 114 - "test_extraction.py"
-Cohesion: 0.08
-Nodes (51): match_references(), art(), classified(), created(), cypher(), cypher_write(), extract_mini(), ingest_with() (+43 more)
+Cohesion: 0.16
+Nodes (35): art(), classified(), created(), cypher(), cypher_write(), extract_mini(), ingest_with(), test_adr_file_becomes_decision_with_contained_sections() (+27 more)
 
 ### Community 115 - "tests/test_console_graph.py"
 Cohesion: 0.14
 Nodes (11): schema_names(), stub(), StubGraph, test_assets_are_served(), test_hidden_labels_depend_on_the_admin_flag(), test_missing_graph_answers_503_and_the_page_shows_the_reason(), test_page_has_no_inline_script_and_escapes_values(), test_page_needs_a_session_and_a_role() (+3 more)
 
 ### Community 116 - "scan"
-Cohesion: 0.22
-Nodes (6): 1. Problem, default_ignored(), git_files(), _head(), scan(), test_manifest_of_mini_s1()
+Cohesion: 0.25
+Nodes (5): 1. Problem, default_ignored(), git_files(), _head(), scan()
 
 ### Community 117 - "C117: ambiguous_python_import_0f11bdba2b85, ambiguous_py"
 Cohesion: 0.18
 Nodes (17): ask(), embed_graph(), FakeLlm, graph(), onehot(), test_citation_outside_rows_and_evidence_is_dropped(), test_cloud_project_uses_default_route(), test_cypher_only_and_dry_run_embed_nothing() (+9 more)
 
-### Community 118 - "httpx"
-Cohesion: 0.05
-Nodes (44): env(), FakeGraph, FakeKg, make_app(), Upstream, test_cookie_secure_flag(), test_rate_limit_keys_on_forwarded_client_of_trusted_proxy(), envelope() (+36 more)
+### Community 118 - "fixture"
+Cohesion: 0.07
+Nodes (27): contracts(), clean(), fixture(), driver(), env(), FakeGraph, FakeKg, make_app() (+19 more)
 
 ### Community 119 - "C119: desktop/package.json, dependencies, cytoscape@^3.3"
 Cohesion: 0.08
@@ -1041,20 +1034,20 @@ Cohesion: 0.09
 Nodes (31): condition, required, depends_on, code-extractor-ardoco, kg-migrate, llm-replay, nats, plugin-stubs (+23 more)
 
 ### Community 124 - "UserStore"
-Cohesion: 0.07
-Nodes (3): _later(), row_dict(), UserStore
+Cohesion: 0.06
+Nodes (6): now(), Exists, _later(), row_dict(), sha256(), UserStore
 
 ### Community 126 - "Stack"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (21): swap(), impact(), test_second_ingestion_reports_changed_requirement_and_linked_elements(), test_decision_is_linked_and_listed_when_the_named_file_changes(), test_declared_link_is_confirmed_and_resolves_the_untraced_requirement(), console(), links(), post_form() (+13 more)
 
 ### Community 127 - "C127: test_dashboard.py, compose_command(), dashboard()"
 Cohesion: 0.14
 Nodes (24): compose_command(), dashboard(), e2e_project(), password(), run(), services(), test_events_page_shows_the_ingestion_event(), seen() (+16 more)
 
-### Community 128 - "_Executor"
-Cohesion: 0.09
-Nodes (9): _Executor, json_value(), Skill, snapshot(), _struct(), actor_from_metadata(), EventSink, bind() (+1 more)
+### Community 128 - "ADR-0010 Minimal agent library per language"
+Cohesion: 0.15
+Nodes (19): ADR-0004 LLM gateway: Bifrost, LiteLLM fallback, Bifrost LLM gateway, LiteLLM proxy (runner-up), local-only LLM policy (self-hosted Ollama), Per-component virtual keys with budgets and rate limits, ADR-0008 Monorepo layout with shared contracts, Monorepo (uv workspace + Maven aggregator), ADR-0010 Minimal agent library per language (+11 more)
 
 ### Community 129 - "C129: required, type, properties"
 Cohesion: 0.07
@@ -1065,20 +1058,20 @@ Cohesion: 0.11
 Nodes (20): ACTOR_KEY, CardRaw, ERROR_KEY, Outcome, serve(), SKILL_KEY, SkillResult, WORKFLOW_KEY (+12 more)
 
 ### Community 131 - ".stableId"
-Cohesion: 0.09
-Nodes (4): ArdocoIdDetectionTest, ArtemisIdDetectionTest, TestKg, TlrLinksEquivalenceKgTest
+Cohesion: 0.11
+Nodes (4): ArtemisIdDetectionTest, FingerprintTest, TestKg, TlrLinksEquivalenceKgTest
 
-### Community 132 - "A2aClient"
-Cohesion: 0.10
-Nodes (11): A2aClient, TaskSnapshot, A2aPluginClient, client_span(), test_progress_text_reaches_the_caller_and_is_throttled(), Recover, test_a2a_client_to_server_shares_trace(), test_failed_task_is_marked() (+3 more)
+### Community 132 - "Contracts"
+Cohesion: 0.02
+Nodes (75): A2aClient, _Authenticator, _authenticator(), _Executor, json_value(), load_card(), serve(), Skill (+67 more)
 
 ### Community 133 - "DecisionMentionTest"
-Cohesion: 0.21
+Cohesion: 0.20
 Nodes (3): Element, DecisionMention, DecisionMentionTest
 
 ### Community 134 - "C134: test_planner.py, Harness, .calls()"
-Cohesion: 0.22
-Nodes (16): Harness, reply(), step(), test_approval_needs_a_user_actor(), test_approve_runs_exactly_once(), test_expired_plan_cannot_be_approved(), test_injection_text_stays_inside_the_fence(), test_invalid_plans_are_rejected_and_nothing_is_stored() (+8 more)
+Cohesion: 0.15
+Nodes (21): TokenVerifier, PlannerConfig, h(), Harness, reply(), step(), test_approval_needs_a_user_actor(), test_approve_runs_exactly_once() (+13 more)
 
 ### Community 135 - "C135: ambiguous_python_import_2d2c25cb8c66, test_auto.py"
 Cohesion: 0.23
@@ -1093,7 +1086,7 @@ Cohesion: 0.09
 Nodes (21): build_updates(), code_files(), copy_back(), f1_of(), failed_steps(), git_head(), Guide, main() (+13 more)
 
 ### Community 138 - "ArdocodeApproachTest"
-Cohesion: 0.15
+Cohesion: 0.16
 Nodes (3): ArdocodeApproachTest, CorenlpClient, CodeModelClient.Calls
 
 ### Community 139 - "Classifier"
@@ -1105,20 +1098,20 @@ Cohesion: 0.19
 Nodes (17): keys(), pairs(), pcm(), test_duplicate_ids_first_wins(), test_every_key_occurs_in_source(), test_file_key_id_is_skipped_and_names_bounded(), test_hostile_xml_is_rejected(), test_malformed_xml_raises() (+9 more)
 
 ### Community 141 - "test_rules_unit.py"
-Cohesion: 0.08
-Nodes (47): KindPair, ModelDerivation, Retention, Rules, seconds(), tlr_steps(), aid(), test_shipped_config_enables_derivation_and_pairs_model_with_code() (+39 more)
+Cohesion: 0.04
+Nodes (61): expand(), derive(), detect(), Graph, ids(), KgGraph, KindPair, manual() (+53 more)
 
 ### Community 142 - "GraphError"
-Cohesion: 0.26
+Cohesion: 0.24
 Nodes (5): GraphError, GraphService, in_project(), ConsoleGraph, visible()
 
 ### Community 143 - "CorenlpClient"
-Cohesion: 0.08
-Nodes (9): EventConsumer, Handler, CorenlpClient, Eolonly, AUTO, FALSE, TRUE, Entry (+1 more)
+Cohesion: 0.07
+Nodes (8): CorenlpClient, Eolonly, AUTO, FALSE, TRUE, Entry, TextCache, LissaEmbedder
 
 ### Community 144 - "generate_rules"
-Cohesion: 0.25
-Nodes (11): build_tree(), _finish(), fold(), walk(), test_deepest_first_and_no_rule_when_heuristic_agrees(), test_file_rules_first_and_redundant_removed(), test_generator_property(), test_mixed_expands_and_weak_propagates() (+3 more)
+Cohesion: 0.14
+Nodes (17): _apply(), build_tree(), _file_glob(), _finish(), fold(), walk(), _folder_glob(), generate_rules() (+9 more)
 
 ### Community 145 - "test_evidence.py"
 Cohesion: 0.24
@@ -1128,9 +1121,9 @@ Nodes (8): involved(), mg(), page(), test_changed_sentence_shows_text_position_l
 Cohesion: 0.07
 Nodes (28): description, required, type, properties, description, required, type, enum (+20 more)
 
-### Community 147 - "TransitionTableTest"
-Cohesion: 0.06
-Nodes (15): InconsistencyStore, Item, Lifecycle, Status, ACCEPTED, DEFERRED, OPEN, REJECTED (+7 more)
+### Community 147 - "Status"
+Cohesion: 0.14
+Nodes (8): Lifecycle, Status, ACCEPTED, DEFERRED, OPEN, REJECTED, REOPENED, RESOLVED
 
 ### Community 148 - "C148: go_pkg_github_com_openai_openai_go_v3, go_pkg_gith"
 Cohesion: 0.10
@@ -1141,20 +1134,16 @@ Cohesion: 0.13
 Nodes (8): sink, Error, Contracts, leaves(), normalize(), BuildEvent(), Event, PublishOptions
 
 ### Community 151 - "create_app"
-Cohesion: 0.10
-Nodes (20): TokenVerifier, build(), ready(), create_app(), actor(), admin(), cancel_workflow(), create_request() (+12 more)
-
-### Community 152 - ".sha256Hex"
-Cohesion: 0.10
-Nodes (6): UnitTest, ForbiddenException, ServiceAuth, UnauthorizedException, ConformanceRunner, ConformanceTest
+Cohesion: 0.18
+Nodes (15): ready(), create_app(), actor(), admin(), cancel_workflow(), create_request(), create_workflow(), decide_approval() (+7 more)
 
 ### Community 153 - "C153: schema.yaml, description, owner"
 Cohesion: 0.09
 Nodes (21): description, owner, description, owner, description, owner, description, owner (+13 more)
 
-### Community 154 - "ArdocodeApproach"
-Cohesion: 0.10
-Nodes (4): Acm, ArdocodeApproach, SadCodeRunner, ArdocoRuns
+### Community 154 - ".sha256Hex"
+Cohesion: 0.09
+Nodes (4): Acm, ArdocoRuns, ArtemisApproachBase, Out
 
 ### Community 155 - "C155: traceview.js, applyFilters(), build()"
 Cohesion: 0.18
@@ -1164,12 +1153,16 @@ Nodes (25): applyFilters(), build(), checked(), clearSelection(), columnOf(), co
 Cohesion: 0.08
 Nodes (20): check(), create_ingestion(), get_ingestion(), event_data(), head_of(), ingest(), apply(), KindRule (+12 more)
 
+### Community 157 - "TransarcApproach.java"
+Cohesion: 0.04
+Nodes (7): CodeModelWithCompilationUnitsAndPackages, CorenlpUnavailableException, CorenlpProvider, MetricsDriver, TransarcRunner, ApproachUnavailableException, ArdocoProbe
+
 ### Community 158 - "C158: ambiguous_python_import_df7ecd1e44a4, test_impact."
 Cohesion: 0.20
 Nodes (18): current(), el(), get(), seed(), test_bad_bounds_are_400(), test_bad_ingestion_id_is_rejected(), test_complete_follows_workflow_status(), test_depth_limit_and_same_artifact_filter() (+10 more)
 
 ### Community 159 - "C159: env.rs, appends_missing_key_and_no_overwrite_witho"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (18): appends_missing_key_and_no_overwrite_without_value(), apply(), default_view(), DOTENV, GATEWAY, get_var(), keeps_unrelated_lines_and_comments(), paths() (+10 more)
 
 ### Community 160 - "C160: go_pkg_context, go_pkg_github_com_neo4j_neo4j_go_d"
@@ -1181,7 +1174,7 @@ Cohesion: 0.16
 Nodes (16): answers(), enroll(), evaluate(), gold_file(), logged_names(), macro(), main(), predicted() (+8 more)
 
 ### Community 162 - "FakeGateway"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (4): ClassificationTask, ClassifierTest, LissaEmbedderTest, FakeGateway
 
 ### Community 163 - "components.yaml"
@@ -1200,13 +1193,13 @@ Nodes (38): properties, description, required, type, description, required, type
 Cohesion: 0.07
 Nodes (28): description, required, type, required, type, description, required, type (+20 more)
 
-### Community 168 - "ConfigError"
-Cohesion: 0.22
-Nodes (3): ConfigError, value(), env_int()
+### Community 168 - "llm.py"
+Cohesion: 0.03
+Nodes (25): ConfigError, llm_mode(), value(), ModelSelector, _GroupLogHandler, FakeMsg, FlakyJs, RecordingKg (+17 more)
 
 ### Community 169 - "C169: arc, constanttimeeq, auth.rs"
-Cohesion: 0.13
-Nodes (12): actor_from_metadata(), Authenticator, authenticator_for(), bearer_token(), ct_eq(), ForbiddenError, ORCHESTRATOR, PLUGIN_PREFIX (+4 more)
+Cohesion: 0.11
+Nodes (16): required, type, agent, actor_from_metadata(), Authenticator, authenticator_for(), bearer_token(), ct_eq() (+8 more)
 
 ### Community 170 - "C170: inconsistency/plugins.yaml, enabled, params"
 Cohesion: 0.09
@@ -1224,10 +1217,6 @@ Nodes (16): add(), applyFilters(), checked(), drawLegend(), fail(), fill(), get(
 Cohesion: 0.18
 Nodes (7): Artifact, ArtifactType, REQUIREMENT, SOFTWARE_ARCHITECTURE_DOCUMENTATION, SOFTWARE_ARCHITECTURE_MODEL, SOURCE_CODE, SingleArtifactPreprocessor
 
-### Community 174 - "ArdocoIncrementalTest"
-Cohesion: 0.12
-Nodes (3): ArdocoIncrementalTest, Seeded, PruneTraceLinksTest
-
 ### Community 175 - "test_stubs.py"
 Cohesion: 0.19
 Nodes (15): artifact(), detect_client(), extract_input(), fake_query_service(), plugin_client(), test_detect_auth_validation_and_manifest(), test_detect_counts_elements_via_query_service_with_own_token(), test_detect_non_ascii_token_and_bad_port_are_client_errors() (+7 more)
@@ -1237,12 +1226,12 @@ Cohesion: 0.09
 Nodes (22): cap_add, cap_drop, depends_on, entrypoint, environment, group_add, image, mem_limit (+14 more)
 
 ### Community 178 - "C178: http_client, test_corenlp_gateway.py, caller()"
-Cohesion: 0.14
-Nodes (12): caller(), compose_service(), gateway(), networks(), request(), test_a_container_on_internal_cannot_reach_the_gateway_but_a_caller_on_corenlp_can(), test_allowed_requests_carry_only_the_gateway_credentials(), test_credentials_are_in_no_compose_file_or_container_setting() (+4 more)
+Cohesion: 0.15
+Nodes (11): caller(), compose_service(), gateway(), request(), test_a_container_on_internal_cannot_reach_the_gateway_but_a_caller_on_corenlp_can(), test_allowed_requests_carry_only_the_gateway_credentials(), test_credentials_are_in_no_compose_file_or_container_setting(), test_healthcheck_listener_is_loopback_only_and_serves_the_health_path_only() (+3 more)
 
-### Community 179 - "embed"
+### Community 179 - "extraction-agent/tests/conftest.py"
 Cohesion: 0.07
-Nodes (13): headers(), embed(), one(), EmbedConfig, embedding_text(), _reusable(), _select(), _write() (+5 more)
+Nodes (11): headers(), Env, FakeConverter, FakePlugin, mini(), nats_url(), openapi_validate(), _retrieve() (+3 more)
 
 ### Community 180 - "C180: Testing index, Testing and CI, Path-filtered GitHu"
 Cohesion: 0.12
@@ -1253,8 +1242,8 @@ Cohesion: 0.12
 Nodes (10): _count(), _grouped(), one(), Stats, seed(), test_failing_queries_show_na_only_for_that_figure(), test_figures_match_hand_computed_values(), test_pages_show_figures_and_na_per_figure() (+2 more)
 
 ### Community 182 - "NlService"
-Cohesion: 0.04
-Nodes (17): LlmClient, NlService, schema_text(), Intents, with_agreement(), candidates(), classify(), valid() (+9 more)
+Cohesion: 0.05
+Nodes (15): LlmClient, Service, NlService, auto(), candidates(), classify(), register(), valid() (+7 more)
 
 ### Community 183 - "C183: concepts.schema.json, additionalProperties, items"
 Cohesion: 0.09
@@ -1263,10 +1252,6 @@ Nodes (21): additionalProperties, items, maxItems, type, maximum, minimum, type,
 ### Community 184 - "clear"
 Cohesion: 0.27
 Nodes (19): editList(), initialOpen(), lastLines(), windowTitle(), renderClassification(), call(), draw(), drawBlock() (+11 more)
-
-### Community 185 - "ContractError"
-Cohesion: 0.08
-Nodes (16): ContractError, Contracts, client(), test_extract_returns_validated_output(), test_invalid_plugin_output_is_a_non_retryable_error(), test_wrong_inbound_token_is_rejected(), FlakyJs, test_config_loaders_validate_against_contract_schemas() (+8 more)
 
 ### Community 186 - "C186: tlr-agent THIRD-PARTY licenses, ArDoCo (MIT, 2.1.0"
 Cohesion: 0.13
@@ -1285,8 +1270,8 @@ Cohesion: 0.22
 Nodes (21): closeConfirm(), confirmWrite(), copy(), currentEdits(), drawSummary(), drawTree(), effective(), el() (+13 more)
 
 ### Community 190 - "Task routing map"
-Cohesion: 0.06
-Nodes (62): Spike T0.4 gateway and A2A interop, Authentication, Roles and Trusted Forwarding, Cypher Guard and NL Querying, NATS JetStream Event Bus, Inconsistency Lifecycle (ADR-0007), Concepts index, Plugin System (Extractors and Detectors), OpenWiki root index (+54 more)
+Cohesion: 0.09
+Nodes (34): Spike T0.4 gateway and A2A interop, Authentication, Roles and Trusted Forwarding, Cypher Guard and NL Querying, NATS JetStream Event Bus, Concepts index, OpenWiki root index, SANDMAN CLI, Integrations index (+26 more)
 
 ### Community 191 - "CorenlpClientTest"
 Cohesion: 0.19
@@ -1297,16 +1282,16 @@ Cohesion: 0.15
 Nodes (15): buildEvent(), CONSUMER_BACKOFF, consumerConfig(), eventFromJson(), eventToJson(), handleMessage(), Handler, JetStreamHandle (+7 more)
 
 ### Community 193 - "C193: Outer.java, Inner, .go()"
-Cohesion: 0.13
-Nodes (5): Inner, Outer, Shape, Helper, OuterTest
+Cohesion: 0.10
+Nodes (8): Color, GREEN, RED, Inner, Outer, Shape, Helper, OuterTest
 
 ### Community 194 - "build_site.py"
 Cohesion: 0.16
 Nodes (20): build(), classify(), compose_comments(), describe_dir(), doc_links(), file_entry(), file_role(), first_paragraph() (+12 more)
 
 ### Community 195 - "CodeModelClient"
-Cohesion: 0.12
-Nodes (4): A2aCalls, Calls, CodeModelClient, File
+Cohesion: 0.05
+Nodes (12): ArtemisApproach, ArtemisClassApproach, ArtemisDatafileApproach, ArtemisExarchApproach, ArtemisTransarcApproach, A2aCalls, Calls, CodeModelClient (+4 more)
 
 ### Community 196 - "C196: test_check_env.py, Path, run()"
 Cohesion: 0.15
@@ -1316,33 +1301,29 @@ Nodes (21): run(), run_without_creating(), test_compose_ollama_without_key_ok(),
 Cohesion: 0.17
 Nodes (10): Env, Error, DefaultContractsDir(), errf(), FromEnv(), LLMMode(), readFile(), env() (+2 more)
 
-### Community 198 - "test_perf.py"
-Cohesion: 0.12
-Nodes (18): count_workload(), evaluate(), file_mix(), filler_schema(), generate(), mib(), workflow_failures(), generate_paths() (+10 more)
+### Community 198 - "ArtifactStore"
+Cohesion: 0.15
+Nodes (4): ArtifactStore, Stored, KeyGenerator, WarcEquivalenceTest
 
 ### Community 199 - "register"
-Cohesion: 0.16
-Nodes (18): attempt(), audit(), register(), cancel(), event_list(), events_fragment(), events_page(), experiment() (+10 more)
+Cohesion: 0.15
+Nodes (19): attempt(), audit(), register(), cancel(), event_list(), event_page(), events_fragment(), events_page() (+11 more)
 
 ### Community 200 - "C200: tauri.conf.json, app, security"
 Cohesion: 0.11
 Nodes (18): app, security, windows, build, beforeBuildCommand, beforeDevCommand, devUrl, frontendDist (+10 more)
 
 ### Community 201 - "C201: approaches, ardoco, ardocode"
-Cohesion: 0.06
-Nodes (34): approaches, ardoco, ardocode, artemis, artemis-class, artemis-datafile, artemis-exarch, artemis-transarc (+26 more)
+Cohesion: 0.05
+Nodes (43): approaches, ardoco, ardocode, artemis, artemis-class, artemis-datafile, artemis-exarch, artemis-transarc (+35 more)
 
 ### Community 202 - "extraction-agent/tests/test_derive.py"
-Cohesion: 0.19
-Nodes (17): current(), derive_task(), enable(), factory(), extract_current(), FakeLlm, prepare(), snapshot() (+9 more)
-
-### Community 203 - "SkillContext"
-Cohesion: 0.21
-Nodes (5): SkillContext, SkillResult, run(), Extract, Dummy
+Cohesion: 0.18
+Nodes (18): current(), derive_task(), enable(), factory(), extract_current(), FakeLlm, prepare(), snapshot() (+10 more)
 
 ### Community 204 - "ChatRequest"
-Cohesion: 0.09
-Nodes (13): ChatMessage, ChatRequest, OpenAiLlmClient, Usage, test_llm_span_and_token_metrics(), test_gateway_402_becomes_budget_exceeded(), test_reasoning_effort_is_not_sent_to_cloud_models(), test_reasoning_effort_is_sent_only_when_set() (+5 more)
+Cohesion: 0.04
+Nodes (59): BudgetExceededError, ChatMessage, ChatRequest, ChatResponse, _gateway_error(), OpenAiLlmClient, PolicyError, Usage (+51 more)
 
 ### Community 205 - "C205: g(), h(), m()"
 Cohesion: 0.13
@@ -1355,10 +1336,6 @@ Nodes (17): classifierThreshold, enabled, intentsFirst, maxExamples, maxRepairs,
 ### Community 208 - "C208: healthcheck, healthcheck, healthcheck"
 Cohesion: 0.42
 Nodes (18): healthcheck, healthcheck, healthcheck, healthcheck, healthcheck, interval, retries, start_period (+10 more)
-
-### Community 209 - "DetectionScenarioTest"
-Cohesion: 0.16
-Nodes (4): Finding, Involved, DetectionScenarioTest, FingerprintTest
 
 ### Community 210 - "C210: status.rs, formats_known_unix_times(), now_rfc3339"
 Cohesion: 0.17
@@ -1373,28 +1350,28 @@ Cohesion: 0.16
 Nodes (11): add(), applyFilters(), checked(), fail(), fill(), filters(), get(), hue() (+3 more)
 
 ### Community 213 - "test_backup_restore.py"
-Cohesion: 0.11
-Nodes (22): connect(), export(), _fetch(), _jcs(), main(), _node(), _props(), _ref() (+14 more)
+Cohesion: 0.09
+Nodes (23): connect(), export(), _fetch(), _jcs(), main(), _node(), _props(), _ref() (+15 more)
 
 ### Community 214 - "test_rest.py"
 Cohesion: 0.29
 Nodes (13): auth(), check(), client(), test_actor_header_from_non_forwarder_is_403(), test_auth(), test_dashboard_may_cancel_and_replay_but_other_callers_may_not(), test_dead_events_and_replay(), test_errors() (+5 more)
 
 ### Community 215 - "Reader"
-Cohesion: 0.08
-Nodes (13): MemoryLimitError, resolve(), change_set(), _limited(), paths(), report(), work(), traverse() (+5 more)
+Cohesion: 0.04
+Nodes (27): ContractError, resolve(), load_min_roles(), load_plugin_grants(), change_set(), _limited(), paths(), report() (+19 more)
 
 ### Community 217 - "test_pages.py"
 Cohesion: 0.13
 Nodes (12): poll(), test_down_service_is_shown_down(), test_gateway_page_totals_budgets_and_na(), test_gateway_page_when_unavailable(), test_graph_page_cypher_box_is_empty_with_placeholder_and_zoom_buttons(), test_no_secret_in_responses_or_logs(), test_services_page_before_first_poll(), test_services_page_shows_all_targets_and_infrastructure() (+4 more)
 
 ### Community 218 - "3. Design"
-Cohesion: 0.09
-Nodes (18): 3.1 One shared classifier (uniform result), 3.2 New kind `documentation`, 3.3 Ignored files, 3.4 Folder tree and folding, 3.5 From decisions to rules, 3.6 The managed block in `sandman.yaml`, 3.7 Feature parity, 3.8 Review check before ingestion (Q4) (+10 more)
+Cohesion: 0.08
+Nodes (19): 3.1 One shared classifier (uniform result), 3.2 New kind `documentation`, 3.3 Ignored files, 3.4 Folder tree and folding, 3.5 From decisions to rules, 3.6 The managed block in `sandman.yaml`, 3.7 Feature parity, 3.8 Review check before ingestion (Q4) (+11 more)
 
 ### Community 219 - "test_embedding.py"
-Cohesion: 0.25
-Nodes (20): cypher(), embedded(), enable(), factory(), FakeEmbedder, ingest_and_extract(), ingest_more(), reextract() (+12 more)
+Cohesion: 0.10
+Nodes (32): embed(), one(), EmbedConfig, embedding_text(), fit(), _reusable(), _select(), cypher() (+24 more)
 
 ### Community 220 - "C220: cap_drop, environment, group_add"
 Cohesion: 0.12
@@ -1405,8 +1382,8 @@ Cohesion: 0.20
 Nodes (10): ConfigError, DEFAULT_CONTRACTS_DIR, Env, LLM_MODES, LlmMode, readFile(), requireSettings(), settingsFromEnv() (+2 more)
 
 ### Community 222 - "stats.py"
-Cohesion: 0.09
-Nodes (19): _agreement(), score(), cohens_kappa(), contamination_verdict(), _counts(), _diffs(), f1_ci(), items() (+11 more)
+Cohesion: 0.06
+Nodes (26): generate(), _agreement(), load_exports(), sample(), score(), stratum(), view(), cohens_g() (+18 more)
 
 ### Community 223 - "C223: test_decisions.py, Any, parametrize"
 Cohesion: 0.18
@@ -1418,7 +1395,7 @@ Nodes (10): BudgetExceededError, ChatMessage, ChatRequest, ChatResponse, gateway
 
 ### Community 225 - "ModelCodeDetectorTest"
 Cohesion: 0.08
-Nodes (10): DetectionScope, DetectorContext, Detection, ScopeMode, PAIRWISE, WHOLE_PROJECT, ModelCodeDetector, PluginDetector (+2 more)
+Nodes (11): DetectionScope, DetectorContext, Finding, Involved, Detection, ScopeMode, PAIRWISE, WHOLE_PROJECT (+3 more)
 
 ### Community 226 - "C226: Cytoscape MIT license, htmx Zero-Clause BSD licens"
 Cohesion: 0.15
@@ -1428,9 +1405,9 @@ Nodes (17): Cytoscape MIT license, htmx Zero-Clause BSD license, admin.html user
 Cohesion: 0.12
 Nodes (15): site fonts README (SIL OFL 1.1), Inter font, JetBrains Mono font, SANDMAN Architecture Map (index.html), components.json data source, init(), layout() zone grid layout, mark() highlight and tour state (+7 more)
 
-### Community 228 - "protocol.rs"
-Cohesion: 0.16
-Nodes (20): TaskState, Completed, Failed, Rejected, Submitted, Working, error_body(), Invocation (+12 more)
+### Community 228 - "tlr/ModuleRulesTest.java"
+Cohesion: 0.17
+Nodes (3): ModuleRulesTest, VersionTest, StanfordPipelineOutsideProvider
 
 ### Community 229 - "test_build_site.py"
 Cohesion: 0.10
@@ -1448,13 +1425,13 @@ Nodes (15): builtin, converter, enabled, timeoutSeconds, explicitReferences, pat
 Cohesion: 0.20
 Nodes (9): openrouterProviders, anthropic/claude-3.5-haiku, openai/gpt-4o-mini, routes, chat-alt, chat-default, chat-local, embed-default (+1 more)
 
-### Community 233 - "sandman_dashboard/app.py"
-Cohesion: 0.04
-Nodes (30): memory_ratio(), parse_size(), build(), _number(), _pjson(), _pretty(), ProxyHeaders, _step_duration() (+22 more)
+### Community 233 - "register"
+Cohesion: 0.19
+Nodes (10): memory_ratio(), parse_size(), register(), api_history(), chosen(), history_page(), project_page(), projects_page() (+2 more)
 
-### Community 234 - "convert.py"
-Cohesion: 0.07
-Nodes (17): ConvertRequest, ConvertResponse, convert(), open_in(), _read(), to_markdown(), worker_env(), download() (+9 more)
+### Community 234 - "create_app"
+Cohesion: 0.11
+Nodes (8): create_app(), convert(), open_in(), Limits, _read(), to_markdown(), worker_env(), test_limits_from_env()
 
 ### Community 235 - ".execute"
 Cohesion: 0.23
@@ -1481,8 +1458,8 @@ Cohesion: 0.15
 Nodes (11): AppState, delete_project(), get_defaults(), list_projects(), open_external(), pick_files(), pick_folder(), quit_app() (+3 more)
 
 ### Community 241 - "CodeStatementDetector"
-Cohesion: 0.10
-Nodes (6): ArchitecturalStyleIdDetector, CodeStatementDetector, Validator, Verdict, ProgrammingLanguageIdDetector, CodeStatementToolsTest
+Cohesion: 0.15
+Nodes (4): CodeStatementDetector, Validator, Verdict, CodeStatementToolsTest
 
 ### Community 242 - "C242: if, needs, runs-on"
 Cohesion: 0.14
@@ -1493,8 +1470,8 @@ Cohesion: 0.16
 Nodes (15): steps, python, rust, if, needs, runs-on, steps, if (+7 more)
 
 ### Community 244 - "org.junit.jupiter.api.Test"
-Cohesion: 0.03
-Nodes (17): EventsTest, IntegrationTest, LibraryTest, LlmClientTest, SmokeTest, SentenceRenderingTest, ElementMappingTest, LifecycleTest (+9 more)
+Cohesion: 0.04
+Nodes (12): UnitTest, LibraryTest, SmokeTest, SentenceRenderingTest, ElementMappingTest, AgentTest, Response, LifecycleTest (+4 more)
 
 ### Community 245 - "C245: contracts.rs, ContractError, .fmt()"
 Cohesion: 0.24
@@ -1505,12 +1482,12 @@ Cohesion: 0.20
 Nodes (6): aliases_by_reference(), extract(), KnowledgeError, parse(), _pointer(), validate()
 
 ### Community 247 - "telemetry.py"
-Cohesion: 0.05
-Nodes (25): a2a_task_span(), context_from(), context_from_traceparent(), continued_span(), enabled(), event_consume_span(), event_publish_span(), _GroupLogHandler (+17 more)
+Cohesion: 0.06
+Nodes (17): a2a_task_span(), bind(), context_from(), context_from_traceparent(), continued_span(), event_consume_span(), event_publish_span(), event_published() (+9 more)
 
 ### Community 250 - "test_auth_unit.py"
 Cohesion: 0.13
-Nodes (16): authorize(), plugin_principal(), code(), test_actor_and_unrestricted_admin(), test_admin_operations_need_unrestricted_admin(), test_deny_messages(), test_effective_level(), test_plugin_principal_strips_prefix() (+8 more)
+Nodes (15): authorize(), code(), test_actor_and_unrestricted_admin(), test_admin_operations_need_unrestricted_admin(), test_deny_messages(), test_effective_level(), test_plugins_run_only_cypher_and_schema(), test_project_operations_compare_levels() (+7 more)
 
 ### Community 251 - "C251: ambiguous_python_import_b78be73e3d05, test_impact_"
 Cohesion: 0.29
@@ -1536,21 +1513,25 @@ Nodes (12): created(), _current_links(), cypher(), _extract(), _sentence(), test
 Cohesion: 0.18
 Nodes (6): RateLimiter, Clock, clock(), test_rate_limiter_blocks_at_limit_and_expires(), test_rate_limiter_fail_counts_every_key_and_reset_clears_one(), test_rate_limiter_window_is_sliding()
 
-### Community 257 - "classify_tree.py"
-Cohesion: 0.09
-Nodes (23): _apply(), apply_block(), _at(), BlockError, BlockState, _checksum(), diff(), _file_glob() (+15 more)
+### Community 257 - "sandman_agent/__init__.py"
+Cohesion: 0.05
+Nodes (39): apply_block(), _at(), BlockError, BlockState, _checksum(), diff(), _lines(), parse_block() (+31 more)
+
+### Community 259 - ".run"
+Cohesion: 0.22
+Nodes (3): _classes(), Extract, read()
 
 ### Community 260 - "test_sampler.py"
-Cohesion: 0.35
-Nodes (12): Entry, entries(), Clock, make(), poller(), rows(), test_gateway_counters_are_summed_per_virtual_key(), test_missing_entries_and_no_gateway_do_not_break_sampling() (+4 more)
+Cohesion: 0.38
+Nodes (11): Entry, Clock, make(), poller(), rows(), test_gateway_counters_are_summed_per_virtual_key(), test_missing_entries_and_no_gateway_do_not_break_sampling(), test_one_row_set_per_interval_with_health_and_tasks() (+3 more)
 
 ### Community 261 - "test_evaluation_removal.py"
 Cohesion: 0.30
 Nodes (9): evaluate(), test_baseline_findings_are_not_false_positives_and_skip_runs(), test_components_and_drop_component(), test_perfect_links_give_perfect_scores(), test_relinked_file_is_a_false_negative(), test_units_decode_and_drop_files(), unit(), write_acm() (+1 more)
 
-### Community 263 - "seed_kg.py"
-Cohesion: 0.24
-Nodes (11): build(), cmd_gold(), cmd_run(), execute(), work(), inc(), jsonable(), load() (+3 more)
+### Community 263 - ".runPair"
+Cohesion: 0.20
+Nodes (5): Cached, KgInput, LinkPair, ModelElement, Sentence
 
 ### Community 264 - "ingest.rs"
 Cohesion: 0.12
@@ -1578,11 +1559,7 @@ Nodes (13): io.github.ardoco:sandman-agent-lib, io.github.ardoco:sandman-agent-l
 
 ### Community 270 - "EventViewer"
 Cohesion: 0.05
-Nodes (19): build_event(), ensure_stream(), Event, EventConsumer, EventPublisher, handle_message(), PublishError, event_published() (+11 more)
-
-### Community 273 - "HttpPluginClient"
-Cohesion: 0.18
-Nodes (3): HttpPluginClient, PluginException, HttpPluginClientTest
+Nodes (25): ensure_stream(), EventConsumer, handle_message(), _bolt_ping(), _nats_ping(), nats_url(), test_memory_limit_is_not_retried(), test_publish_consume_round_trip_with_deduplication() (+17 more)
 
 ### Community 274 - "C274: details, flow, summary"
 Cohesion: 0.15
@@ -1593,8 +1570,8 @@ Cohesion: 0.15
 Nodes (12): elements, id, kind, label, name, text, links, rationale (+4 more)
 
 ### Community 277 - "ADR-0012 Pluggable TLR approaches, extractors and detectors"
-Cohesion: 0.06
-Nodes (48): ADR-0001 Implementation language per component, ADR-0002 Use A2A for commands to agents, A2A protocol 1.0 JSON-RPC binding, a2a-java on Quarkus for Java agents, SANDMAN skill invocation convention (sandman.skill metadata), ADR-0003 NATS JetStream as event bus, CloudEvents 1.0 envelope with correlation and causation ids, Completion events as the only chaining signal (+40 more)
+Cohesion: 0.08
+Nodes (35): ADR-0001 Implementation language per component, ADR-0002 Use A2A for commands to agents, A2A protocol 1.0 JSON-RPC binding, a2a-java on Quarkus for Java agents, SANDMAN skill invocation convention (sandman.skill metadata), ADR-0003 NATS JetStream as event bus, Completion events as the only chaining signal, ADR-0005 KG schema, provenance and artifact versioning (+27 more)
 
 ### Community 278 - "test_evaluation_nlquery.py"
 Cohesion: 0.18
@@ -1618,15 +1595,15 @@ Nodes (3): CodeModelClient.Calls, CorenlpClient, CorenlpClient
 
 ### Community 285 - "test_authz.py"
 Cohesion: 0.10
-Nodes (12): detail(), any_route(), FakeReader, validate_problem(), validate_projects(), workflow(), headers_for(), _matches() (+4 more)
+Nodes (11): detail(), any_route(), FakeReader, validate_problem(), validate_projects(), workflow(), headers_for(), _matches() (+3 more)
 
 ### Community 286 - "C286: INPUT_BASE, INPUT_IMPACT_SUMMARY, INPUT_MODE"
 Cohesion: 0.18
 Nodes (11): INPUT_BASE, INPUT_IMPACT_SUMMARY, INPUT_MODE, INPUT_PATH, INPUT_REVISION, INPUT_TIMEOUT, INPUT_WAIT, SANDMAN_PROJECT (+3 more)
 
-### Community 287 - "Version"
-Cohesion: 0.18
-Nodes (5): KgGraph, Version, FakeGraph, test_manual_derive_runs_even_when_disabled(), test_kg_graph_versions_and_current()
+### Community 287 - "setup_logging"
+Cohesion: 0.13
+Nodes (8): enabled(), JsonFormatter, setup_logging(), _trace_ids(), lifespan(), lifespan(), lifespan(), lifespan()
 
 ### Community 289 - "C289: llm-gateway, condition, build"
 Cohesion: 0.18
@@ -1652,13 +1629,9 @@ Nodes (6): blurb, col, glyph, row, title, ingest
 Cohesion: 0.47
 Nodes (8): components(), current(), extract(), requirement_count(), test_csv_without_id_column_warns(), test_hostile_xml_falls_back_to_file_element(), test_model_relations_and_reextraction(), test_model_warnings_do_not_make_run_partial()
 
-### Community 296 - "params"
-Cohesion: 0.29
-Nodes (7): lissa, enabled, params, classifier, concurrency, retrieval, k
-
 ### Community 297 - ".cypher"
-Cohesion: 0.17
-Nodes (6): cap(), work(), jsonable(), work(), unit(), rows()
+Cohesion: 0.13
+Nodes (9): cap(), work(), jsonable(), is_memory_limit(), MemoryLimitError, guarded(), work(), unit() (+1 more)
 
 ### Community 299 - "C299: CredentialStore component, MediaCache component, R"
 Cohesion: 0.25
@@ -1673,8 +1646,8 @@ Cohesion: 0.20
 Nodes (10): description, value, outputs, ingestion-id, status, workflow-id, description, value (+2 more)
 
 ### Community 302 - "ADR-0019 Desktop application"
-Cohesion: 0.15
-Nodes (18): ADR-0011 User interface for inconsistencies, Server-rendered console in query-service (FastAPI, Jinja2, htmx), ADR-0016 System overview dashboard, Separate admin-only dashboard service, GET /v1/status ServiceStatus endpoint, Dashboard trace viewer page, ADR-0019 Desktop application, Named key store with OS keychain secrets (+10 more)
+Cohesion: 0.13
+Nodes (20): CloudEvents 1.0 envelope with correlation and causation ids, NATS JetStream stream SANDMAN, ADR-0011 User interface for inconsistencies, Server-rendered console in query-service (FastAPI, Jinja2, htmx), ADR-0016 System overview dashboard, Separate admin-only dashboard service, GET /v1/status ServiceStatus endpoint, Dashboard trace viewer page (+12 more)
 
 ### Community 303 - "C303: embedding.yaml, batchSize, concurrency"
 Cohesion: 0.20
@@ -1700,17 +1673,13 @@ Nodes (10): if, runs-on, steps, if, needs, runs-on, steps, changes (+2 more)
 Cohesion: 0.40
 Nodes (10): el(), kl(), wl(), c(), d(), f(), g(), h() (+2 more)
 
-### Community 311 - "parse"
-Cohesion: 0.18
-Nodes (5): http_problem(), projects(), error_response(), link_pairs(), parse()
-
 ### Community 312 - "C312: summary.schema.json, additionalProperties, propert"
 Cohesion: 0.20
 Nodes (9): additionalProperties, properties, summary, required, $schema, maxLength, minLength, type (+1 more)
 
 ### Community 313 - "rows"
 Cohesion: 0.07
-Nodes (18): canonical_json(), sha256_hex(), stable_id(), document_format(), ExtractSkill, stub(), key(), input_key() (+10 more)
+Nodes (20): canonical_json(), sha256_hex(), stable_id(), ExtractSkill, key(), work(), input_key(), work() (+12 more)
 
 ### Community 314 - "C314: el(), kl(), wl()"
 Cohesion: 0.40
@@ -1772,33 +1741,25 @@ Nodes (7): apiVersion, path, providers, allowUiUpdates, name, options, type
 Cohesion: 0.19
 Nodes (8): Entity, Plan, Refused, service(), guard(), test_cypher_scopes_the_guard_and_binds_the_project(), test_guard_error_becomes_graph_error(), test_long_text_is_cut_and_marked()
 
-### Community 333 - "ArtemisIdDetector"
-Cohesion: 0.11
-Nodes (13): Live run on TeaStore (2026-11-12, `qwen3:4b`, `local-only`), Live run on TeaStore and MediaStore (2026-11-12, `openai/gpt-6-luna`, `cloud-allowed`), Mapping notes, Result table, Scope, Spike T3.8: ArTEMiS runners and the new code extractor, U2: source analysis, U3: determinism (+5 more)
+### Community 333 - "Spike T3.8: ArTEMiS runners and the new code extractor"
+Cohesion: 0.18
+Nodes (12): Live run on TeaStore (2026-11-12, `qwen3:4b`, `local-only`), Live run on TeaStore and MediaStore (2026-11-12, `openai/gpt-6-luna`, `cloud-allowed`), Mapping notes, Result table, Scope, Spike T3.8: ArTEMiS runners and the new code extractor, U2: source analysis, U3: determinism (+4 more)
 
-### Community 334 - "ModelSelector"
-Cohesion: 0.16
-Nodes (7): ModelSelector, PolicyError, test_model_selector_enforces_local_only(), one(), deny(), embed(), deny()
+### Community 335 - "parse"
+Cohesion: 0.23
+Nodes (7): cpu_rate(), _number(), parse(), _seconds(), Usage, test_parse_garbage(), test_parse_maps_compose_services_limits_and_cpu()
 
 ### Community 336 - "test_requirements.py"
 Cohesion: 0.26
 Nodes (12): reqs(), test_csv_empty_and_header_only(), test_csv_missing_column_and_limits_raise(), test_csv_quoting_bom_crlf_and_lines(), test_csv_wide_header_fast(), test_markdown_duplicate_id_warns(), test_markdown_heading_in_fenced_code_is_ignored(), test_markdown_levels_ids_and_bodies() (+4 more)
 
-### Community 337 - "test_evaluation_labeling.py"
-Cohesion: 0.26
-Nodes (10): _export(), _labels(), _model(), test_cli_label_sample_and_score(), test_kappa_known_values(), test_read_sheet_rejects_bad_labels(), test_sample_strata_blinding_and_determinism(), test_score_kappa_precision_adjudication() (+2 more)
-
-### Community 338 - "register"
-Cohesion: 0.27
-Nodes (8): register(), api_classification(), api_rules(), check_edits(), classification_page(), load(), project_of(), verdicts_of()
+### Community 337 - "io"
+Cohesion: 0.12
+Nodes (18): test_inconsistencies_csv_has_cause_column(), _lissa_id(), _local_key(), read_links(), rows_to_links(), _sort_key(), write_links(), disagreement_sheet() (+10 more)
 
 ### Community 339 - "C339: corpus.yaml, reject, id"
 Cohesion: 0.25
 Nodes (7): reject, id, message, query, threat, why, version
-
-### Community 340 - "dashboard/tests/test_classification.py"
-Cohesion: 0.26
-Nodes (10): post(), seed(), test_api_empty_project(), test_api_requires_session_and_valid_project(), test_api_shape_anchoring_and_absent_props(), test_page_renders_with_csp_nav_and_escaping(), test_rules_block_diff_and_file_text(), test_rules_need_session_csrf_and_valid_body() (+2 more)
 
 ### Community 341 - "C341: steps, id, run"
 Cohesion: 0.29
@@ -1809,12 +1770,8 @@ Cohesion: 0.29
 Nodes (7): image, mem_limit, networks, ports, restart, volumes, edge-proxy
 
 ### Community 344 - "orchestrator/tests/conftest.py"
-Cohesion: 0.13
-Nodes (5): contracts(), env(), Bus, FakeSkill, Router
-
-### Community 346 - ".run"
-Cohesion: 0.30
-Nodes (4): arguments(), clip(), Explorer, untrusted()
+Cohesion: 0.08
+Nodes (7): contracts(), env(), Bus, FakeSkill, output_and_event(), Router, wf()
 
 ### Community 347 - "C347: config:recommended, docker:pinDigests, renovate.js"
 Cohesion: 0.29
@@ -1823,6 +1780,10 @@ Nodes (6): config:recommended, docker:pinDigests, enabledManagers, extends, pinD
 ### Community 348 - "C348: backup-common.sh, dc(), die()"
 Cohesion: 0.38
 Nodes (4): dc(), kg_version(), backup-common.sh script, traverse_image()
+
+### Community 350 - "Upstream"
+Cohesion: 0.15
+Nodes (14): Upstream, make(), test_all_up_with_infrastructure(), test_gateway_outage_clears_snapshot_and_rates(), test_infrastructure_down_and_error_bodies_not_kept(), test_invalid_status_document_is_degraded(), test_loop_survives_errors_and_stops(), test_not_ready_is_down() (+6 more)
 
 ### Community 351 - "C351: query-service, details, flow"
 Cohesion: 0.29
@@ -1845,8 +1806,8 @@ Cohesion: 0.60
 Nodes (5): fix_log_modes(), rand(), gen-secrets.sh script, upper(), write()
 
 ### Community 356 - "register"
-Cohesion: 0.27
-Nodes (8): register(), api_traceview(), api_traceview_element(), project_of(), traceview_page(), tx_rows(), rows(), test_traceview_adapter_maps_columns_to_dicts()
+Cohesion: 0.31
+Nodes (7): register(), api_traceview(), api_traceview_element(), project_of(), traceview_page(), tx_rows(), test_traceview_adapter_maps_columns_to_dicts()
 
 ### Community 359 - "C359: typescript/package.json, engines, node"
 Cohesion: 0.33
@@ -1868,9 +1829,9 @@ Nodes (6): Auth service, Image Provider service, PersistenceProvider service, Re
 Cohesion: 0.20
 Nodes (9): Acceptance criteria, Constraints, Context, Decisions (defaults taken 2026-11-12), Goal, Risks, Rollback, Steps (+1 more)
 
-### Community 365 - "os"
-Cohesion: 0.07
-Nodes (16): mounted_names(), run(), test_code_plugin_has_one_distinct_inbound_token_per_caller(), test_corenlp_credentials(), test_non_mounted_reset_to_owner_only(), test_only_mounted_secrets_group_readable(), test_second_run_idempotent(), test_symlink_in_secrets_refused() (+8 more)
+### Community 365 - "create_detect_app"
+Cohesion: 0.12
+Nodes (10): test_intake_rejections_and_actor(), post(), create_detect_app(), detect(), manifest(), create_extract_app(), healthz(), _origin() (+2 more)
 
 ### Community 366 - "C366: details, flow, summary"
 Cohesion: 0.33
@@ -1952,9 +1913,9 @@ Nodes (6): ollama, details, flow, summary, title, zone
 Cohesion: 0.33
 Nodes (6): orchestrator, details, flow, summary, title, zone
 
-### Community 386 - "llm_mode"
+### Community 386 - "test_evaluation_stats.py"
 Cohesion: 0.20
-Nodes (5): llm_mode(), RecordingKg, test_llm_mode_defaults_to_live(), test_llm_mode_rejects_unknown(), test_run_complete_sets_mixed_models_only_when_true()
+Nodes (5): test_holm_textbook(), test_mcnemar(), test_prf_hand_computed(), test_variance_pilot(), test_wilcoxon_needs_six_pairs()
 
 ### Community 387 - "C387: plugin-stubs, details, flow"
 Cohesion: 0.33
@@ -1988,9 +1949,9 @@ Nodes (6): blurb, col, glyph, row, title, kg
 Cohesion: 0.33
 Nodes (6): blurb, col, glyph, row, title, llm
 
-### Community 395 - "is_memory_limit"
-Cohesion: 0.22
-Nodes (3): is_memory_limit(), _no_retry_on_memory_limit(), guarded()
+### Community 395 - "MonkeyPatch"
+Cohesion: 0.25
+Nodes (7): _status_error(), test_prefetch_does_not_retry_not_found(), missing(), test_prefetch_retries_rate_limit_then_succeeds(), flaky(), work(), handle()
 
 ### Community 398 - "C398: action.yml, description, name"
 Cohesion: 0.40
@@ -2004,10 +1965,6 @@ Nodes (4): intents, cypher, id, pattern
 Cohesion: 0.30
 Nodes (11): listed(), mount(), access(), expand(), graph(), numbers(), page(), path() (+3 more)
 
-### Community 403 - "list"
-Cohesion: 0.03
-Nodes (5): Jcs, LlmUnavailableException, CorenlpUnavailableException, CodeModels, ApproachUnavailableException
-
 ### Community 404 - "C404: if, needs, runs-on"
 Cohesion: 0.40
 Nodes (5): if, needs, runs-on, steps, go
@@ -2015,6 +1972,10 @@ Nodes (5): if, needs, runs-on, steps, go
 ### Community 405 - "C405: on, pull_request, push"
 Cohesion: 0.40
 Nodes (5): on, pull_request, push, workflow_dispatch, branches
+
+### Community 406 - "build_env"
+Cohesion: 0.31
+Nodes (4): build_env(), env(), Env, FakeOwner
 
 ### Community 407 - "C407: restore.sh, field(), in_volume()"
 Cohesion: 0.70
@@ -2053,7 +2014,7 @@ Cohesion: 0.83
 Nodes (3): build(), check_it(), build.sh script
 
 ### Community 418 - "test_workflows.py"
-Cohesion: 0.16
+Cohesion: 0.14
 Nodes (20): FakeOrchestrator, orch(), _steps(), test_activity_text_is_shown_when_present_and_escaped(), test_cancel_needs_csrf_and_forwards_with_audit_log(), test_cancel_problems_are_messages(), test_detail_escapes_and_refreshes_only_while_active(), test_detail_renders_timeline_per_state() (+12 more)
 
 ### Community 420 - "C420: Database component, MediaAccess component, UserDBA"
@@ -2065,8 +2026,8 @@ Cohesion: 0.50
 Nodes (3): detectors, stub-untraced, enabled
 
 ### Community 425 - "tools.jackson.databind.JsonNode"
-Cohesion: 0.04
-Nodes (21): EventSink, Skill, SkillContext, SkillException, SkillResult, Events, Recover, TestAgent (+13 more)
+Cohesion: 0.03
+Nodes (29): A2aServer, EventSink, Skill, SkillContext, SkillException, SkillResult, Events, Recover (+21 more)
 
 ### Community 426 - "C426: s1/sandman.yaml, kindRules, glob"
 Cohesion: 0.50
@@ -2133,7 +2094,7 @@ Cohesion: 0.67
 Nodes (3): AGENTS.md OpenWiki instructions, OpenWiki generated evidence index, CLAUDE.md OpenWiki section
 
 ### Community 443 - "sandman_query/traceview.py"
-Cohesion: 0.43
+Cohesion: 0.31
 Nodes (3): _compact(), element(), trace_view()
 
 ### Community 449 - "C449: inconsistency-agent third-party licenses, ArDoCo d"
@@ -2145,56 +2106,56 @@ Cohesion: 0.25
 Nodes (23): Ctx, cypher(), needsCause(), renderAsk(), Child, fmt(), h(), jsonView() (+15 more)
 
 ### Community 476 - "typing"
-Cohesion: 0.03
-Nodes (37): fingerprint(), new_run_id(), new_workflow_id(), ProjectSpec, _element_query(), _relation_query(), test_cassette_is_present_and_free_of_credentials(), ApprovalRequest (+29 more)
+Cohesion: 0.02
+Nodes (41): build(), GatewayClient, GraphService, Unreachable, parse_targets(), ProjectStats, Cadvisor, traverse() (+33 more)
 
 ### Community 518 - "embeddingModel"
 Cohesion: 0.40
 Nodes (5): description, internal, required, type, embeddingModel
 
-### Community 519 - "ReasoningClassifierPrompt"
-Cohesion: 0.29
-Nodes (4): ReasoningClassifierPrompt, REASON_WITH_NAME, REASON_WITH_NAME_CONCEIVABLE, REASON_WITH_NAME_YES_IF_CERTAIN
-
 ### Community 520 - "Spike T3.9: programming-language and architectural-style checks"
 Cohesion: 0.33
 Nodes (5): Live run with `openai/gpt-6-luna` (2026-11-12, TeaStore), Not used from upstream, Open, Result, Spike T3.9: programming-language and architectural-style checks
 
-### Community 521 - "derive.py"
-Cohesion: 0.08
-Nodes (6): Service, _camel_case(), DeriveConfig, parse_names(), postprocess(), validate()
-
-### Community 522 - "write_atomic"
-Cohesion: 0.40
-Nodes (3): write_atomic(), test_write_atomic_failure_keeps_target(), test_write_atomic_replaces_and_leaves_nothing()
+### Community 525 - "test_obs_smoke.py"
+Cohesion: 0.39
+Nodes (5): grafana(), services_of(), test_a2a_metric_is_queryable(), test_dashboards_are_provisioned(), test_one_trace_spans_all_services()
 
 ### Community 527 - "collect"
 Cohesion: 0.50
 Nodes (6): collect(), edge_element(), eid(), node_element(), _props(), Node
 
-### Community 529 - "Color"
-Cohesion: 0.40
-Nodes (3): Color, GREEN, RED
+### Community 529 - "test_sentence_keys_match_text_extraction"
+Cohesion: 0.43
+Nodes (3): test_docx_headings_equal_markdown_sections(), test_golden_documents(), test_sentence_keys_match_text_extraction()
+
+### Community 532 - "match_references"
+Cohesion: 0.29
+Nodes (4): match_references(), _match_references_linear(), test_match_references_sweep_equals_the_linear_scan(), test_match_references_with_a_file_element_without_lines()
+
+### Community 535 - "zipped"
+Cohesion: 0.33
+Nodes (6): raw_tar(), test_encrypted_zip_and_corrupt_gzip_in_tar_are_rejected(), test_entry_count_bomb_rejected_for_tar_and_zip(), test_tar_bomb_and_total_cap(), test_zip_bomb_stops_at_caps_with_lying_header(), zipped()
 
 ## Knowledge Gaps
-- **206 isolated node(s):** `AUTO`, `FALSE`, `TRUE`, `Gateway`, `REASON_WITH_NAME` (+201 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3542 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **136 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **206 isolated node(s):** `PAIRWISE`, `WHOLE_PROJECT`, `AUTO`, `FALSE`, `TRUE` (+201 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3548 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **162 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `auth_rejects_plugin_callers_on_agents_and_accepts_the_inbound_token_on_plugins()` connect `C26: bearer_token, classify_code, consumer_backoff` to `C64: btreeset, digest, event_from_json`, `C169: arc, constanttimeeq, auth.rs`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
-- **What connects `AUTO`, `FALSE`, `TRUE` to the rest of the system?**
+- **Why does `auth_rejects_plugin_callers_on_agents_and_accepts_the_inbound_token_on_plugins()` connect `C169: arc, constanttimeeq, auth.rs` to `C64: btreeset, digest, event_from_json`, `C26: bearer_token, classify_code, consumer_backoff`?**
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
+- **What connects `PAIRWISE`, `WHOLE_PROJECT`, `AUTO` to the rest of the system?**
   _206 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `TlrContext` be split into smaller, more focused modules?**
-  _Cohesion score 0.023224043715846996 - nodes in this community are weakly interconnected._
-- **Why does `agent` connect `C26: bearer_token, classify_code, consumer_backoff` to `C31: required, type, required`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
-- **Should `plan` be split into smaller, more focused modules?**
-  _Cohesion score 0.10483870967741936 - nodes in this community are weakly interconnected._
-- **Why does `properties` connect `C31: required, type, required` to `C136: description, owner, properties`, `C153: schema.yaml, description, owner`, `C26: bearer_token, classify_code, consumer_backoff`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+  _Cohesion score 0.02562111801242236 - nodes in this community are weakly interconnected._
+- **Why does `properties` connect `C31: required, type, required` to `C136: description, owner, properties`, `C153: schema.yaml, description, owner`, `C169: arc, constanttimeeq, auth.rs`?**
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
+- **Should `test_cli.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.11363636363636363 - nodes in this community are weakly interconnected._
+- **Why does `agent` connect `C169: arc, constanttimeeq, auth.rs` to `C31: required, type, required`?**
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **Should `time` be split into smaller, more focused modules?**
-  _Cohesion score 0.04050632911392405 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06767676767676768 - nodes in this community are weakly interconnected._

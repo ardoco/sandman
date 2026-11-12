@@ -199,11 +199,14 @@ class ArtemisRunnerTest {
     }
 
     @Test
-    void artemisIdStaysDisabledInTheShippedConfig() throws Exception {
+    void artemisIdIsTheDefaultWithArdocoIdAsFallbackInTheShippedConfig() throws Exception {
         var node = new YAMLMapper().readTree(Files.readString(Path.of("../../../config/inconsistency/plugins.yaml")));
         var entry = node.path("detectors").path("artemis-id");
         assertFalse(entry.isMissingNode());
-        assertFalse(entry.path("enabled").asBoolean(true));
+        assertTrue(entry.path("enabled").asBoolean(false));
+        assertEquals(
+                "artemis-id",
+                node.path("detectors").path("ardoco-id").path("fallbackFor").asString());
     }
 
     @Test

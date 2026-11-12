@@ -5,3 +5,8 @@ approaches:
   ardoco: { enabled: true, params: {} }
   ardocode: { enabled: false, params: {} }
   transarc: { enabled: true, params: {} }
+  artemis: { enabled: false, params: {} }
+  artemis-class: { enabled: false, params: {} }
+  artemis-datafile: { enabled: false, params: {} }
+  artemis-transarc: { enabled: false, params: {} }
+  artemis-exarch: { enabled: false, params: {} }

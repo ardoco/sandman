@@ -1056,10 +1056,10 @@
     "semantic_hash": "452e1f902f36b260136d2df3d199f5fe"
   },
   "libs/java/ardoco-text/pom.xml": {
-    "mtime": 1792421181.7696524,
-    "seen": 1794312116.366016,
-    "ast_hash": "35166a9fd2384fc7ad0c23977b0b946c",
-    "semantic_hash": "35166a9fd2384fc7ad0c23977b0b946c"
+    "mtime": 1794475592.2368603,
+    "seen": 1794475611.877126,
+    "ast_hash": "da5946770fe1920109726c8fc2902ac6",
+    "semantic_hash": ""
   },
   "libs/java/ardoco-text/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/ardocotext/CorenlpClient.java": {
     "mtime": 1792421181.7700446,
@@ -1626,10 +1626,10 @@
     "semantic_hash": "3ad7b2728e8194b62af64f66dcd29711"
   },
   "scripts/ardoco-id-bootstrap.sh": {
-    "mtime": 1792421181.7716706,
-    "seen": 1794312116.366061,
-    "ast_hash": "07753d97ecb62243bfd8bbf53eb27513",
-    "semantic_hash": "07753d97ecb62243bfd8bbf53eb27513"
+    "mtime": 1794475284.0541286,
+    "seen": 1794475611.877192,
+    "ast_hash": "b1eff1f4b0cc8f374c91c34647c5b4c8",
+    "semantic_hash": ""
   },
   "scripts/backup-common.sh": {
     "mtime": 1794313403.7815537,
@@ -2646,16 +2646,16 @@
     "semantic_hash": "c1bd888c7bf20d026f2a40058c62ee25"
   },
   "services/inconsistency-agent/detector-ardoco/pom.xml": {
-    "mtime": 1792421181.7780974,
-    "seen": 1794312116.366143,
-    "ast_hash": "7e0dc7df5ca8e4f531c64321323d29ca",
-    "semantic_hash": "7e0dc7df5ca8e4f531c64321323d29ca"
+    "mtime": 1794475284.0544271,
+    "seen": 1794475611.877312,
+    "ast_hash": "f86436055fc59f0007770503a771ff25",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArdocoIdDetector.java": {
-    "mtime": 1792421181.7786393,
-    "seen": 1794312116.366144,
-    "ast_hash": "3c954281c59fbfe746366a01019c075d",
-    "semantic_hash": "3c954281c59fbfe746366a01019c075d"
+    "mtime": 1794475308.04566,
+    "seen": 1794475611.877312,
+    "ast_hash": "e9afd24551a3a3b91e00e70d075c3932",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisChatModel.java": {
     "mtime": 1792421181.7787077,
@@ -2664,16 +2664,16 @@
     "semantic_hash": "d7aa1a07adbb76116020748b74128f02"
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisIdDetector.java": {
-    "mtime": 1792439275.5105906,
-    "seen": 1794312116.3661451,
-    "ast_hash": "d4b28bfa092de0ff6047389db7c7d456",
-    "semantic_hash": "d4b28bfa092de0ff6047389db7c7d456"
+    "mtime": 1794475308.0465527,
+    "seen": 1794475611.877314,
+    "ast_hash": "7c7f889f4db55afd24d9085a7800c9cd",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisRunner.java": {
-    "mtime": 1792421181.7789237,
-    "seen": 1794312116.3661451,
-    "ast_hash": "26c00e79783d06d285638a44f025bbdd",
-    "semantic_hash": "26c00e79783d06d285638a44f025bbdd"
+    "mtime": 1794475374.8011487,
+    "seen": 1794475611.877315,
+    "ast_hash": "5a9c71a781611853392dc4884943b66c",
+    "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ExternalLink.java": {
     "mtime": 1792421181.7789786,
@@ -4170,9 +4170,9 @@
     "semantic_hash": "118fd4ffd6053a4b704b3b731549f493"
   },
   "tests/cassettes/walking-skeleton/kg-canonical.json": {
-    "mtime": 1794412267.532084,
-    "seen": 1794412271.787153,
-    "ast_hash": "75aab1e90942ec8089d306149e17c59a",
+    "mtime": 1794475308.0486372,
+    "seen": 1794475611.87748,
+    "ast_hash": "09a02c5d692317588aa611117174a8cb",
     "semantic_hash": ""
   },
   "tests/conformance/test_python_conformance.py": {
@@ -4500,10 +4500,10 @@
     "semantic_hash": "820068a803020b0728e122577148ae3a"
   },
   "tools/cli/tests/test_evaluation_labeling.py": {
-    "mtime": 1792421181.8007944,
-    "seen": 1794312116.366295,
-    "ast_hash": "58a2b03eacb58b29f17069eeead64f53",
-    "semantic_hash": "58a2b03eacb58b29f17069eeead64f53"
+    "mtime": 1794475308.0474327,
+    "seen": 1794475611.8775198,
+    "ast_hash": "6035b4fc94ef4fa8b512dbad1e9ab0dd",
+    "semantic_hash": ""
   },
   "tools/cli/tests/test_evaluation_nlquery.py": {
     "mtime": 1792421181.8009002,
@@ -4638,10 +4638,10 @@
     "semantic_hash": ""
   },
   "adr/0015-ardoco-integration.md": {
-    "mtime": 1794313009.2496934,
-    "seen": 1794313260.174708,
-    "ast_hash": "00a296e11955ca56985a7309c5d22230",
-    "semantic_hash": "00a296e11955ca56985a7309c5d22230"
+    "mtime": 1794475592.236306,
+    "seen": 1794475611.877536,
+    "ast_hash": "5a35328c19eac942563a858c7f23ca00",
+    "semantic_hash": ""
   },
   "adr/0016-system-overview-dashboard.md": {
     "mtime": 1794313403.7373624,
@@ -5250,10 +5250,10 @@
     "semantic_hash": "4d215088aaac4eecbe865813c0304dd3"
   },
   "services/inconsistency-agent/THIRD-PARTY.md": {
-    "mtime": 1792421181.7779925,
-    "seen": 1794312116.36637,
-    "ast_hash": "11115bbae8269137827f6fd3af15a965",
-    "semantic_hash": "11115bbae8269137827f6fd3af15a965"
+    "mtime": 1794475592.2366724,
+    "seen": 1794475611.877623,
+    "ast_hash": "83f2438191d12c51e9d801badcb88050",
+    "semantic_hash": ""
   },
   "services/query-service/src/sandman_query/static/htmx-LICENSE.txt": {
     "mtime": 1791657384.1830297,
@@ -5502,9 +5502,9 @@
     "semantic_hash": ""
   },
   "docs/tasks/T3.5-ardoco-release-switch.md": {
-    "mtime": 1794475057.5942404,
-    "seen": 1794475228.019583,
-    "ast_hash": "9f0d9000c44a7fdfd44f57cd1220ec6b",
+    "mtime": 1794475592.2370644,
+    "seen": 1794475611.8775501,
+    "ast_hash": "15c3de9faedd63f1c28f611aa4696519",
     "semantic_hash": ""
   },
   "docs/tasks/T3.6-labeling-study.md": {

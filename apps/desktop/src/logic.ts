@@ -1,3 +1,5 @@
+import { setLanguage } from "./i18n";
+
 export const SLUG = /^[a-z0-9][a-z0-9-]{1,62}$/;
 export const WORKFLOW_DONE = ["SUCCEEDED", "FAILED", "CANCELED", "BLOCKED"];
 
@@ -123,6 +125,7 @@ export function applySettings(s: AppSettingsLike, root: HTMLElement = document.d
   root.dataset.theme = s.theme;
   root.dataset.font = s.fontSize;
   root.lang = resolveLanguage(s.language, navigatorLanguage);
+  setLanguage(root.lang as Language);
 }
 
 export type SettingsTab = "general" | "project";

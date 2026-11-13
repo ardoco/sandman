@@ -33,8 +33,11 @@ export function table(headers: string[], rows: Child[][], onRow?: (i: number) =>
   );
 }
 
-export function select(options: string[], value = ""): HTMLSelectElement {
-  return h("select", { value }, ...options.map((o) => h("option", { value: o }, o || "(any)")));
+export function select(options: (string | [string, string])[], value = ""): HTMLSelectElement {
+  return h("select", { value }, ...options.map((o) => {
+    const [v, label] = typeof o === "string" ? [o, o || "(any)"] : o;
+    return h("option", { value: v }, label);
+  }));
 }
 
 export function field(label: string, input: HTMLElement, hint?: string): HTMLLabelElement {

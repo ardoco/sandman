@@ -23,6 +23,14 @@ export interface SettingsView {
   corenlpMode: string;
   keysSet: string[];
 }
+export interface AppSettings {
+  language: "system" | "en" | "de";
+  theme: "system" | "light" | "dark";
+  fontSize: "small" | "normal" | "large";
+}
+export const loadAppSettings = () => cmd<AppSettings>("load_app_settings");
+export const saveAppSettings = (settings: AppSettings) => cmd<void>("save_app_settings", { settings });
+
 export interface Lifecycle {
   code: number;
   hint: string | null;

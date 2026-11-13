@@ -43,6 +43,16 @@ fn delete_project(state: State<AppState>, project_id: String) -> Result<(), Stri
 }
 
 #[tauri::command]
+fn load_app_settings(state: State<AppState>) -> store::AppSettings {
+    store::load_app_settings(&state.dir)
+}
+
+#[tauri::command]
+fn save_app_settings(state: State<AppState>, settings: store::AppSettings) -> Result<(), String> {
+    store::save_app_settings(&state.dir, &settings)
+}
+
+#[tauri::command]
 fn get_defaults(state: State<AppState>) -> Result<env::SettingsView, String> {
     env::default_view(&store::load_defaults(&state.dir))
 }
@@ -165,6 +175,8 @@ pub fn run() {
             ingest::ingest_cancel,
             set_title,
             api::has_token,
+            load_app_settings,
+            save_app_settings,
             get_defaults,
             save_defaults,
             read_local_settings,

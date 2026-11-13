@@ -141,6 +141,66 @@ pub fn save_defaults(dir: &Path, d: &Defaults) -> Result<(), String> {
     write_json(dir, "defaults.json", d)
 }
 
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Language {
+    #[default]
+    System,
+    En,
+    De,
+}
+
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum Theme {
+    #[default]
+    System,
+    Light,
+    Dark,
+}
+
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum FontSize {
+    Small,
+    #[default]
+    Normal,
+    Large,
+}
+
+fn lenient<'de, D, T>(d: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: serde::de::DeserializeOwned + Default,
+{
+    Ok(serde_json::Value::deserialize(d)
+        .ok()
+        .and_then(|v| serde_json::from_value(v).ok())
+        .unwrap_or_default())
+}
+
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct AppSettings {
+    #[serde(default, deserialize_with = "lenient")]
+    pub language: Language,
+    #[serde(default, deserialize_with = "lenient")]
+    pub theme: Theme,
+    #[serde(default, deserialize_with = "lenient")]
+    pub font_size: FontSize,
+}
+
+pub fn load_app_settings(dir: &Path) -> AppSettings {
+    fs::read_to_string(dir.join("settings.json"))
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+pub fn save_app_settings(dir: &Path, s: &AppSettings) -> Result<(), String> {
+    write_json(dir, "settings.json", s)
+}
+
 fn entry(user: &str) -> Result<keyring::Entry, String> {
     keyring::Entry::new(SERVICE, user).map_err(|e| format!("keychain: {e}"))
 }
@@ -220,5 +280,39 @@ mod tests {
         fs::create_dir(d.path().join("deploy")).unwrap();
         fs::write(d.path().join("deploy/docker-compose.yml"), "").unwrap();
         assert!(valid_checkout(d.path().to_str().unwrap()).is_ok());
+    }
+
+    #[test]
+    fn app_settings_defaults_and_round_trip() {
+        let d = tempfile::tempdir().unwrap();
+        let def = load_app_settings(d.path());
+        assert_eq!(def, AppSettings::default());
+        let set = AppSettings {
+            language: Language::De,
+            theme: Theme::Dark,
+            font_size: FontSize::Large,
+        };
+        save_app_settings(d.path(), &set).unwrap();
+        assert_eq!(load_app_settings(d.path()), set);
+        let raw = fs::read_to_string(d.path().join("settings.json")).unwrap();
+        assert!(raw.contains("\"fontSize\": \"large\""), "{raw}");
+    }
+
+    #[test]
+    fn app_settings_tolerate_bad_files() {
+        let d = tempfile::tempdir().unwrap();
+        let write = |s: &str| fs::write(d.path().join("settings.json"), s).unwrap();
+        write("{not json");
+        assert_eq!(load_app_settings(d.path()), AppSettings::default());
+        write(r#"{"language":"de","extra":1,"theme":"dark"}"#);
+        let s = load_app_settings(d.path());
+        assert_eq!(s.language, Language::De);
+        assert_eq!(s.theme, Theme::Dark);
+        assert_eq!(s.font_size, FontSize::Normal);
+        write(r#"{"language":"fr","theme":"dark","fontSize":7}"#);
+        let s = load_app_settings(d.path());
+        assert_eq!(s.language, Language::System);
+        assert_eq!(s.theme, Theme::Dark);
+        assert_eq!(s.font_size, FontSize::Normal);
     }
 }

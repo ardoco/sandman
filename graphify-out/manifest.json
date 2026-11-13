@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/views/ask.ts": {
-    "mtime": 1794562184.5453281,
-    "seen": 1794562197.402304,
-    "ast_hash": "99725dbe9b51c905a20841321420868e",
+    "mtime": 1794568066.2674143,
+    "seen": 1794568087.5676868,
+    "ast_hash": "78901ba3872af46add27733080f2f64d",
     "semantic_hash": ""
   },
   "apps/desktop/src/views/dom.ts": {

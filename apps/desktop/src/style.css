@@ -59,3 +59,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .caution { color: var(--err); }
 .token-needed { margin-left: 8px; }
 hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+.wide { flex: 1; min-width: 240px; }
+.chips { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
+.chip { padding: 2px 8px; border-radius: 12px; }
+.check { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.answer { font-size: 1.05em; }
+details { margin: 8px 0; }

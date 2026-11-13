@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { columnsLayout, connectSummary, localProject, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
+import { columnsLayout, connectSummary, localProject, loginFields, loginMessage, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -111,6 +111,16 @@ describe("key store helpers", () => {
     expect(connectSummary({ ...base, added: ["a1"], updated: ["b2"], skipped: [{ id: "c3", reason: "a local project with this id exists" }], warning: "Use https." })).toEqual([
       "Connected as ann.", "Added: a1.", "Updated: b2.", "Skipped c3: a local project with this id exists.", "Use https."]);
     expect(connectSummary(base)).toEqual(["Connected as ann.", "This token can read no project."]);
+  });
+
+  it("lists the connect form fields per login mode and maps login errors", () => {
+    expect(loginFields("password")).toEqual(["URL", "Username", "Password"]);
+    expect(loginFields("token")).toEqual(["URL", "Token"]);
+    expect(loginMessage(401, null)).toContain("Wrong username or password");
+    expect(loginMessage(429, { detail: "too many failed logins" })).toContain("15 minutes");
+    expect(loginMessage(403, { detail: "password change required" })).toContain("Password change required");
+    expect(loginMessage(403, { detail: "not allowed" })).toBe("not allowed");
+    expect(loginMessage(500, null)).toBe("HTTP 500");
   });
 
   it("picks the prefill URL and the local project from the list sorted by last use", () => {

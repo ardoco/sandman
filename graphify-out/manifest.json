@@ -102,9 +102,9 @@
     "semantic_hash": "e95cf0d654feb9f640cdc35129869fe0"
   },
   "apps/desktop/src/api.ts": {
-    "mtime": 1794557762.581774,
-    "seen": 1794557807.6993449,
-    "ast_hash": "37de3622a2a82342a4df81cfc0d2bb73",
+    "mtime": 1794558332.1156957,
+    "seen": 1794558380.933574,
+    "ast_hash": "bd7cd9119eb2f54db00c53c762ce7b7e",
     "semantic_hash": ""
   },
   "apps/desktop/src/contract.test.ts": {
@@ -114,15 +114,15 @@
     "semantic_hash": "c7bc6906aa95ee5cf857cc981834d0e6"
   },
   "apps/desktop/src/logic.test.ts": {
-    "mtime": 1794557762.5814753,
-    "seen": 1794557807.699348,
-    "ast_hash": "a799d05753b7839279258b9cf119dc34",
+    "mtime": 1794558332.1162765,
+    "seen": 1794558380.933577,
+    "ast_hash": "e493ae00a7c410aa46cbeb7df9adaf2b",
     "semantic_hash": ""
   },
   "apps/desktop/src/logic.ts": {
-    "mtime": 1794557762.581064,
-    "seen": 1794557807.699349,
-    "ast_hash": "f696bdd5257a85cff06e099ba595b2d1",
+    "mtime": 1794558321.9144862,
+    "seen": 1794558380.933578,
+    "ast_hash": "96bcb3f15fbe17dc1b063e844a827117",
     "semantic_hash": ""
   },
   "apps/desktop/src/main.ts": {
@@ -204,9 +204,9 @@
     "semantic_hash": "2d4e20ee0313f6d676cd893f4bc57a49"
   },
   "apps/desktop/src/views/start.ts": {
-    "mtime": 1794557781.543266,
-    "seen": 1794557807.699358,
-    "ast_hash": "7ad8ea277692118ccbc842a9ddcccade",
+    "mtime": 1794558332.1158886,
+    "seen": 1794558380.933588,
+    "ast_hash": "33fa60f41f631346807d1354d32222cc",
     "semantic_hash": ""
   },
   "apps/desktop/src/views/traceview.ts": {

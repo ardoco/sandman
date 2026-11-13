@@ -76,6 +76,19 @@ export function tokenMessage(status: number, body: unknown): string {
   return problemMessage(status, body);
 }
 
+export type LoginMode = "password" | "token";
+
+export const loginFields = (mode: LoginMode): string[] => (mode === "password" ? ["URL", "Username", "Password"] : ["URL", "Token"]);
+
+export function loginMessage(status: number, body: unknown): string {
+  if (status === 401) return "Wrong username or password, or the user is disabled.";
+  if (status === 429) return "Too many failed logins. Wait 15 minutes and try again.";
+  if (status === 403 && /password change/i.test(problemMessage(status, body))) {
+    return "Password change required. Open the console login, sign in, change the password, then connect again.";
+  }
+  return problemMessage(status, body);
+}
+
 export interface ConnectResult {
   username: string;
   added: string[];

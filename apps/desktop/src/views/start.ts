@@ -1,9 +1,11 @@
-import { cmd, connectSystem, hasToken, Project, saveToken, SettingsInput, SettingsView } from "../api";
-import { connectSummary, localProject, prefillUrl, slugify, validSlug } from "../logic";
+import { cmd, connectSystem, hasToken, loginConnect, Project, saveToken, SettingsInput, SettingsView } from "../api";
+import { connectSummary, localProject, LoginMode, loginFields, prefillUrl, slugify, validSlug } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
 import { keyField } from "./keyfield";
 import { renderKeys } from "./keys";
 import { secretsBox } from "./secrets";
+
+let loginMode: LoginMode = "password";
 
 export async function renderStart(root: HTMLElement, open: (p: Project) => void): Promise<void> {
   let selected: Project | undefined;
@@ -15,21 +17,39 @@ export async function renderStart(root: HTMLElement, open: (p: Project) => void)
     load();
   } }, "Remove");
   const connectUrl = h("input", { type: "text", placeholder: "https://sandman.example" });
+  const connectUser = h("input", { type: "text", autocomplete: "username" });
+  const connectPassword = h("input", { type: "password", autocomplete: "off" });
   const connectToken = h("input", { type: "password", autocomplete: "off" });
   const connectMsg = h("div", {});
   const connect = h("button", { type: "submit" }, "Connect");
+  const fields = {
+    Username: field("Username", connectUser),
+    Password: field("Password", connectPassword, "Sent once to create a token for this app. The app stores only the token, in the OS keychain."),
+    Token: field("Token", connectToken, "Stored in the OS keychain. A token limited to one project adds that project."),
+  };
+  const switchMode = h("button", { type: "button", class: "secondary" }, "");
+  const showMode = () => {
+    const shown = loginFields(loginMode);
+    for (const [name, el] of Object.entries(fields)) el.hidden = !shown.includes(name);
+    switchMode.textContent = loginMode === "password" ? "Use a token instead" : "Use username and password instead";
+  };
+  switchMode.onclick = () => { loginMode = loginMode === "password" ? "token" : "password"; clear(connectMsg); showMode(); };
+  showMode();
   const connectForm = h("form", { onsubmit: async (ev: Event) => {
     ev.preventDefault();
     clear(connectMsg);
     connect.disabled = true;
     try {
-      const r = await connectSystem(connectUrl.value, connectToken.value);
+      const r = loginMode === "password"
+        ? await loginConnect(connectUrl.value, connectUser.value, connectPassword.value)
+        : await connectSystem(connectUrl.value, connectToken.value);
+      connectPassword.value = "";
       if (!r.ok) return showError(connectMsg, r.message);
       connectToken.value = "";
       connectMsg.append(...connectSummary(r.result).map((t) => h("p", {}, t)));
       await load();
-    } catch (e) { showError(connectMsg, e); } finally { connect.disabled = false; }
-  } }, h("h3", {}, "Connect to a running system"), field("URL", connectUrl), field("Token", connectToken, "Stored in the OS keychain. A token limited to one project adds that project."), connect, connectMsg);
+    } catch (e) { connectPassword.value = ""; showError(connectMsg, e); } finally { connect.disabled = false; }
+  } }, h("h3", {}, "Connect to a running system"), switchMode, field("URL", connectUrl), fields.Username, fields.Password, fields.Token, connect, connectMsg);
   const runLocally = async () => {
     const local = localProject(await cmd<Project[]>("list_projects"));
     if (local) open(local);

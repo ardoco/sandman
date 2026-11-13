@@ -122,6 +122,12 @@ pub fn remove(dir: &Path, id: &str) -> Result<(), String> {
     write_json(dir, "projects.json", &list)
 }
 
+pub fn forget_system(list: &[Project], url: &str) -> (Vec<Project>, Vec<String>) {
+    let gone = |p: &Project| p.mode == "remote" && p.url == url;
+    let ids = list.iter().filter(|p| gone(p)).map(|p| p.id.clone()).collect();
+    (list.iter().filter(|p| !gone(p)).cloned().collect(), ids)
+}
+
 pub fn find(dir: &Path, id: &str) -> Result<Project, String> {
     load_projects(dir)?.into_iter().find(|p| p.id == id).ok_or_else(|| format!("unknown project {id}"))
 }
@@ -190,6 +196,8 @@ pub struct AppSettings {
     pub theme: Theme,
     #[serde(default, deserialize_with = "lenient")]
     pub font_size: FontSize,
+    #[serde(default)]
+    pub default_checkout: String,
 }
 
 pub fn load_app_settings(dir: &Path) -> AppSettings {
@@ -293,6 +301,7 @@ mod tests {
             language: Language::De,
             theme: Theme::Dark,
             font_size: FontSize::Large,
+            default_checkout: "/work/sandman".into(),
         };
         save_app_settings(d.path(), &set).unwrap();
         assert_eq!(load_app_settings(d.path()), set);
@@ -316,5 +325,23 @@ mod tests {
         assert_eq!(s.language, Language::System);
         assert_eq!(s.theme, Theme::Dark);
         assert_eq!(s.font_size, FontSize::Normal);
+    }
+
+    #[test]
+    fn forget_system_removes_only_remote_projects_of_that_url() {
+        let p = |id: &str, mode: &str, url: &str| Project { id: id.into(), name: id.into(), mode: mode.into(), url: url.into(), checkout: None, cli_command: None, last_used: 0 };
+        let list = vec![p("aa", "remote", "https://s.example"), p("bb", "remote", "https://t.example"), p("cc", "remote", "https://s.example"), p("dd", "local", "")];
+        let (kept, ids) = forget_system(&list, "https://s.example");
+        assert_eq!(ids, vec!["aa", "cc"]);
+        assert_eq!(kept.iter().map(|x| x.id.as_str()).collect::<Vec<_>>(), vec!["bb", "dd"]);
+        assert_eq!(forget_system(&list, "https://none.example").1, Vec::<String>::new());
+    }
+
+    #[test]
+    fn settings_file_holds_no_secret_fields() {
+        let d = tempfile::tempdir().unwrap();
+        save_app_settings(d.path(), &AppSettings::default()).unwrap();
+        let raw = fs::read_to_string(d.path().join("settings.json")).unwrap().to_lowercase();
+        assert!(!raw.contains("token") && !raw.contains("key") && !raw.contains("password"), "{raw}");
     }
 }

@@ -44,6 +44,22 @@ fn delete_project(state: State<AppState>, project_id: String) -> Result<(), Stri
 }
 
 #[tauri::command]
+fn forget_system(state: State<AppState>, url: String) -> Result<(), String> {
+    let (kept, ids) = store::forget_system(&store::load_projects(&state.dir)?, &url);
+    store::write_json(&state.dir, "projects.json", &kept)?;
+    for id in ids {
+        state.tokens.lock().unwrap().remove(&id);
+        store::secret_delete(&format!("token:{id}"))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn app_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
+
+#[tauri::command]
 fn load_app_settings(state: State<AppState>) -> store::AppSettings {
     store::load_app_settings(&state.dir)
 }
@@ -176,6 +192,8 @@ pub fn run() {
             ingest::ingest_cancel,
             set_title,
             api::has_token,
+            forget_system,
+            app_version,
             load_app_settings,
             save_app_settings,
             get_defaults,

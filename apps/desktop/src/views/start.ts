@@ -1,4 +1,4 @@
-import { cmd, connectSystem, hasToken, loginConnect, Project, saveToken, SettingsInput, SettingsView } from "../api";
+import { cmd, connectSystem, hasToken, loadAppSettings, loginConnect, Project, saveToken, SettingsInput, SettingsView } from "../api";
 import { localizeError, t } from "../i18n";
 import { connectSummary, localProject, LoginMode, loginFields, prefillUrl, slugify, validSlug } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
@@ -117,6 +117,7 @@ async function wizard(root: HTMLElement, open: (p: Project) => void, back: () =>
   name.addEventListener("input", () => { if (!idTouched) id.value = slugify(name.value); });
   const mode = select([["local", t("mode.local")], ["remote", t("mode.remote")]], "local");
   const checkout = h("input", { type: "text", placeholder: t("wizard.checkoutPlaceholder") });
+  void loadAppSettings().then((s) => { if (!checkout.value) checkout.value = s.defaultCheckout; }).catch(() => undefined);
   const pn = () => name.value;
   const kf = {
     openaiApiKey: keyField(t("key.openaiApiKey"), "OPENAI_API_KEY", secretInput("openai", defaults.keysSet.includes("openaiApiKey")), pn),

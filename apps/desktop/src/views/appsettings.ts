@@ -1,4 +1,4 @@
-import { AppSettings, Ctx, loadAppSettings, saveAppSettings } from "../api";
+import { AppSettings, cmd, Ctx, loadAppSettings, Project, saveAppSettings } from "../api";
 import { t } from "../i18n";
 import { applySettings, DEFAULT_SETTINGS, SettingsTab, settingsTabState } from "../logic";
 import { clear, field, h, showError, toast } from "./dom";
@@ -28,10 +28,35 @@ export async function renderAppSettings(root: HTMLElement, { ctx, back, tab }: O
     if (languageChanged) { ctx?.onLanguage?.(); void renderAppSettings(root, { ctx, back, tab: current }); }
   };
 
-  const general = () => clear(panel,
+  const systems = h("div", {});
+  const showSystems = async () => {
+    const remote = (await cmd<Project[]>("list_projects").catch(() => [] as Project[])).filter((p) => p.mode === "remote");
+    const urls = [...new Set(remote.map((p) => p.url))];
+    clear(systems, ...(urls.length ? urls.map((url) => {
+      const count = remote.filter((p) => p.url === url).length;
+      return h("div", { class: "row" }, h("span", {}, t("settings.systemLine", { url, count })),
+        h("button", { class: "secondary", onclick: async () => {
+          if (!confirm(t("settings.forgetConfirm", { url, count }))) return;
+          try { await cmd("forget_system", { url }); toast(t("settings.forgotten")); } catch (e) { toast(String(e instanceof Error ? e.message : e), "error"); }
+          await showSystems();
+        } }, t("settings.forget")));
+    }) : [h("p", { class: "muted" }, t("settings.noSystems"))]));
+  };
+  const checkout = h("input", { type: "text", value: settings.defaultCheckout ?? "", placeholder: t("wizard.checkoutPlaceholder") });
+  checkout.addEventListener("change", () => void update({ defaultCheckout: checkout.value }));
+  const version = h("span", {});
+  void cmd<string>("app_version").then((v) => { version.textContent = v; }).catch(() => undefined);
+
+  const general = () => { void showSystems(); clear(panel,
     field(t("settings.language"), choice([["system", t("settings.languageSystem")], ["en", "English"], ["de", "Deutsch"]], settings.language, (language) => void update({ language: language as AppSettings["language"] }))),
     field(t("settings.theme"), choice([["system", t("settings.themeSystem")], ["light", t("settings.themeLight")], ["dark", t("settings.themeDark")]], settings.theme, (theme) => void update({ theme: theme as AppSettings["theme"] }))),
-    field(t("settings.fontSize"), choice([["small", t("settings.fontSmall")], ["normal", t("settings.fontNormal")], ["large", t("settings.fontLarge")]], settings.fontSize, (fontSize) => void update({ fontSize: fontSize as AppSettings["fontSize"] }))));
+    field(t("settings.fontSize"), choice([["small", t("settings.fontSmall")], ["normal", t("settings.fontNormal")], ["large", t("settings.fontLarge")]], settings.fontSize, (fontSize) => void update({ fontSize: fontSize as AppSettings["fontSize"] }))),
+    field(t("settings.defaultCheckout"), h("div", { class: "row" }, checkout, h("button", { class: "secondary", type: "button", onclick: async () => {
+      const p = await cmd<string | null>("pick_folder");
+      if (p) { checkout.value = p; void update({ defaultCheckout: p }); }
+    } }, t("wizard.browse")))),
+    h("h3", {}, t("settings.systems")), systems,
+    h("p", { class: "muted" }, t("settings.version"), " ", version));};
 
   let current: SettingsTab = tab ?? first;
   const show = async (next: SettingsTab) => {

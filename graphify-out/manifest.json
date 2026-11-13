@@ -72,9 +72,9 @@
     "semantic_hash": "cf4a2499b8901cc3d972a3c9211865ee"
   },
   "apps/desktop/src-tauri/src/lib.rs": {
-    "mtime": 1794561186.2165444,
-    "seen": 1794561200.006144,
-    "ast_hash": "726d41fa20ab54df4b17a2551919bff5",
+    "mtime": 1794561283.5602634,
+    "seen": 1794561323.688756,
+    "ast_hash": "45fa23b1e8eb9eb9f4e460d0de1c99f7",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/main.rs": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/store.rs": {
-    "mtime": 1794561186.21678,
-    "seen": 1794561200.006146,
-    "ast_hash": "ea264735bfe94e4ecffa879093a03132",
+    "mtime": 1794561283.5598068,
+    "seen": 1794561323.6887581,
+    "ast_hash": "21cdbcd4fbbc3bd1ab734663bfb07550",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/tauri.conf.json": {
@@ -102,9 +102,9 @@
     "semantic_hash": "e95cf0d654feb9f640cdc35129869fe0"
   },
   "apps/desktop/src/api.ts": {
-    "mtime": 1794561186.21702,
-    "seen": 1794561200.006148,
-    "ast_hash": "30a5bbd776e581f75ad0116eb37680e2",
+    "mtime": 1794561304.221143,
+    "seen": 1794561323.688759,
+    "ast_hash": "60a65cae54bef144f4cc5ca75f14f0a2",
     "semantic_hash": ""
   },
   "apps/desktop/src/contract.test.ts": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/logic.ts": {
-    "mtime": 1794561186.2175908,
-    "seen": 1794561200.0061572,
-    "ast_hash": "a48b1fefddaa0ac53f362dfe2d52e719",
+    "mtime": 1794561304.2215326,
+    "seen": 1794561323.688768,
+    "ast_hash": "d3386634d39dfd9b3ff9f16170e0c9d8",
     "semantic_hash": ""
   },
   "apps/desktop/src/main.ts": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/views/start.ts": {
-    "mtime": 1794561186.2191114,
-    "seen": 1794561200.006166,
-    "ast_hash": "553a98d3ddb4fae7055ab9bd5f2ed8b0",
+    "mtime": 1794561309.0118086,
+    "seen": 1794561323.688778,
+    "ast_hash": "a287ab08dc567e3af4e9fc3186821e1b",
     "semantic_hash": ""
   },
   "apps/desktop/src/views/traceview.ts": {
@@ -6102,21 +6102,21 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/views/appsettings.ts": {
-    "mtime": 1794561186.2176957,
-    "seen": 1794561200.006158,
-    "ast_hash": "d5ca001cf1d5eb0786a1bdb39c595641",
+    "mtime": 1794561304.222203,
+    "seen": 1794561323.68877,
+    "ast_hash": "34a3f84b75fce4829752d208f77547b8",
     "semantic_hash": ""
   },
   "apps/desktop/src/de.ts": {
-    "mtime": 1794561186.2171407,
-    "seen": 1794561200.0061529,
-    "ast_hash": "0d689f9d0dfd9486bee4f8385c104513",
+    "mtime": 1794561304.223065,
+    "seen": 1794561323.6887639,
+    "ast_hash": "35dea8246a599079a2b5ad16cbb370bc",
     "semantic_hash": ""
   },
   "apps/desktop/src/en.ts": {
-    "mtime": 1794561186.217279,
-    "seen": 1794561200.006154,
-    "ast_hash": "5c8c069cc3eeb3500b91cddfecedd710",
+    "mtime": 1794561304.2224717,
+    "seen": 1794561323.6887648,
+    "ast_hash": "54a299b15a470fddef2d5c99d0a8ac49",
     "semantic_hash": ""
   },
   "apps/desktop/src/i18n.test.ts": {

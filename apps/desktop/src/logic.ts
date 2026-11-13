@@ -118,8 +118,8 @@ export type Language = "en" | "de";
 export const resolveLanguage = (setting: string, navigatorLanguage: string): Language =>
   setting === "de" || (setting !== "en" && navigatorLanguage.toLowerCase().startsWith("de")) ? "de" : "en";
 
-export interface AppSettingsLike { language: string; theme: string; fontSize: string; }
-export const DEFAULT_SETTINGS: AppSettingsLike = { language: "system", theme: "system", fontSize: "normal" };
+export interface AppSettingsLike { language: string; theme: string; fontSize: string; defaultCheckout?: string; }
+export const DEFAULT_SETTINGS: AppSettingsLike = { language: "system", theme: "system", fontSize: "normal", defaultCheckout: "" };
 
 export function applySettings(s: AppSettingsLike, root: HTMLElement = document.documentElement, navigatorLanguage: string = navigator.language): void {
   root.dataset.theme = s.theme;

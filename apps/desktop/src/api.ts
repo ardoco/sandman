@@ -28,6 +28,7 @@ export interface AppSettings {
   language: "system" | "en" | "de";
   theme: "system" | "light" | "dark";
   fontSize: "small" | "normal" | "large";
+  defaultCheckout: string;
 }
 export const loadAppSettings = () => cmd<AppSettings>("load_app_settings");
 export const saveAppSettings = (settings: AppSettings) => cmd<void>("save_app_settings", { settings });

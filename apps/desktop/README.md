@@ -108,9 +108,17 @@ The Overview tab shows numbered steps when the project has no token.
 
 The app runs `uv run --project <checkout> sandman ingest`. Set a CLI command in Settings, tab Project, to use another command. Single files are staged in a temporary folder and sent with mode partial.
 
+### Export
+
+1. Open the Export tab. Select the format in the block of the trace links or of the findings.
+2. Click Export and select the target file in the save dialog.
+3. The app shows the number of rows and the path. Click Show file to open the folder.
+
+The formats `csv` and `json` use the REST API. The formats `ardoco-sad-sam`, `ardoco-sad-code`, `ardoco-sam-code` and `lissa` run `sandman export tracelinks --format <format>`. The token goes to this command in `SANDMAN_TOKEN`. Without a CLI command or a checkout, the benchmark formats are off. See [docs/user/desktop-app.md](../../docs/user/desktop-app.md).
+
 ### Shortcuts
 
-Press Ctrl+1 to Ctrl+9 (Cmd on macOS) to select a tab. The start screen offers Connect for a running system, Run locally, Continue for the last project and Settings. Settings has the tabs General (language, theme, font size, default checkout, saved systems) and Project.
+Press Ctrl+1 to Ctrl+9 (Cmd on macOS) to select one of the first nine tabs. The start screen offers Connect for a running system, Run locally, Continue for the last project and Settings. Settings has the tabs General (language, theme, font size, default checkout, saved systems) and Project.
 
 ## Limitations
 

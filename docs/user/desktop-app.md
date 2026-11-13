@@ -244,6 +244,33 @@ If a picked folder has weak guesses that you did not review, the dialog shows ho
 | Ingest anyway | starts the ingestion and skips the review check (`--no-review`) |
 | Cancel | returns to the tab Ingest |
 
+## Export
+
+The tab Export saves trace links and findings as a file. The tab has one block for trace links and one block for findings.
+
+| Format | Used for | Needs |
+|---|---|---|
+| `csv`, `json` | trace links and findings | a token |
+| `ardoco-sad-sam`, `ardoco-sad-code`, `ardoco-sam-code`, `lissa` | trace links, gold standard comparison | a token and the `sandman` CLI |
+
+1. Open the tab Export.
+2. Select the format in the block that you need.
+3. For trace links, select an approach. The list shows the approaches of the project. The default is All approaches.
+4. For `csv` and `json` trace links, set Minimum confidence. Tick Include rejected links if you need them.
+5. For `ardoco-sad-code`, enter a code root. The app removes this path prefix from the code paths.
+6. Click Export. A save dialog opens. The default file name is `<project>-<what>[-<approach>].<csv or json>`.
+7. Select the target file. The dialog asks before it replaces a file.
+
+If you cancel the dialog, the app does nothing. After the export, the app shows how many rows it saved and where. Click Show file to open the folder.
+
+The formats `csv` and `json` use the REST routes `export/tracelinks` and `export/inconsistencies`. They work for local and remote projects. The benchmark formats run the command `sandman export tracelinks --format <format>`. The app sets the token in the environment variable `SANDMAN_TOKEN` for this command. The token is never part of the arguments.
+
+A project without a CLI command and without a checkout shows the benchmark formats as disabled. To enable them, set a CLI command in Settings, tab Project. See [Ingest folders and files](#ingest-folders-and-files).
+
+If the system answers 401 or 403, the app shows an error with the HTTP status. Check the token and its role. If the CLI fails, the app shows its last lines.
+
+To compare a benchmark file with a gold standard, use the CLI. See [evaluation.md](evaluation.md), section "Compare an exported file with a gold standard".
+
 ## Tabs
 
 | Tab | Content |
@@ -257,10 +284,11 @@ If a picked folder has weak guesses that you did not review, the dialog shows ho
 | Trace viewer | artifacts in columns, links as edges, findings as markers; filters; click an element or link for details; buttons `confirmed` and `rejected` |
 | Ask | enter a question in natural language; shows answer, rows and Cypher |
 | Graph | graph of elements and relations; click a node to load its neighbours |
+| Export | save trace links and findings as `csv`, `json` or a benchmark format |
 
 The tabs Overview and Workflows refresh every 3 seconds while a workflow is `PENDING` or `RUNNING`. They stop when the window is hidden.
 
-Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Classification is tab 3 and Trace viewer is tab 7. The window title shows the project name and the state of the stack.
+Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Classification is tab 3 and Trace viewer is tab 7. Export is tab 10 and has no shortcut. The window title shows the project name and the state of the stack.
 
 Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEPTED`, `REJECTED` or `DEFERRED` needs a reason and a cause. Enter both before you click the button. If another user changed the finding, click Reload finding. See [trace-links-and-findings.md](trace-links-and-findings.md).
 
@@ -304,6 +332,7 @@ The app saves the settings in the file `settings.json` in the app configuration 
 - The app has no administration, no password change, no token management and no project creation. Use the console and the REST API.
 - Rejecting a trace link needs a reason. Links of the approaches `explicit-reference` and `user-declared` cannot be reviewed.
 - The app does not update itself. The bundles are not signed.
+- The benchmark formats of the tab Export need the `sandman` CLI. The app does not compare files with a gold standard.
 - Ingest needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings, tab Project.
 - Linux and Windows builds were not tested.
 - The app was not yet tested against a running stack. The manual acceptance run is open.

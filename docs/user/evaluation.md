@@ -129,6 +129,19 @@ uv run pytest services/query-service -q -rs
    Expected result: a CSV file with the header `modelElementID,sentence` and one row per link.
    The export formats are `ardoco-sad-sam`, `ardoco-sad-code` and `lissa`. The option `--code-root PREFIX` is for `ardoco-sad-code` only.
 
+### Compare an exported file with a gold standard
+
+The desktop app can write the same file. Open the tab Export, select the format and the approach, and click Export. See [desktop-app.md](desktop-app.md). The app runs the same `sandman export` command as step 6. The file is the same as the file of the command.
+
+The app does not compare files. Use the CLI.
+
+```sh
+uv run sandman eval compare --format ardoco-sad-sam \
+  --gold GOLD.csv --a mediastore-live.csv
+```
+
+`GOLD.csv` is the gold standard file in the same format. The format of both files must be the same.
+
 ## 4. Exact equality of ArDoCo
 
 The two checks use the same `sandman eval equal` command.

@@ -244,6 +244,40 @@ If a picked folder has weak guesses that you did not review, the dialog shows ho
 | Ingest anyway | starts the ingestion and skips the review check (`--no-review`) |
 | Cancel | returns to the tab Ingest |
 
+## Ask a question
+
+The tab Ask answers a question about the project. It uses the same query as the console and the REST API. See [querying.md](querying.md).
+
+1. Open the tab Ask.
+2. Enter a question with at least 3 characters. Click an example to fill the field. If the example has a placeholder such as `<name>`, replace it.
+3. Select a strategy. The default is `auto`. The system then chooses `cypher`, `graphrag` or `explore`.
+4. Tick Show the query only to get the Cypher without running it.
+5. To read an earlier state, select Time or Revision under Earlier state. Enter a time or a source revision. The app sends one of the two, never both.
+6. Click Ask.
+
+The result shows these parts:
+
+| Part | Content |
+|---|---|
+| Answer | short text, if the system can write one |
+| Strategy | the strategy that answered, and the classification for `auto` |
+| Rows | result table. A note tells if the rows are cut |
+| Cypher | the query, with a Copy button |
+| Evidence, Steps, Attempts | folded lists |
+| Warnings | notes of the system |
+| State read | ingestion number, time and revision, if you chose an earlier state |
+
+The list Recent questions holds the last 10 questions of the project. Click a question to fill the field. The list is gone when you close the app.
+
+If the system answers with an error, the app shows a short text:
+
+| Status | Meaning |
+|---|---|
+| 401, 403 | The token is wrong or has no role for the project. Check the project settings. |
+| 409 | The project has no embeddings for `graphrag`. |
+| 422 | The system cannot answer. For example, the time is older than the retention, or the revision is unknown. |
+| 501 | The strategy is not enabled on the system. Select another strategy. |
+
 ## Export
 
 The tab Export saves trace links and findings as a file. The tab has one block for trace links and one block for findings.
@@ -282,7 +316,7 @@ To compare a benchmark file with a gold standard, use the CLI. See [evaluation.m
 | Findings | list with filters for status and severity (default `OPEN,REOPENED`) and Load more; details with evidence and history; triage buttons |
 | Trace links | list with filters for status and approach and Load more; buttons `confirmed` and `rejected` |
 | Trace viewer | artifacts in columns, links as edges, findings as markers; filters; click an element or link for details; buttons `confirmed` and `rejected` |
-| Ask | enter a question in natural language; shows answer, rows and Cypher |
+| Ask | ask a question in natural language; choose strategy and earlier state; shows answer, rows, Cypher, evidence and steps |
 | Graph | graph of elements and relations; click a node to load its neighbours |
 | Export | save trace links and findings as `csv`, `json` or a benchmark format |
 

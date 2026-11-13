@@ -11,7 +11,7 @@ from sandman_extraction.embed import EmbedConfig, embedding_text, fit
 
 REQ = "requirements/requirements.md"
 LOCAL_MODEL = "ollama/nomic-embed-text:v1.5"
-CLOUD_MODEL = "openai/text-embedding-3-small"
+CLOUD_MODEL = "openai/text-embedding-3-large"
 
 
 def test_default_config_matches_index_dimension() -> None:
@@ -190,7 +190,7 @@ async def test_new_model_id_embeds_again(env: Any) -> None:
 
 
 async def test_cloud_policy_uses_default_route_and_cuts_long_vectors(env: Any) -> None:
-    llm = enable(env, FakeEmbedder(1536))
+    llm = enable(env, FakeEmbedder(3072))
     assert (
         await env.http.put(f"/v1/projects/{env.project}", json={"name": "C", "llmPolicy": "cloud-allowed"})
     ).status_code == 200

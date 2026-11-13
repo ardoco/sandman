@@ -2544,9 +2544,9 @@
     "semantic_hash": "27e1f38e3c5b887e995d4f8f1f4ba8d7"
   },
   "services/extraction-agent/tests/test_embedding.py": {
-    "mtime": 1794567696.945796,
-    "seen": 1794567709.5371761,
-    "ast_hash": "cf70e4f0d995beb3986be529b903954e",
+    "mtime": 1794568520.2678185,
+    "seen": 1794568548.2228448,
+    "ast_hash": "5dc7fff7336bebe0b0dda305c12776c0",
     "semantic_hash": ""
   },
   "services/extraction-agent/tests/test_enrich_unit.py": {
@@ -4758,9 +4758,9 @@
     "semantic_hash": "b7fbcfdd90e071fe18490b6b8b3f47ba"
   },
   "docs/user/desktop-app.md": {
-    "mtime": 1794562184.5481167,
-    "seen": 1794562197.420049,
-    "ast_hash": "81af60a9b42f91fc452c76f1ce91e89b",
+    "mtime": 1794568126.3323069,
+    "seen": 1794568548.22316,
+    "ast_hash": "236b12dfe2acad6ddb15e55ffd745f20",
     "semantic_hash": ""
   },
   "docs/user/evaluation.md": {

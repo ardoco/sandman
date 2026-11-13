@@ -76,7 +76,7 @@ pub fn set_token(state: State<'_, AppState>, project_id: String, token: String) 
     Ok(())
 }
 
-fn not_reachable(e: reqwest::Error) -> String {
+pub fn not_reachable(e: reqwest::Error) -> String {
     let detail = e.without_url().to_string();
     coded("not_reachable", json!({"detail": detail}), format!("system not reachable: {detail}"))
 }

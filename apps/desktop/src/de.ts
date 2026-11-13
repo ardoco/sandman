@@ -328,4 +328,9 @@ export const de: Record<Key, string> = {
   "err.program_missing_docker": "`{program}` wurde nicht gefunden. Installieren Sie Docker Desktop oder Docker Engine und starten Sie es.",
   "err.program_missing_uv": "`{program}` wurde nicht gefunden. Installieren Sie uv (https://docs.astral.sh/uv/) oder legen Sie den CLI-Befehl in den Projekteinstellungen fest.",
   "err.program_missing_other": "`{program}` wurde nicht gefunden. Installieren Sie es und starten Sie die App neu.",
+  "err.export_option": "Ungültige Export-Option: {name}",
+  "err.export_path": "Das Ziel muss ein Dateipfad in einem vorhandenen Ordner sein.",
+  "err.export_write": "Die Datei kann nicht geschrieben werden: {detail}",
+  "err.export_auth": "Das System hat das Token abgelehnt (HTTP {status}). Prüfen Sie das Token in den Projekteinstellungen.",
+  "err.export_http": "Der Export ist fehlgeschlagen (HTTP {status}): {detail}",
 };

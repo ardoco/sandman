@@ -2,6 +2,7 @@ mod api;
 mod classify;
 mod env;
 mod errcode;
+mod export;
 mod ingest;
 mod keys;
 mod stack;
@@ -214,6 +215,7 @@ pub fn run() {
             pick_folder,
             pick_files,
             ingest::ingest,
+            export::export_generic,
             classify::classify_scan,
             classify::classify_rules,
             open_external,

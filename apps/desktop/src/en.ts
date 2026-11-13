@@ -319,6 +319,11 @@ export const en = {
   "err.program_missing_docker": "`{program}` was not found. Install Docker Desktop or Docker Engine and start it.",
   "err.program_missing_uv": "`{program}` was not found. Install uv (https://docs.astral.sh/uv/) or set the CLI command in the project settings.",
   "err.program_missing_other": "`{program}` was not found. Install it and restart the app.",
+  "err.export_option": "Invalid export option: {name}",
+  "err.export_path": "The target must be a file path in an existing folder.",
+  "err.export_write": "Cannot write the file: {detail}",
+  "err.export_auth": "The system rejected the token (HTTP {status}). Check the token in the project settings.",
+  "err.export_http": "The export failed (HTTP {status}): {detail}",
 };
 
 export type Key = keyof typeof en;

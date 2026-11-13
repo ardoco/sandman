@@ -157,8 +157,13 @@ final class Mapping {
             for (var e : common.entrySet()) {
                 Sentence sentence = docRuns.get(0).sentences().get(e.getKey());
                 List<Map<String, Object>> words = new ArrayList<>();
-                e.getValue()
-                        .forEach((w, c) -> words.add(Map.of("word", w.word(), "confidence", c, "target", w.target())));
+                e.getValue().forEach((w, c) -> {
+                    Map<String, Object> word = new LinkedHashMap<>();
+                    word.put("word", w.word());
+                    word.put("confidence", c);
+                    word.put("target", w.target());
+                    words.add(word);
+                });
                 words.sort(Comparator.<Map<String, Object>, String>comparing(m -> (String) m.get("target"))
                         .thenComparing(m -> (String) m.get("word"))
                         .thenComparing(m -> (Double) m.get("confidence")));

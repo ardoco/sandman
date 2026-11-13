@@ -78,6 +78,9 @@ class MappingTest {
                         Map.of("word", "Aaa", "confidence", 0.5, "target", "component"),
                         Map.of("word", "Media", "confidence", 0.65, "target", "component")),
                 s1.evidence().get("words"));
+        for (Object word : (List<?>) s1.evidence().get("words")) {
+            assertEquals(List.of("word", "confidence", "target"), List.copyOf(((Map<?, ?>) word).keySet()));
+        }
         assertEquals("doc#sec:/ccc", findings.get(1).involved().get(0).elementKey());
     }
 

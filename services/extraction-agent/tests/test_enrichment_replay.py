@@ -23,7 +23,7 @@ from sandman_extraction import enrich
 from sandman_llm_replay.app import Settings as ReplaySettings
 from sandman_llm_replay.app import create_app as create_replay_app
 
-LLM_MODELS = Path(__file__).parents[3] / "config" / "llm" / "models.yaml"
+LLM_MODELS = Path(__file__).parent / "fixtures" / "llm-models.yaml"
 CASSETTES = Path(__file__).parent / "cassettes" / "enrichment"
 UPSTREAM = os.environ.get("SANDMAN_RECORD_LLM")
 RECORD_KEY = os.environ.get("SANDMAN_RECORD_LLM_KEY")

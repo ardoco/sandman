@@ -28,7 +28,7 @@ from testcontainers.core.container import DockerContainer
 
 FIXTURE = Path(__file__).parent / "fixtures" / "mini"
 RENDERED = Path(__file__).parent / "fixtures" / "rendered"
-LLM_MODELS = Path(__file__).parents[3] / "config" / "llm" / "models.yaml"
+LLM_MODELS = Path(__file__).parent / "fixtures" / "llm-models.yaml"
 URL = "http://extraction-agent:8000"
 TOKENS = {"orchestrator": "orch-token", "query-service": "query-token", "cli": "cli-token"}
 KIND_RULES = [

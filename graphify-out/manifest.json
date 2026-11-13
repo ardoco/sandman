@@ -264,9 +264,9 @@
     "semantic_hash": ""
   },
   "config/llm/models.yaml": {
-    "mtime": 1794563290.3950849,
-    "seen": 1794563298.476682,
-    "ast_hash": "aac499972ce6fc7070c77f10cd9d8b54",
+    "mtime": 1794564834.3445098,
+    "seen": 1794564885.094359,
+    "ast_hash": "e410aa46b836e56a86839e1ce24de006",
     "semantic_hash": ""
   },
   "config/orchestrator/rules.yaml": {
@@ -2334,10 +2334,10 @@
     "semantic_hash": "9f25e8395d5e974c83bd3cf21b53d18d"
   },
   "services/extraction-agent/tests/conftest.py": {
-    "mtime": 1794012146.8167002,
-    "seen": 1794312116.366119,
-    "ast_hash": "d9e22bb8586395a227e9e2402a741957",
-    "semantic_hash": "d9e22bb8586395a227e9e2402a741957"
+    "mtime": 1794564834.3383665,
+    "seen": 1794564885.094595,
+    "ast_hash": "4d9cc6b07d736b74e71799b39b67eeac",
+    "semantic_hash": ""
   },
   "services/extraction-agent/tests/fixtures/exarch/vectors.json": {
     "mtime": 1792421181.7771604,
@@ -2562,10 +2562,10 @@
     "semantic_hash": "20d0dabfffb4c6301350990ab9888b2f"
   },
   "services/extraction-agent/tests/test_enrichment_replay.py": {
-    "mtime": 1793978086.7027466,
-    "seen": 1794312116.366137,
-    "ast_hash": "124f63280be7c5ff2c98dbae52a111d7",
-    "semantic_hash": "124f63280be7c5ff2c98dbae52a111d7"
+    "mtime": 1794564834.340019,
+    "seen": 1794564885.094621,
+    "ast_hash": "6bb7467bf650a6d69f52fac0d8c9f2f9",
+    "semantic_hash": ""
   },
   "services/extraction-agent/tests/test_explicit_links.py": {
     "mtime": 1794012146.817223,
@@ -6153,6 +6153,12 @@
     "mtime": 1794562184.5459445,
     "seen": 1794562197.4023051,
     "ast_hash": "6b51a48ed5ae7a0e6127305ca19bf263",
+    "semantic_hash": ""
+  },
+  "services/extraction-agent/tests/fixtures/llm-models.yaml": {
+    "mtime": 1794564824.141736,
+    "seen": 1794564885.094597,
+    "ast_hash": "a0d1b81cabb9e2724352cfa7a3a6669e",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

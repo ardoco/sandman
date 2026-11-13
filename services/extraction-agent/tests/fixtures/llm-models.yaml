@@ -1,0 +1,10 @@
+routes:
+  chat-default: openai/gpt-6-luna
+  chat-alt: openrouter/anthropic/claude-haiku-5.5
+  embed-default: openai/text-embedding-3-large
+  chat-local: ollama/qwen3:4b
+  embed-local: ollama/nomic-embed-text:v1.5
+
+openrouterProviders:
+  openai/gpt-4o-mini: openai
+  anthropic/claude-haiku-5.5: anthropic

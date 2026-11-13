@@ -216,6 +216,7 @@ pub fn run() {
             pick_files,
             ingest::ingest,
             export::export_generic,
+            export::export_benchmark,
             classify::classify_scan,
             classify::classify_rules,
             open_external,

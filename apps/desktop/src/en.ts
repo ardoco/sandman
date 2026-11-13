@@ -324,6 +324,7 @@ export const en = {
   "err.export_write": "Cannot write the file: {detail}",
   "err.export_auth": "The system rejected the token (HTTP {status}). Check the token in the project settings.",
   "err.export_http": "The export failed (HTTP {status}): {detail}",
+  "err.export_cli_failed": "The CLI export failed (exit {code}). Last lines:\n{lines}",
 };
 
 export type Key = keyof typeof en;

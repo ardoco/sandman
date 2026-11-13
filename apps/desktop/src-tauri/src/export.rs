@@ -1,7 +1,7 @@
-use crate::{api, errcode::coded, store, AppState};
+use crate::{api, errcode::coded, ingest::cli_parts, stack, store, AppState};
 use serde::Serialize;
 use serde_json::json;
-use std::{fs, path::Path};
+use std::{fs, path::Path, process::Stdio};
 use tauri::State;
 
 #[derive(Serialize, Debug, PartialEq)]
@@ -9,6 +9,13 @@ pub struct Exported {
     rows: usize,
     path: String,
 }
+
+pub const BENCHMARK_FORMATS: [&str; 4] = [
+    "ardoco-sad-sam",
+    "ardoco-sad-code",
+    "ardoco-sam-code",
+    "lissa",
+];
 
 fn bad_option(name: &str) -> String {
     coded(
@@ -147,6 +154,101 @@ pub async fn export_generic(
     finish(&format, &bytes, &path)
 }
 
+pub fn benchmark_args(
+    cli: Option<&str>,
+    checkout: Option<&str>,
+    project: &str,
+    format: &str,
+    approach: Option<&str>,
+    code_root: Option<&str>,
+) -> Result<(String, Vec<String>), String> {
+    if !BENCHMARK_FORMATS.contains(&format) {
+        return Err(bad_option("format"));
+    }
+    let mut parts = cli_parts(cli, checkout)?;
+    parts.extend(
+        [
+            "export",
+            "tracelinks",
+            "--format",
+            format,
+            "--project",
+            project,
+        ]
+        .map(String::from),
+    );
+    if let Some(a) = approach.filter(|a| !a.is_empty()) {
+        if !valid_approach(a) {
+            return Err(bad_option("approach"));
+        }
+        parts.push(format!("--approach={a}"));
+    }
+    if let Some(r) = code_root.filter(|r| !r.is_empty() && format == "ardoco-sad-code") {
+        if r.len() > 500 || r.chars().any(char::is_control) {
+            return Err(bad_option("codeRoot"));
+        }
+        parts.push(format!("--code-root={r}"));
+    }
+    Ok((parts.remove(0), parts))
+}
+
+pub fn benchmark_env(token: &str, url: &str) -> [(&'static str, String); 2] {
+    [
+        ("SANDMAN_TOKEN", token.to_string()),
+        ("SANDMAN_URL", url.to_string()),
+    ]
+}
+
+pub fn tail_lines(text: &str, n: usize) -> String {
+    let lines: Vec<&str> = text.trim().lines().collect();
+    lines[lines.len().saturating_sub(n)..].join("\n")
+}
+
+#[tauri::command]
+pub async fn export_benchmark(
+    state: State<'_, AppState>,
+    project_id: String,
+    format: String,
+    approach: Option<String>,
+    code_root: Option<String>,
+    path: String,
+) -> Result<Exported, String> {
+    let project = store::find(&state.dir, &project_id)?;
+    let (program, args) = benchmark_args(
+        project.cli_command.as_deref(),
+        project.checkout.as_deref(),
+        &project_id,
+        &format,
+        approach.as_deref(),
+        code_root.as_deref(),
+    )?;
+    let token = api::token(&state, &project_id)?;
+    let mut cmd = stack::command(&program);
+    cmd.args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .kill_on_drop(true);
+    for (k, v) in benchmark_env(&token, &project.url) {
+        cmd.env(k, v);
+    }
+    if let Some(c) = &project.checkout {
+        cmd.current_dir(c);
+    }
+    let child = cmd.spawn().map_err(|e| stack::spawn_error(&program, &e))?;
+    let out = child.wait_with_output().await.map_err(|e| e.to_string())?;
+    if !out.status.success() {
+        let lines = tail_lines(&String::from_utf8_lossy(&out.stderr), 15);
+        let code = out.status.code().unwrap_or(-1);
+        return Err(coded(
+            "export_cli_failed",
+            json!({"code": code, "lines": lines}),
+            format!("sandman export failed (exit {code}):\n{lines}"),
+        ));
+    }
+    finish("csv", &out.stdout, &path)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,5 +328,52 @@ mod tests {
         assert!(write_target(&d.path().to_string_lossy(), b"x").is_err());
         assert!(write_target(&d.path().join("no/dir.csv").to_string_lossy(), b"x").is_err());
         assert!(write_target("relative.csv", b"x").is_err());
+    }
+
+    #[test]
+    fn benchmark_args_hold_no_token_and_gate_the_options() {
+        let (p, a) = benchmark_args(
+            None,
+            Some("/co"),
+            "demo",
+            "ardoco-sad-code",
+            Some("ardoco"),
+            Some("src/"),
+        )
+        .unwrap();
+        assert_eq!(p, "uv");
+        assert_eq!(a.join(" "), "run --project /co sandman export tracelinks --format ardoco-sad-code --project demo --approach=ardoco --code-root=src/");
+        let (_, a) = benchmark_args(
+            Some("sandman"),
+            None,
+            "demo",
+            "lissa",
+            Some(""),
+            Some("src/"),
+        )
+        .unwrap();
+        assert_eq!(
+            a.join(" "),
+            "export tracelinks --format lissa --project demo"
+        );
+        assert!(benchmark_args(None, None, "demo", "lissa", None, None).is_err());
+        assert!(benchmark_args(Some("sandman"), None, "demo", "csv", None, None).is_err());
+        assert!(!a.iter().any(|x| x.contains("tok-123")));
+    }
+
+    #[test]
+    fn child_environment_carries_token_and_url() {
+        let env = benchmark_env("tok-123", "http://h");
+        assert_eq!(
+            env.iter().map(|(k, _)| *k).collect::<Vec<_>>(),
+            vec!["SANDMAN_TOKEN", "SANDMAN_URL"]
+        );
+        assert_eq!(env[0].1, "tok-123");
+    }
+
+    #[test]
+    fn tail_keeps_the_last_lines() {
+        assert_eq!(tail_lines("a\nb\nc\n", 2), "b\nc");
+        assert_eq!(tail_lines("", 2), "");
     }
 }

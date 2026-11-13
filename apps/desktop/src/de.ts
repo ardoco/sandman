@@ -333,4 +333,5 @@ export const de: Record<Key, string> = {
   "err.export_write": "Die Datei kann nicht geschrieben werden: {detail}",
   "err.export_auth": "Das System hat das Token abgelehnt (HTTP {status}). Prüfen Sie das Token in den Projekteinstellungen.",
   "err.export_http": "Der Export ist fehlgeschlagen (HTTP {status}): {detail}",
+  "err.export_cli_failed": "Der CLI-Export ist fehlgeschlagen (Exit-Code {code}). Letzte Zeilen:\n{lines}",
 };

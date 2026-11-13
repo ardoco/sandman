@@ -10,12 +10,35 @@ The start screen shows the list of your projects. Each row shows the name, the i
 
 | Button | Action |
 |---|---|
+| Connect | connects to a running system (see the section "Connect to a running system") |
+| Run locally | opens the project you used last in mode `local`, or the new-project form if none exists |
 | New project | opens the form for a new project |
 | Continue <name> | opens the project you used last |
 | Open | opens the selected project (a double click does the same) |
 | Remove | removes the selected project from the list |
 
 Warning: Remove deletes only the entry in the app. It does not delete the project in SANDMAN. It does not delete files of a checkout.
+
+## Connect to a running system
+
+Use this section if a SANDMAN system already runs on a server. You need the URL and a token. You do not need a project id.
+
+1. Open the console of the system. Create a token on the tokens page.
+2. Enter the URL of the system in the top block of the start screen. The field starts with the URL of your last remote project.
+3. Enter the token.
+4. Click Connect.
+
+The app lists the projects that the token can read. It adds each project to your list. The app stores the token in the keychain of the operating system, one entry for each project.
+
+The result shows the added projects, the updated projects and the skipped projects with the reason. If a project with the same id exists with another URL or in mode `local`, the app skips it. The app never overwrites it. If the token is wrong, the app adds no project.
+
+Token tips:
+
+* A token can be limited to one project. Connect with this token adds only this project.
+* To add a second project of the same system, create a second token. Enter the same URL and the new token. Click Connect. The first project stays usable.
+* If a row shows "Token needed", click it. Enter a token for the saved URL.
+
+Caution: A URL that starts with `http://` on a remote host sends the token without encryption. Use `https://`. The result shows a warning in this case.
 
 ## Create a local project
 

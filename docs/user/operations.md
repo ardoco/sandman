@@ -41,7 +41,7 @@ The containers share an internal network without internet access. The `document-
 | `stubs` | `plugin-stubs`: stub code extractor (not used by the shipped config) and stub detector used by the shipped config and the end-to-end test | `docker compose -f deploy/docker-compose.yml --profile stubs up -d --build` |
 | `obs` | Grafana/OpenTelemetry backend on `:3001`; services export telemetry when `OTEL_SDK_DISABLED=false` and `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-lgtm:4318` are set in the shell that runs compose | `... --profile obs up -d` |
 | `resources` | cAdvisor container metrics for the dashboard. **Security: grants root-equivalent access to the host through the Docker socket (read-only socket proxy plus host mounts); off by default, not for production.** | `... --profile resources up -d` |
-| `local-llm` | Ollama container (`ollama/ollama:0.35.1`, 4 GB, CPU-only, volume `ollama-models`) for `chat-local`/`embed-local`; needs `SELFHOSTED_LLM_URL=http://ollama:11434` (the default of `make secrets`) | `make models` (starts it and pulls the `ollama/*` models of `config/llm/models.yaml`) |
+| `local-llm` | Ollama container (`ollama/ollama:0.35.1`, 4 GB, CPU-only, volume `ollama-models`) for `chat-local`/`embed-local`; needs `SELFHOSTED_LLM_URL=http://ollama:11434` (the default of `make secrets`) | `make models` (starts it and pulls the `ollama/*` models of `config/llm/models.yaml`; `make models MODELS="a b"` pulls only `a` and `b`) |
 | `dashboard` | system overview for admins | `... --profile dashboard up -d --build` |
 
 Combine profiles by repeating `--profile`. The `stubs` profile belongs to demos and tests, not to a production setup; the shipped detector entry in `config/inconsistency/plugins.yaml` points to it (see below).
@@ -205,9 +205,11 @@ The vector index `element_embedding` has 2560 dimensions. The value is the same 
 * `config/extraction/embedding.yaml` (`dimension`)
 * `config/query/strategies.yaml` (`graphrag.dimension`)
 
-A vector that is longer than `dimension` is cut and normalized again. This is correct for Matryoshka models such as `openai/text-embedding-3-large`. A vector that is shorter than `dimension` is an error. The model `qwen3-embedding:4b` returns 2560 dimensions. It is stored unchanged. Neo4j supports up to 4096 dimensions. The limit of Traverse is not verified.
+A vector that is longer than `dimension` is cut and normalized again. This is correct for Matryoshka models such as `openai/text-embedding-3-large`. A vector that is shorter than `dimension` is an error. The model `qwen3-embedding:4b` returns 2560 dimensions. It is stored unchanged. Neo4j supports up to 4096 dimensions. The limit of Traverse is not verified: no repository file or test states it, and no Docker daemon was available for a check. The index accepts the 2560 dimension statement in `contracts/kg/init.cypher` only if Traverse allows it. To check, start the stack and run `SHOW VECTOR INDEXES`. A small model with fewer dimensions, such as `nomic-embed-text:v1.5` (768), fails against the 2560 index. Change the dimension first.
 
-The startup step `kg-migrate` does not change an existing index. It ignores the error "already exists". If a deployment has an index with another dimension, do these steps:
+The 4 GB `mem_limit` of the `local-llm` container is too small for `qwen3.8:27b`. Raise it in `deploy/docker-compose.yml` or use a remote Ollama.
+
+The startup step `kg-migrate` does not change an existing index. It ignores the error "already exists". It does not compare the dimension of an existing index with the configured one. The check is not implemented because the output columns of `SHOW VECTOR INDEXES` in Traverse are not verified. If a deployment has an index with another dimension, do these steps:
 
 1. Stop the extraction agent and the query service.
 2. Run `DROP INDEX element_embedding`.

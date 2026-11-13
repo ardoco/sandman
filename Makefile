@@ -21,9 +21,9 @@ up:                 ## whole system
 	deploy/check-env.sh
 	$(COMPOSE) up -d --build
 
-models:             ## start the local Ollama container (profile local-llm) and pull the ollama/* models of config/llm/models.yaml, restart the gateway (it caches the model list at start)
+models:             ## start the local Ollama container (profile local-llm) and pull the ollama/* models of config/llm/models.yaml, restart the gateway (it caches the model list at start); MODELS="a b" pulls only those
 	$(COMPOSE) --profile local-llm up -d --wait ollama
-	@for m in $$(sed -n 's|^ *[a-z-]*: *ollama/\([^ ]*\).*|\1|p' config/llm/models.yaml); do \
+	@for m in $(or $(MODELS),$$(sed -n 's|^ *[a-z-]*: *ollama/\([^ ]*\).*|\1|p' config/llm/models.yaml)); do \
 		$(COMPOSE) --profile local-llm exec -T ollama ollama pull $$m || exit 1; done
 	$(COMPOSE) --profile local-llm restart llm-gateway
 

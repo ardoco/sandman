@@ -39,9 +39,15 @@ make models
 make up
 ```
 
-The container is CPU-only, limited to 4 GB, and reachable only by the gateway. The route `chat-local` is `ollama/qwen3.8:27b`. The route `embed-local` is `ollama/qwen3-embedding:4b` (2560 dimensions). The 27B model does not fit in the 4 GB container. Use mode B for it.
+The container is CPU-only, limited to 4 GB, and reachable only by the gateway. The route `chat-local` is `ollama/qwen3.8:27b`. The route `embed-local` is `ollama/qwen3-embedding:4b` (2560 dimensions). The 27B model does not fit in the 4 GB container (`mem_limit` of `local-llm` in `deploy/docker-compose.yml`). Raise the limit or use mode B for it.
 
-Warning: `make models` pulls every `ollama/*` model of `config/llm/models.yaml`. For a small setup, edit `chat-local` and `embed-local` first. A small set is `qwen3:4b` and `nomic-embed-text:v1.5`. The embedding dimension of `nomic-embed-text` is 768. It is shorter than the index. Then embeddings fail. Do not combine it with the default index.
+To pull only some models, set `MODELS`:
+
+```sh
+make models MODELS="qwen3:4b nomic-embed-text:v1.5"
+```
+
+Warning: `nomic-embed-text:v1.5` returns 768 dimensions. The vector index has 2560 dimensions. A shorter vector is an error, so embeddings fail. For a small embedding model, also change the dimension as described in "Change the vector dimension" in [operations.md](operations.md). Then point `chat-local` and `embed-local` in `config/llm/models.yaml` to the pulled models.
 
 **B. Remote Open WebUI.** If Open WebUI runs in front of Ollama on another machine, create an API key there (Settings, Account, API Keys; an admin must have enabled API keys) and set in `gateway.env`:
 

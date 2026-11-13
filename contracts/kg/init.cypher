@@ -19,6 +19,6 @@ CREATE INDEX FOR (n:Inconsistency) ON (n.projectId);
 CREATE INDEX FOR (n:Run) ON (n.inputKey);
 CREATE CONSTRAINT c_SchemaVersion_id IF NOT EXISTS FOR (n:SchemaVersion) REQUIRE n.id IS UNIQUE;
 MERGE (v:SchemaVersion {id: 'kg'}) ON CREATE SET v.version = 1, v.appliedAt = toString(localDateTime());
-CREATE VECTOR INDEX element_embedding FOR (n:Element) ON (n.embedding) OPTIONS {indexConfig: {`vector.dimensions`: 768, `vector.similarity_function`: 'cosine'}};
+CREATE VECTOR INDEX element_embedding FOR (n:Element) ON (n.embedding) OPTIONS {indexConfig: {`vector.dimensions`: 2560, `vector.similarity_function`: 'cosine'}};
 MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 2 SET v.version = 2;
 MATCH (v:SchemaVersion {id: 'kg'}) WHERE v.version < 3 SET v.version = 3;

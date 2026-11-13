@@ -52,7 +52,7 @@ class HostileLlm:
         return ChatResponse(ChatMessage("assistant", json.dumps(content)), "stop", Usage(), "gw-model")
 
     async def embed(self, model: str, texts: Any) -> list[list[float]]:
-        return [[1.0] + [0.0] * 767 for _ in texts]
+        return [[1.0] + [0.0] * 2559 for _ in texts]
 
 
 class FailingLlm:

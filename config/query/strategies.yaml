@@ -12,7 +12,7 @@ strategies:
     topK: 5              # seed elements of the vector search
     overFetch: 20        # search asks for topK * overFetch hits, because the projectId filter runs after the search
     maxNeighbours: 5     # neighbours and trace-link partners per seed
-    dimension: 768       # = vector index element_embedding
+    dimension: 2560      # = vector index element_embedding
   explore:
     enabled: false
 suggestions:

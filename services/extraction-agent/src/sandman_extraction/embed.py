@@ -35,7 +35,7 @@ class EmbedConfig:
     """config/extraction/embedding.yaml."""
 
     enabled: bool = False
-    dimension: int = 768
+    dimension: int = 2560
     elements: tuple[tuple[str, str | None], ...] = (
         ("Requirement", None),
         ("TextUnit", "section"),

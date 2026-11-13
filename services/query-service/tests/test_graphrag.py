@@ -17,7 +17,7 @@ from test_traverse import ids, mg  # noqa: F401 - mg is a fixture
 
 QUESTION = "which parts deal with caching"
 MARKER = "BETA-SECRET-NAME"
-DIM = 768
+DIM = 2560
 
 
 def onehot(i: int, weight: float = 1.0) -> list[float]:
@@ -200,7 +200,7 @@ async def embed_graph(uri: str, with_embeddings: bool = True) -> None:
             try:
                 result = await s.run(
                     "CREATE VECTOR INDEX element_embedding FOR (n:Element) ON (n.embedding) "
-                    "OPTIONS {indexConfig: {`vector.dimensions`: 768, `vector.similarity_function`: 'cosine'}}"
+                    "OPTIONS {indexConfig: {`vector.dimensions`: 2560, `vector.similarity_function`: 'cosine'}}"
                 )
                 await result.consume()
                 break

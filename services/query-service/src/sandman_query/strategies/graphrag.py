@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-DEFAULTS: dict[str, Any] = {"enabled": False, "topK": 5, "overFetch": 20, "maxNeighbours": 5, "dimension": 768}
+DEFAULTS: dict[str, Any] = {"enabled": False, "topK": 5, "overFetch": 20, "maxNeighbours": 5, "dimension": 2560}
 TEXT_CHARS = 500
 COLUMNS = ["key", "name", "kind", "text", "relation", "from"]
 PRESENT = "MATCH (e:Element {projectId: $projectId}) WHERE e.embedding IS NOT NULL RETURN e.key AS key LIMIT 1"

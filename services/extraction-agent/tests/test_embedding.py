@@ -19,6 +19,17 @@ def test_default_config_matches_index_dimension() -> None:
 
     init = (DEFAULT_CONTRACTS_DIR / "kg" / "init.cypher").read_text(encoding="utf-8")
     assert f"`vector.dimensions`: {EmbedConfig().dimension}" in init
+    import yaml
+
+    cfg = DEFAULT_CONTRACTS_DIR.parent / "config"
+    assert (
+        EmbedConfig.from_dict(yaml.safe_load((cfg / "extraction" / "embedding.yaml").read_text())).dimension
+        == EmbedConfig().dimension
+    )
+    assert (
+        yaml.safe_load((cfg / "query" / "strategies.yaml").read_text())["strategies"]["graphrag"]["dimension"]
+        == EmbedConfig().dimension
+    )
     assert not EmbedConfig.from_dict({}).enabled
 
 
@@ -36,10 +47,12 @@ def test_fit_cuts_and_normalizes_and_rejects_short_vectors() -> None:
     assert cut == pytest.approx([0.6, 0.8]) and math.isclose(sum(x * x for x in cut), 1.0)
     with pytest.raises(ValueError, match="needs 3"):
         fit([1.0], 3)
+    big = fit([1.0] * 3072, 2560)
+    assert len(big) == 2560 and math.isclose(math.fsum(x * x for x in big), 1.0)
 
 
 class FakeEmbedder:
-    def __init__(self, dim: int = 768) -> None:
+    def __init__(self, dim: int = 2560) -> None:
         self.dim, self.calls, self.policies = dim, [], []
 
     async def chat(self, req: ChatRequest) -> ChatResponse:
@@ -117,7 +130,7 @@ async def test_embeddings_written_with_model_id_and_searchable(env: Any) -> None
     assert task.state == "TASK_STATE_COMPLETED", task
     assert "warnings" not in task.result
     rows = await embedded(env)
-    assert rows and {r["model"] for r in rows} == {LOCAL_MODEL} and {r["n"] for r in rows} == {768}
+    assert rows and {r["model"] for r in rows} == {LOCAL_MODEL} and {r["n"] for r in rows} == {2560}
     assert llm.policies == ["local-only"] and {m for m, _ in llm.calls} == {"embed-local"}
     kinds = {next(label for label in r["labels"] if label != "Element") for r in rows}
     assert kinds <= {"Requirement", "TextUnit", "ModelElement", "CodeUnit"} and "Requirement" in kinds
@@ -185,7 +198,7 @@ async def test_cloud_policy_uses_default_route_and_cuts_long_vectors(env: Any) -
     assert task.state == "TASK_STATE_COMPLETED", task
     assert llm.policies == ["cloud-allowed"] and {m for m, _ in llm.calls} == {"embed-default"}
     rows = await embedded(env)
-    assert {r["model"] for r in rows} == {CLOUD_MODEL} and {r["n"] for r in rows} == {768}
+    assert {r["model"] for r in rows} == {CLOUD_MODEL} and {r["n"] for r in rows} == {2560}
     norms = await cypher(
         env,
         "MATCH (e:Element {projectId: $p}) WHERE e.embedding IS NOT NULL "
@@ -242,7 +255,7 @@ async def test_wrong_dimension_fails_the_batch_not_the_task(env: Any) -> None:
     enable(env, FakeEmbedder(10))
     task = await ingest_and_extract(env)
     assert task.state == "TASK_STATE_COMPLETED"
-    assert any("needs 768" in w for w in task.result["warnings"])
+    assert any("needs 2560" in w for w in task.result["warnings"])
     assert await embedded(env) == []
 
 

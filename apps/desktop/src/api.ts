@@ -72,7 +72,7 @@ export async function api<T = any>(
 export const CALLS = {
   me: { method: "GET", path: "/v1/auth/me", reads: ["username", "globalRoles", "disabled"] },
   queryCypher: { method: "POST", path: "/v1/query/cypher", body: ["projectId", "cypher", "params", "limit"], reads: ["columns", "rows", "truncated"] },
-  queryNl: { method: "POST", path: "/v1/query/nl", body: ["projectId", "question"], reads: ["columns", "rows", "answer", "cypher", "warnings"] },
+  queryNl: { method: "POST", path: "/v1/query/nl", body: ["projectId", "question", "strategy", "mode", "asOf", "asOfRevision"], reads: ["columns", "rows", "truncated", "answer", "strategy", "classification", "evidence", "steps", "cypher", "attempts", "asOf", "warnings"] },
   listInconsistencies: { method: "GET", path: "/v1/projects/{projectId}/inconsistencies", query: ["status", "severity", "limit", "cursor"], reads: ["items", "counts", "nextCursor"] },
   getInconsistency: { method: "GET", path: "/v1/inconsistencies/{inconsistencyId}", reads: ["title", "severity", "status", "type", "detector", "description", "involved", "evidence", "history", "allowedTransitions"] },
   transitionInconsistency: { method: "POST", path: "/v1/inconsistencies/{inconsistencyId}/transitions", body: ["to", "expectedStatus", "reason", "cause"] },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { availableFormats, exportFileName, exportSummary, columnsLayout, connectSummary, localProject, loginFields, loginMessage, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
+import { ASK_HISTORY_MAX, askErrorMessage, asOfSummary, buildAskBody, pushHistory, availableFormats, exportFileName, exportSummary, columnsLayout, connectSummary, localProject, loginFields, loginMessage, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -150,5 +150,44 @@ describe("key store helpers", () => {
 
   it("summarizes an export", () => {
     expect(exportSummary(1234, "/tmp/a.csv")).toBe("Saved 1,234 rows to /tmp/a.csv");
+  });
+
+  it("builds the Ask body with at most one earlier state", () => {
+    const f = { question: " untraced requirements ", strategy: "auto", cypherOnly: false, when: "none" as const, time: "2026-10-02T12:00", revision: "abc" };
+    expect(buildAskBody("demo", f)).toEqual({ projectId: "demo", question: "untraced requirements" });
+    expect(buildAskBody("demo", { ...f, strategy: "explore", cypherOnly: true })).toMatchObject({ strategy: "explore", mode: "cypher-only" });
+    const time = buildAskBody("demo", { ...f, when: "time" });
+    expect(time.asOf).toBe(new Date("2026-10-02T12:00").toISOString());
+    expect(time.asOf).toMatch(/Z$/);
+    expect(time).not.toHaveProperty("asOfRevision");
+    const rev = buildAskBody("demo", { ...f, when: "revision" });
+    expect(rev.asOfRevision).toBe("abc");
+    expect(rev).not.toHaveProperty("asOf");
+    expect(buildAskBody("demo", { ...f, when: "time", time: "" })).not.toHaveProperty("asOf");
+  });
+
+  it("keeps the last 10 distinct questions, newest first", () => {
+    let h: string[] = [];
+    for (let i = 0; i < 12; i++) h = pushHistory(h, `question ${i}`);
+    expect(h).toHaveLength(ASK_HISTORY_MAX);
+    expect(h[0]).toBe("question 11");
+    expect(pushHistory(h, " question 5 ")[0]).toBe("question 5");
+    expect(pushHistory(h, "question 5").filter((x) => x === "question 5")).toHaveLength(1);
+    expect(pushHistory(h, "  ")).toBe(h);
+  });
+
+  it("maps Ask errors to clear texts", () => {
+    expect(askErrorMessage(422, "older than retention")).toContain("older than retention");
+    expect(askErrorMessage(422, "x")).toMatch(/cannot answer/);
+    expect(askErrorMessage(501, "x")).toMatch(/not enabled/);
+    expect(askErrorMessage(409, "x")).toMatch(/embeddings/);
+    expect(askErrorMessage(401, "x")).toBe(tokenMessage(401, {}));
+    expect(askErrorMessage(500, "boom")).toBe("boom");
+  });
+
+  it("summarizes the state that was read", () => {
+    expect(asOfSummary({ ingestionSeq: 0 })).toMatch(/no ingestion/);
+    expect(asOfSummary({ ingestionSeq: 3, ingestedAt: "2026-10-02T10:00:00Z", sourceRevision: "abc" })).toBe("State read: ingestion 3, ingested at 2026-10-02T10:00:00Z, revision abc");
+    expect(asOfSummary({ ingestionSeq: 3 })).toBe("State read: ingestion 3");
   });
 });

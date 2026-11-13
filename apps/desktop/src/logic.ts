@@ -312,3 +312,55 @@ export function exportFileName(project: string, what: ExportWhat, format: string
 }
 
 export const exportSummary = (rows: number, path: string): string => t("export.saved", { rows: formatNumber(rows), path });
+
+export const ASK_STRATEGIES = ["auto", "cypher", "graphrag", "explore"] as const;
+export const ASK_EXAMPLES = [
+  { text: "untraced requirements", label: "untraced requirements" },
+  { text: "links of ", label: "links of <name>" },
+  { text: "open inconsistencies", label: "open inconsistencies" },
+  { text: "components without documentation", label: "components without documentation" },
+  { text: "what changed since ", label: "what changed since <revision>" },
+] as const;
+export const ASK_HISTORY_MAX = 10;
+
+export interface AskForm {
+  question: string;
+  strategy: string;
+  cypherOnly: boolean;
+  when: "none" | "time" | "revision";
+  time: string;
+  revision: string;
+}
+
+export function buildAskBody(projectId: string, f: AskForm): Record<string, unknown> {
+  const body: Record<string, unknown> = { projectId, question: f.question.trim() };
+  if (f.strategy && f.strategy !== "auto") body.strategy = f.strategy;
+  if (f.cypherOnly) body.mode = "cypher-only";
+  if (f.when === "time") {
+    const d = new Date(f.time);
+    if (f.time && !Number.isNaN(d.getTime())) body.asOf = d.toISOString();
+  } else if (f.when === "revision" && f.revision.trim()) body.asOfRevision = f.revision.trim();
+  return body;
+}
+
+export function pushHistory(list: string[], question: string, max = ASK_HISTORY_MAX): string[] {
+  const q = question.trim();
+  return q ? [q, ...list.filter((x) => x !== q)].slice(0, max) : list;
+}
+
+export function askErrorMessage(status: number, detail: string): string {
+  if (status === 401 || status === 403) return tokenMessage(status, { detail });
+  if (status === 422) return t("err.ask_unprocessable", { detail });
+  if (status === 501) return t("err.ask_disabled", { detail });
+  if (status === 409) return t("err.ask_no_embeddings", { detail });
+  return detail;
+}
+
+export function asOfSummary(info: { ingestionSeq: number; ingestedAt?: string; sourceRevision?: string }): string {
+  if (info.ingestionSeq === 0) return t("ask.asOfNone");
+  return t("ask.asOfInfo", {
+    seq: info.ingestionSeq,
+    at: info.ingestedAt ? t("ask.asOfAt", { at: info.ingestedAt }) : "",
+    revision: info.sourceRevision ? t("ask.asOfRevision", { revision: info.sourceRevision }) : "",
+  });
+}

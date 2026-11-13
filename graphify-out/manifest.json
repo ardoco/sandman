@@ -4680,9 +4680,9 @@
     "semantic_hash": "97a8f47bf00988c3d72ea5a7266369f4"
   },
   "apps/desktop/README.md": {
-    "mtime": 1794559250.8975217,
-    "seen": 1794559264.874756,
-    "ast_hash": "2f85345d6bd83d6a91529cc63f2bef23",
+    "mtime": 1794561373.486485,
+    "seen": 1794561465.588383,
+    "ast_hash": "7bca51d943948b2a4d47ba2ff3122d0a",
     "semantic_hash": ""
   },
   "apps/desktop/index.html": {
@@ -4758,9 +4758,9 @@
     "semantic_hash": "b7fbcfdd90e071fe18490b6b8b3f47ba"
   },
   "docs/user/desktop-app.md": {
-    "mtime": 1794559250.9002397,
-    "seen": 1794559264.87536,
-    "ast_hash": "5517e983bf0bc39cc5ace6ee5c5e8cc5",
+    "mtime": 1794561370.2339284,
+    "seen": 1794561465.588407,
+    "ast_hash": "701ddb201ebd7d7aff3fdb279f0dd48a",
     "semantic_hash": ""
   },
   "docs/user/evaluation.md": {

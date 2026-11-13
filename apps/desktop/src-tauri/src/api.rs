@@ -115,6 +115,96 @@ pub async fn check_token(state: State<'_, AppState>, project_id: String, token: 
     Ok(ApiResponse { status, body })
 }
 
+#[derive(Serialize, Debug, Default, PartialEq)]
+pub struct Skipped {
+    id: String,
+    reason: String,
+}
+
+#[derive(Serialize, Debug, Default, PartialEq)]
+pub struct Plan {
+    added: Vec<String>,
+    updated: Vec<String>,
+    skipped: Vec<Skipped>,
+    #[serde(skip)]
+    upserts: Vec<store::Project>,
+}
+
+pub fn plan_connect(existing: &[store::Project], listed: &[(String, String)], url: &str) -> Plan {
+    let mut plan = Plan::default();
+    for (id, name) in listed {
+        let found = existing.iter().find(|p| &p.id == id);
+        let mut project = match found {
+            Some(p) if p.mode != "remote" => {
+                plan.skipped.push(Skipped { id: id.clone(), reason: "a local project with this id exists".into() });
+                continue;
+            }
+            Some(p) if p.url != url => {
+                plan.skipped.push(Skipped { id: id.clone(), reason: format!("a project with this id exists for {}", p.url) });
+                continue;
+            }
+            Some(p) => store::Project { name: name.clone(), ..p.clone() },
+            None => store::Project { id: id.clone(), name: name.clone(), mode: "remote".into(), url: url.into(), checkout: None, cli_command: None, last_used: 0 },
+        };
+        if let Err(reason) = store::validate(&mut project) {
+            plan.skipped.push(Skipped { id: id.clone(), reason });
+            continue;
+        }
+        if found.is_some() { plan.updated.push(id.clone()) } else { plan.added.push(id.clone()) }
+        plan.upserts.push(project);
+    }
+    plan
+}
+
+#[derive(Serialize)]
+pub struct Connected {
+    status: u16,
+    body: Value,
+    username: String,
+    #[serde(flatten)]
+    plan: Plan,
+    warning: Option<String>,
+}
+
+#[tauri::command]
+pub async fn connect_system(state: State<'_, AppState>, url: String, token: String) -> Result<Connected, String> {
+    let token = token.trim().to_string();
+    if token.is_empty() || !token.chars().all(|c| c.is_ascii_graphic()) {
+        return Err("token must be one printable word without spaces".into());
+    }
+    let (url, warning) = store::valid_url(&url)?;
+    let get = |path: &str| {
+        client(20).get(format!("{url}{path}")).bearer_auth(&token).send()
+    };
+    let unreachable = |e: reqwest::Error| format!("system not reachable: {}", e.without_url());
+    let me = get("/v1/auth/me").await.map_err(unreachable)?;
+    let status = me.status().as_u16();
+    let body = me.json::<Value>().await.unwrap_or(Value::Null);
+    if status != 200 {
+        return Ok(Connected { status, body, username: String::new(), plan: Plan::default(), warning });
+    }
+    let username = body["username"].as_str().unwrap_or_default().to_string();
+    let resp = get("/v1/projects").await.map_err(unreachable)?;
+    let status = resp.status().as_u16();
+    let body = resp.json::<Value>().await.unwrap_or(Value::Null);
+    if status != 200 {
+        return Ok(Connected { status, body, username, plan: Plan::default(), warning });
+    }
+    let listed: Vec<(String, String)> = body
+        .as_array()
+        .ok_or("unexpected project list")?
+        .iter()
+        .filter_map(|p| Some((p["id"].as_str()?.to_string(), p["name"].as_str()?.to_string())))
+        .collect();
+    let mut plan = plan_connect(&store::load_projects(&state.dir)?, &listed, &url);
+    for p in std::mem::take(&mut plan.upserts) {
+        store::secret_set(&format!("token:{}", p.id), &token)?;
+        state.tokens.lock().unwrap().insert(p.id.clone(), token.clone());
+        store::upsert(&state.dir, p)?;
+    }
+    Ok(Connected { status: 200, body: Value::Null, username, plan, warning })
+}
+
 #[tauri::command]
 pub fn has_token(state: State<'_, AppState>, project_id: String) -> Result<bool, String> {
     Ok(token(&state, &project_id).is_ok())
@@ -134,6 +224,56 @@ mod tests {
         assert_eq!(read_secret_file(&co, "admin_bootstrap_password").unwrap(), "s3cret");
         std::fs::write(d.path().join("deploy/secrets/admin_bootstrap_password"), "\n").unwrap();
         assert!(read_secret_file(&co, "admin_bootstrap_password").unwrap_err().contains("empty"));
+    }
+
+    fn remote(id: &str, url: &str, used: u64) -> store::Project {
+        store::Project { id: id.into(), name: "old".into(), mode: "remote".into(), url: url.into(), checkout: None, cli_command: None, last_used: used }
+    }
+
+    fn listed(ids: &[&str]) -> Vec<(String, String)> {
+        ids.iter().map(|i| (i.to_string(), format!("Name {i}"))).collect()
+    }
+
+    #[test]
+    fn connect_empty_list_changes_nothing() {
+        assert_eq!(plan_connect(&[remote("aa", "https://s.example", 3)], &[], "https://s.example"), Plan::default());
+    }
+
+    #[test]
+    fn connect_restricted_token_adds_one_project() {
+        let plan = plan_connect(&[], &listed(&["bb"]), "https://s.example");
+        assert_eq!(plan.added, vec!["bb"]);
+        assert_eq!(plan.upserts[0].name, "Name bb");
+        assert_eq!(plan.upserts[0].mode, "remote");
+        assert_eq!(plan.upserts[0].last_used, 0);
+    }
+
+    #[test]
+    fn connect_same_url_updates_name_and_keeps_last_used() {
+        let plan = plan_connect(&[remote("aa", "https://s.example", 7)], &listed(&["aa"]), "https://s.example");
+        assert_eq!(plan.updated, vec!["aa"]);
+        assert!(plan.added.is_empty());
+        assert_eq!((plan.upserts[0].name.as_str(), plan.upserts[0].last_used), ("Name aa", 7));
+    }
+
+    #[test]
+    fn connect_never_overwrites_local_or_other_system() {
+        let mut local = remote("aa", "http://127.0.0.1:8080", 1);
+        local.mode = "local".into();
+        let other = remote("bb", "https://other.example", 1);
+        let plan = plan_connect(&[local, other], &listed(&["aa", "bb", "cc"]), "https://s.example");
+        assert_eq!(plan.added, vec!["cc"]);
+        assert_eq!(plan.skipped.iter().map(|s| s.id.as_str()).collect::<Vec<_>>(), vec!["aa", "bb"]);
+        assert!(plan.skipped[0].reason.contains("local"));
+        assert!(plan.skipped[1].reason.contains("https://other.example"));
+        assert_eq!(plan.upserts.len(), 1);
+    }
+
+    #[test]
+    fn connect_skips_invalid_id() {
+        let plan = plan_connect(&[], &listed(&["A_b"]), "https://s.example");
+        assert_eq!(plan.skipped.len(), 1);
+        assert!(plan.added.is_empty());
     }
 
     #[test]

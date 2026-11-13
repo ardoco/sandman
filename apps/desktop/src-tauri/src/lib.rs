@@ -158,6 +158,7 @@ pub fn run() {
             delete_project,
             api::set_token,
             api::check_token,
+            api::connect_system,
             api::admin_password,
             stack::missing_tools,
             ingest::ingest_cancel,

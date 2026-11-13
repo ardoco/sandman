@@ -52,3 +52,5 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .crow .weak, .crow .spacer { width: 16px; display: inline-block; }
 .crow .cpath { flex: 1; }
 .caution { color: var(--err); }
+.token-needed { margin-left: 8px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }

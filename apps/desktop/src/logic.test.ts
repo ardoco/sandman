@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { columnsLayout, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
+import { columnsLayout, connectSummary, localProject, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -104,5 +104,20 @@ describe("key store helpers", () => {
     expect(defaultKeyLabel("Demo", "OPENROUTER_API_KEY")).toBe("Demo OpenRouter key");
     expect(defaultKeyLabel("  ", "SELFHOSTED_LLM_URL")).toBe("project self-hosted URL");
     expect(KEY_KINDS.map(kindName)).toHaveLength(4);
+  });
+
+  it("summarizes a connect result", () => {
+    const base = { username: "ann", added: [], updated: [], skipped: [], warning: null };
+    expect(connectSummary({ ...base, added: ["a1"], updated: ["b2"], skipped: [{ id: "c3", reason: "a local project with this id exists" }], warning: "Use https." })).toEqual([
+      "Connected as ann.", "Added: a1.", "Updated: b2.", "Skipped c3: a local project with this id exists.", "Use https."]);
+    expect(connectSummary(base)).toEqual(["Connected as ann.", "This token can read no project."]);
+  });
+
+  it("picks the prefill URL and the local project from the list sorted by last use", () => {
+    const list = [{ mode: "local", url: "http://127.0.0.1:8080", id: "l1" }, { mode: "remote", url: "https://a.example", id: "r1" }, { mode: "remote", url: "https://b.example", id: "r2" }];
+    expect(prefillUrl(list)).toBe("https://a.example");
+    expect(prefillUrl([list[0]])).toBe("");
+    expect(localProject(list)?.id).toBe("l1");
+    expect(localProject(list.slice(1))).toBeUndefined();
   });
 });

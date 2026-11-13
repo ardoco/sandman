@@ -1,5 +1,5 @@
-import { cmd, Project, SettingsInput, SettingsView } from "../api";
-import { slugify, validSlug } from "../logic";
+import { cmd, connectSystem, hasToken, Project, saveToken, SettingsInput, SettingsView } from "../api";
+import { connectSummary, localProject, prefillUrl, slugify, validSlug } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
 import { keyField } from "./keyfield";
 import { renderKeys } from "./keys";
@@ -14,10 +14,34 @@ export async function renderStart(root: HTMLElement, open: (p: Project) => void)
     await cmd("delete_project", { projectId: selected.id }).catch((e) => toast(String(e), "error"));
     load();
   } }, "Remove");
+  const connectUrl = h("input", { type: "text", placeholder: "https://sandman.example" });
+  const connectToken = h("input", { type: "password", autocomplete: "off" });
+  const connectMsg = h("div", {});
+  const connect = h("button", { type: "submit" }, "Connect");
+  const connectForm = h("form", { onsubmit: async (ev: Event) => {
+    ev.preventDefault();
+    clear(connectMsg);
+    connect.disabled = true;
+    try {
+      const r = await connectSystem(connectUrl.value, connectToken.value);
+      if (!r.ok) return showError(connectMsg, r.message);
+      connectToken.value = "";
+      connectMsg.append(...connectSummary(r.result).map((t) => h("p", {}, t)));
+      await load();
+    } catch (e) { showError(connectMsg, e); } finally { connect.disabled = false; }
+  } }, h("h3", {}, "Connect to a running system"), field("URL", connectUrl), field("Token", connectToken, "Stored in the OS keychain. A token limited to one project adds that project."), connect, connectMsg);
+  const runLocally = async () => {
+    const local = localProject(await cmd<Project[]>("list_projects"));
+    if (local) open(local);
+    else wizard(root, open, () => renderStart(root, open));
+  };
   async function load(): Promise<void> {
     selected = undefined;
     open_.disabled = remove.disabled = true;
     const projects = await cmd<Project[]>("list_projects");
+    connectUrl.value ||= prefillUrl(projects);
+    const missing = new Set<string>();
+    for (const p of projects) if (!(await hasToken(p.id).catch(() => true))) missing.add(p.id);
     clear(
       list,
       projects.length ? h("button", { class: "continue", onclick: () => open(projects[0]) }, `Continue ${projects[0].name}`) : null,
@@ -29,15 +53,32 @@ export async function renderStart(root: HTMLElement, open: (p: Project) => void)
           list.querySelectorAll(".project-row").forEach((r) => r.classList.remove("selected"));
           row.classList.add("selected");
         }, ondblclick: () => open(p) },
-        h("strong", {}, p.name), h("span", { class: "muted" }, ` ${p.id} · ${p.mode} · ${p.url}`));
+        h("strong", {}, p.name), h("span", { class: "muted" }, ` ${p.id} · ${p.mode} · ${p.url}`),
+        missing.has(p.id) ? tokenPrompt(p, load) : null);
         return row;
       }),
     );
   }
-  clear(root, h("h1", {}, "SANDMAN"), list,
+  clear(root, h("h1", {}, "SANDMAN"), connectForm,
+    h("hr", {}), h("button", { type: "button", onclick: () => void runLocally().catch((e) => showError(root, e)) }, "Run locally"), h("hr", {}), list,
     h("div", { class: "row" }, h("button", { onclick: () => wizard(root, open, () => renderStart(root, open)) }, "New project"), open_, remove,
       h("button", { class: "secondary", onclick: () => renderKeys(root, () => renderStart(root, open)) }, "Keys")));
   await load().catch((e) => showError(root, e));
+}
+
+function tokenPrompt(p: Project, reload: () => Promise<void>): HTMLElement {
+  const box: HTMLElement = h("span", { class: "token-needed", onclick: (ev: Event) => ev.stopPropagation() });
+  const ask = () => {
+    const input = h("input", { type: "password", autocomplete: "off", placeholder: `Token for ${p.url}` });
+    clear(box, input, h("button", { type: "button", onclick: async () => {
+      const r = await saveToken(p.id, input.value.trim()).catch((e) => ({ ok: false, message: String(e) }));
+      if (r.ok) await reload();
+      else toast(r.message, "error");
+    } }, "Save"));
+    input.focus();
+  };
+  clear(box, h("button", { type: "button", class: "secondary", onclick: ask }, "Token needed"));
+  return box;
 }
 
 function secretInput(name: string, set: boolean): HTMLInputElement {

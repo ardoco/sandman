@@ -76,6 +76,28 @@ export function tokenMessage(status: number, body: unknown): string {
   return problemMessage(status, body);
 }
 
+export interface ConnectResult {
+  username: string;
+  added: string[];
+  updated: string[];
+  skipped: { id: string; reason: string }[];
+  warning: string | null;
+}
+
+export function connectSummary(r: ConnectResult): string[] {
+  const lines = [`Connected as ${r.username}.`];
+  if (r.added.length) lines.push(`Added: ${r.added.join(", ")}.`);
+  if (r.updated.length) lines.push(`Updated: ${r.updated.join(", ")}.`);
+  for (const s of r.skipped) lines.push(`Skipped ${s.id}: ${s.reason}.`);
+  if (!r.added.length && !r.updated.length && !r.skipped.length) lines.push("This token can read no project.");
+  if (r.warning) lines.push(r.warning);
+  return lines;
+}
+
+export const prefillUrl = (projects: { mode: string; url: string }[]): string => projects.find((p) => p.mode === "remote")?.url ?? "";
+
+export const localProject = <T extends { mode: string }>(projects: T[]): T | undefined => projects.find((p) => p.mode === "local");
+
 export function windowTitle(name: string, stack: string | null): string {
   return stack ? `${name} - ${stack} - SANDMAN` : `${name} - SANDMAN`;
 }

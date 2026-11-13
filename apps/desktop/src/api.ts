@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { KeyKind, problemMessage, tokenMessage } from "./logic";
+import { ConnectResult, KeyKind, problemMessage, tokenMessage } from "./logic";
 
 export interface Project {
   id: string;
@@ -92,6 +92,11 @@ export const hasToken = (projectId: string) => cmd<boolean>("has_token", { proje
 export async function saveToken(projectId: string, token: string): Promise<{ ok: boolean; message: string }> {
   const r = await cmd<{ status: number; body: unknown }>("check_token", { projectId, token });
   return { ok: r.status === 200, message: tokenMessage(r.status, r.body) };
+}
+
+export async function connectSystem(url: string, token: string): Promise<{ ok: true; result: ConnectResult } | { ok: false; message: string }> {
+  const r = await cmd<ConnectResult & { status: number; body: unknown }>("connect_system", { url, token });
+  return r.status === 200 ? { ok: true, result: r } : { ok: false, message: tokenMessage(r.status, r.body) };
 }
 
 export interface KeyInfo {

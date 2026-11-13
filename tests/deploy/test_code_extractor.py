@@ -25,7 +25,11 @@ def test_artifacts_read_only_and_root_filesystem_read_only() -> None:
 
 
 def test_only_the_inbound_tokens_are_mounted_one_per_caller() -> None:
-    assert SERVICE["secrets"] == ["plugin_in_code-extractor-ardoco", "plugin_in_code-extractor-ardoco_tlr", "plugin_in_code-extractor-ardoco_inc"]
+    assert SERVICE["secrets"] == [
+        "plugin_in_code-extractor-ardoco",
+        "plugin_in_code-extractor-ardoco_tlr",
+        "plugin_in_code-extractor-ardoco_inc",
+    ]
     callers = dict(e.split("=") for e in SERVICE["environment"]["SANDMAN_PLUGIN_INBOUND_TOKEN_FILES"].split(","))
     assert callers == {
         "extraction-agent": "/run/secrets/plugin_in_code-extractor-ardoco",

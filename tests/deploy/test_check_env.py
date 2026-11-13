@@ -5,7 +5,12 @@ from pathlib import Path
 SCRIPT = Path(__file__).parents[2] / "deploy" / "check-env.sh"
 
 
-PLUGIN_TOKENS = ["plugin_in_plugin-stubs", "plugin_in_code-extractor-ardoco", "plugin_in_code-extractor-ardoco_tlr", "plugin_in_code-extractor-ardoco_inc"]
+PLUGIN_TOKENS = [
+    "plugin_in_plugin-stubs",
+    "plugin_in_code-extractor-ardoco",
+    "plugin_in_code-extractor-ardoco_tlr",
+    "plugin_in_code-extractor-ardoco_inc",
+]
 
 
 def run(

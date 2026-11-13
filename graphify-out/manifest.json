@@ -4170,9 +4170,9 @@
     "semantic_hash": "118fd4ffd6053a4b704b3b731549f493"
   },
   "tests/cassettes/walking-skeleton/kg-canonical.json": {
-    "mtime": 1794545564.7380722,
-    "seen": 1794545576.820517,
-    "ast_hash": "2c5aa2c294a0bca685af22f57228796b",
+    "mtime": 1794566650.1522686,
+    "seen": 1794567383.41438,
+    "ast_hash": "60f0b6e6ffe260af905e2e4c2a0c5853",
     "semantic_hash": ""
   },
   "tests/conformance/test_python_conformance.py": {
@@ -4632,9 +4632,9 @@
     "semantic_hash": "4283f5e559f6709f2a60ad5ff5735a9e"
   },
   "adr/0014-graph-database.md": {
-    "mtime": 1794313403.7369583,
-    "seen": 1794313412.2539399,
-    "ast_hash": "27d28c4323ff0527dd121da6b3eda0d1",
+    "mtime": 1794566083.370533,
+    "seen": 1794567383.4144409,
+    "ast_hash": "b267638c05e1cb21d5fc32b30b6a5d8a",
     "semantic_hash": ""
   },
   "adr/0015-ardoco-integration.md": {
@@ -4656,10 +4656,10 @@
     "semantic_hash": "839a4be8b64cf566d24e2c318050e82b"
   },
   "adr/0018-query-strategies.md": {
-    "mtime": 1791973248.1362758,
-    "seen": 1794312116.366307,
-    "ast_hash": "268679f23aa50fb62257c9680e72eeac",
-    "semantic_hash": "268679f23aa50fb62257c9680e72eeac"
+    "mtime": 1794565517.212063,
+    "seen": 1794567383.414444,
+    "ast_hash": "e374ba36a59f1741dbd70607d9bf6ce3",
+    "semantic_hash": ""
   },
   "adr/0019-desktop-app.md": {
     "mtime": 1794313403.7375917,
@@ -4770,10 +4770,10 @@
     "semantic_hash": ""
   },
   "docs/user/getting-started.md": {
-    "mtime": 1794313403.753683,
-    "seen": 1794313412.254199,
-    "ast_hash": "c04df32fa2f9e7e9ff567a3d3b17499a",
-    "semantic_hash": "c04df32fa2f9e7e9ff567a3d3b17499a"
+    "mtime": 1794565802.3799024,
+    "seen": 1794567383.414474,
+    "ast_hash": "77bf71bf4061d012ca198f0558062fc7",
+    "semantic_hash": ""
   },
   "docs/user/ingesting-artifacts.md": {
     "mtime": 1794517226.8739133,
@@ -4788,9 +4788,9 @@
     "semantic_hash": "b8c62959347362d238bce33217ff7a34"
   },
   "docs/user/operations.md": {
-    "mtime": 1794410917.1678505,
-    "seen": 1794410929.7213671,
-    "ast_hash": "425cc5aca503f8fca54fb434911fa33c",
+    "mtime": 1794566083.3665056,
+    "seen": 1794567383.414476,
+    "ast_hash": "a5af1327f2c393b1a589b0d4cd14f082",
     "semantic_hash": ""
   },
   "docs/user/projects-and-access.md": {

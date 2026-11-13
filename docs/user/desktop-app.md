@@ -21,12 +21,23 @@ Warning: Remove deletes only the entry in the app. It does not delete the projec
 
 ## Connect to a running system
 
-Use this section if a SANDMAN system already runs on a server. You need the URL and a token. You do not need a project id.
+Use this section if a SANDMAN system already runs on a server. You need the URL and either a user name with a password or a token. You do not need a project id.
+
+Sign in with a user name and password:
+
+1. Enter the URL of the system in the top block of the start screen. The field starts with the URL of your last remote project.
+2. Enter the user name and the password.
+3. Click Connect.
+
+The app sends the password once to the system. The system returns a personal token named `desktop <host>`. The token expires after 90 days. The app does not store the password. The app stores the token. To revoke the token, delete it on the tokens page of the console.
+
+Sign in with a token:
 
 1. Open the console of the system. Create a token on the tokens page.
-2. Enter the URL of the system in the top block of the start screen. The field starts with the URL of your last remote project.
-3. Enter the token.
-4. Click Connect.
+2. Enter the URL and the token.
+3. Click Connect.
+
+The button above the URL field switches between "Use a token instead" and "Use username and password instead". The URL stays when you switch.
 
 The app lists the projects that the token can read. It adds each project to your list. The app stores the token in the keychain of the operating system, one entry for each project.
 
@@ -38,7 +49,7 @@ Token tips:
 * To add a second project of the same system, create a second token. Enter the same URL and the new token. Click Connect. The first project stays usable.
 * If a row shows "Token needed", click it. Enter a token for the saved URL.
 
-Caution: A URL that starts with `http://` on a remote host sends the token without encryption. Use `https://`. The result shows a warning in this case.
+Caution: A URL that starts with `http://` on a remote host sends the token without encryption. Use `https://`. The result shows a warning in this case. The app does not send a password to such a URL.
 
 ## Create a local project
 

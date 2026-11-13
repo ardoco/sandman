@@ -57,6 +57,8 @@ curl -H "Authorization: Bearer $SANDMAN_TOKEN" http://127.0.0.1:8080/v1/auth/me
 
 Tokens also work via `POST /v1/auth/tokens` (body `name`, `projectId`, `maxRole`, `expiresAt`), `GET /v1/auth/tokens` and `DELETE /v1/auth/tokens/{tokenId}`.
 
+`POST /v1/auth/login-token` exchanges a user name and password for a token. The body has `username` and `password`, and optionally `name`, `projectId`, `maxRole` and `expiresAt`. The default name is `desktop`. The default expiry is 90 days. The maximum expiry is 365 days. The route uses the same failed-login limit as `/v1/auth/login`. It sets no cookie.
+
 Caution: In the graph explorer and in `POST /v1/query/cypher`, users without the global `admin` flag cannot see nodes with the labels `Run` and `Ingestion`. A statement that names these labels is refused ([querying.md](querying.md#cypher-box)).
 
 Failures to expect: `401` for an unknown, revoked or expired token or a disabled user; `403 password change required` when the token's owner has not yet changed their initial password.

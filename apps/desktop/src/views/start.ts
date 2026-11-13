@@ -2,6 +2,7 @@ import { cmd, connectSystem, hasToken, loginConnect, Project, saveToken, Setting
 import { connectSummary, localProject, LoginMode, loginFields, prefillUrl, slugify, validSlug } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
 import { keyField } from "./keyfield";
+import { renderAppSettings } from "./appsettings";
 import { renderKeys } from "./keys";
 import { secretsBox } from "./secrets";
 
@@ -82,7 +83,8 @@ export async function renderStart(root: HTMLElement, open: (p: Project) => void)
   clear(root, h("h1", {}, "SANDMAN"), connectForm,
     h("hr", {}), h("button", { type: "button", onclick: () => void runLocally().catch((e) => showError(root, e)) }, "Run locally"), h("hr", {}), list,
     h("div", { class: "row" }, h("button", { onclick: () => wizard(root, open, () => renderStart(root, open)) }, "New project"), open_, remove,
-      h("button", { class: "secondary", onclick: () => renderKeys(root, () => renderStart(root, open)) }, "Keys")));
+      h("button", { class: "secondary", onclick: () => renderKeys(root, () => renderStart(root, open)) }, "Keys"),
+      h("button", { class: "secondary", onclick: () => void renderAppSettings(root, { back: () => renderStart(root, open) }) }, "Settings")));
   await load().catch((e) => showError(root, e));
 }
 

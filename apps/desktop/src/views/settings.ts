@@ -23,7 +23,8 @@ export async function renderSettings(root: HTMLElement, ctx: Ctx): Promise<void>
       toast("Saved.");
     } catch (e) { showError(msg, e); }
   };
-  clear(root, h("p", {}, `${p.mode} project, ${p.url}`), field("Token", token, "Stored in the OS keychain."), field("CLI command", cli));
+  clear(root, h("h3", {}, "Connection"), h("p", {}, `${p.mode} project, ${p.url}`), field("Token", token, "Stored in the OS keychain."),
+    h("h3", {}, "Local stack"), field("CLI command", cli));
   let keys: (() => Promise<void>) | undefined;
   if (p.mode === "local" && p.checkout) {
     const s = await cmd<SettingsView>("read_local_settings", { checkout: p.checkout });
@@ -50,7 +51,8 @@ export async function renderSettings(root: HTMLElement, ctx: Ctx): Promise<void>
       for (const f of Object.values(kf)) await f.save();
     };
   }
-  root.append(h("div", { class: "row" }, h("button", { onclick: () => save(keys) }, "Save"),
-    h("button", { class: "secondary", onclick: () => open(p.url) }, "Open console"),
-    h("button", { class: "secondary", onclick: () => open(dashboardUrl(p.url)) }, "Open dashboard")), msg);
+  root.append(h("div", { class: "row" }, h("button", { onclick: () => save(keys) }, "Save")), msg, h("h3", {}, "Links"),
+    h("div", { class: "row" },
+      h("button", { class: "secondary", onclick: () => open(p.url) }, "Open console"),
+      h("button", { class: "secondary", onclick: () => open(dashboardUrl(p.url)) }, "Open dashboard")));
 }

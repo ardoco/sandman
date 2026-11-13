@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/logic.ts": {
-    "mtime": 1794560437.0459552,
-    "seen": 1794560452.1110442,
-    "ast_hash": "a11bac4dcaeacddbca3bbaf381fb67e1",
+    "mtime": 1794560516.1975553,
+    "seen": 1794560534.5090659,
+    "ast_hash": "2a68e0ce6804d7410c3628157c09fe21",
     "semantic_hash": ""
   },
   "apps/desktop/src/main.ts": {
@@ -186,9 +186,9 @@
     "semantic_hash": "bf7d04be65233f1fb7851c5c888a6614"
   },
   "apps/desktop/src/views/project.ts": {
-    "mtime": 1794410917.1662965,
-    "seen": 1794410929.703427,
-    "ast_hash": "c247f62d1dc6c8921db8522df6a30eaa",
+    "mtime": 1794560516.1980624,
+    "seen": 1794560534.509077,
+    "ast_hash": "91af27ed39ed441a29f25a9119b4306c",
     "semantic_hash": ""
   },
   "apps/desktop/src/views/secrets.ts": {
@@ -198,15 +198,15 @@
     "semantic_hash": "a4c00c8200bc073c4530e2e9eac22483"
   },
   "apps/desktop/src/views/settings.ts": {
-    "mtime": 1794313403.7465456,
-    "seen": 1794313412.237243,
-    "ast_hash": "2d4e20ee0313f6d676cd893f4bc57a49",
-    "semantic_hash": "2d4e20ee0313f6d676cd893f4bc57a49"
+    "mtime": 1794560516.1969585,
+    "seen": 1794560534.509078,
+    "ast_hash": "a7d80663d8355cf04bbecb8f4d62cff8",
+    "semantic_hash": ""
   },
   "apps/desktop/src/views/start.ts": {
-    "mtime": 1794559250.8992972,
-    "seen": 1794559264.853844,
-    "ast_hash": "33fa60f41f631346807d1354d32222cc",
+    "mtime": 1794560516.1984992,
+    "seen": 1794560534.509079,
+    "ast_hash": "1cff40b9df64b8fe03a2760e4f4551a1",
     "semantic_hash": ""
   },
   "apps/desktop/src/views/traceview.ts": {
@@ -6096,9 +6096,15 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/appsettings.test.ts": {
-    "mtime": 1794560431.7776997,
-    "seen": 1794560452.11104,
-    "ast_hash": "0687cbfd909890f83f322b4da4a6fe33",
+    "mtime": 1794560524.6597893,
+    "seen": 1794560534.5090618,
+    "ast_hash": "04161c8d2e2025944dc7d8dd2379aef9",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/views/appsettings.ts": {
+    "mtime": 1794560524.6594226,
+    "seen": 1794560534.509068,
+    "ast_hash": "fa38423621e2bc83bf5bd9e619c3c89f",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applySettings, resolveLanguage } from "./logic";
+import { applySettings, resolveLanguage, settingsTabState } from "./logic";
 
 const fakeRoot = () => ({ dataset: {} as Record<string, string>, lang: "" }) as unknown as HTMLElement;
 
@@ -20,5 +20,12 @@ describe("applySettings", () => {
     const root = fakeRoot();
     applySettings({ language: "system", theme: "system", fontSize: "normal" }, root, "de-AT");
     expect(root.lang).toBe("de");
+  });
+});
+
+describe("settingsTabState", () => {
+  it("opens Project with a project and disables it without one", () => {
+    expect(settingsTabState(true)).toEqual({ first: "project", projectDisabled: false });
+    expect(settingsTabState(false)).toEqual({ first: "general", projectDisabled: true });
   });
 });

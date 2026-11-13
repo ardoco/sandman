@@ -11,10 +11,10 @@ import { renderLinks } from "./links";
 import { renderOverview } from "./overview";
 import { renderTraceView } from "./traceview";
 import { renderKeys } from "./keys";
-import { renderSettings } from "./settings";
+import { renderAppSettings } from "./appsettings";
 import { renderWorkflows } from "./workflows";
 
-const TABS = ["Overview", "Ingest", "Classification", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph", "Settings"];
+const TABS = ["Overview", "Ingest", "Classification", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph"];
 
 export async function renderProject(root: HTMLElement, project: Project, leave: () => void): Promise<void> {
   const local = project.mode === "local";
@@ -71,7 +71,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
         case "Ask": renderAsk(view, ctx); break;
         case "Graph": cleanup = await renderGraph(view, ctx); break;
         case "Keys": await renderKeys(view); break;
-        default: await renderSettings(view, ctx);
+        case "Settings": await renderAppSettings(view, { ctx }); break;
       }
     } catch (e) { view.append(h("p", { class: "error" }, e instanceof Error ? e.message : String(e))); }
   }
@@ -110,6 +110,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
   clear(root,
     h("header", {}, h("strong", {}, project.name), state, start, stop,
       h("button", { class: "secondary", onclick: () => select("Keys") }, "Keys"),
+      h("button", { class: "secondary", onclick: () => select("Settings") }, "Settings"),
       h("button", { class: "secondary", onclick: async () => { if (await confirmClose()) { teardown(); leave(); } } }, "Switch project")),
     nav, log, content);
   nav.append(...TABS.map((t) => h("button", { class: "tab", onclick: () => select(t) }, t)));

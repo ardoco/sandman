@@ -125,6 +125,11 @@ export function applySettings(s: AppSettingsLike, root: HTMLElement = document.d
   root.lang = resolveLanguage(s.language, navigatorLanguage);
 }
 
+export type SettingsTab = "general" | "project";
+
+export const settingsTabState = (hasProject: boolean): { first: SettingsTab; projectDisabled: boolean } =>
+  ({ first: hasProject ? "project" : "general", projectDisabled: !hasProject });
+
 export function windowTitle(name: string, stack: string | null): string {
   return stack ? `${name} - ${stack} - SANDMAN` : `${name} - SANDMAN`;
 }

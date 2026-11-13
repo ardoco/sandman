@@ -67,7 +67,6 @@
   "183": "C183: concepts.schema.json, additionalProperties, items",
   "186": "C186: tlr-agent THIRD-PARTY licenses, ArDoCo (MIT, 2.1.0",
   "187": "C187: ambiguous_python_import_ff583931b56e, test_asof.py",
-  "188": "C188: api.rs, admin_password(), api()",
   "192": "C192: events.ts, buildEvent(), connectJetStream()",
   "193": "C193: Outer.java, Inner, .go()",
   "197": "C197: Env, Error, .Error()",

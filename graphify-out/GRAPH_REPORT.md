@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fdc64385`
+- Built from commit: `31c50be3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1422,7 +1422,7 @@ Nodes (15): builtin, converter, enabled, timeoutSeconds, explicitReferences, pat
 
 ### Community 232 - "C232: models.yaml, openrouterProviders, anthropic/claude"
 Cohesion: 0.20
-Nodes (9): openrouterProviders, anthropic/claude-3.5-haiku, openai/gpt-4o-mini, routes, chat-alt, chat-default, chat-local, embed-default (+1 more)
+Nodes (9): openrouterProviders, anthropic/claude-haiku-5.5, openai/gpt-4o-mini, routes, chat-alt, chat-default, chat-local, embed-default (+1 more)
 
 ### Community 233 - "random"
 Cohesion: 0.20

@@ -120,16 +120,16 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/logic.ts": {
-    "mtime": 1794559250.898848,
-    "seen": 1794559264.85352,
-    "ast_hash": "96bcb3f15fbe17dc1b063e844a827117",
+    "mtime": 1794560437.0459552,
+    "seen": 1794560452.1110442,
+    "ast_hash": "a11bac4dcaeacddbca3bbaf381fb67e1",
     "semantic_hash": ""
   },
   "apps/desktop/src/main.ts": {
-    "mtime": 1794313403.7449074,
-    "seen": 1794313412.237236,
-    "ast_hash": "71429309749b06f5cc47a6341e42bd45",
-    "semantic_hash": "71429309749b06f5cc47a6341e42bd45"
+    "mtime": 1794560437.046107,
+    "seen": 1794560452.1110451,
+    "ast_hash": "9c14fa5073860f32e5a205baf07aaf3a",
+    "semantic_hash": ""
   },
   "apps/desktop/src/views/ask.ts": {
     "mtime": 1794313403.7452648,
@@ -6093,6 +6093,12 @@
     "mtime": 1794560212.3361917,
     "seen": 1794560221.463493,
     "ast_hash": "2f41482ff54ad198c9e3a052ef2bb79b",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/appsettings.test.ts": {
+    "mtime": 1794560431.7776997,
+    "seen": 1794560452.11104,
+    "ast_hash": "0687cbfd909890f83f322b4da4a6fe33",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

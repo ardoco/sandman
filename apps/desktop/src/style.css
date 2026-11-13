@@ -1,7 +1,11 @@
-:root { color-scheme: light dark; --bg: #fff; --fg: #1d2330; --muted: #6b7280; --line: #d4d8e0; --accent: #2f5fa7; --sel: #e6eefb; --err: #b3261e; }
-@media (prefers-color-scheme: dark) { :root { --bg: #1b1f27; --fg: #e5e8ee; --muted: #9aa3b2; --line: #374151; --accent: #6b9be0; --sel: #26344d; --err: #f2b8b5; } }
+:root { color-scheme: light dark; --bg: #fff; --fg: #1d2330; --muted: #6b7280; --line: #d4d8e0; --accent: #2f5fa7; --sel: #e6eefb; --err: #b3261e; --fs: 14px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]):not([data-theme="dark"]) { --bg: #1b1f27; --fg: #e5e8ee; --muted: #9aa3b2; --line: #374151; --accent: #6b9be0; --sel: #26344d; --err: #f2b8b5; } }
+:root[data-theme="dark"] { color-scheme: dark; --bg: #1b1f27; --fg: #e5e8ee; --muted: #9aa3b2; --line: #374151; --accent: #6b9be0; --sel: #26344d; --err: #f2b8b5; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-font="small"] { --fs: 13px; }
+:root[data-font="large"] { --fs: 16px; }
 * { box-sizing: border-box; }
-body { margin: 0; font: 14px system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0; font: var(--fs) system-ui, sans-serif; background: var(--bg); color: var(--fg); }
 #app { padding: 16px; max-width: 1200px; margin: 0 auto; }
 h1, h3 { margin: 12px 0 8px; }
 header { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }

@@ -111,6 +111,20 @@ export const prefillUrl = (projects: { mode: string; url: string }[]): string =>
 
 export const localProject = <T extends { mode: string }>(projects: T[]): T | undefined => projects.find((p) => p.mode === "local");
 
+export type Language = "en" | "de";
+
+export const resolveLanguage = (setting: string, navigatorLanguage: string): Language =>
+  setting === "de" || (setting !== "en" && navigatorLanguage.toLowerCase().startsWith("de")) ? "de" : "en";
+
+export interface AppSettingsLike { language: string; theme: string; fontSize: string; }
+export const DEFAULT_SETTINGS: AppSettingsLike = { language: "system", theme: "system", fontSize: "normal" };
+
+export function applySettings(s: AppSettingsLike, root: HTMLElement = document.documentElement, navigatorLanguage: string = navigator.language): void {
+  root.dataset.theme = s.theme;
+  root.dataset.font = s.fontSize;
+  root.lang = resolveLanguage(s.language, navigatorLanguage);
+}
+
 export function windowTitle(name: string, stack: string | null): string {
   return stack ? `${name} - ${stack} - SANDMAN` : `${name} - SANDMAN`;
 }

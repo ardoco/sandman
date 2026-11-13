@@ -26,6 +26,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.github.ardoco</groupId>
+      <artifactId>sandman-agent-lib-a2a</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.github.ardoco.id</groupId>
       <artifactId>pipeline-id</artifactId>
       <version>${ardoco.version}</version>

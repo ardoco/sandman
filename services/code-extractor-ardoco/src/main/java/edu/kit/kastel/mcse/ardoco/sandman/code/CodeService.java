@@ -54,10 +54,10 @@ public class CodeService {
         LOG.info("code-extractor-ardoco ready, limits {}", limits);
     }
 
-    /** Each skill has one caller; the token already identified it (one inbound token per caller). */
-    static void requireCaller(SkillContext ctx, String expected) throws SkillException {
-        if (!expected.equals(ctx.caller())) {
-            throw new SkillException("FORBIDDEN", "this skill is only for the " + expected, false);
+    /** Each skill has a fixed set of callers; the token already identified it (one inbound token per caller). */
+    static void requireCaller(SkillContext ctx, String... expected) throws SkillException {
+        if (!java.util.List.of(expected).contains(ctx.caller())) {
+            throw new SkillException("FORBIDDEN", "this skill is only for " + String.join(", ", expected), false);
         }
     }
 

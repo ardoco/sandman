@@ -1,6 +1,6 @@
 # Evaluation T3.9: classic against ArTEMiS
 
-Status: partial. Two projects, two chat models. The verdict is "supported on two projects with a cloud model, not shown for the full set" (see the end).
+Status: done for the evaluation, partial for three items (see "Not done in run 3"). Run 3 covers all ten vendored benchmark projects with `gpt-6-luna`. The verdict over the full set is at the end. It does NOT fully support the flipped defaults.
 
 ## Run 1: `qwen3:4b` (local), TeaStore
 
@@ -130,6 +130,128 @@ Input: `mediastore.txt`, `ms.repository` (PCM) and `ms.uml`. The benchmark has n
 * The first run with 0 links came before commit `f938afb` (repeated `codeFiles` entries of a Java unit in the code extractor). The old logs are gone, so the link from that bug to the 0 result is inferred, not proven. The fix has a test (`MixedLanguagesTest`). No further code change was needed.
 * `artemis-datafile` gives 0 links because TeaStore has no data files.
 
+## Run 3: full benchmark set with `openai/gpt-6-luna` (2026-11-13)
+
+### Setup
+
+* Projects: `luna-<name>` for rod, beets, zengarden, scons, coronawarnapp, teammates, bigbluebutton and jabref. `luna2-mediastore` and `luna2-teastore` repeat the two earlier projects. Policy `cloud-allowed` per project. Only public benchmark data went to the cloud.
+* Input per project: the SAD text, the PCM and UML models (if the benchmark has them) and the source code (if staged). Source code was staged for rod, beets, zengarden, scons, coronawarnapp and TeaStore. Teammates, bigbluebutton, jabref and MediaStore ran model-only (no source in the benchmark).
+* All `artemis*` approaches and all three LLM detectors were enabled in `config/` for the run only. The files were reverted afterwards.
+* Ingest used `--no-review` and the kind rule `<name>.txt=architecture-doc`.
+* Scoring: `sandman eval compare --format ardoco-sad-sam` for SAD to SAM. A small script scores the inconsistency gold files. A language or style finding counts as true if the gold row is `valid=false` with the same line (`evidence.sentence + 1`) and the same value. A class or datafile finding counts if sentence and name match. An undocumented model element counts if its model id is in the UME gold.
+* The scripts are in `.work/` (git-ignored): `luna_run.py`, `export_luna.py`, `export_findings.py`, `score.py`, `score_ume.py`, `cmp_sum.py`.
+
+### SAD to SAM: classic `ardoco` against `artemis`
+
+| Project | Gold links | `ardoco` P / R / F1 | `artemis` P / R / F1 | F1 diff | Holm (bootstrap F1) | McNemar (Holm) |
+|---------|-----------|---------------------|----------------------|---------|---------------------|----------------|
+| MediaStore | 31 | 0.944 / 0.548 / 0.694 | 0.939 / 1.000 / 0.969 | +0.275 | 0.0004 | 0.0023 |
+| TeaStore | 27 | 1.000 / 0.741 / 0.851 | 0.871 / 1.000 / 0.931 | +0.080 | 0.396 | 0.549 |
+| Teammates | 57 | 0.288 / 0.860 / 0.432 | 0.667 / 0.772 / 0.715 | +0.284 | 0.0002 | 1e-16 |
+| BigBlueButton | 62 | 0.898 / 0.710 / 0.793 | 0.787 / 0.597 / 0.679 | -0.114 | 0.175 | 0.175 |
+| JabRef | 18 | 0.900 / 1.000 / 0.947 | 1.000 / 0.778 / 0.875 | -0.072 | 0.566 | 0.688 |
+
+* The Holm values are per project over the metrics of the tool. Over the five projects (Holm, five tests, bootstrap F1 p-values) MediaStore and Teammates stay significant (0.001). TeaStore, BigBlueButton and JabRef do not (0.59).
+* Mean F1 over the five projects: `ardoco` 0.743, `artemis` 0.834.
+* `artemis` wins on three projects (two significant) and loses on two (not significant). Recall rises on three projects and falls on two.
+* The TeaStore result of run 2 was F1 0.964 with 29 links. This run gives F1 0.931 with 31 links on the same input and model. The difference of 0.033 is the run-to-run spread of the cloud model. Use it as the tolerance for any equality claim against `artemis`.
+* The five projects rod, beets, zengarden, scons and coronawarnapp have no PCM or UML. They have no SAD-to-SAM gold. They give no SAD-to-SAM numbers.
+
+### SAD to code
+
+* The gold files `goldstandard_sad_*-code_*.csv` exist for TeaStore, MediaStore, BigBlueButton, JabRef and Teammates. Only TeaStore had source code in this run. The numbers of run 2 stand (directory mapping, indicative): `transarc` F1 0.100, `artemis-transarc` 0.109, `artemis-exarch` 0.106, `artemis-class` 0.000.
+* How the mapping works: each exported class file is reduced to its directory. A pair counts if sentence and directory equal a gold pair. The gold lists parent packages, so recall stays low for all systems.
+* The class gold files of beets, zengarden, teammates and scons are scored in the next section (class names, not directories).
+
+### Inconsistencies: new detectors against the gold
+
+Counts are findings against gold rows with `valid=false` (language, style) or gold rows (class, datafile).
+
+| Project | Detector | Gold | Found | TP | FP | FN |
+|---------|----------|------|-------|----|----|----|
+| rod | `programming-language-id` | 0 | 11 | 0 | 11 | 0 |
+| rod | `architectural-style-id` | 0 | 2 | 0 | 2 | 0 |
+| beets | `architectural-style-id` | 1 | 1 | 0 | 1 | 1 |
+| beets | `artemis-id` class | 0 | 1 | 0 | 1 | 0 |
+| zengarden | `artemis-id` class | 1 | 1 | 0 | 1 | 1 |
+| scons | `artemis-id` class | 50 | 56 | 2 | 54 | 48 |
+| teammates | `artemis-id` class | 12 | 0 | 0 | 0 | 12 |
+| teammates | `architectural-style-id` | 1 | 0 | 0 | 0 | 1 |
+| coronawarnapp | `architectural-style-id` | 0 | 5 | 0 | 5 | 0 |
+| coronawarnapp | `artemis-id` datafile | 0 | 3 | 0 | 3 | 0 |
+| bigbluebutton, scons, zengarden, teammates | `programming-language-id`, datafile | 0 | 0 | 0 | 0 | 0 |
+
+* Result: across all projects the language and style detectors find 0 of the gold inconsistencies (0 true positives) and report about 30 false positives. The class strategy has precision 0.036 and recall 0.040 on scons and finds nothing on teammates.
+* Language gold has rows only with `valid=false` where an inconsistency exists. For rod the language gold says C is valid, and the rod findings are therefore false positives. The staged rod code has no `.c` files. The 11 findings are not a detector fault alone: the input has no C. The numbers stay as measured.
+* TeaStore, coronawarnapp and others have one language finding without gold. These findings are not scored.
+* Zengarden has 9 style findings and no style gold. They are not scored.
+* The 429 responses of the gateway (see Cost) hit zengarden (147) and coronawarnapp (344). Results of these two projects may be worse than with an unlimited key. The runs ended with status SUCCEEDED.
+
+### Inconsistencies: undocumented model elements (UME gold), `ardoco-id` against `artemis-id`
+
+| Project | Gold | `ardoco-id` found / TP / FP | `artemis-id` found / TP / FP |
+|---------|------|-----------------------------|------------------------------|
+| MediaStore | 4 | 6 / 4 / 2 | 4 / 4 / 0 |
+| TeaStore | 5 | 5 / 5 / 0 | 5 / 5 / 0 |
+| BigBlueButton | 1 | 1 / 1 / 0 | 2 / 0 / 2 |
+| JabRef | 1 | 1 / 1 / 0 | 3 / 1 / 2 |
+| Teammates | 0 (empty file) | 4 / 0 / 4 | 1 to 13 / 0 / all (per model file) |
+
+* Recall is 1.0 for both on MediaStore, TeaStore and JabRef. `artemis-id` misses the one element of BigBlueButton.
+* Precision: `artemis-id` is better on MediaStore, equal on TeaStore, worse on BigBlueButton, JabRef and Teammates.
+* The gold has no rows for text-side findings (`missing-model-element`) in the model projects. These are not scored. `artemis-id` reports 39 of them on TeaStore, 46 on Teammates for `ardoco-id`. Their precision is unknown.
+
+### Time
+
+Wall time of the whole workflow (ingest, all approaches, all detectors), including cloud latency and, for two projects, retries after 429.
+
+| Project | Time |
+|---------|------|
+| jabref (model only) | 2 min |
+| mediastore (model only) | 3 min |
+| bigbluebutton (model only) | 6 min |
+| rod | 11 min |
+| teastore | 11 min |
+| teammates (model only) | 12 min |
+| scons | 15 min |
+| beets | 20 min |
+| zengarden | 23 min |
+| coronawarnapp | 45 min |
+
+Without ArTEMiS the same workflow takes 126 to 162 s on TeaStore (run 1 and earlier).
+
+### Cost: calls
+
+* Token counts and money are still NOT measured. The gateway gives them only on the admin API, which was out of bounds.
+* Calls come from the gateway request log (time windows per project, so the split is approximate): 1 346 chat calls with HTTP 200 and 491 with HTTP 429 (rate limit), 781 embedding calls with HTTP 200, for run 3 and the earlier cloud runs of the same day.
+* Per project (chat 200 / chat 429 / embeddings): rod 241 / 0 / 9, beets 149 / 0 / 47, zengarden 356 / 147 / 14, teammates 25 / 0 / 109, bigbluebutton 11 / 0 / 101, jabref 11 / 0 / 24, coronawarnapp 326 / 344 / 317, scons 107 / 0 / 0, mediastore 12 / 0 / 52, teastore 108 / 0 / 108. The rod window also holds earlier calls.
+* The 429 rate is a limit of the key, not of SANDMAN. The LLM client retries. Zengarden and coronawarnapp show it.
+
+### Equivalence with the standalone upstream runner (TeaStore)
+
+* NOT run. Upstream at `21ef682` cannot take a ChatModel (draft issue `docs/notes/draft-upstream-issue-chatmodel-injection.md`). A standalone run would call the cloud with its own client. It would give a different answer from a different run, not an equal one.
+* Substitute: the run-to-run spread of `artemis` on TeaStore. Run 2 gave F1 0.964 (29 links). Run 3 gave F1 0.931 (31 links). A standalone run must fall inside this spread to count as equal. This was not checked.
+* Equivalence of the classic approaches with the standalone runner stays covered by `BenchmarkEquivalenceTest` and `TransarcEquivalenceTest`.
+
+### Code input: directory against ACM (language and style detectors)
+
+* NOT compared. In SANDMAN the detectors read the code through the code model source (the ACM of the code extractor plugin, commit `4d177a2`). A directory input does not exist in the SANDMAN pipeline. The upstream directory path needs the upstream runner, see the item above.
+* The result is that all numbers in this note use the ACM input.
+
+### Cassette goldens and KG tests for the new detectors
+
+* NOT added. The detectors need a recorded cassette of cloud answers. A recording needs several runs of the language and style prompts on a fixed input. The results of run 3 show that the detectors give false positives on the available inputs, so a golden would freeze wrong findings. The unit and wiring tests of T3.9 stay in place.
+* `make e2e` and `make replay-twice` are covered in the T3.9 task document.
+
+### Not done in run 3
+
+* Token and money cost.
+* The standalone-runner equivalence and the directory against ACM comparison (reasons above).
+* Cassette goldens for the language and style detectors.
+* SAD to code for the projects without staged source (MediaStore, Teammates, BigBlueButton, JabRef).
+* Rod, beets and cwa language and style gold with the correct input (rod has no `.c` files).
+
+
 ## Verdict against decision 6
 
 Decision 6 needs ArTEMiS to match or beat classic on the benchmark projects.
@@ -151,3 +273,23 @@ Decision 6 needs ArTEMiS to match or beat classic on the benchmark projects.
 * The cost is about 4 times the runtime (564 s against 126 to 162 s). Token cost is not measured.
 * Projects not evaluated: beets, scons, zengarden, rod, coronawarnapp, teammates, bigbluebutton. No inconsistency gold was run.
 * The defaults changed: `artemis`, `artemis-transarc`, `artemis-id` on; `ardoco`, `transarc`, `ardoco-id` run only without an LLM route. Rollback: set `enabled: false` on the ArTEMiS entries and remove `fallbackFor`.
+
+## Verdict over the full set (2026-11-13)
+
+Decision 6 needs ArTEMiS to match or beat classic on the benchmark projects.
+
+* SAD to SAM (`artemis` against `ardoco`): better on MediaStore, Teammates (both significant after Holm) and TeaStore (not significant). Worse on BigBlueButton and JabRef (not significant). Mean F1 0.743 against 0.834. Decision 6 holds on average. It does NOT hold per project.
+* Inconsistencies, component strategy (`artemis-id` against `ardoco-id`): not better. Better precision on MediaStore only, equal on TeaStore, worse precision on BigBlueButton, JabRef and Teammates, and one missed element on BigBlueButton.
+* New detectors: the language and style detectors find 0 gold inconsistencies and report about 30 false positives. The class strategy has precision 0.036 and recall 0.040 on scons. They are off by default, so no default contradicts the data.
+* Time: 2 to 45 minutes per project against about 2 to 3 minutes without ArTEMiS. The cloud key hit the rate limit on two projects.
+
+Warning: the flipped default `artemis-id` (and `ardoco-id` as fallback only) is NOT supported by this data. It adds false positives on three of five model projects and gives no gain over `ardoco-id`.
+
+Recommendation:
+
+1. Keep the `artemis` and `artemis-transarc` defaults. The SAD-to-SAM gain is real on average and large on two projects.
+2. Change `ardoco-id` to always on (remove `fallbackFor: artemis-id`). Keep `artemis-id` on only if its extra findings are accepted. Otherwise set `artemis-id` to `enabled: false`. This needs a decision of the repository owner. The config was NOT changed in this task.
+3. Keep `programming-language-id`, `architectural-style-id`, `artemis-class`, `artemis-datafile` and `artemis-exarch` off.
+4. Re-run the new detectors with an input that matches the gold (rod with `.c` files) before any claim about them.
+
+Evidence limits: ten projects, one cloud model, one run per project (spread about 0.03 F1 on TeaStore), gold standards with few rows (language, style, UME), a rate-limited key on two projects, no token cost, no standalone equivalence.

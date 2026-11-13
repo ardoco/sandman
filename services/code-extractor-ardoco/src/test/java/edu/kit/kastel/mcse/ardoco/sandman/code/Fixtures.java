@@ -21,6 +21,7 @@ final class Fixtures {
 
     static final String EXTRACTION_TOKEN = "extraction-token";
     static final String TLR_TOKEN = "tlr-token";
+    static final String INCONSISTENCY_TOKEN = "inconsistency-token";
 
     private Fixtures() {}
 
@@ -48,7 +49,13 @@ final class Fixtures {
                 null,
                 Map.of(),
                 null,
-                Map.of("extraction-agent", EXTRACTION_TOKEN, "tlr-agent", TLR_TOKEN),
+                Map.of(
+                        "extraction-agent",
+                        EXTRACTION_TOKEN,
+                        "tlr-agent",
+                        TLR_TOKEN,
+                        "inconsistency-agent",
+                        INCONSISTENCY_TOKEN),
                 store,
                 null,
                 null);

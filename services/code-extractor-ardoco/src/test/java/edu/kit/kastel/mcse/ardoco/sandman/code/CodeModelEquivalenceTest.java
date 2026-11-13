@@ -82,6 +82,11 @@ class CodeModelEquivalenceTest {
     @Test
     void theCodeModelSkillGivesTheAcmOfWriteOutCodeModelInTwoRuns() throws Exception {
         Path dir = BenchmarkCode.unpack("teastore", tmp.resolve("teastore"));
+        for (String oversized : allFiles(dir)) {
+            if (size(dir.resolve(oversized)) > Limits.DEFAULT_FILE_BYTES) {
+                Files.delete(dir.resolve(oversized));
+            }
+        }
         List<String> files = regularFiles(dir);
         CodeService service = Fixtures.service(dir);
         ObjectNode request = JSON.createObjectNode();
@@ -378,6 +383,14 @@ class CodeModelEquivalenceTest {
             return JSON.writeValueAsString(acm);
         } finally {
             Files.deleteIfExists(file);
+        }
+    }
+
+    private static List<String> allFiles(Path dir) throws IOException {
+        try (Stream<Path> s = Files.walk(dir)) {
+            return s.filter(p -> Files.isRegularFile(p, java.nio.file.LinkOption.NOFOLLOW_LINKS))
+                    .map(p -> dir.relativize(p).toString().replace('\\', '/'))
+                    .toList();
         }
     }
 

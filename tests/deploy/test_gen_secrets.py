@@ -39,7 +39,8 @@ def test_code_plugin_has_one_distinct_inbound_token_per_caller(tmp_path):
     secrets = run(tmp_path)
     own = (secrets / "plugin_in_code-extractor-ardoco").read_text()
     tlr = (secrets / "plugin_in_code-extractor-ardoco_tlr").read_text()
-    assert own and tlr and own != tlr
+    inc = (secrets / "plugin_in_code-extractor-ardoco_inc").read_text()
+    assert own and tlr and inc and len({own, tlr, inc}) == 3
 
 
 def test_non_mounted_reset_to_owner_only(tmp_path):

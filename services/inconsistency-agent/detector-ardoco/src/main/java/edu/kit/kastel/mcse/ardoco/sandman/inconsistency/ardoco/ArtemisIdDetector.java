@@ -49,7 +49,7 @@ public final class ArtemisIdDetector implements InconsistencyDetector {
 
     /** ServiceLoader entry: the gateway settings are read from the environment when a run needs them. */
     public ArtemisIdDetector() {
-        this(policy -> LlmAccess.forPolicy(Settings.fromEnv(), policy));
+        this(policy -> LlmAccess.forPolicy(Settings.fromEnv(), policy), PluginCodeModelSource.fromEnv());
     }
 
     public ArtemisIdDetector(Function<String, LlmAccess> access) {

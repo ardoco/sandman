@@ -258,8 +258,8 @@
     "semantic_hash": ""
   },
   "config/inconsistency/plugins.yaml": {
-    "mtime": 1794517226.8708186,
-    "seen": 1794517238.9880161,
+    "mtime": 1794537366.4835248,
+    "seen": 1794545368.485848,
     "ast_hash": "4047593c8a3402a0b5ca65ce566180cf",
     "semantic_hash": ""
   },
@@ -300,8 +300,8 @@
     "semantic_hash": "9cbc81d5ffc8fc4ee5a1a2f331fdaee2"
   },
   "config/tlr/approaches.yaml": {
-    "mtime": 1794517226.8710277,
-    "seen": 1794517238.9881139,
+    "mtime": 1794537366.4837093,
+    "seen": 1794545368.485852,
     "ast_hash": "764aa97e800a4ce613330b8681933ea1",
     "semantic_hash": ""
   },
@@ -492,10 +492,10 @@
     "semantic_hash": ""
   },
   "deploy/check-env.sh": {
-    "mtime": 1791735164.1038675,
-    "seen": 1794312116.36597,
-    "ast_hash": "144c3507f47d128a2a0ef38642b5e9da",
-    "semantic_hash": "144c3507f47d128a2a0ef38642b5e9da"
+    "mtime": 1794545564.687897,
+    "seen": 1794545576.8056672,
+    "ast_hash": "55b56954df696daf6a26a637a80c1505",
+    "semantic_hash": ""
   },
   "deploy/corenlp-gateway/entrypoint.sh": {
     "mtime": 1791695462.2021017,
@@ -522,9 +522,9 @@
     "semantic_hash": "1eba0012bbdba68902d818a709152f17"
   },
   "deploy/docker-compose.yml": {
-    "mtime": 1794313403.7481709,
-    "seen": 1794313412.238082,
-    "ast_hash": "efbdbe60f4877074b1f760d7deee9af0",
+    "mtime": 1794545564.6881588,
+    "seen": 1794545576.8057349,
+    "ast_hash": "c8eaa258c3c1da045f1fb128b3bceadb",
     "semantic_hash": ""
   },
   "deploy/gateway/config.json": {
@@ -534,14 +534,14 @@
     "semantic_hash": "e3096ab7b6239baab089cb9de63b3306"
   },
   "deploy/gen-secrets.sh": {
-    "mtime": 1794012146.806894,
-    "seen": 1794312116.365974,
-    "ast_hash": "732bfcbe09e94d233a9d324d5d6e7c47",
-    "semantic_hash": "732bfcbe09e94d233a9d324d5d6e7c47"
+    "mtime": 1794545564.6883826,
+    "seen": 1794545576.805752,
+    "ast_hash": "eddcada5f31eda41b14f077b55006a57",
+    "semantic_hash": ""
   },
   "deploy/obs/alerts.yaml": {
     "mtime": 1794046358.870199,
-    "seen": 1794475228.019126,
+    "seen": 1794526489.244031,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -1674,10 +1674,10 @@
     "semantic_hash": "3b077c57f0464eda5d17197a844fc68b"
   },
   "scripts/perf.py": {
-    "mtime": 1794012146.8136692,
-    "seen": 1794312116.366064,
-    "ast_hash": "d674fcef2bc9530ef5d2de48e3ee27d4",
-    "semantic_hash": "d674fcef2bc9530ef5d2de48e3ee27d4"
+    "mtime": 1794545564.7317429,
+    "seen": 1794545576.8099709,
+    "ast_hash": "65d9348c361a11aa162e8bf481a204e4",
+    "semantic_hash": ""
   },
   "scripts/removal_t73/RemovalDriver.java": {
     "mtime": 1793568869.5428452,
@@ -1758,15 +1758,15 @@
     "semantic_hash": "6539a260b32c735692071e9de8ee8ccf"
   },
   "services/code-extractor-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/code/CodeModelSkill.java": {
-    "mtime": 1791727561.1296935,
-    "seen": 1794312116.366071,
-    "ast_hash": "01ebd30c0d63dfbbb4e684d9520be07c",
-    "semantic_hash": "01ebd30c0d63dfbbb4e684d9520be07c"
+    "mtime": 1794545564.7325165,
+    "seen": 1794545576.810176,
+    "ast_hash": "7a4cd6ab2e9f669b7a9c52d92e55bedb",
+    "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/code/CodeService.java": {
-    "mtime": 1794517226.8914697,
-    "seen": 1794517238.993025,
-    "ast_hash": "211b6145b30517cd332c63a6943a7b46",
+    "mtime": 1794545564.7328277,
+    "seen": 1794545576.810177,
+    "ast_hash": "2feaf1419b2bfc229f47ab5ba16e5095",
     "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/code/ElementMapping.java": {
@@ -1806,9 +1806,9 @@
     "semantic_hash": "b9291993f513bcf2eebcc2df811b1712"
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/CodeModelEquivalenceTest.java": {
-    "mtime": 1794517226.8918278,
-    "seen": 1794517238.993199,
-    "ast_hash": "6d76b836fe3ce51dd44d39b53c98e593",
+    "mtime": 1794545564.733515,
+    "seen": 1794545576.8103979,
+    "ast_hash": "5b03dc65e51cadbc2ffcea31b8af8f5d",
     "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/CodeModelSkillTest.java": {
@@ -1824,10 +1824,10 @@
     "semantic_hash": "f01dcab36ba30ef9083ba20cfb980ea2"
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/Fixtures.java": {
-    "mtime": 1791727554.9528077,
-    "seen": 1794312116.366076,
-    "ast_hash": "c3bee29693f795654b6841dab8b22fcc",
-    "semantic_hash": "c3bee29693f795654b6841dab8b22fcc"
+    "mtime": 1794545564.733665,
+    "seen": 1794545576.810466,
+    "ast_hash": "b1c3ed58beed28730e86948560bb06bc",
+    "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/HostileInputTest.java": {
     "mtime": 1794313403.7828138,
@@ -1842,9 +1842,9 @@
     "semantic_hash": "b8b73c2889e50d4f5a0683bc27a7fb6f"
   },
   "services/code-extractor-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/code/PluginServiceTest.java": {
-    "mtime": 1794517226.8925605,
-    "seen": 1794517238.9933372,
-    "ast_hash": "201e5c1d40f9c22b57d92bd5d12a267b",
+    "mtime": 1794545564.7338128,
+    "seen": 1794545576.810567,
+    "ast_hash": "480886e93ad081525eaa49e4543a3efa",
     "semantic_hash": ""
   },
   "services/code-extractor-ardoco/src/test/resources/fixtures/mapping/NoPackage.java": {
@@ -1939,13 +1939,13 @@
   },
   "services/dashboard/src/sandman_dashboard/migrations/001_init.sql": {
     "mtime": 1791657384.1468499,
-    "seen": 1794475228.0192761,
+    "seen": 1794526489.2441971,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "services/dashboard/src/sandman_dashboard/migrations/002_samples.sql": {
     "mtime": 1791657384.1469097,
-    "seen": 1794475228.019277,
+    "seen": 1794526489.2441978,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -2646,9 +2646,9 @@
     "semantic_hash": "c1bd888c7bf20d026f2a40058c62ee25"
   },
   "services/inconsistency-agent/detector-ardoco/pom.xml": {
-    "mtime": 1794517226.8941903,
-    "seen": 1794517238.9960792,
-    "ast_hash": "53311a3c0f1e35a7d066113c9ae63ae6",
+    "mtime": 1794545564.7344496,
+    "seen": 1794545576.8135412,
+    "ast_hash": "709989b0a73334aec2f4f0da16009250",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArdocoIdDetector.java": {
@@ -2664,9 +2664,9 @@
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisIdDetector.java": {
-    "mtime": 1794517226.8946817,
-    "seen": 1794517238.996083,
-    "ast_hash": "68505a68ff8e04b96e07d86ccb3c60c4",
+    "mtime": 1794545564.7348351,
+    "seen": 1794545576.813654,
+    "ast_hash": "f361210f7467d2a42ec4bfa112933872",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArtemisRunner.java": {
@@ -2700,9 +2700,9 @@
     "semantic_hash": "ff10a2e33424fdd0fd04f6fcaad52a70"
   },
   "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/Mapping.java": {
-    "mtime": 1794517226.8950632,
-    "seen": 1794517238.996234,
-    "ast_hash": "d5f4bbb6238f387a42d7383a05ff2e72",
+    "mtime": 1794545564.7353497,
+    "seen": 1794545576.813859,
+    "ast_hash": "5d1266bc51dbe7cc709f13bb333ae856",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/ArdocoIdDetectorTest.java": {
@@ -2730,9 +2730,9 @@
     "semantic_hash": "9b56ebbdc245f864461bee78e356887c"
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/MappingTest.java": {
-    "mtime": 1794517226.8956702,
-    "seen": 1794517238.996347,
-    "ast_hash": "7a129b9b3d99db665958de65327932e9",
+    "mtime": 1794545564.7361193,
+    "seen": 1794545576.814077,
+    "ast_hash": "3a310acfc4a0af805536a368f0e0b660",
     "semantic_hash": ""
   },
   "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/StandaloneBaseline.java": {
@@ -3049,31 +3049,31 @@
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/001_init.sql": {
     "mtime": 1791657384.1794865,
-    "seen": 1794475228.019397,
+    "seen": 1794526489.2443242,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/002_step_traceparent.sql": {
     "mtime": 1791657384.1795838,
-    "seen": 1794475228.019397,
+    "seen": 1794526489.2443252,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/003_step_merged_into.sql": {
     "mtime": 1791657384.1796691,
-    "seen": 1794475228.019398,
+    "seen": 1794526489.2443259,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/004_step_activity.sql": {
     "mtime": 1792421181.7835827,
-    "seen": 1794475228.019398,
+    "seen": 1794526489.2443259,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "services/orchestrator/src/sandman_orchestrator/migrations/005_plans.sql": {
     "mtime": 1794012146.8182797,
-    "seen": 1794475228.019399,
+    "seen": 1794526489.2443268,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -3229,13 +3229,13 @@
   },
   "services/query-service/src/sandman_query/migrations/001_init.sql": {
     "mtime": 1791657384.1824934,
-    "seen": 1794475228.0194151,
+    "seen": 1794526489.244343,
     "ast_hash": "",
     "semantic_hash": ""
   },
   "services/query-service/src/sandman_query/migrations/002_suggestions.sql": {
     "mtime": 1794012146.819989,
-    "seen": 1794475228.019416,
+    "seen": 1794526489.244344,
     "ast_hash": "",
     "semantic_hash": ""
   },
@@ -4170,9 +4170,9 @@
     "semantic_hash": "118fd4ffd6053a4b704b3b731549f493"
   },
   "tests/cassettes/walking-skeleton/kg-canonical.json": {
-    "mtime": 1794517226.9009702,
-    "seen": 1794517239.002079,
-    "ast_hash": "85ba42c81b871c991a3b2cc39fb69e7f",
+    "mtime": 1794545564.7380722,
+    "seen": 1794545576.820517,
+    "ast_hash": "2c5aa2c294a0bca685af22f57228796b",
     "semantic_hash": ""
   },
   "tests/conformance/test_python_conformance.py": {
@@ -4182,15 +4182,15 @@
     "semantic_hash": "dc30f2cbfffa3a7ff1429204aaed89a6"
   },
   "tests/deploy/test_check_env.py": {
-    "mtime": 1791735164.1039803,
-    "seen": 1794312116.36627,
-    "ast_hash": "36a24456f259d092e5e74b33288266f4",
-    "semantic_hash": "36a24456f259d092e5e74b33288266f4"
+    "mtime": 1794545564.73823,
+    "seen": 1794545576.820534,
+    "ast_hash": "73934378a40e262bf76ec31c1e35f29e",
+    "semantic_hash": ""
   },
   "tests/deploy/test_code_extractor.py": {
-    "mtime": 1794517226.9011245,
-    "seen": 1794517239.002115,
-    "ast_hash": "b245e9387842df43a05e054ef045222e",
+    "mtime": 1794545564.738389,
+    "seen": 1794545576.820535,
+    "ast_hash": "a494d7015f5b0fab51a0dc633cf040bd",
     "semantic_hash": ""
   },
   "tests/deploy/test_corenlp_gateway.py": {
@@ -4206,10 +4206,10 @@
     "semantic_hash": "f579b6ea626f21448395c7b0e17bd46f"
   },
   "tests/deploy/test_gen_secrets.py": {
-    "mtime": 1794012146.8247077,
-    "seen": 1794312116.366272,
-    "ast_hash": "83c8e67a7397f498ee03a6bc832053f3",
-    "semantic_hash": "83c8e67a7397f498ee03a6bc832053f3"
+    "mtime": 1794545564.7385366,
+    "seen": 1794545576.8205702,
+    "ast_hash": "ea06a633cee85f1f1ae1e576ce81ccba",
+    "semantic_hash": ""
   },
   "tests/deploy/test_open_webui_proxy.py": {
     "mtime": 1791657384.1930988,
@@ -4638,9 +4638,9 @@
     "semantic_hash": ""
   },
   "adr/0015-ardoco-integration.md": {
-    "mtime": 1794517226.8703966,
-    "seen": 1794517239.003582,
-    "ast_hash": "1c179aec9148dd424b00de8e3b7dee1c",
+    "mtime": 1794545564.6875772,
+    "seen": 1794545576.821908,
+    "ast_hash": "1c1c30d36bf1b335415f09bdae388fdf",
     "semantic_hash": ""
   },
   "adr/0016-system-overview-dashboard.md": {
@@ -4728,9 +4728,9 @@
     "semantic_hash": "2102b7840c5c7d3311718cdc6e43ca4a"
   },
   "docs/plugins.md": {
-    "mtime": 1794517226.873205,
-    "seen": 1794517239.0038111,
-    "ast_hash": "2159ee793cf59207f7b3d57cd2bfdbd2",
+    "mtime": 1794545564.6892993,
+    "seen": 1794545576.8221529,
+    "ast_hash": "8c6383f9371834c00dc2c82323aaba16",
     "semantic_hash": ""
   },
   "docs/tasks/T-desktop-app.md": {
@@ -5202,10 +5202,10 @@
     "semantic_hash": "2b7b5ca21a5c39d419638e81be27c33e"
   },
   "services/extraction-agent/THIRD-PARTY.md": {
-    "mtime": 1792421181.7759817,
-    "seen": 1794312116.366366,
-    "ast_hash": "6e18983ca03b5b248b7eece08b668f04",
-    "semantic_hash": "6e18983ca03b5b248b7eece08b668f04"
+    "mtime": 1794545564.7340534,
+    "seen": 1794545576.8236742,
+    "ast_hash": "d781057e1ecb7a3635337f6b629c8954",
+    "semantic_hash": ""
   },
   "services/extraction-agent/src/sandman_extraction/prompts/concepts.txt": {
     "mtime": 1791657384.1611233,
@@ -5514,9 +5514,9 @@
     "semantic_hash": ""
   },
   "docs/tasks/T3.7-ardoco-version-raise.md": {
-    "mtime": 1794517226.8734472,
-    "seen": 1794517239.003915,
-    "ast_hash": "153b5f5fb5d6ec6a367fbf10382a3715",
+    "mtime": 1794545564.6898842,
+    "seen": 1794545576.822263,
+    "ast_hash": "dc58ba174871899a6665a9988c052e47",
     "semantic_hash": ""
   },
   "docs/tasks/T4.2-nl-query-evaluation-set.md": {
@@ -5526,9 +5526,9 @@
     "semantic_hash": ""
   },
   "docs/tasks/T5.4-performance-budget.md": {
-    "mtime": 1794313403.751619,
-    "seen": 1794313412.2541592,
-    "ast_hash": "c468c001e5dfa9583e6943a0b812b7fe",
+    "mtime": 1794545564.6909726,
+    "seen": 1794545576.822282,
+    "ast_hash": "1c3688462abf1d2024650440a14242bd",
     "semantic_hash": ""
   },
   "docs/tasks/TX.1-typescript-agent-kit.md": {
@@ -5916,9 +5916,9 @@
     "semantic_hash": ""
   },
   "docs/notes/eval-T3.9.md": {
-    "mtime": 1794517226.8723328,
-    "seen": 1794517251.542475,
-    "ast_hash": "c94fa0a26d4fe0ffb6b3529b9b8e3957",
+    "mtime": 1794545564.6888368,
+    "seen": 1794545576.822059,
+    "ast_hash": "b2e6edb8f78b7784429116c099e8b8f0",
     "semantic_hash": ""
   },
   "docs/notes/spike-T3.8.md": {
@@ -5934,15 +5934,147 @@
     "semantic_hash": ""
   },
   "docs/tasks/T3.8-artemis-tlr-and-code-extractor.md": {
-    "mtime": 1794517226.8735461,
-    "seen": 1794517251.542687,
-    "ast_hash": "45ced604bdc8d1e7280177b9145c6a37",
+    "mtime": 1794545564.6903903,
+    "seen": 1794545576.822264,
+    "ast_hash": "44e03fd2534aa00cdace8083401f036f",
     "semantic_hash": ""
   },
   "docs/tasks/T3.9-artemis-inconsistency-detectors-and-defaults.md": {
-    "mtime": 1794517226.8736548,
-    "seen": 1794517251.542688,
-    "ast_hash": "8367dfaf01d87d67592a392cc63fd540",
+    "mtime": 1794545564.690648,
+    "seen": 1794545576.8222651,
+    "ast_hash": "511262ac1955361356b266e6ae73f9b8",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/mediastore/goldstandards/goldstandard_sad_diagram_2016.json": {
+    "mtime": 1794545564.6990829,
+    "seen": 1794545576.805825,
+    "ast_hash": "afa28417e38c2b6834751acc879eaeb7",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/teammates/goldstandards/goldstandard_sad_diagram_2021.json": {
+    "mtime": 1794545564.7033014,
+    "seen": 1794545576.805826,
+    "ast_hash": "d5ae61894ab995eae0ec6bb801c4ac95",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/teastore/goldstandards/goldstandard_sad_diagram_2018.json": {
+    "mtime": 1794545564.706795,
+    "seen": 1794545576.8058271,
+    "ast_hash": "a6253b84a7da8968650eee91143cf36d",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/SOURCES.txt": {
+    "mtime": 1794545564.6915984,
+    "seen": 1794545576.822527,
+    "ast_hash": "715e1ba76e85b633ea27d786ed1c34af",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/beets/code/README.md": {
+    "mtime": 1794545564.6920238,
+    "seen": 1794545576.822528,
+    "ast_hash": "1e17b991c8b4cd99d6b61c3b70685963",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/beets/text/beets.txt": {
+    "mtime": 1794545564.6935134,
+    "seen": 1794545576.822528,
+    "ast_hash": "ec16c10deedbadada603a2e06563cb35",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/bigbluebutton/code/README.md": {
+    "mtime": 1794545564.6936953,
+    "seen": 1794545576.822529,
+    "ast_hash": "945d2961617a621b02c9b41a8d20de39",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/coronawarnapp/code/README.md": {
+    "mtime": 1794545564.6955214,
+    "seen": 1794545576.82253,
+    "ast_hash": "1c8f565c6abfe4dda04ac15ed5c1642d",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/coronawarnapp/text/coronawarnapp.txt": {
+    "mtime": 1794545564.6965857,
+    "seen": 1794545576.822531,
+    "ast_hash": "52dce1b9c6bbdce142a3d68d0d4e2fc1",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/jabref/code/README.md": {
+    "mtime": 1794545564.696791,
+    "seen": 1794545576.822531,
+    "ast_hash": "89e7690d805269cec0a355749c3f9e35",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/mediastore/code/README.md": {
+    "mtime": 1794545564.697586,
+    "seen": 1794545576.8225322,
+    "ast_hash": "719a3996fc72ded37f13012b82158e82",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/rod/code/README.md": {
+    "mtime": 1794545564.6995897,
+    "seen": 1794545576.8225331,
+    "ast_hash": "aaee3af963ed4bc564f55f0d0453b466",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/rod/text/rod.txt": {
+    "mtime": 1794545564.700555,
+    "seen": 1794545576.8225331,
+    "ast_hash": "0b9313a96b4ae7381d56b53b8fe850f3",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/scons/code/README.md": {
+    "mtime": 1794545564.7007353,
+    "seen": 1794545576.8225338,
+    "ast_hash": "322f94f48cfdb2ae4724e2e089957015",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/scons/text/scons.txt": {
+    "mtime": 1794545564.7014608,
+    "seen": 1794545576.8225338,
+    "ast_hash": "6ad79fbc9a294e1b6772734a80086ef9",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/teammates/code/README.md": {
+    "mtime": 1794545564.7016468,
+    "seen": 1794545576.8225348,
+    "ast_hash": "6185e4127166341bcbf17d7e80b7d67f",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/teastore/code/README.md": {
+    "mtime": 1794545564.7042053,
+    "seen": 1794545576.822536,
+    "ast_hash": "bd3bfca1e91f62c799e5954c56b2dae8",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/zengarden/code/README.md": {
+    "mtime": 1794545564.707351,
+    "seen": 1794545576.822536,
+    "ast_hash": "3181db51adfbf0af7dc97c258fd41a0c",
+    "semantic_hash": ""
+  },
+  "experiments/benchmark/zengarden/text/zengarden.txt": {
+    "mtime": 1794545564.7097695,
+    "seen": 1794545576.822537,
+    "ast_hash": "2efeeece735442ef3bf9203f8d172bbb",
+    "semantic_hash": ""
+  },
+  "services/inconsistency-agent/detector-ardoco/src/main/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/PluginCodeModelSource.java": {
+    "mtime": 1794545564.7354686,
+    "seen": 1794545576.8138602,
+    "ast_hash": "9d7bd6be60feb075b58fdfa17fa3e0d8",
+    "semantic_hash": ""
+  },
+  "services/inconsistency-agent/detector-ardoco/src/test/java/edu/kit/kastel/mcse/ardoco/sandman/inconsistency/ardoco/PluginCodeModelSourceTest.java": {
+    "mtime": 1794545564.7362313,
+    "seen": 1794545576.8140779,
+    "ast_hash": "8bb307e117a41dcaefc006d6ea0d5a4f",
+    "semantic_hash": ""
+  },
+  "docs/notes/draft-upstream-issue-chatmodel-injection.md": {
+    "mtime": 1794545564.6885726,
+    "seen": 1794545576.822058,
+    "ast_hash": "6f780cbf2731635d63ec653d989c3973",
     "semantic_hash": ""
   },
   "apps/desktop/package-lock.json": {

@@ -1,0 +1,29 @@
+Vendored ArDoCo benchmark data for the T3.9 evaluation (step 7). Not used by any build or unit test.
+
+Pins
+  ArDoCo core 21ef6821e1b8fe378ee58ae075c1c05a14fad436, core/tests-base/src/main/resources/benchmark (all projects).
+  ArDoCo/Benchmark e60ddb2676358048131178c925e86a5b33ec38f2 (read-only comparison for teastore, mediastore, teammates, bigbluebutton, jabref).
+
+Layout, per project
+  goldstandards/*.csv|json   gold standards (SAD-SAM, UME, SAD-code, SAM-code, classes, datafiles, TEAM, language, style)
+  text/<project>.txt         SAD, only for the five projects that are new in 21ef682 (beets, rod, zengarden, scons, coronawarnapp)
+  code/README.md             the upstream commit of the code that the ACM describes
+  code/codeModel.acm         ACM, only if <= 1 MB (beets, rod, zengarden, mediastore, teastore)
+
+Not vendored (size or licence)
+  ACMs above 1 MB: bigbluebutton 1.8 MB, coronawarnapp 2.9 MB, jabref 7.6 MB, scons 2.2 MB, teammates 4.1 MB. Read them from
+    ../Benchmark or from core 21ef682 at the same path.
+  Texts, PCM and UML of teastore, mediastore, teammates, bigbluebutton, jabref: already in services/extraction-agent/tests/fixtures/benchmark.
+  Images, informal-diagram gold standards (except the three that were copied with their project) and the source code of all
+  projects (see code/README.md for the commits).
+
+Gold standards of the new inconsistency kinds
+  goldstandard_class_team_inconsistencies.csv, goldstandard_datafile_team_inconsistencies.csv,
+  goldstandard_programming_language_inconsistencies_*.csv, goldstandard_architectural_style_pattern_inconsistencies_*.csv.
+
+Licence
+  Gold standards, models and ACMs: MIT, see LICENSE-Benchmark.
+  The texts of the five new projects come from the ArDoCo core test resources. That directory has no README for them, so the
+  text licence is not stated. They are short (109 to 369 lines) and describe beets (MIT), ROD (MIT), ZenGarden (LGPL-3.0),
+  SCons (MIT) and Corona-Warn-App server (Apache-2.0). The text licence is NOT verified, see NOTICE.
+  Repository owner: confirm, or remove experiments/benchmark/*/text/.

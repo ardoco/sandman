@@ -78,7 +78,7 @@ npm run typecheck         # from apps/desktop
 4. Enter the keys. Use From store to fill a field. Keys are saved to the key store unless you clear "Save to key store". Tick "Save as default" to reuse them for new projects.
 5. Click Create. The app writes `deploy/secrets/gateway.env` and `deploy/.env`.
 6. Click Start in the project header. The app runs `make up` in the checkout. The URL is `http://127.0.0.1:8080`.
-7. Create a token (see below) and paste it in Settings.
+7. Create a token (see below) and paste it in Settings, tab Project.
 
 When you close the app or switch the project while the stack runs, a dialog asks what to do. Choose Stop containers, Keep running, or Cancel.
 
@@ -106,16 +106,16 @@ The Overview tab shows numbered steps when the project has no token.
 3. Check the command preview. Click Ingest. Click Cancel to stop the CLI.
 4. The log shows the CLI output. The app follows the new workflow until it ends.
 
-The app runs `uv run --project <checkout> sandman ingest`. Set a CLI command in Settings to use another command. Single files are staged in a temporary folder and sent with mode partial.
+The app runs `uv run --project <checkout> sandman ingest`. Set a CLI command in Settings, tab Project, to use another command. Single files are staged in a temporary folder and sent with mode partial.
 
 ### Shortcuts
 
-Press Ctrl+1 to Ctrl+9 (Cmd on macOS) to select a tab. The start screen offers Connect for a running system, Run locally and Continue for the last project.
+Press Ctrl+1 to Ctrl+9 (Cmd on macOS) to select a tab. The start screen offers Connect for a running system, Run locally, Continue for the last project and Settings. Settings has the tabs General (language, theme, font size, default checkout, saved systems) and Project.
 
 ## Limitations
 
 * The app has no administration, no token management and no password change.
 * The app does not update itself. The bundles are not signed.
-* Ingestion needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings.
+* Ingestion needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings, tab Project.
 * Linux and Windows builds were not tested.
 * The app was not tested against a running stack in this version.

@@ -80,13 +80,13 @@ Leave a key empty to keep the current value. A key that is set shows `(set, leav
 
 To reuse the keys in other projects, tick "Save as default for new projects". The app stores the default keys in the keychain of the operating system. New projects start with these values.
 
-You can change the keys later in the tab Settings. Restart the stack to apply the change.
+You can change the keys later in Settings, tab Project. Restart the stack to apply the change.
 
 ## Generate secrets
 
 A local stack needs secret files in `deploy/secrets`. The app shows the line `Secrets: present` or `Secrets: missing`.
 
-1. Select the checkout folder in the new-project dialog, or open the tab Settings.
+1. Select the checkout folder in the new-project dialog, or open Settings, tab General.
 2. If the line shows `missing`, click Generate secrets.
 3. Read the output in the log. The app runs `make secrets` in the checkout.
 
@@ -109,7 +109,7 @@ The file `keystore.json` holds labels, kinds, and dates. The OS keychain holds t
 
 ### Use a key from the store
 
-1. Open a key field in the new-project dialog or in the tab Settings.
+1. Open a key field in the new-project dialog or in Settings, tab Project.
 2. Select an entry in the list From store. The app fills the field.
 
 ### Save a key to the store
@@ -217,7 +217,7 @@ When the CLI ends, the app looks for the new workflow. It shows the steps and up
 
 Single files are always sent as mode `partial`. The app copies them first to a temporary folder. The relative paths below their common parent folder stay the same.
 
-The app runs `uv run --project <checkout> sandman ingest`. A remote project has no checkout. To ingest from a remote project, enter a CLI command in the tab Settings.
+The app runs `uv run --project <checkout> sandman ingest`. A remote project has no checkout. To ingest from a remote project, enter a CLI command in Settings, tab Project.
 
 ## Review the classification
 
@@ -257,20 +257,54 @@ If a picked folder has weak guesses that you did not review, the dialog shows ho
 | Trace viewer | artifacts in columns, links as edges, findings as markers; filters; click an element or link for details; buttons `confirmed` and `rejected` |
 | Ask | enter a question in natural language; shows answer, rows and Cypher |
 | Graph | graph of elements and relations; click a node to load its neighbours |
-| Settings | token, CLI command, keys (local project), buttons Open console and Open dashboard |
 
 The tabs Overview and Workflows refresh every 3 seconds while a workflow is `PENDING` or `RUNNING`. They stop when the window is hidden.
 
-Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Classification is tab 3 and Trace viewer is tab 7. Settings is tab 10 and has no shortcut. The window title shows the project name and the state of the stack.
+Press Ctrl+1 to Ctrl+9 (Cmd+1 to Cmd+9 on macOS) to select a tab in the order of the table. Classification is tab 3 and Trace viewer is tab 7. The window title shows the project name and the state of the stack.
 
 Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEPTED`, `REJECTED` or `DEFERRED` needs a reason and a cause. Enter both before you click the button. If another user changed the finding, click Reload finding. See [trace-links-and-findings.md](trace-links-and-findings.md).
+
+## Settings
+
+Click Settings on the start screen or in the project header. The screen has two tabs.
+
+| Tab | Content |
+|---|---|
+| General | language, theme, font size, default checkout folder, saved systems, app version |
+| Project | token, CLI command, keys (local project), CoreNLP mode, buttons Open console and Open dashboard |
+
+The tab Project needs an open project. On the start screen, the tab is off. The screen shows "Open a project first".
+
+### General settings
+
+| Setting | Values |
+|---|---|
+| Language | System, English, Deutsch |
+| Theme | System, Light, Dark |
+| Font size | Small, Normal, Large |
+| Default checkout folder | folder that the dialog Run locally fills in |
+
+- A change applies at once. The app saves it at once. No restart is needed.
+- If the language is System, the app uses German when the system language is German. Otherwise, the app uses English.
+- The language applies to all texts of the app. Server messages, log lines and ids stay as they are.
+
+### Forget a saved system
+
+1. Open Settings, tab General.
+2. Find the system in the list Saved systems. The list shows the URL and the number of projects.
+3. Click Forget.
+4. Confirm the question.
+
+The app removes all remote projects of this URL. The app also removes their tokens from the key store. The system itself does not change.
+
+The app saves the settings in the file `settings.json` in the app configuration folder. The file holds no token, key or password.
 
 ## Limitations
 
 - The app has no administration, no password change, no token management and no project creation. Use the console and the REST API.
 - Rejecting a trace link needs a reason. Links of the approaches `explicit-reference` and `user-declared` cannot be reviewed.
 - The app does not update itself. The bundles are not signed.
-- Ingest needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings.
+- Ingest needs the `sandman` CLI. A remote project without a checkout needs a CLI command in Settings, tab Project.
 - Linux and Windows builds were not tested.
 - The app was not yet tested against a running stack. The manual acceptance run is open.
 - The graph shows at most 100 relations for each click.
@@ -279,13 +313,13 @@ Triage of a finding needs a role of `triager` or higher. A triage move to `ACCEP
 
 | Symptom | Action |
 |---|---|
-| The app shows `401` or a message about the token | Paste a valid token in the tab Settings. Click Save. |
+| The app shows `401` or a message about the token | Paste a valid token in Settings, tab Project. Click Save. |
 | The tab Overview shows "No token yet" | Follow the numbered steps (see above). |
 | Start says that port 8080 is in use | Stop the other program. Start again. |
 | Start says that Docker is not running | Start Docker. Start again. |
 | The state stays `stopped` after Start | Read the log below the header. Check that Docker runs. Run `make up` in the checkout to see the full output. |
 | Start fails with a `check-env` message | Fix the keys or `deploy/secrets/corenlp_credentials`. See [getting-started.md](getting-started.md). |
 | The system is unreachable | For a local project, click Start. For a remote project, check the URL and the network. |
-| Ingest fails with `uv` not found | Install [uv](https://docs.astral.sh/uv/). Or enter another CLI command in Settings. |
+| Ingest fails with `uv` not found | Install [uv](https://docs.astral.sh/uv/). Or enter another CLI command in Settings, tab Project. |
 | macOS refuses to open the app | Open the app with right click and Open. The bundle is not signed. |
 | The app cannot store a token on Linux | Start a Secret Service provider, for example GNOME Keyring. |

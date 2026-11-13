@@ -156,6 +156,9 @@ def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> li
             problems.append(f"{path}: milestone or 'planned' text in YAML, use the planned field")
     for step in (s for f in meta["flows"] for s in f["steps"]):
         problems += [f"flow step {step['title']}: unknown component {i}" for i in step["components"] if i not in ids]
+    for e in meta.get("edges", []):
+        if e.get("from") not in ids or e.get("to") not in ids or e.get("kind") not in ("calls", "depends"):
+            problems.append(f"edges: invalid entry {e}")
     return problems
 
 
@@ -387,6 +390,17 @@ def build() -> dict:
             for target in re.findall(r"://([a-z][\w-]*):\d+", str(v)):
                 if target in services and target != name:
                     edges[(name, target)] = "calls"
+    caddy = (ROOT / "deploy/proxy/Caddyfile").read_text()
+    for target in re.findall(r"^\s*reverse_proxy\s+([a-z][\w-]*):\d+", caddy, re.M):
+        if target in services and target != "edge-proxy":
+            edges[("edge-proxy", target)] = "calls"
+    meta = yaml.safe_load(META.read_text())
+    ms = milestones()
+    problems = sync_problems(set(comps), meta, ms)
+    if problems:
+        raise SystemExit("site/src/components.yaml out of sync:\n  " + "\n  ".join(problems))
+    for e in meta.get("edges", []):
+        edges.setdefault((e["from"], e["to"]), e["kind"])
     for name, dep in edges:
         comps[name].setdefault("dependsOn", []).append(dep)
         comps[dep].setdefault("usedBy", []).append(name)
@@ -394,10 +408,6 @@ def build() -> dict:
         c["dependsOn"] = sorted(c.get("dependsOn", []))
         c["usedBy"] = sorted(c.get("usedBy", []))
 
-    meta = yaml.safe_load(META.read_text())
-    ms = milestones()
-    if problems := sync_problems(set(comps), meta, ms):
-        raise SystemExit("site/src/components.yaml out of sync:\n  " + "\n  ".join(problems))
     order = list(meta["components"])
     for i, c in comps.items():
         c.update({f: " ".join(meta["components"][i][f].split()) for f in TEXT_FIELDS})

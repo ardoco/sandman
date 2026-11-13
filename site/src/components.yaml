@@ -279,6 +279,10 @@ zones:
     row: 2
     span: 4
 
+# Relations that scripts/build_site.py cannot derive from docker-compose.yml or the Caddyfile.
+edges:
+  - {from: desktop, to: edge-proxy, kind: calls}
+
 components:
   edge-proxy:
     zone: access

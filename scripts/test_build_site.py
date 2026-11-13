@@ -42,6 +42,22 @@ def test_edges_and_links_resolve(data):
             assert link["url"].startswith(f"{data['repo']}/")
 
 
+def test_caddyfile_and_manual_edges(data):
+    edges = {(e["from"], e["to"]): e["kind"] for e in data["edges"]}
+    for target in ("query-service", "dashboard", "otel-lgtm"):
+        assert edges[("edge-proxy", target)] == "calls"
+    assert edges[("desktop", "edge-proxy")] == "calls"
+    desktop = next(c for c in data["components"] if c["id"] == "desktop")
+    assert "edge-proxy" in desktop["dependsOn"]
+
+
+def test_unknown_edge_is_a_sync_problem(data):
+    ids = {c["id"] for c in data["components"]}
+    m = meta()
+    m["edges"] = [{"from": "desktop", "to": "nope", "kind": "calls"}, {"from": "desktop", "to": "nats", "kind": "x"}]
+    assert len(build_site.sync_problems(ids, m)) == 2
+
+
 def test_anchor_slugs():
     assert build_site.slugs(["A b: `c`", "Dup", "Dup"]) == ["a-b-c", "dup", "dup-1"]
 

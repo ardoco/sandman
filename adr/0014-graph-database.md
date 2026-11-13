@@ -84,7 +84,7 @@ T1.8 benchmark report (latency p50/p95 for the walking-skeleton and M1 workloads
   * Traverse is version 0.9.x. Expect breaking changes and bugs. The image is pinned by digest.
   * The image exists for amd64 only. On arm64 hosts it runs emulated.
   * There is no per-query memory limit. The server flag `--query-memory-limit` applies to all queries. The guard still rejects a user-written `QUERY MEMORY LIMIT`. The agents map the error code `Neo.TransientError.General.MemoryPoolOutOfMemoryError` to the non-retried memory-limit error.
-  * Vector dimension is not validated by the index. The embedding writer checks 768 dimensions.
+  * Vector dimension is not validated by the index. The embedding writer checks the dimension (2560 since 2026-11-13, see ADR-0018).
   * The image has no shell and no healthcheck tool. A sidecar service `traverse-health` checks `GET /api/ready`.
   * `SHOW STORAGE INFO` is replaced by `GET /api/health`. `CREATE SNAPSHOT` is replaced by `POST /api/save` plus a copy of `/data/traverse.tvdb`.
   * `CREATE INDEX` and `CREATE VECTOR INDEX` have no `IF NOT EXISTS`. `init_schema` ignores the error "already exists".

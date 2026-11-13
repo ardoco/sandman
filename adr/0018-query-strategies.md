@@ -76,4 +76,5 @@ Rules for all strategies:
 
 ## More Information
 
+* 2026-11-13, vector dimension: the index `element_embedding` has 2560 dimensions. This is the output size of `ollama/qwen3-embedding:4b` (`embed-local`), which the writer stores unchanged. `embed-default` (`openai/text-embedding-3-large`, 3072 dimensions, Matryoshka) is cut to 2560 and normalized again. A shorter vector is an error. The value is set in `contracts/kg/init.cypher`, `config/extraction/embedding.yaml` and `config/query/strategies.yaml`. A test fails if they differ. Neo4j allows up to 4096 dimensions per vector index. The limit of Traverse is not verified.
 * Related: ADR-0009 (Cypher strategy and guard), ADR-0013 (roles), ADR-0004 (gateway).

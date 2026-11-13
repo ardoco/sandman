@@ -89,7 +89,8 @@ docker compose -f deploy/docker-compose.yml restart extraction-agent
 |---|---|
 | `config/extraction/plugins.yaml` | extraction plugins, explicit reference patterns, `builtin.enabled` (`false` falls back to file-level extraction only) |
 | `config/extraction/enrichment.yaml` | LLM enrichment (summaries, concepts): `enabled`, enriched element kinds, element limit per run, concurrency, `maxSummaryChars`, `maxConceptsPerElement` |
-| `config/llm/models.yaml` | logical LLM routes (`chat-default`, `chat-alt`, `embed-default` need provider keys; `chat-local`, `embed-local` use the self-hosted models) |
+| `config/extraction/embedding.yaml` | element embeddings: `enabled` (default `false`), `dimension` (2560), element kinds, limits. See "Change the vector dimension" below |
+| `config/llm/models.yaml` | logical LLM routes (`chat-default`, `chat-alt`, `embed-default` need provider keys; `chat-local` (`qwen3.8:27b`), `embed-local` (`qwen3-embedding:4b`) use the self-hosted models) |
 | `config/inconsistency/plugins.yaml` | enabled detectors and detector plugins |
 | `config/tlr/approaches.yaml` | enabled trace link approaches and their parameters |
 | `config/orchestrator/rules.yaml` | debounce, concurrency, timeouts, retries, kind pairs for link recovery, planner flag `planner.enabled` (T6.4, off by default), `planner.maxSteps`, `planner.approvalTtl` |
@@ -195,3 +196,24 @@ Caution: A prune with `dryRun: false` cannot be undone. Run `make backup` first.
 | a failed workflow does not restart on re-ingestion | unchanged snapshots start nothing; trigger a workflow manually ([workflows.md](workflows.md)) |
 | nothing explains a partial run | inspect `Run` nodes with the query in [ingesting-artifacts.md](ingesting-artifacts.md) and the extraction agent log |
 | lost the only admin password | another admin can reset it on the **Administration** page. There is no supported reset otherwise: the initial account is created only while the user database is empty |
+
+## Change the vector dimension
+
+The vector index `element_embedding` has 2560 dimensions. The value is the same in three files:
+
+* `contracts/kg/init.cypher` (`vector.dimensions`)
+* `config/extraction/embedding.yaml` (`dimension`)
+* `config/query/strategies.yaml` (`graphrag.dimension`)
+
+A vector that is longer than `dimension` is cut and normalized again. This is correct for Matryoshka models such as `openai/text-embedding-3-large`. A vector that is shorter than `dimension` is an error. The model `qwen3-embedding:4b` returns 2560 dimensions. It is stored unchanged. Neo4j supports up to 4096 dimensions. The limit of Traverse is not verified.
+
+The startup step `kg-migrate` does not change an existing index. It ignores the error "already exists". If a deployment has an index with another dimension, do these steps:
+
+1. Stop the extraction agent and the query service.
+2. Run `DROP INDEX element_embedding`.
+3. Run the `CREATE VECTOR INDEX element_embedding ...` statement of `contracts/kg/init.cypher`.
+4. Delete the old embeddings: `MATCH (e:Element) REMOVE e.embedding, e.embeddingModel`.
+5. Set `enabled: true` in `config/extraction/embedding.yaml`.
+6. Start the services and run a new extraction. The agent embeds all elements again.
+
+Embeddings are off by default. A deployment that never enabled them needs only the new index.

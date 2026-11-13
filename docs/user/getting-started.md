@@ -32,14 +32,16 @@ Cloud routes (`chat-default`, `chat-alt`, `embed-default` in `config/llm/models.
 
 `make secrets` sets `SELFHOSTED_LLM_URL=http://ollama:11434`. Choose one of two modes for the self-hosted models:
 
-**A. Local container (default).** Start the Ollama container and pull the two models (`qwen3:4b` for chat, `nomic-embed-text` for embeddings, about 3 GB), then start the stack:
+**A. Local container (default).** Start the Ollama container and pull the models of the routes `chat-local` and `embed-local`, then start the stack:
 
 ```sh
 make models
 make up
 ```
 
-The container is CPU-only, limited to 4 GB, and reachable only by the gateway. The `local-llm` profile pulls `qwen3:4b`, which needs about 12 GiB of Docker memory. All recorded cassettes use this model, so do not change `chat-local`.
+The container is CPU-only, limited to 4 GB, and reachable only by the gateway. The route `chat-local` is `ollama/qwen3.8:27b`. The route `embed-local` is `ollama/qwen3-embedding:4b` (2560 dimensions). The 27B model does not fit in the 4 GB container. Use mode B for it.
+
+Warning: `make models` pulls every `ollama/*` model of `config/llm/models.yaml`. For a small setup, edit `chat-local` and `embed-local` first. A small set is `qwen3:4b` and `nomic-embed-text:v1.5`. The embedding dimension of `nomic-embed-text` is 768. It is shorter than the index. Then embeddings fail. Do not combine it with the default index.
 
 **B. Remote Open WebUI.** If Open WebUI runs in front of Ollama on another machine, create an API key there (Settings, Account, API Keys; an admin must have enabled API keys) and set in `gateway.env`:
 

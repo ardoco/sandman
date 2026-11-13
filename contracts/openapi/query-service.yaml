@@ -44,6 +44,48 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Me" }
         "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+  /v1/auth/login-token:
+    post:
+      summary: Log in with a password and receive a personal API token (secret returned once, no cookie)
+      operationId: loginToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string }
+                password: { type: string, format: password }
+                name: { type: string, maxLength: 100, default: desktop }
+                projectId:
+                  $ref: "../common.schema.json#/$defs/ProjectId"
+                  description: Restrict the token to one project.
+                maxRole:
+                  enum: [viewer, triager, maintainer]
+                  description: Cap the token's role below the user's own role.
+                expiresAt:
+                  $ref: "../common.schema.json#/$defs/Timestamp"
+                  description: Defaults to 90 days from now; at most 365 days from now.
+              additionalProperties: false
+      responses:
+        "201":
+          description: Token created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/TokenInfo"
+                  - type: object
+                    required: [secret]
+                    properties:
+                      secret: { type: string }
+        "400": { $ref: "shared.yaml#/components/responses/BadRequest" }
+        "401": { $ref: "shared.yaml#/components/responses/Unauthorized" }
+        "403": { $ref: "shared.yaml#/components/responses/Forbidden" }
+        "429": { description: Too many failed logins (Retry-After in seconds) }
   /v1/auth/logout:
     post:
       summary: Log out (console session)

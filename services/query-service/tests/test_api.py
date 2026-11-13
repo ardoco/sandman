@@ -1,6 +1,7 @@
 """Authentication, tokens, admin and forwarding behavior of the /v1 API."""
 
 import json
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -31,6 +32,54 @@ async def test_login_failures_and_rate_limit(env: Env) -> None:
     blocked = await login(env, "admin", ADMIN_PASSWORD)
     assert blocked.status_code == 429 and blocked.headers["retry-after"]
     assert (await login(env, "someone-else", "wrong")).status_code == 429  # same client address
+
+
+async def login_token(env: Env, username: str = "admin", password: str = ADMIN_PASSWORD, **extra: object) -> "object":
+    return await env.http.post("/v1/auth/login-token", json={"username": username, "password": password, **extra})
+
+
+async def test_login_token_returns_working_secret_without_cookie(env: Env) -> None:
+    env.user("alice")
+    resp = await login_token(env, "alice", "password-alicealice")
+    assert resp.status_code == 201
+    validate("/v1/auth/login-token", "post", 201, resp.json())
+    assert "set-cookie" not in resp.headers and resp.json()["name"] == "desktop"
+    me = await env.http.get("/v1/auth/me", headers={"authorization": f"Bearer {resp.json()['secret']}"})
+    assert me.status_code == 200 and me.json()["username"] == "alice"
+    expires = datetime.fromisoformat(resp.json()["expiresAt"])
+    assert abs(expires - (datetime.now(UTC) + timedelta(days=90))) < timedelta(minutes=5)
+    assert resp.json()["secret"] not in str(env.store.db.execute("SELECT * FROM tokens").fetchall())
+
+
+async def test_login_token_scope_and_expiry_bounds(env: Env) -> None:
+    env.user("alice", {"alpha": "maintainer"})
+    soon = (datetime.now(UTC) + timedelta(days=1)).isoformat()
+    ok = await login_token(
+        env, "alice", "password-alicealice", name="desktop x", projectId="alpha", maxRole="viewer", expiresAt=soon
+    )
+    assert ok.status_code == 201
+    assert ok.json()["name"] == "desktop x" and ok.json()["projectId"] == "alpha" and ok.json()["maxRole"] == "viewer"
+    far = (datetime.now(UTC) + timedelta(days=366)).isoformat()
+    assert (await login_token(env, "alice", "password-alicealice", expiresAt=far)).status_code == 400
+    assert (await login_token(env, "alice", "password-alicealice", extra=1)).status_code == 400
+
+
+async def test_login_token_failures_rate_limit_and_blocked_users(env: Env) -> None:
+    for _ in range(5):
+        assert (await login_token(env, "admin", "wrong")).status_code == 401
+    blocked = await login_token(env, "admin", ADMIN_PASSWORD)
+    assert blocked.status_code == 429 and blocked.headers["retry-after"]
+    assert (await login(env, "admin", ADMIN_PASSWORD)).status_code == 429
+    assert env.store.list_tokens("admin") == []
+
+
+async def test_login_token_rejects_forced_password_change_and_disabled_user(env: Env) -> None:
+    forced = await login_token(env)
+    assert forced.status_code == 403 and forced.json()["detail"] == "password change required"
+    env.user("alice")
+    env.store.update_user("alice", must_change=False, disabled=True)
+    assert (await login_token(env, "alice", "password-alicealice")).status_code == 401
+    assert env.store.list_tokens("admin") == [] and env.store.list_tokens("alice") == []
 
 
 async def test_logout_revokes_session(env: Env) -> None:

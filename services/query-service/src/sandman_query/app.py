@@ -35,6 +35,7 @@ from sandman_query.service import (
     ApprovalBody,
     CypherBody,
     Login,
+    LoginToken,
     Member,
     NewToken,
     NewUser,
@@ -187,6 +188,10 @@ def create_app(
         resp = JSONResponse(svc.me_doc(body.username))
         svc.set_cookie(resp, sid)
         return resp
+
+    @app.post("/v1/auth/login-token", status_code=201)
+    async def login_token(body: LoginToken, request: Request) -> dict[str, Any]:
+        return await svc.login_token(body, request)
 
     @app.post("/v1/auth/logout", status_code=204)
     async def logout(request: Request) -> Response:

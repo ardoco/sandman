@@ -6,7 +6,7 @@ import logging
 import re
 import uuid
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
@@ -55,6 +55,13 @@ class Login(BaseModel):
 class NewToken(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(max_length=100)
+    projectId: str | None = Field(default=None, pattern=PROJECT_ID)
+    maxRole: ProjectRole | None = None
+    expiresAt: datetime | None = None
+
+
+class LoginToken(Login):
+    name: str = Field(default="desktop", max_length=100)
     projectId: str | None = Field(default=None, pattern=PROJECT_ID)
     maxRole: ProjectRole | None = None
     expiresAt: datetime | None = None
@@ -181,8 +188,8 @@ class Service:
     def check(self, who: Principal, op: str, project: str | None = None) -> None:
         authorize(who, self.min_roles, op, project)
 
-    async def login(self, username: str, password: str, request: Request) -> str:
-        """Session id for valid credentials; 429 after 5 failures per username or client address in 15 min."""
+    async def check_password(self, username: str, password: str, request: Request) -> Mapping[str, Any]:
+        """The user for valid credentials; 429 after 5 failures per username or client address in 15 min."""
         keys = (f"u:{username.lower()}", f"ip:{request.client.host if request.client else '?'}")
         if self.limiter.blocked(*keys):
             raise HTTPException(429, "too many failed logins", headers={"Retry-After": "900"})
@@ -191,7 +198,25 @@ class Service:
             self.limiter.fail(*keys)
             raise HTTPException(401, "invalid credentials")
         self.limiter.reset(keys[0])
+        return user
+
+    async def login(self, username: str, password: str, request: Request) -> str:
+        user = await self.check_password(username, password, request)
         return self.store.create_session(user["username"])[0]
+
+    async def login_token(self, body: LoginToken, request: Request) -> dict[str, Any]:
+        """Personal token for valid credentials: default expiry 90 days, at most 365."""
+        user = await self.check_password(body.username, body.password, request)
+        if user["must_change_password"]:
+            raise HTTPException(403, "password change required")
+        now = datetime.now(UTC)
+        expires = body.expiresAt or now + timedelta(days=90)
+        if expires > now + timedelta(days=365):
+            raise HTTPException(400, "expiresAt must be within 365 days")
+        token_id, secret = self.store.create_token(
+            user["username"], body.name, body.projectId, body.maxRole, iso(expires)
+        )
+        return {**self.token_doc(self.store.get_token(user["username"], token_id) or {}), "secret": secret}
 
     def set_cookie(self, response: Response, sid: str) -> None:
         response.set_cookie(COOKIE, sid, httponly=True, samesite="strict", secure=self.cookie_secure, path="/")

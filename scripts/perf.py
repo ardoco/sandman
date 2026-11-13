@@ -309,7 +309,9 @@ def ingest_phase(stack: Any, root: Path, label: str, known: set[str], timeout: f
     started = time.monotonic()
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(io.StringIO()):
-        rc = sandman(["ingest", "--project", stack.project, "--mode", "full", "--revision", label, str(root)])
+        rc = sandman(
+            ["ingest", "--project", stack.project, "--mode", "full", "--revision", label, "--no-review", str(root)]
+        )
     upload = time.monotonic() - started
     ingestion = json.loads(buf.getvalue())
     assert rc == 0

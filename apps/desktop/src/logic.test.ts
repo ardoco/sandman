@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { columnsLayout, connectSummary, localProject, loginFields, loginMessage, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
+import { availableFormats, exportFileName, exportSummary, columnsLayout, connectSummary, localProject, loginFields, loginMessage, prefillUrl, defaultKeyLabel, KEY_KINDS, kindName, maskKey, dashboardUrl, filterLinks, worstSeverity, lastLines, latestWorkflow, needsCause, problemMessage, reviewable, slugify, tokenMessage, validSlug, windowTitle, workflowActive, workflowProgress } from "./logic";
 
 describe("logic", () => {
   it("validates project slugs like the server", () => {
@@ -129,5 +129,26 @@ describe("key store helpers", () => {
     expect(prefillUrl([list[0]])).toBe("");
     expect(localProject(list)?.id).toBe("l1");
     expect(localProject(list.slice(1))).toBeUndefined();
+  });
+
+  it("disables the benchmark formats without a CLI command and checkout", () => {
+    const off = (p: object, what: "tracelinks" | "findings" = "tracelinks") => availableFormats(p, what).filter((f) => f.disabled).map((f) => f.format);
+    expect(off({})).toEqual(["ardoco-sad-sam", "ardoco-sad-code", "ardoco-sam-code", "lissa"]);
+    expect(off({ cliCommand: "  " })).toHaveLength(4);
+    expect(off({ cliCommand: "sandman" })).toEqual([]);
+    expect(off({ checkout: "/co" })).toEqual([]);
+    expect(availableFormats({}, "findings").map((f) => f.format)).toEqual(["csv", "json"]);
+    expect(availableFormats({}, "tracelinks").slice(0, 2).every((f) => !f.disabled)).toBe(true);
+  });
+
+  it("builds the export file name", () => {
+    expect(exportFileName("demo", "tracelinks", "csv")).toBe("demo-tracelinks.csv");
+    expect(exportFileName("demo", "tracelinks", "json", "ardoco")).toBe("demo-tracelinks-ardoco.json");
+    expect(exportFileName("demo", "tracelinks", "ardoco-sad-code", "My/App 1")).toBe("demo-tracelinks-my-app-1.csv");
+    expect(exportFileName("demo", "findings", "json", "")).toBe("demo-findings.json");
+  });
+
+  it("summarizes an export", () => {
+    expect(exportSummary(1234, "/tmp/a.csv")).toBe("Saved 1,234 rows to /tmp/a.csv");
   });
 });

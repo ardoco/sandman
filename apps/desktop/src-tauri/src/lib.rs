@@ -146,6 +146,16 @@ async fn pick_files(app: AppHandle) -> Vec<String> {
 }
 
 #[tauri::command]
+async fn pick_save(app: AppHandle, file_name: String) -> Option<String> {
+    app.dialog().file().set_file_name(file_name).blocking_save_file().and_then(|p| p.into_path().ok()).map(|p| p.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+fn reveal_file(app: AppHandle, path: String) -> Result<(), String> {
+    app.opener().reveal_item_in_dir(path).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn open_external(app: AppHandle, url: String) -> Result<(), String> {
     let (url, _) = store::valid_url(&url)?;
     app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
@@ -214,6 +224,8 @@ pub fn run() {
             api::api,
             pick_folder,
             pick_files,
+            pick_save,
+            reveal_file,
             ingest::ingest,
             export::export_generic,
             export::export_benchmark,

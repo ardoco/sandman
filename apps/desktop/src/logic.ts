@@ -293,3 +293,22 @@ export const classSummary = (s: ClassScan): string =>
     version: s.classifierVersion,
     review: s.review.weak === 0 ? t("class.summaryNothing") : s.review.reviewed ? t("class.summaryDone") : t("class.summaryOpen", { message: unreviewedMessage(s.files) }),
   });
+
+export type ExportWhat = "tracelinks" | "findings";
+export const GENERIC_FORMATS = ["csv", "json"];
+export const BENCHMARK_FORMATS = ["ardoco-sad-sam", "ardoco-sad-code", "ardoco-sam-code", "lissa"];
+
+export function availableFormats(project: { cliCommand?: string; checkout?: string }, what: ExportWhat): { format: string; disabled: boolean }[] {
+  const hasCli = !!(project.cliCommand?.trim() || project.checkout);
+  return [
+    ...GENERIC_FORMATS.map((format) => ({ format, disabled: false })),
+    ...(what === "tracelinks" ? BENCHMARK_FORMATS.map((format) => ({ format, disabled: !hasCli })) : []),
+  ];
+}
+
+export function exportFileName(project: string, what: ExportWhat, format: string, approach = ""): string {
+  const part = approach.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return `${project}-${what}${part ? `-${part}` : ""}.${format === "json" ? "json" : "csv"}`;
+}
+
+export const exportSummary = (rows: number, path: string): string => t("export.saved", { rows: formatNumber(rows), path });

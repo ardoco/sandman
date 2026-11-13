@@ -6,6 +6,7 @@ import { clear, h, toast } from "./dom";
 import { renderAsk } from "./ask";
 import { renderClassification } from "./classification";
 import { renderFindings } from "./findings";
+import { renderExport } from "./export";
 import { renderGraph } from "./graph";
 import { renderIngest } from "./ingest";
 import { renderLinks } from "./links";
@@ -15,8 +16,8 @@ import { renderKeys } from "./keys";
 import { renderAppSettings } from "./appsettings";
 import { renderWorkflows } from "./workflows";
 
-const TABS = ["Overview", "Ingest", "Classification", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph"];
-const TAB_KEYS: Record<string, Key> = { "Overview": "tab.overview", "Ingest": "tab.ingest", "Classification": "tab.classification", "Workflows": "tab.workflows", "Findings": "tab.findings", "Trace links": "tab.traceLinks", "Trace viewer": "tab.traceViewer", "Ask": "tab.ask", "Graph": "tab.graph" };
+const TABS = ["Overview", "Ingest", "Classification", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph", "Export"];
+const TAB_KEYS: Record<string, Key> = { "Overview": "tab.overview", "Ingest": "tab.ingest", "Classification": "tab.classification", "Workflows": "tab.workflows", "Findings": "tab.findings", "Trace links": "tab.traceLinks", "Trace viewer": "tab.traceViewer", "Ask": "tab.ask", "Graph": "tab.graph", "Export": "tab.export" };
 
 export async function renderProject(root: HTMLElement, project: Project, leave: () => void): Promise<void> {
   const local = project.mode === "local";
@@ -75,6 +76,7 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
         case "Trace viewer": cleanup = await renderTraceView(view, ctx); break;
         case "Ask": renderAsk(view, ctx); break;
         case "Graph": cleanup = await renderGraph(view, ctx); break;
+        case "Export": await renderExport(view, ctx); break;
         case "Keys": await renderKeys(view); break;
         case "Settings": await renderAppSettings(view, { ctx }); break;
       }

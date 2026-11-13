@@ -85,7 +85,6 @@
   "227": "C227: site fonts README (SIL OFL 1.1), Inter font, JetBr",
   "231": "C231: extraction/plugins.yaml, builtin, converter",
   "232": "C232: models.yaml, openrouterProviders, anthropic/claude",
-  "240": "C240: src-tauri/src/lib.rs, open_external(), pick_files(",
   "242": "C242: if, needs, runs-on",
   "243": "C243: steps, python, rust",
   "245": "C245: contracts.rs, ContractError, .fmt()",

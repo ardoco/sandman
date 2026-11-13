@@ -189,7 +189,7 @@ components:
     title: Query service (API and console)
     summary: The only entry point for users, with the web console and the REST API.
     details: >-
-      It checks who you are (session or personal token), what role you have in a project, and then answers questions
+      It checks who you are (session or personal token; a login route exchanges a password for a personal token), what role you have in a project, and then answers questions
       about the graph, lists findings, accepts uploads and lets you triage findings. Questions can be asked in
       natural language or as database queries that are always confined to one project. A natural language question
       can use one of several strategies: translation into a database query, a search by meaning over the element
@@ -212,6 +212,8 @@ components:
     summary: A desktop program for one project at a time. It starts or connects to SANDMAN.
     details: >-
       The app keeps the settings of a project, starts and stops a local stack, and ingests folders and files.
+      It can also connect to a running system: you enter the URL and either a token or a user name and password.
+      With a password, the system returns a personal token that expires after 90 days, and the app keeps only the token.
       It shows workflows, findings, trace links, a trace viewer with columns, questions and the graph. It calls the same REST API as the
       console and keeps the personal token in the keychain of the operating system.
     flow: Calls the front door like any other client. It runs the make targets and the command line tool on your computer.
@@ -250,8 +252,9 @@ components:
       Trace link recovery (TLR) connects artifacts of different kinds automatically, so nobody has to maintain
       the links by hand. The agent runs one or more approaches and stores each result as a trace link with
       confidence and origin. Today a simple name matching demo approach, the ArDoCo approaches, the research
-      approach TransArC and the research approach LiSSA are active. TransArC is the default for links from
-      documents to code. If a project has no architecture model, the system derives one from the
+      approach TransArC, the ArTEMiS approaches and the research approach LiSSA are active. If a project has an
+      LLM route, the ArTEMiS approaches are the default: ArTEMiS links documents to models and ArTEMiS with
+      TransArC links documents to code. Without an LLM route, ArDoCo and TransArC run instead. If a project has no architecture model, the system derives one from the
       documentation with a language model. ArDoCo links architecture documents to architecture models and to source code.
       LiSSA links requirements to source code. It ranks the code files for each requirement by embedding
       similarity and asks a language model to confirm each candidate pair. All model calls go through the

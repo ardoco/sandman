@@ -154,7 +154,7 @@ def sync_problems(ids: set[str], meta: dict, ms: list[dict] | None = None) -> li
     for path, text in strings({k: v for k, v in meta.items() if k != "milestones"}):
         if re.search(r"\bM\d+\b|planned", text, re.I) and not path.endswith(".planned"):
             problems.append(f"{path}: milestone or 'planned' text in YAML, use the planned field")
-    for step in meta["flow"]:
+    for step in (s for f in meta["flows"] for s in f["steps"]):
         problems += [f"flow step {step['title']}: unknown component {i}" for i in step["components"] if i not in ids]
     return problems
 
@@ -409,7 +409,7 @@ def build() -> dict:
         "intro": meta["intro"],
         "status": status_line(comps, edges),
         "milestones": ms,
-        "flow": meta["flow"],
+        "flows": meta["flows"],
         "glossary": meta["glossary"],
         "zones": [{"id": k, **v} for k, v in meta["zones"].items()],
         "groups": GROUPS,

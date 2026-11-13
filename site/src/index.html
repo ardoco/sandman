@@ -86,6 +86,7 @@ svg.enter .node{animation:fade .45s backwards;animation-delay:calc(160ms + var(-
 aside.detail #sidebody>*{animation:rise .3s var(--ease) backwards}
 @media (max-width:999px){aside.has{animation:sheet .3s var(--ease)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.pulse{display:none}}
+.tour select{font:inherit;font-size:.85rem;text-transform:none;letter-spacing:0;margin-left:8px;background:var(--raise);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
 .tour .flabel{grid-column:1/-1;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 aside .none{color:var(--muted);margin:4px 0}
 aside details details{margin-top:6px;padding-top:4px;border-top:0}
@@ -191,7 +192,7 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.92rem}
 <script>
 const NS = "http://www.w3.org/2000/svg", NW = 196, NH = 60, GAP = 10, ZP = 12, ZH = 64, COLGAP = 60, ROWGAP = 36, PAD = 22;
 const LW = 250, CW = 226, CH = 30, FH = 46, HP = 44, LGAP = 16;
-let data, byId, zoneOf, selected = null, hover = null, filt = { q: "", zone: null }, tour = null, view = null, zoom = 1, shown = null, hit = null, index = [], entered = false;
+let data, byId, zoneOf, selected = null, hover = null, filt = { q: "", zone: null }, tour = null, flowId = "main", view = null, zoom = 1, shown = null, hit = null, index = [], entered = false;
 const size = (w, min = 360) => zoom === 1 ? `width:100%;max-width:${Math.max(w, min)}px` : `width:${Math.round(w * zoom)}px;max-width:none`;
 const cut = (t, n) => t.length > n ? t.slice(0, n - 1) + "…" : t;
 const el = (n, a = {}, t) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; return e; };
@@ -391,7 +392,7 @@ function render() {
 
 function mark() {
   const svg = document.querySelector("#graph svg"); if (!svg || view) return;
-  const step = tour != null ? data.flow[tour] : null, a = hover || selected, c = a && byId[a];
+  const step = tour != null ? flowSteps()[tour] : null, a = hover || selected, c = a && byId[a];
   let rel = null, on = () => false;
   if (step) { rel = new Set(step.components); on = e => rel.has(e.from) && rel.has(e.to); }
   else if (c) { rel = new Set([c.id, ...c.dependsOn, ...c.usedBy]); on = e => e.from === c.id || e.to === c.id; }
@@ -521,14 +522,17 @@ function results() {
   });
 }
 
+const flowSteps = () => (data.flows.find(f => f.id === flowId) || data.flows[0]).steps;
+const flowNow = () => data.flows.find(f => f.id === flowId) || data.flows[0];
+
 function setTour(i, auto) {
   if (!auto) stopPlay();
   tour = i;
   document.querySelectorAll("#tour .step").forEach((b, k) => { if (k === i) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
-  $("prev").disabled = i == null || i === 0; $("next").disabled = i != null && (i >= data.flow.filter(f => !f.always).length - 1);
-  const t = $("tourtext"), steps = data.flow.filter(f => !f.always).length;
-  if (i == null) t.textContent = "Pick a step to follow the data through the system, or click a component to learn what it does.";
-  else { const s = data.flow[i]; t.replaceChildren(h("b", {}, s.always ? `Runs throughout: ${s.title}. ` : `Step ${i + 1} of ${steps}: ${s.title}. `), document.createTextNode(s.text)); }
+  $("prev").disabled = i == null || i === 0; $("next").disabled = i != null && (i >= flowSteps().filter(f => !f.always).length - 1);
+  const t = $("tourtext"), steps = flowSteps().filter(f => !f.always).length;
+  if (i == null) t.textContent = `${flowNow().blurb} Pick a step to follow it through the system, or click a component to learn what it does.`;
+  else { const s = flowSteps()[i]; t.replaceChildren(h("b", {}, s.always ? `Runs throughout: ${s.title}. ` : `Step ${i + 1} of ${steps}: ${s.title}. `), document.createTextNode(s.text)); }
   mark();
 }
 
@@ -543,11 +547,24 @@ let timer = null;
 function stopPlay() { clearInterval(timer); timer = null; const b = $("play"); if (b) { b.textContent = "▶ Play flow"; b.setAttribute("aria-pressed", "false"); } }
 function play() {
   if (timer) return stopPlay();
-  const last = data.flow.filter(f => !f.always).length - 1;
+  const last = flowSteps().filter(f => !f.always).length - 1;
   if (tour == null || tour >= last) setTour(0);
   $("tour").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth" });
   $("play").textContent = "❚❚ Pause"; $("play").setAttribute("aria-pressed", "true");
   timer = setInterval(() => { if (tour >= last) stopPlay(); else setTour(tour + 1, true); }, 5000);
+}
+
+function buildTour() {
+  const tr = $("tour"); tr.replaceChildren();
+  const sel = h("select", { id: "flowsel", "aria-label": "Choose a flow" });
+  data.flows.forEach(f => { const o = h("option", { value: f.id }, f.title); if (f.id === flowId) o.selected = true; sel.append(o); });
+  sel.onchange = () => { stopPlay(); flowId = sel.value; buildTour(); $("flowsel").focus(); };
+  const lab = h("div", { class: "flabel" }, "Flow "); lab.append(sel); tr.append(lab);
+  tr.append(Object.assign(h("button", { class: "nav", id: "prev" }, "← Previous"), { onclick: () => setTour(Math.max(0, (tour ?? 1) - 1)) }));
+  flowSteps().forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, s.always ? "|" : "→")); tr.append(Object.assign(h("button", { class: s.always ? "step always" : "step" }, s.always ? s.title : `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });
+  tr.append(Object.assign(h("button", { class: "nav", id: "next" }, "Next →"), { onclick: () => setTour(tour == null ? 0 : tour + 1) }));
+  tr.append(Object.assign(h("button", { id: "play", type: "button", "aria-pressed": "false" }, "▶ Play flow"), { onclick: play }));
+  setTour(null);
 }
 
 function init() {
@@ -558,13 +575,7 @@ function init() {
     const b = h("b", {}, "0"), d = h("div", { class: "stat", style: `--d:${i * 80}ms` }); d.append(b, h("span", {}, t)); st.append(d); countUp(b, n);
   });
   $("intro").append(st);
-  const tr = $("tour");
-  tr.append(Object.assign(h("button", { class: "nav", id: "prev" }, "← Previous"), { onclick: () => setTour(Math.max(0, (tour ?? 1) - 1)) }));
-  data.flow.forEach((s, i) => { if (i) tr.append(h("span", { class: "sep", "aria-hidden": "true" }, s.always ? "|" : "→")); tr.append(Object.assign(h("button", { class: s.always ? "step always" : "step" }, s.always ? s.title : `${i + 1}. ${s.title}`), { onclick: () => setTour(tour === i ? null : i) })); });
-  tr.append(Object.assign(h("button", { class: "nav", id: "next" }, "Next →"), { onclick: () => setTour(tour == null ? 0 : tour + 1) }));
-  tr.append(Object.assign(h("button", { id: "play", type: "button", "aria-pressed": "false" }, "▶ Play flow"), { onclick: play }));
-  setTour(null);
-  tr.prepend(h("div", { class: "flabel" }, "Flows"));
+  buildTour();
   data.glossary.forEach(g => { const d = h("div"); d.append(h("dt", {}, g.term), h("dd", {}, g.text)); $("gloss").append(d); });
 }
 

@@ -16,47 +16,152 @@ intro:
       the system processes it in the background, and you read the results in a web console,
       through a REST API or with a command line tool.
 
-flow:
-  - title: Upload
-    text: >-
-      You upload a project snapshot (requirements, documentation, models, code) with the console or
-      the command line tool. All user traffic enters through one front door and the query service
-      checks who you are and what you may do.
-    components: [edge-proxy, query-service]
-  - title: Extraction
-    text: >-
-      The extraction agent turns every file into small, typed elements (a requirement, a document
-      section, a model component, a code unit). Documents such as PDF or Word are first converted to
-      text. Code is understood by plugins.
-    components: [extraction-agent, document-converter, code-extractor-ardoco]
-  - title: Knowledge graph
-    text: >-
-      All extracted elements are stored in one graph database. Every later step reads from it and
-      writes its results back to it, so the graph is the shared memory of the system.
-    components: [traverse, traverse-health, kg-migrate]
-  - title: Trace links
-    text: >-
-      The trace link agent connects elements that belong together, for example a requirement and the
-      code that implements it. It can host several approaches, for example the research approaches ArDoCo
-      and LiSSA.
-    components: [tlr-agent, llm-replay, llm-gateway, corenlp-gateway, corenlp-provider]
-  - title: Inconsistencies
-    text: >-
-      The inconsistency agent looks at elements and links and reports findings, for example a
-      requirement that nothing traces to. Findings have a status that people change while they
-      review them.
-    components: [inconsistency-agent, plugin-stubs]
-  - title: Results
-    text: >-
-      You read results in the console, the REST API or an export, and you can ask questions about
-      the graph, also about an earlier state of the project. Administrators get a system overview dashboard.
-    components: [query-service, dashboard]
-  - title: Coordination
-    always: true
-    text: >-
-      The orchestrator listens to the event bus and starts each step above when the previous one is
-      done, from upload to results. It also lets users restart a workflow by hand.
-    components: [orchestrator, nats]
+flows:
+  - id: main
+    title: Upload to results
+    blurb: How a project snapshot becomes trace links and findings.
+    steps:
+      - title: Upload
+        text: >-
+          You upload a project snapshot (requirements, documentation, models, code) with the console or
+          the command line tool. All user traffic enters through one front door and the query service
+          checks who you are and what you may do.
+        components: [edge-proxy, query-service]
+      - title: Extraction
+        text: >-
+          The extraction agent turns every file into small, typed elements (a requirement, a document
+          section, a model component, a code unit). Documents such as PDF or Word are first converted to
+          text. Code is understood by plugins.
+        components: [extraction-agent, document-converter, code-extractor-ardoco]
+      - title: Knowledge graph
+        text: >-
+          All extracted elements are stored in one graph database. Every later step reads from it and
+          writes its results back to it, so the graph is the shared memory of the system.
+        components: [traverse, traverse-health, kg-migrate]
+      - title: Trace links
+        text: >-
+          The trace link agent connects elements that belong together, for example a requirement and the
+          code that implements it. It can host several approaches, for example the research approaches ArDoCo
+          and LiSSA.
+        components: [tlr-agent, llm-replay, llm-gateway, corenlp-gateway, corenlp-provider]
+      - title: Inconsistencies
+        text: >-
+          The inconsistency agent looks at elements and links and reports findings, for example a
+          requirement that nothing traces to. Findings have a status that people change while they
+          review them.
+        components: [inconsistency-agent, plugin-stubs]
+      - title: Results
+        text: >-
+          You read results in the console, the REST API or an export, and you can ask questions about
+          the graph, also about an earlier state of the project. Administrators get a system overview dashboard.
+        components: [query-service, dashboard]
+      - title: Coordination
+        always: true
+        text: >-
+          The orchestrator listens to the event bus and starts each step above when the previous one is
+          done, from upload to results. It also lets users restart a workflow by hand.
+        components: [orchestrator, nats]
+
+  - id: desktop
+    title: Desktop app, local project
+    blurb: How you work with one project in the desktop app, from start to export.
+    steps:
+      - title: Connect or start
+        text: >-
+          You open the desktop app. You connect to a running system with a URL and a token or a password.
+          Or you choose "Run locally": the app starts a local stack with make up and waits until the system answers.
+        components: [desktop, edge-proxy, query-service]
+      - title: Classify
+        text: >-
+          Before the upload, the command line tool classifies every file as requirements, documentation, model or code.
+          You review the weak guesses in the app. The app writes your corrections as rules into sandman.yaml.
+        components: [desktop]
+      - title: Ingest
+        text: >-
+          You pick folders and files. The app uploads them through the front door.
+          The query service checks your token and stores the snapshot.
+        components: [desktop, edge-proxy, query-service]
+      - title: Processing
+        text: >-
+          The orchestrator starts extraction, trace link recovery and inconsistency detection, as in the main flow.
+          The app shows the running workflow and its steps.
+        components: [orchestrator, nats, extraction-agent, tlr-agent, inconsistency-agent]
+      - title: Review and export
+        text: >-
+          You read trace links and findings in the app and review them. You export them as CSV or JSON.
+          The benchmark formats for the gold standard comparison run through the command line tool.
+        components: [desktop, query-service, traverse]
+  - id: review
+    title: Review a trace link
+    blurb: What happens when a person accepts or rejects a trace link.
+    steps:
+      - title: Decision
+        text: >-
+          A triager opens a trace link in the console, in the trace viewer or in the desktop app.
+          The triager accepts or rejects it and may give a cause.
+        components: [query-service, desktop]
+      - title: Store
+        text: >-
+          The query service stores the review in the knowledge graph, together with the name of the person.
+          Later runs of the trace link agent can use the reviews as examples.
+        components: [query-service, traverse]
+      - title: Detection again
+        text: >-
+          The orchestrator starts a new detection step for the affected files.
+          The inconsistency agent re-checks them and updates the findings.
+        components: [orchestrator, nats, inconsistency-agent]
+      - title: Updated findings
+        text: >-
+          A finding that the new decision resolves changes its status. Everyone sees the new state in the console.
+        components: [query-service, traverse]
+  - id: ask
+    title: Ask a question
+    blurb: How a question in plain language becomes a query on the knowledge graph.
+    steps:
+      - title: Question
+        text: >-
+          You type a question in the console, the desktop app or the REST API.
+          The query service checks who you are and which project you may read.
+        components: [query-service, edge-proxy]
+      - title: Fixed patterns
+        text: >-
+          The query service first matches the text against a few fixed questions, for example "untraced requirements".
+          A match becomes a fixed, read-only query. No language model is used.
+        components: [query-service]
+      - title: Language model
+        text: >-
+          Other questions go to a language model that writes one read-only query.
+          If the query fails, the model gets the error and tries again, at most twice.
+          The model call goes through the replay proxy and the gateway.
+        components: [query-service, llm-replay, llm-gateway]
+      - title: Answer
+        text: >-
+          A guard checks that the query only reads data of your project. The graph database runs it.
+          The page shows the query, the table and the steps.
+        components: [query-service, traverse]
+  - id: private
+    title: Private project, local models
+    blurb: How a project with the policy "local only" keeps its data inside your network.
+    steps:
+      - title: Policy
+        text: >-
+          A confidential project has the policy "local only". The policy decides which model route the agents may use.
+        components: [query-service, llm-gateway]
+      - title: Local route
+        text: >-
+          Agents call the replay proxy as always. The gateway sends calls of a "local only" project only to the local route.
+          It never sends the text to a cloud provider.
+        components: [tlr-agent, llm-replay, llm-gateway]
+      - title: Local model server
+        text: >-
+          The local model server answers. It runs on your machine or on a server in your network.
+          It also creates the embeddings for the project.
+        components: [ollama]
+      - title: Text analysis
+        text: >-
+          The text analysis service runs on your side too. It receives text through its own gateway and returns sentences with word types.
+        components: [corenlp-gateway, corenlp-provider]
+
 
 milestones:
   - id: M0

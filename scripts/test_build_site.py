@@ -145,7 +145,7 @@ def test_every_flow_and_edge_endpoint_has_a_details_entry(data):
     ids = {c["id"] for c in data["components"]}
     detailed = {c["id"] for c in data["components"] if c["summary"] and c["details"] and c["flow"]}
     assert ids == detailed
-    assert {i for s in data["flow"] for i in s["components"]} <= ids
+    assert {i for f in data["flows"] for s in f["steps"] for i in s["components"]} <= ids
     assert {e[k] for e in data["edges"] for k in ("from", "to")} <= ids
 
 
@@ -204,3 +204,11 @@ def test_edges_start_and_end_on_box_edges_in_browser(data, tmp_path):
     result = json.loads(out.split('<pre id="r">')[1].split("</pre>")[0])
     assert result["n"] == len(data["edges"]) and result["bad"] == []
     assert result["lanes"][1] < result["lanes"][0]
+
+
+def test_flows_have_unique_ids_and_the_main_flow_comes_first(data):
+    flows = data["flows"]
+    assert flows[0]["id"] == "main"
+    assert len({f["id"] for f in flows}) == len(flows) > 1
+    assert all(f["title"] and f["blurb"] and f["steps"] for f in flows)
+    assert any("desktop" in s["components"] for f in flows for s in f["steps"])

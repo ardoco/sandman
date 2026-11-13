@@ -1,6 +1,7 @@
 mod api;
 mod classify;
 mod env;
+mod errcode;
 mod ingest;
 mod keys;
 mod stack;

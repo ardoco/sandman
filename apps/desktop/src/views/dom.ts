@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 type Child = Node | string | null | undefined | false;
 
 export function h<K extends keyof HTMLElementTagNameMap>(
@@ -35,7 +36,7 @@ export function table(headers: string[], rows: Child[][], onRow?: (i: number) =>
 
 export function select(options: (string | [string, string])[], value = ""): HTMLSelectElement {
   return h("select", { value }, ...options.map((o) => {
-    const [v, label] = typeof o === "string" ? [o, o || "(any)"] : o;
+    const [v, label] = typeof o === "string" ? [o, o || t("common.any")] : o;
     return h("option", { value: v }, label);
   }));
 }

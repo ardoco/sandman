@@ -1,6 +1,7 @@
+import { Key, t } from "../i18n";
 import cytoscape from "cytoscape";
 import { api, Ctx } from "../api";
-import { columnOf, columnsLayout, COLUMNS, filterLinks, findingOpen, reviewable, worstSeverity } from "../logic";
+import { columnLabel, columnOf, columnsLayout, COLUMNS, filterLinks, findingOpen, reviewable, worstSeverity } from "../logic";
 import { clear, h, showError } from "./dom";
 
 interface El { id: string; label: string; name?: string; excerpt?: string; parentId?: string | null; artifactId?: string; artifactPath?: string; inferred?: boolean }
@@ -19,7 +20,7 @@ export async function renderTraceView(root: HTMLElement, ctx: Ctx): Promise<() =
   const msg = h("div", {});
   const bar = h("div", { class: "row tv-bar" });
   const box = h("div", { class: "graph" });
-  const side = h("div", { class: "tv-side" }, h("p", { class: "muted" }, "Select a node or an edge."));
+  const side = h("div", { class: "tv-side" }, h("p", { class: "muted" }, t("traceview.select")));
   clear(root, bar, msg, h("div", { class: "tv" }, box, side));
 
   const cy = cytoscape({
@@ -41,11 +42,11 @@ export async function renderTraceView(root: HTMLElement, ctx: Ctx): Promise<() =
   const conf = h("input", { type: "number", min: 0, max: 1, step: 0.1, value: "0", onchange: () => draw() });
   const openOnly = h("input", { type: "checkbox", checked: true, onchange: () => draw() });
   const onlyLinked = h("input", { type: "checkbox", onchange: () => draw() });
-  const search = h("input", { type: "text", placeholder: "search", oninput: () => mark(true) });
+  const search = h("input", { type: "text", placeholder: t("traceview.search"), oninput: () => mark(true) });
   const lab = (t: string, i: HTMLElement) => h("label", {}, i, t);
-  bar.append(...COLUMNS.map((c, i) => lab(c, cols[i])), ...STATUSES.map((s, i) => lab(s, stat[i])),
-    h("label", {}, "Approach", approach), h("label", {}, "Min conf.", conf),
-    lab("open findings only", openOnly), lab("only linked or flagged", onlyLinked), search);
+  bar.append(...COLUMNS.map((_, i) => lab(columnLabel(i), cols[i])), ...STATUSES.map((s, i) => lab(t(`common.${s}` as Key), stat[i])),
+    h("label", {}, t("common.approach"), approach), h("label", {}, t("traceview.minConf"), conf),
+    lab(t("traceview.openOnly"), openOnly), lab(t("traceview.onlyLinked"), onlyLinked), search);
 
   const label = (e: El, n: number) => (n ? `[${n}] ` : "") + (e.name || e.excerpt || e.id);
 
@@ -107,21 +108,21 @@ export async function renderTraceView(root: HTMLElement, ctx: Ctx): Promise<() =
     `${f.severity} ${f.status}${f.role ? ` (${f.role})` : ""}: ${f.title}`,
     f.description ? h("div", { class: "muted" }, f.description) : null,
     f.evidence ? h("pre", {}, typeof f.evidence === "string" ? f.evidence : JSON.stringify(f.evidence, null, 2)) : null)));
-  const reason = h("input", { type: "text", placeholder: "reason (required to reject)" });
+  const reason = h("input", { type: "text", placeholder: t("links.reasonPlaceholder") });
 
   function linkBlock(l: Link): HTMLElement {
-    return h("div", {}, h("p", {}, `${l.approach ?? "?"} ${l.status} conf ${(l.confidence ?? 0).toFixed(2)}${l.reviewedBy ? ` by ${l.reviewedBy}` : ""}`),
+    return h("div", {}, h("p", {}, t("traceview.linkLine", { approach: l.approach ?? "?", status: l.status, conf: (l.confidence ?? 0).toFixed(2) }) + (l.reviewedBy ? t("traceview.reviewedBy", { name: l.reviewedBy }) : "")),
       l.rationale ? h("p", { class: "muted" }, l.rationale) : null,
-      l.reviewReason ? h("p", { class: "muted" }, `Review: ${l.reviewReason}`) : null,
+      l.reviewReason ? h("p", { class: "muted" }, t("traceview.review", { reason: l.reviewReason })) : null,
       reviewable(l.approach ?? "")
-        ? h("div", { class: "row" }, ...(["confirmed", "rejected"] as const).map((s) => h("button", { class: "secondary", onclick: () => review(l.id, s) }, s)))
-        : h("p", { class: "muted" }, "not reviewable"));
+        ? h("div", { class: "row" }, ...(["confirmed", "rejected"] as const).map((s) => h("button", { class: "secondary", onclick: () => review(l.id, s) }, t(`common.${s}`))))
+        : h("p", { class: "muted" }, t("links.notReviewable")));
   }
 
   async function review(linkId: string, to: string): Promise<void> {
     clear(msg);
     const why = reason.value.trim();
-    if (to === "rejected" && !why) { showError(msg, "Enter a reason to reject a link."); return; }
+    if (to === "rejected" && !why) { showError(msg, t("links.reasonNeeded")); return; }
     try {
       await api(id, "POST", `/v1/projects/${id}/links/${linkId}/review`, undefined, { status: to, reason: why || undefined });
       await load();
@@ -138,11 +139,11 @@ export async function renderTraceView(root: HTMLElement, ctx: Ctx): Promise<() =
     const el = d.element;
     cy.$id(eid).select();
     clear(side, h("h3", {}, String(el.name ?? el.key ?? eid)),
-      kv("kind", el.kind ?? ""), kv("location", `${el.artifactPath ?? el.path ?? ""}${el.startLine ? `:${el.startLine}` : ""}`),
+      kv(t("traceview.kind"), el.kind ?? ""), kv(t("traceview.location"), `${el.artifactPath ?? el.path ?? ""}${el.startLine ? `:${el.startLine}` : ""}`),
       el.text ? h("pre", {}, String(el.text)) : null,
-      h("h4", {}, "Links"), reason, ...(d.links.length ? d.links.map(linkBlock) : [h("p", { class: "muted" }, "none")]),
-      h("h4", {}, "Findings"), d.findings.length ? findingsList(d.findings) : h("p", { class: "muted" }, "none"),
-      h("h4", {}, "Neighbours"),
+      h("h4", {}, t("traceview.links")), reason, ...(d.links.length ? d.links.map(linkBlock) : [h("p", { class: "muted" }, t("common.none"))]),
+      h("h4", {}, t("traceview.findings")), d.findings.length ? findingsList(d.findings) : h("p", { class: "muted" }, t("common.none")),
+      h("h4", {}, t("traceview.neighbours")),
       h("ul", {}, ...d.neighbours.map((n) => h("li", { onclick: () => { const t = cy.$id(n.id); if (t.length) focus(t); void showNode(n.id); } },
         `${n.direction === "out" ? "->" : "<-"} ${n.relation} ${n.name ?? n.id}${n.label ? ` (${n.label})` : ""}`))));
   }
@@ -152,7 +153,7 @@ export async function renderTraceView(root: HTMLElement, ctx: Ctx): Promise<() =
     if (!l) return;
     const d = await detail(l.sourceId);
     const full = d?.links.find((x) => x.id === lid) ?? l;
-    clear(side, h("h3", {}, "Link"), kv("type", full.linkType ?? ""), reason, linkBlock(full));
+    clear(side, h("h3", {}, t("traceview.link")), kv(t("traceview.type"), full.linkType ?? ""), reason, linkBlock(full));
   }
 
   cy.on("tap", "node", (ev) => { if (ev.target.isParent()) return; focus(ev.target); void showNode(ev.target.id()); });
@@ -163,9 +164,9 @@ export async function renderTraceView(root: HTMLElement, ctx: Ctx): Promise<() =
     try {
       view = await api<View>(id, "GET", base);
       const names = [...new Set(view.links.map((l) => l.approach ?? ""))].sort();
-      clear(approach, ...names.map((n) => h("option", { value: n }, n || "(none)")));
+      clear(approach, ...names.map((n) => h("option", { value: n }, n || t("traceview.noApproach"))));
       if (view.elements.length > AUTO_LINKED_ONLY) onlyLinked.checked = true;
-      clear(msg, view.truncated ? h("p", { class: "notice" }, "The server cut the data at its limit. Use the filters to narrow the view.") : null);
+      clear(msg, view.truncated ? h("p", { class: "notice" }, t("traceview.truncated")) : null);
       draw();
     } catch (e) { clear(msg); showError(msg, e); }
   }

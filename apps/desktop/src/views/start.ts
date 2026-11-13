@@ -1,5 +1,5 @@
 import { cmd, connectSystem, hasToken, loginConnect, Project, saveToken, SettingsInput, SettingsView } from "../api";
-import { t } from "../i18n";
+import { localizeError, t } from "../i18n";
 import { connectSummary, localProject, LoginMode, loginFields, prefillUrl, slugify, validSlug } from "../logic";
 import { clear, field, h, select, showError, toast } from "./dom";
 import { keyField } from "./keyfield";
@@ -167,7 +167,7 @@ async function wizard(root: HTMLElement, open: (p: Project) => void, back: () =>
         for (const k of Object.values(kf)) await k.save();
         if (saveDefault.checked) await cmd("save_defaults", { settings });
       } else if (token.value) await cmd("set_token", { projectId: id.value, token: token.value });
-      if (warning) toast(warning, "error");
+      if (warning) toast(localizeError(warning), "error");
       open((await cmd<Project[]>("list_projects")).find((p) => p.id === id.value)!);
     } catch (e) {
       showError(msg, e);

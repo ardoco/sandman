@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { de } from "./de";
 import { en } from "./en";
 import { applySettings, resolveLanguage } from "./logic";
-import { getLanguage, setLanguage, t, translate } from "./i18n";
+import { readdirSync, readFileSync } from "node:fs";
+import { getLanguage, localizeError, setLanguage, t, translate } from "./i18n";
 
 const fakeRoot = () => ({ dataset: {} as Record<string, string>, lang: "" }) as unknown as HTMLElement;
 
@@ -36,3 +37,48 @@ describe("i18n", () => {
     }
   });
 });
+
+describe("localizeError", () => {
+  const us = "\u001f";
+  const coded = (code: string, params: object, text: string) => `${us}${code}${us}${JSON.stringify(params)}${us}${text}`;
+
+  it("maps known codes with parameters in both languages", () => {
+    const raw = coded("port_in_use", { port: 80 }, "English text");
+    expect(localizeError(raw)).toBe("Port 80 is in use by another program. Stop that program and try again.");
+    setLanguage("de");
+    expect(localizeError(raw)).toBe("Port 80 wird von einem anderen Programm verwendet. Beenden Sie das Programm und versuchen Sie es erneut.");
+  });
+
+  it("falls back to the English text for unknown codes", () => {
+    expect(localizeError(coded("no_such_code", {}, "English text"))).toBe("English text");
+  });
+
+  it("returns plain text unchanged", () => {
+    expect(localizeError("plain error")).toBe("plain error");
+  });
+
+  it("has a catalogue entry for every code used in Rust", () => {
+    const dir = new URL("../src-tauri/src/", import.meta.url);
+    const codes = new Set<string>();
+    for (const f of readdirSync(dir).filter((n) => n.endsWith(".rs"))) {
+      for (const m of readFileSync(new URL(f, dir), "utf8").matchAll(/coded\(\s*"([a-z_]+)"/g)) codes.add(m[1]);
+    }
+    expect(codes.size).toBeGreaterThan(10);
+    for (const code of codes) expect(`err.${code}` in en, code).toBe(true);
+  });
+});
+
+describe("views", () => {
+  it("contain no untranslated text literals", () => {
+    const dir = new URL("./views/", import.meta.url);
+    const literal = /h\("(?:p|h[1-4]|button|label|span|th|td|summary|option|strong)", (?:\{[^}]*\}), "[A-Za-z]/;
+    const bad: string[] = [];
+    for (const f of readdirSync(dir).filter((n) => n.endsWith(".ts"))) {
+      readFileSync(new URL(f, dir), "utf8").split("\n").forEach((line, i) => {
+        if (literal.test(line) && !line.includes('"SANDMAN"')) bad.push(`${f}:${i + 1}`);
+      });
+    }
+    expect(bad).toEqual([]);
+  });
+});
+

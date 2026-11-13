@@ -1,4 +1,4 @@
-import { setLanguage } from "./i18n";
+import { Key, formatNumber, localizeError, setLanguage, t } from "./i18n";
 
 export const SLUG = /^[a-z0-9][a-z0-9-]{1,62}$/;
 export const WORKFLOW_DONE = ["SUCCEEDED", "FAILED", "CANCELED", "BLOCKED"];
@@ -67,12 +67,12 @@ export const reviewable = (approach: string): boolean => !["explicit-reference",
 export const workflowActive = (status: string): boolean => status === "RUNNING" || status === "PENDING";
 
 export function tokenMessage(status: number, body: unknown): string {
-  if (status === 200) return "Token accepted.";
-  if (status === 401) return "The server rejected this token. Copy the whole secret from the console tokens page. It starts with sdm_.";
+  if (status === 200) return t("msg.tokenAccepted");
+  if (status === 401) return t("msg.tokenRejected");
   if (status === 403) {
     const detail = problemMessage(status, body);
     return /password change/i.test(detail)
-      ? "Password change required. Open the console login, sign in, change the password, then create the token."
+      ? t("msg.passwordChangeToken")
       : detail;
   }
   return problemMessage(status, body);
@@ -83,10 +83,10 @@ export type LoginMode = "password" | "token";
 export const loginFields = (mode: LoginMode): string[] => (mode === "password" ? ["URL", "Username", "Password"] : ["URL", "Token"]);
 
 export function loginMessage(status: number, body: unknown): string {
-  if (status === 401) return "Wrong username or password, or the user is disabled.";
-  if (status === 429) return "Too many failed logins. Wait 15 minutes and try again.";
+  if (status === 401) return t("msg.loginWrong");
+  if (status === 429) return t("msg.loginTooMany");
   if (status === 403 && /password change/i.test(problemMessage(status, body))) {
-    return "Password change required. Open the console login, sign in, change the password, then connect again.";
+    return t("msg.passwordChangeLogin");
   }
   return problemMessage(status, body);
 }
@@ -100,12 +100,12 @@ export interface ConnectResult {
 }
 
 export function connectSummary(r: ConnectResult): string[] {
-  const lines = [`Connected as ${r.username}.`];
-  if (r.added.length) lines.push(`Added: ${r.added.join(", ")}.`);
-  if (r.updated.length) lines.push(`Updated: ${r.updated.join(", ")}.`);
-  for (const s of r.skipped) lines.push(`Skipped ${s.id}: ${s.reason}.`);
-  if (!r.added.length && !r.updated.length && !r.skipped.length) lines.push("This token can read no project.");
-  if (r.warning) lines.push(r.warning);
+  const lines = [t("connect.connectedAs", { name: r.username })];
+  if (r.added.length) lines.push(t("connect.added", { list: r.added.join(", ") }));
+  if (r.updated.length) lines.push(t("connect.updated", { list: r.updated.join(", ") }));
+  for (const s of r.skipped) lines.push(t("connect.skipped", { id: s.id, reason: s.reason }));
+  if (!r.added.length && !r.updated.length && !r.skipped.length) lines.push(t("connect.noProject"));
+  if (r.warning) lines.push(localizeError(r.warning));
   return lines;
 }
 
@@ -133,8 +133,11 @@ export type SettingsTab = "general" | "project";
 export const settingsTabState = (hasProject: boolean): { first: SettingsTab; projectDisabled: boolean } =>
   ({ first: hasProject ? "project" : "general", projectDisabled: !hasProject });
 
+const STACK_STATES = ["stopped", "starting", "running", "partial", "remote", "unknown"];
+export const stackLabel = (state: string): string => (STACK_STATES.includes(state) ? t(`stack.${state}` as Key) : state);
+
 export function windowTitle(name: string, stack: string | null): string {
-  return stack ? `${name} - ${stack} - SANDMAN` : `${name} - SANDMAN`;
+  return stack ? `${name} - ${stackLabel(stack)} - SANDMAN` : `${name} - SANDMAN`;
 }
 
 export function lastLines(lines: string[], n = 15): string {
@@ -146,6 +149,7 @@ export interface TvLink { sourceId: string; targetId: string; approach?: string 
 export interface TvFinding { severity: string; status: string; involved: { id: string; role?: string }[]; }
 
 export const COLUMNS = ["Requirements", "Documentation", "Architecture", "Code", "Tests"];
+export const columnLabel = (i: number): string => t(`column.${COLUMNS[i].toLowerCase()}` as Key);
 const COLUMN_OF: Record<string, number> = { Requirement: 0, TextUnit: 1, Decision: 1, ModelElement: 2, CodeUnit: 3, TestCase: 4 };
 export const columnOf = (label: string): number => COLUMN_OF[label] ?? -1;
 
@@ -198,15 +202,9 @@ export function worstSeverity(findings: TvFinding[], id: string, openOnly = true
 
 export const KEY_KINDS = ["OPENAI_API_KEY", "OPENROUTER_API_KEY", "SELFHOSTED_LLM_KEY", "SELFHOSTED_LLM_URL"] as const;
 export type KeyKind = (typeof KEY_KINDS)[number];
-const KIND_NAME: Record<KeyKind, string> = {
-  OPENAI_API_KEY: "OpenAI key",
-  OPENROUTER_API_KEY: "OpenRouter key",
-  SELFHOSTED_LLM_KEY: "self-hosted key",
-  SELFHOSTED_LLM_URL: "self-hosted URL",
-};
-export const kindName = (k: KeyKind): string => KIND_NAME[k];
+export const kindName = (k: KeyKind): string => t(`kind.${k}`);
 
-export const defaultKeyLabel = (project: string, kind: KeyKind): string => `${project.trim() || "project"} ${KIND_NAME[kind]}`;
+export const defaultKeyLabel = (project: string, kind: KeyKind): string => `${project.trim() || t("kind.project")} ${kindName(kind)}`;
 
 export function maskKey(kind: KeyKind, hint: string): string {
   if (kind === "SELFHOSTED_LLM_URL") return hint;
@@ -282,12 +280,16 @@ export function classView(rows: ClassRow[], edits: Map<string, string>, open: Se
 export function unreviewedMessage(files: ClassFile[]): string {
   const weak = files.filter((f) => f.weak);
   const folders = new Set(weak.map((f) => parentOf(f.path)));
-  const f = weak.length === 1 ? "1 file" : `${weak.length} files`;
-  const d = folders.size === 1 ? "1 folder" : `${folders.size} folders`;
-  return `${f} in ${d} ${weak.length === 1 ? "was" : "were"} not reviewed.`;
+  const fileText = weak.length === 1 ? t("unreviewed.filesOne") : t("unreviewed.filesMany", { n: weak.length });
+  const folderText = folders.size === 1 ? t("unreviewed.inFolderOne") : t("unreviewed.inFolderMany", { n: folders.size });
+  return t(weak.length === 1 ? "unreviewed.wasOne" : "unreviewed.wereMany", { files: fileText, folders: folderText });
 }
 
 export const needsReview = (s: Pick<ClassScan, "review">): boolean => s.review.weak > 0 && !s.review.reviewed;
 
 export const classSummary = (s: ClassScan): string =>
-  `${s.fileCount} files, classifier v${s.classifierVersion}. ${s.review.weak === 0 ? "Nothing to review." : s.review.reviewed ? "Review done." : `Review open: ${unreviewedMessage(s.files)}`}`;
+  t("class.summary", {
+    count: formatNumber(s.fileCount),
+    version: s.classifierVersion,
+    review: s.review.weak === 0 ? t("class.summaryNothing") : s.review.reviewed ? t("class.summaryDone") : t("class.summaryOpen", { message: unreviewedMessage(s.files) }),
+  });

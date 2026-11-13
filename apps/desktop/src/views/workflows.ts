@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { api, Ctx } from "../api";
 import { latestWorkflow, workflowActive, workflowProgress } from "../logic";
 import { autoRefresh, clear, h, showError, table } from "./dom";
@@ -5,7 +6,7 @@ import { autoRefresh, clear, h, showError, table } from "./dom";
 export function renderWorkflow(wf: any): HTMLElement {
   const p = workflowProgress(wf);
   return h("div", { class: "workflow" },
-    h("div", {}, `${wf.id} · ${wf.status} · ${p.done}/${p.total} steps`),
+    h("div", {}, t("workflows.line", { id: wf.id, status: wf.status, done: p.done, total: p.total })),
     h("progress", { max: "100", value: String(p.percent) }),
     h("div", { class: "muted" }, p.label),
     ...(wf.steps ?? []).map((s: any) => h("div", { class: `step ${String(s.status).toLowerCase()}` }, `${s.status} ${s.skill} (${s.agent}) x${s.attempts}`)));
@@ -36,7 +37,7 @@ export async function renderWorkflows(root: HTMLElement, ctx: Ctx): Promise<() =
       selected = wf.id;
       refresh.kick();
     } catch (e) { showError(msg, e); }
-  } }, "Run workflow"), h("button", { class: "secondary", onclick: () => refresh.kick() }, "Refresh")), msg, body, more, detail);
+  } }, t("workflows.run")), h("button", { class: "secondary", onclick: () => refresh.kick() }, t("common.refresh"))), msg, body, more, detail);
 
   async function load(): Promise<boolean> {
     try {
@@ -56,8 +57,8 @@ export async function renderWorkflows(root: HTMLElement, ctx: Ctx): Promise<() =
   }
   function draw(): void {
     clear(body, items.length
-      ? table(["Id", "Status", "Trigger", "Created"], items.map((w) => [w.id, w.status, w.trigger?.kind, w.createdAt]), (i) => { selected = items[i].id; refresh.kick(); })
-      : h("p", { class: "muted" }, "No workflow yet. Run one or ingest files."));
+      ? table([t("workflows.colId"), t("common.status"), t("workflows.colTrigger"), t("workflows.colCreated")], items.map((w) => [w.id, w.status, w.trigger?.kind, w.createdAt]), (i) => { selected = items[i].id; refresh.kick(); })
+      : h("p", { class: "muted" }, t("workflows.none")));
     clear(more, cursor ? h("button", { class: "secondary", onclick: async () => {
       const next = await api(id, "GET", `/v1/projects/${id}/workflows`, { limit: "20", cursor }).catch((e) => { showError(msg, e); return undefined; });
       if (!next) return;
@@ -65,7 +66,7 @@ export async function renderWorkflows(root: HTMLElement, ctx: Ctx): Promise<() =
       cursor = next.nextCursor;
       pages += 1;
       draw();
-    } }, "Load more") : null);
+    } }, t("common.loadMore")) : null);
   }
   const refresh = autoRefresh(load);
   return refresh;

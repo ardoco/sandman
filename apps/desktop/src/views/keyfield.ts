@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { cmd, KeyInfo } from "../api";
 import { defaultKeyLabel, KeyKind, maskKey } from "../logic";
 import { field, h, toast } from "./dom";
@@ -9,7 +10,7 @@ export interface KeyField {
 }
 
 export function keyField(title: string, kind: KeyKind, input: HTMLInputElement, projectName: () => string): KeyField {
-  const pick = h("select", {}, h("option", { value: "" }, "From store"));
+  const pick = h("select", {}, h("option", { value: "" }, t("keyfield.fromStore")));
   const saveBox = h("input", { type: "checkbox", checked: true });
   const label = h("input", { type: "text", maxlength: "100" });
   let touched = false;
@@ -25,7 +26,7 @@ export function keyField(title: string, kind: KeyKind, input: HTMLInputElement, 
     pick.value = "";
   });
   const el = field(title, h("div", { class: "row" }, input, pick), undefined);
-  el.append(h("label", {}, saveBox, ` Save to key store as `, label));
+  el.append(h("label", {}, saveBox, t("keyfield.saveAs"), label));
   return {
     el,
     input,
@@ -33,7 +34,7 @@ export function keyField(title: string, kind: KeyKind, input: HTMLInputElement, 
       if (!saveBox.checked || !input.value.trim()) return;
       fill();
       try { await cmd("save_key", { kind, label: label.value || defaultKeyLabel(projectName(), kind), value: input.value.trim() }); }
-      catch (e) { toast(`Key store: ${e instanceof Error ? e.message : e}`, "error"); }
+      catch (e) { toast(t("keyfield.error", { error: e instanceof Error ? e.message : String(e) }), "error"); }
     },
   };
 }

@@ -1,4 +1,6 @@
+use crate::errcode::coded;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -35,23 +37,23 @@ fn is_loopback(host: &str) -> bool {
 }
 
 pub fn valid_url(raw: &str) -> Result<(String, Option<String>), String> {
-    let u = url::Url::parse(raw.trim()).map_err(|e| format!("invalid URL: {e}"))?;
+    let u = url::Url::parse(raw.trim()).map_err(|e| coded("url_invalid", json!({"detail": e.to_string()}), format!("invalid URL: {e}")))?;
     if !matches!(u.scheme(), "http" | "https") {
-        return Err("URL must use http or https".into());
+        return Err(coded("url_scheme", json!({}), "URL must use http or https"));
     }
-    let host = u.host_str().ok_or("URL has no host")?;
+    let host = u.host_str().ok_or_else(|| coded("url_host", json!({}), "URL has no host"))?;
     if !u.username().is_empty() || u.password().is_some() || u.query().is_some() || u.fragment().is_some() {
-        return Err("URL must not contain credentials, a query or a fragment".into());
+        return Err(coded("url_extras", json!({}), "URL must not contain credentials, a query or a fragment"));
     }
     let warning = (u.scheme() == "http" && !is_loopback(host))
-        .then(|| "The token is sent without encryption. Use https for a remote system.".to_string());
+        .then(|| coded("url_insecure", json!({}), "The token is sent without encryption. Use https for a remote system."));
     Ok((u.as_str().trim_end_matches('/').to_string(), warning))
 }
 
 pub fn valid_checkout(path: &str) -> Result<PathBuf, String> {
-    let p = fs::canonicalize(path).map_err(|e| format!("checkout path: {e}"))?;
+    let p = fs::canonicalize(path).map_err(|e| coded("checkout_path", json!({"detail": e.to_string()}), format!("checkout path: {e}")))?;
     if !p.join("deploy/docker-compose.yml").is_file() {
-        return Err("checkout must contain deploy/docker-compose.yml".into());
+        return Err(coded("checkout_compose", json!({}), "checkout must contain deploy/docker-compose.yml"));
     }
     Ok(p)
 }
@@ -62,18 +64,18 @@ fn no_control(s: &str) -> bool {
 
 pub fn validate(p: &mut Project) -> Result<Option<String>, String> {
     if !valid_slug(&p.id) {
-        return Err("project id must match ^[a-z0-9][a-z0-9-]{1,62}$".into());
+        return Err(coded("project_id", json!({}), "project id must match ^[a-z0-9][a-z0-9-]{1,62}$"));
     }
     if p.name.trim().is_empty() || p.name.len() > 100 || !no_control(&p.name) {
-        return Err("project name must have 1 to 100 characters".into());
+        return Err(coded("project_name", json!({}), "project name must have 1 to 100 characters"));
     }
     if p.cli_command.as_deref().is_some_and(|c| !no_control(c)) {
-        return Err("CLI command must not contain control characters".into());
+        return Err(coded("cli_control", json!({}), "CLI command must not contain control characters"));
     }
     p.cli_command = p.cli_command.take().filter(|c| !c.trim().is_empty());
     match p.mode.as_str() {
         "local" => {
-            let c = valid_checkout(p.checkout.as_deref().ok_or("local project needs a checkout")?)?;
+            let c = valid_checkout(p.checkout.as_deref().ok_or_else(|| coded("checkout_needed", json!({}), "local project needs a checkout"))?)?;
             p.checkout = Some(c.to_string_lossy().into_owned());
             p.url = LOCAL_URL.into();
             Ok(None)
@@ -84,7 +86,7 @@ pub fn validate(p: &mut Project) -> Result<Option<String>, String> {
             p.checkout = p.checkout.take().filter(|c| valid_checkout(c).is_ok());
             Ok(warning)
         }
-        _ => Err("mode must be local or remote".into()),
+        _ => Err(coded("mode_invalid", json!({}), "mode must be local or remote")),
     }
 }
 

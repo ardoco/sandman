@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { api, cmd, Ctx } from "../api";
 import { listen } from "@tauri-apps/api/event";
 import { classSummary, ClassScan, lastLines, needsReview, unreviewedMessage, workflowActive } from "../logic";
@@ -13,10 +14,10 @@ export async function renderIngest(root: HTMLElement, ctx: Ctx): Promise<() => v
   let what = "folder";
   let followed: string | undefined;
   let stopFollow: (() => void) | undefined;
-  const chosen = h("div", { class: "muted" }, "Nothing picked.");
+  const chosen = h("div", { class: "muted" }, t("ingest.nothingPicked"));
   const preview = h("pre", {});
   const mode = select(["full", "partial"], "full");
-  const revision = h("input", { type: "text", placeholder: "optional source revision" });
+  const revision = h("input", { type: "text", placeholder: t("ingest.revisionPlaceholder") });
   const log = h("pre", { class: "log" });
   const progress = h("div", {});
   const msg = h("div", {});
@@ -29,7 +30,7 @@ export async function renderIngest(root: HTMLElement, ctx: Ctx): Promise<() => v
   const set = (p: string[], kind: string) => {
     paths = p;
     what = kind;
-    clear(chosen, `${p.length} ${kind} picked:\n${p.join("\n")}`);
+    clear(chosen, `${kind === "folder" ? t("ingest.pickedFolder") : t("ingest.pickedFiles", { count: p.length })}\n${p.join("\n")}`);
     refreshPreview();
     void showSummary();
   };
@@ -42,8 +43,8 @@ export async function renderIngest(root: HTMLElement, ctx: Ctx): Promise<() => v
     clear(summary);
     try {
       const s = await scanPicked();
-      if (s) clear(summary, `Classification: ${classSummary(s)} `, h("a", { href: "#", onclick: (e: Event) => { e.preventDefault(); ctx.go("Classification"); } }, "Open the Classification tab"));
-    } catch (e) { clear(summary, `Classification unavailable: ${e instanceof Error ? e.message : e}`); }
+      if (s) clear(summary, t("ingest.classification", { summary: classSummary(s) }) + " ", h("a", { href: "#", onclick: (e: Event) => { e.preventDefault(); ctx.go("Classification"); } }, t("ingest.openClassification")));
+    } catch (e) { clear(summary, t("ingest.classUnavailable", { error: e instanceof Error ? e.message : String(e) })); }
   }
   function askReview(text: string): Promise<"review" | "anyway" | "cancel"> {
     return new Promise((resolve) => {
@@ -51,19 +52,19 @@ export async function renderIngest(root: HTMLElement, ctx: Ctx): Promise<() => v
       const dlg = h("div", { class: "modal" }, h("div", { class: "dialog", role: "dialog" },
         h("p", {}, text),
         h("div", { class: "row" },
-          h("button", { onclick: () => done("review") }, "Review now"),
-          h("button", { class: "secondary", onclick: () => done("anyway") }, "Ingest anyway"),
-          h("button", { class: "secondary", onclick: () => done("cancel") }, "Cancel"))));
+          h("button", { onclick: () => done("review") }, t("ingest.reviewNow")),
+          h("button", { class: "secondary", onclick: () => done("anyway") }, t("ingest.anyway")),
+          h("button", { class: "secondary", onclick: () => done("cancel") }, t("common.cancel")))));
       document.body.append(dlg);
     });
   }
   mode.addEventListener("change", refreshPreview);
   revision.addEventListener("input", refreshPreview);
 
-  const cancel = h("button", { class: "secondary", hidden: true, onclick: () => void cmd("ingest_cancel", { projectId: id }) }, "Cancel");
+  const cancel = h("button", { class: "secondary", hidden: true, onclick: () => void cmd("ingest_cancel", { projectId: id }) }, t("common.cancel"));
   const run = h("button", { onclick: async () => {
     clear(msg);
-    if (!paths.length) return showError(msg, "Pick a folder or files first.");
+    if (!paths.length) return showError(msg, t("ingest.pickFirst"));
     let noReview = false;
     try {
       const s = await scanPicked();
@@ -81,18 +82,18 @@ export async function renderIngest(root: HTMLElement, ctx: Ctx): Promise<() => v
     try {
       const before = await latestId();
       const code = await cmd<number>("ingest", { projectId: id, paths, mode: mode.value, revision: revision.value || null, noReview });
-      if (code === CANCELLED) log.append("\nCancelled.\n");
+      if (code === CANCELLED) log.append(`\n${t("ingest.cancelled")}\n`);
       else if (code !== 0) {
-        log.append(`\nexit code ${code}\n`);
-        showError(msg, `The CLI failed (exit ${code}). Last lines:\n${lastLines((log.textContent ?? "").split("\n").filter(Boolean))}`);
+        log.append(`\n${t("ingest.exitCode", { code })}\n`);
+        showError(msg, t("ingest.cliFailed", { code, lines: lastLines((log.textContent ?? "").split("\n").filter(Boolean)) }));
       } else {
-        log.append("\nDone.\n");
+        log.append(`\n${t("common.done")}\n`);
         follow(before);
       }
     } catch (e) { showError(msg, e); }
     run.disabled = false;
     cancel.hidden = true;
-  } }, "Ingest");
+  } }, t("ingest.run"));
 
   async function latestId(): Promise<string | undefined> {
     const list = await api(id, "GET", `/v1/projects/${id}/workflows`, { limit: "20" }).catch(() => ({ items: [] }));
@@ -114,13 +115,13 @@ export async function renderIngest(root: HTMLElement, ctx: Ctx): Promise<() => v
 
   clear(root,
     h("div", { class: "row" },
-      h("button", { class: "secondary", onclick: async () => { const p = await cmd<string | null>("pick_folder"); if (p) set([p], "folder"); } }, "Pick folder"),
-      h("button", { class: "secondary", onclick: async () => { const p = await cmd<string[]>("pick_files"); if (p.length) set(p, "files"); } }, "Pick files")),
-    chosen, summary, field("Mode", mode, "Files are always sent as partial."), field("Revision", revision),
-    h("div", { class: "muted" }, "Command:"), preview,
-    h("div", { class: "row" }, run, cancel), msg, log, h("h3", {}, "Workflow"), progress);
+      h("button", { class: "secondary", onclick: async () => { const p = await cmd<string | null>("pick_folder"); if (p) set([p], "folder"); } }, t("common.pickFolder")),
+      h("button", { class: "secondary", onclick: async () => { const p = await cmd<string[]>("pick_files"); if (p.length) set(p, "files"); } }, t("ingest.pickFiles"))),
+    chosen, summary, field(t("ingest.mode"), mode, t("ingest.modeHint")), field(t("ingest.revision"), revision),
+    h("div", { class: "muted" }, t("ingest.command")), preview,
+    h("div", { class: "row" }, run, cancel), msg, log, h("h3", {}, t("ingest.workflow")), progress);
   refreshPreview();
   const un = await listen<string>("ingest-log", (e) => { log.append(e.payload + "\n"); log.scrollTop = log.scrollHeight; });
-  clear(progress, h("span", { class: "muted" }, "Starts after the ingest finishes."));
+  clear(progress, h("span", { class: "muted" }, t("ingest.startsAfter")));
   return () => { stopFollow?.(); un(); };
 }

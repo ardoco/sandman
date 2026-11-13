@@ -1,6 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { cmd, Ctx, Lifecycle, Project, StackState } from "../api";
-import { lastLines, windowTitle } from "../logic";
+import { Key, localizeError, t } from "../i18n";
+import { lastLines, stackLabel, windowTitle } from "../logic";
 import { clear, h, toast } from "./dom";
 import { renderAsk } from "./ask";
 import { renderClassification } from "./classification";
@@ -15,6 +16,7 @@ import { renderAppSettings } from "./appsettings";
 import { renderWorkflows } from "./workflows";
 
 const TABS = ["Overview", "Ingest", "Classification", "Workflows", "Findings", "Trace links", "Trace viewer", "Ask", "Graph"];
+const TAB_KEYS: Record<string, Key> = { "Overview": "tab.overview", "Ingest": "tab.ingest", "Classification": "tab.classification", "Workflows": "tab.workflows", "Findings": "tab.findings", "Trace links": "tab.traceLinks", "Trace viewer": "tab.traceViewer", "Ask": "tab.ask", "Graph": "tab.graph" };
 
 export async function renderProject(root: HTMLElement, project: Project, leave: () => void): Promise<void> {
   const local = project.mode === "local";
@@ -22,11 +24,14 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
   let cleanup: (() => void) | void = undefined;
   let tab = "Overview";
   const state = h("span", { class: "muted" });
+  const header = h("header", {});
+  const notice = h("p", { class: "notice" });
+  let missing: string[] = [];
   const nav = h("nav", {});
   const content = h("div", { class: "content" });
   const log = h("pre", { class: "log", hidden: true });
-  const start = h("button", { onclick: () => run("stack_up") }, "Start");
-  const stop = h("button", { class: "secondary", onclick: () => run("stack_down") }, "Stop");
+  const start = h("button", { onclick: () => run("stack_up") }, t("header.start"));
+  const stop = h("button", { class: "secondary", onclick: () => run("stack_down") }, t("header.stop"));
   start.hidden = stop.hidden = !local;
   const ctx: Ctx = { project, go: (t) => select(t) };
 
@@ -36,10 +41,10 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
     start.disabled = stop.disabled = true;
     try {
       const r = await cmd<Lifecycle>(command, { projectId: project.id });
-      if (r.code === 0) toast("Done.");
+      if (r.code === 0) toast(t("common.done"));
       else {
         const tail = lastLines(log.textContent?.split("\n") ?? []);
-        toast(`${r.hint ?? `Command failed (exit ${r.code}).`}${tail ? `\n${tail}` : ""}`, "error");
+        toast(`${r.hint ? localizeError(r.hint) : t("project.commandFailed", { code: r.code })}${tail ? `\n${tail}` : ""}`, "error");
       }
     } catch (e) { toast(String(e instanceof Error ? e.message : e), "error"); }
     start.disabled = stop.disabled = false;
@@ -49,14 +54,14 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
   async function refresh(): Promise<void> {
     if (!local) return;
     try { stack = await cmd<StackState>("stack_state", { projectId: project.id }); } catch { stack = null; }
-    clear(state, stack ? `${stack.state}${stack.ready ? " (ready)" : ""}` : "unknown");
+    clear(state, stack ? `${stackLabel(stack.state)}${stack.ready ? ` (${t("stack.ready")})` : ""}` : stackLabel("unknown"));
     void cmd("set_title", { title: windowTitle(project.name, local ? (stack?.state ?? "unknown") : null) }).catch(() => undefined);
   }
   async function select(t: string): Promise<void> {
     tab = t;
     cleanup?.();
     cleanup = undefined;
-    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.textContent === t));
+    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.tab === t));
     const view = h("div", {});
     clear(content, view);
     try {
@@ -83,12 +88,12 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
       const done = (v: boolean) => { dlg.remove(); resolve(v); };
       const command = `make -C ${project.checkout} down`;
       const dlg = h("div", { class: "modal" }, h("div", { class: "dialog" },
-        h("p", {}, "The local stack is still running."),
+        h("p", {}, t("project.stackRunning")),
         h("pre", {}, command),
         h("div", { class: "row" },
-          h("button", { onclick: async () => { await cmd("stack_down", { projectId: project.id }).catch(() => undefined); done(true); } }, "Stop containers"),
-          h("button", { class: "secondary", onclick: () => { navigator.clipboard?.writeText(command); done(true); } }, "Keep running (copy command)"),
-          h("button", { class: "secondary", onclick: () => done(false) }, "Cancel"))));
+          h("button", { onclick: async () => { await cmd("stack_down", { projectId: project.id }).catch(() => undefined); done(true); } }, t("project.stopContainers")),
+          h("button", { class: "secondary", onclick: () => { navigator.clipboard?.writeText(command); done(true); } }, t("project.keepRunning")),
+          h("button", { class: "secondary", onclick: () => done(false) }, t("common.cancel")))));
       document.body.append(dlg);
     });
   }
@@ -107,17 +112,25 @@ export async function renderProject(root: HTMLElement, project: Project, leave: 
     void cmd("set_title", { title: "SANDMAN" }).catch(() => undefined);
   };
 
-  clear(root,
-    h("header", {}, h("strong", {}, project.name), state, start, stop,
-      h("button", { class: "secondary", onclick: () => select("Keys") }, "Keys"),
-      h("button", { class: "secondary", onclick: () => select("Settings") }, "Settings"),
-      h("button", { class: "secondary", onclick: async () => { if (await confirmClose()) { teardown(); leave(); } } }, "Switch project")),
-    nav, log, content);
-  nav.append(...TABS.map((t) => h("button", { class: "tab", onclick: () => select(t) }, t)));
+  const relabel = () => {
+    start.textContent = t("header.start");
+    stop.textContent = t("header.stop");
+    clear(header, h("strong", {}, project.name), state, start, stop,
+      h("button", { class: "secondary", onclick: () => select("Keys") }, t("common.keys")),
+      h("button", { class: "secondary", onclick: () => select("Settings") }, t("common.settings")),
+      h("button", { class: "secondary", onclick: async () => { if (await confirmClose()) { teardown(); leave(); } } }, t("header.switchProject")));
+    clear(nav, ...TABS.map((id) => h("button", { class: "tab", "data-tab": id, onclick: () => select(id) }, t(TAB_KEYS[id]))));
+    nav.querySelectorAll("button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+    notice.textContent = t(missing.length > 1 ? "project.missingMany" : "project.missingOne", { names: missing.join(", ") });
+    void refresh();
+  };
+  ctx.onLanguage = relabel;
+  clear(root, header, nav, log, content);
+  relabel();
   if (local) {
     const names = project.cliCommand ? ["make", "docker"] : ["make", "docker", "uv"];
-    const missing = await cmd<string[]>("missing_tools", { names }).catch(() => []);
-    if (missing.length) content.before(h("p", { class: "notice" }, `Missing program: ${missing.join(", ")}. Install ${missing.length > 1 ? "them" : "it"} and restart the app.`));
+    missing = await cmd<string[]>("missing_tools", { names }).catch(() => []);
+    if (missing.length) { relabel(); content.before(notice); }
   }
   await refresh();
   await select("Overview");

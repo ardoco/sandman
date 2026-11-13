@@ -1,6 +1,6 @@
-use crate::{store, AppState};
+use crate::{errcode::coded, store, AppState};
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::time::Duration;
 use tauri::State;
 
@@ -16,7 +16,7 @@ pub fn token(state: &AppState, id: &str) -> Result<String, String> {
     if let Some(t) = state.tokens.lock().unwrap().get(id) {
         return Ok(t.clone());
     }
-    let t = store::secret_get(&format!("token:{id}"))?.ok_or("no token saved for this project")?;
+    let t = store::secret_get(&format!("token:{id}"))?.ok_or_else(|| coded("token_missing", json!({}), "no token saved for this project"))?;
     state.tokens.lock().unwrap().insert(id.to_string(), t.clone());
     Ok(t)
 }
@@ -57,7 +57,7 @@ pub async fn api(
     if let Some(b) = body {
         req = req.json(&b);
     }
-    let resp = req.send().await.map_err(|e| format!("system not reachable: {}", e.without_url()))?;
+    let resp = req.send().await.map_err(|e| not_reachable(e))?;
     let status = resp.status().as_u16();
     let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
     let body = serde_json::from_slice(&bytes).unwrap_or_else(|_| Value::String(String::from_utf8_lossy(&bytes).into_owned()));
@@ -68,7 +68,7 @@ pub async fn api(
 pub fn set_token(state: State<'_, AppState>, project_id: String, token: String) -> Result<(), String> {
     let token = token.trim().to_string();
     if token.is_empty() || !token.chars().all(|c| c.is_ascii_graphic()) {
-        return Err("token must be one printable word without spaces".into());
+        return Err(coded("token_format", json!({}), "token must be one printable word without spaces"));
     }
     store::find(&state.dir, &project_id)?;
     store::secret_set(&format!("token:{project_id}"), &token)?;
@@ -76,12 +76,17 @@ pub fn set_token(state: State<'_, AppState>, project_id: String, token: String) 
     Ok(())
 }
 
+fn not_reachable(e: reqwest::Error) -> String {
+    let detail = e.without_url().to_string();
+    coded("not_reachable", json!({"detail": detail}), format!("system not reachable: {detail}"))
+}
+
 pub fn read_secret_file(checkout: &str, name: &str) -> Result<String, String> {
     let path = std::path::Path::new(checkout).join("deploy/secrets").join(name);
-    let text = std::fs::read_to_string(&path).map_err(|_| format!("{} not found. Start the stack once to create it.", path.display()))?;
+    let text = std::fs::read_to_string(&path).map_err(|_| coded("secret_file_missing", json!({"path": path.display().to_string()}), format!("{} not found. Start the stack once to create it.", path.display())))?;
     let value = text.trim().to_string();
     if value.is_empty() {
-        return Err(format!("{} is empty", path.display()));
+        return Err(coded("secret_file_empty", json!({"path": path.display().to_string()}), format!("{} is empty", path.display())));
     }
     Ok(value)
 }
@@ -89,7 +94,7 @@ pub fn read_secret_file(checkout: &str, name: &str) -> Result<String, String> {
 #[tauri::command]
 pub fn admin_password(state: State<'_, AppState>, project_id: String) -> Result<String, String> {
     let project = store::find(&state.dir, &project_id)?;
-    let checkout = project.checkout.filter(|_| project.mode == "local").ok_or("only a local project has an admin password file")?;
+    let checkout = project.checkout.filter(|_| project.mode == "local").ok_or_else(|| coded("admin_local_only", json!({}), "only a local project has an admin password file"))?;
     read_secret_file(&checkout, "admin_bootstrap_password")
 }
 
@@ -97,7 +102,7 @@ pub fn admin_password(state: State<'_, AppState>, project_id: String) -> Result<
 pub async fn check_token(state: State<'_, AppState>, project_id: String, token: String) -> Result<ApiResponse, String> {
     let token = token.trim().to_string();
     if token.is_empty() || !token.chars().all(|c| c.is_ascii_graphic()) {
-        return Err("token must be one printable word without spaces".into());
+        return Err(coded("token_format", json!({}), "token must be one printable word without spaces"));
     }
     let project = store::find(&state.dir, &project_id)?;
     let resp = client(10)
@@ -105,7 +110,7 @@ pub async fn check_token(state: State<'_, AppState>, project_id: String, token: 
         .bearer_auth(&token)
         .send()
         .await
-        .map_err(|e| format!("system not reachable: {}", e.without_url()))?;
+        .map_err(|e| not_reachable(e))?;
     let status = resp.status().as_u16();
     let body = resp.json::<Value>().await.unwrap_or(Value::Null);
     if status == 200 {
@@ -170,7 +175,7 @@ pub struct Connected {
 pub async fn connect_system(state: State<'_, AppState>, url: String, token: String) -> Result<Connected, String> {
     let token = token.trim().to_string();
     if token.is_empty() || !token.chars().all(|c| c.is_ascii_graphic()) {
-        return Err("token must be one printable word without spaces".into());
+        return Err(coded("token_format", json!({}), "token must be one printable word without spaces"));
     }
     let (url, warning) = store::valid_url(&url)?;
     finish_connect(&state, url, token, warning).await
@@ -180,7 +185,7 @@ async fn finish_connect(state: &AppState, url: String, token: String, warning: O
     let get = |path: &str| {
         client(20).get(format!("{url}{path}")).bearer_auth(&token).send()
     };
-    let unreachable = |e: reqwest::Error| format!("system not reachable: {}", e.without_url());
+    let unreachable = not_reachable;
     let me = get("/v1/auth/me").await.map_err(unreachable)?;
     let status = me.status().as_u16();
     let body = me.json::<Value>().await.unwrap_or(Value::Null);
@@ -219,24 +224,24 @@ pub fn login_body(url: &str, username: &str, password: &str) -> Value {
 pub async fn login_connect(state: State<'_, AppState>, url: String, username: String, password: String) -> Result<Connected, String> {
     let username = username.trim().to_string();
     if username.is_empty() || password.is_empty() {
-        return Err("username and password are required".into());
+        return Err(coded("credentials_required", json!({}), "username and password are required"));
     }
     let (url, warning) = store::valid_url(&url)?;
     if warning.is_some() {
-        return Err("The password is not sent without encryption. Use https for a remote system.".into());
+        return Err(coded("password_insecure", json!({}), "The password is not sent without encryption. Use https for a remote system."));
     }
     let resp = client(20)
         .post(format!("{url}/v1/auth/login-token"))
         .json(&login_body(&url, &username, &password))
         .send()
         .await
-        .map_err(|e| format!("system not reachable: {}", e.without_url()))?;
+        .map_err(|e| not_reachable(e))?;
     let status = resp.status().as_u16();
     let body = resp.json::<Value>().await.unwrap_or(Value::Null);
     let secret = body["secret"].as_str().map(str::to_string);
     match (status, secret) {
         (201, Some(token)) => finish_connect(&state, url, token, warning).await,
-        (201, None) => Err("unexpected login response".into()),
+        (201, None) => Err(coded("login_unexpected", json!({}), "unexpected login response")),
         _ => Ok(Connected { status, body, username: String::new(), plan: Plan::default(), warning }),
     }
 }

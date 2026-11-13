@@ -25,7 +25,7 @@ export async function renderAppSettings(root: HTMLElement, { ctx, back, tab }: O
     Object.assign(settings, patch);
     applySettings(settings);
     try { await saveAppSettings(settings); toast(t("common.saved")); } catch (e) { toast(String(e instanceof Error ? e.message : e), "error"); }
-    if (languageChanged) void renderAppSettings(root, { ctx, back, tab: current });
+    if (languageChanged) { ctx?.onLanguage?.(); void renderAppSettings(root, { ctx, back, tab: current }); }
   };
 
   const general = () => clear(panel,

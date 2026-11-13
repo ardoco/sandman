@@ -1,12 +1,13 @@
+import { t } from "../i18n";
 import { api, Ctx } from "../api";
 import { clear, fmt, h, showError, table } from "./dom";
 
 export function renderAsk(root: HTMLElement, ctx: Ctx): void {
-  const q = h("input", { type: "text", placeholder: "Ask a question about the project" });
+  const q = h("input", { type: "text", placeholder: t("ask.placeholder") });
   const out = h("div", {});
   const go = async (): Promise<void> => {
     if (q.value.trim().length < 3) return;
-    clear(out, h("p", { class: "muted" }, "Working..."));
+    clear(out, h("p", { class: "muted" }, t("ask.working")));
     try {
       const r = await api(ctx.project.id, "POST", "/v1/query/nl", undefined, { projectId: ctx.project.id, question: q.value });
       clear(out,
@@ -16,6 +17,6 @@ export function renderAsk(root: HTMLElement, ctx: Ctx): void {
         ...(r.warnings ?? []).map((w: string) => h("p", { class: "muted" }, w)));
     } catch (e) { clear(out); showError(out, e); }
   };
-  clear(root, h("div", { class: "row" }, q, h("button", { onclick: go }, "Ask")), out);
+  clear(root, h("div", { class: "row" }, q, h("button", { onclick: go }, t("ask.button"))), out);
   q.addEventListener("keydown", (e) => e.key === "Enter" && go());
 }

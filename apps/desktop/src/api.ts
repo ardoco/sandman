@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { localizeError } from "./i18n";
 import { ConnectResult, KeyKind, loginMessage, problemMessage, tokenMessage } from "./logic";
 
 export interface Project {
@@ -50,7 +51,7 @@ export async function cmd<T>(name: string, args: Record<string, unknown> = {}): 
   try {
     return await invoke<T>(name, args);
   } catch (e) {
-    throw new Error(String(e));
+    throw new Error(localizeError(String(e)));
   }
 }
 
@@ -93,6 +94,7 @@ export const cypher = (projectId: string, statement: string, params: Record<stri
 export interface Ctx {
   project: Project;
   go: (tab: string) => void;
+  onLanguage?: () => void;
 }
 
 export const hasToken = (projectId: string) => cmd<boolean>("has_token", { projectId });

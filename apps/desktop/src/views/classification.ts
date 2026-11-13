@@ -1,3 +1,4 @@
+import { formatNumber, t } from "../i18n";
 import { cmd, Ctx } from "../api";
 import { CLASS_KINDS, classView, ClassFilter, ClassScan, ClassView, editList, initialOpen, setEdit, unreviewedMessage } from "../logic";
 import { clear, h, select, showError, toast } from "./dom";
@@ -18,13 +19,13 @@ export async function renderClassification(root: HTMLElement, ctx: Ctx): Promise
   const head = h("div", { class: "muted" });
   const tree = h("div", { class: "ctree", role: "tree" });
   const block = h("div", {});
-  const search = h("input", { type: "search", placeholder: "Search..." });
+  const search = h("input", { type: "search", placeholder: t("class.search") });
   const folder = h("div", { class: "muted" });
 
   const choose = async () => { const p = await cmd<string | null>("pick_folder"); if (p) { shared.dir = p; await load(); } };
   async function load(): Promise<void> {
     clear(msg);
-    clear(folder, shared.dir || "No folder picked.");
+    clear(folder, shared.dir || t("class.noFolder"));
     if (!shared.dir) return;
     try {
       scan = JSON.parse(await cmd<string>("classify_scan", { projectId: id, dir: shared.dir }));
@@ -38,7 +39,7 @@ export async function renderClassification(root: HTMLElement, ctx: Ctx): Promise
   function kindMenu(r: ClassView): HTMLSelectElement {
     const m = select([...CLASS_KINDS, ...(r.effKind === "mixed" ? ["mixed"] : [])], r.effKind);
     m.value = r.effKind;
-    m.setAttribute("aria-label", `Kind of ${r.path}`);
+    m.setAttribute("aria-label", t("class.kindOf", { path: r.path }));
     m.addEventListener("change", () => {
       edits = setEdit(edits, scan!.rows, r.path, m.value);
       draw();
@@ -48,35 +49,39 @@ export async function renderClassification(root: HTMLElement, ctx: Ctx): Promise
   }
   function rowEl(r: ClassView): HTMLElement {
     const toggle = r.type === "dir"
-      ? h("button", { class: "secondary", "aria-expanded": r.isOpen, "aria-label": `${r.isOpen ? "Close" : "Open"} ${r.path}`, onclick: () => { r.isOpen ? open.delete(r.path) : open.add(r.path); draw(); } }, r.isOpen ? "v" : ">")
+      ? h("button", { class: "secondary", "aria-expanded": r.isOpen, "aria-label": t(r.isOpen ? "class.closeRow" : "class.openRow", { path: r.path }), onclick: () => { r.isOpen ? open.delete(r.path) : open.add(r.path); draw(); } }, r.isOpen ? "v" : ">")
       : h("span", { class: "spacer" });
-    const who = r.edited ? "you" : r.source ?? "";
+    const who = r.edited ? t("class.you") : r.source ?? "";
     return h("div", { class: `crow${r.edited ? " edited" : ""}`, role: "treeitem", tabindex: "0", "data-path": r.path, title: r.reason ? `${r.source}: ${r.reason}` : "", style: `padding-left:${r.depth * 20}px` },
       h("span", { class: "weak" }, r.stillWeak ? "?" : ""), toggle, kindMenu(r),
-      h("span", { class: "cpath" }, r.type === "dir" ? `${r.name}/` : r.name), h("span", { class: "muted" }, r.edited ? "you" : who),
-      h("span", { class: "muted" }, r.type === "dir" ? `${r.files} file${r.files === 1 ? "" : "s"}` : ""));
+      h("span", { class: "cpath" }, r.type === "dir" ? `${r.name}/` : r.name), h("span", { class: "muted" }, who),
+      h("span", { class: "muted" }, r.type === "dir" ? t(r.files === 1 ? "class.filesOne" : "class.filesMany", { n: formatNumber(r.files) }) : ""));
   }
   function draw(): void {
     if (!scan) return;
     const left = scan.files.filter((f) => f.weak && ![...edits.keys()].some((e) => f.path === e || f.path.startsWith(`${e}/`)));
-    clear(head, `${scan.fileCount} files, classifier v${scan.classifierVersion}. Review: ${scan.review.weak === 0 ? "nothing to review" : left.length === 0 ? "all weak files handled in this session" : scan.review.reviewed ? "done" : unreviewedMessage(left)}`,
+    clear(head, t("class.head", {
+      count: formatNumber(scan.fileCount),
+      version: scan.classifierVersion,
+      review: scan.review.weak === 0 ? t("class.reviewNothing") : left.length === 0 ? t("class.reviewHandled") : scan.review.reviewed ? t("class.reviewDone") : unreviewedMessage(left),
+    }),
       ...scan.warnings.map((w) => h("div", { class: "error" }, w)));
     const view = classView(scan.rows, edits, open, filter, search.value);
-    clear(tree, ...view.map(rowEl), view.length ? null : h("span", { class: "muted" }, "No matching rows."));
+    clear(tree, ...view.map(rowEl), view.length ? null : h("span", { class: "muted" }, t("class.noRows")));
     drawBlock();
   }
   function drawBlock(): void {
     const n = edits.size;
     clear(block,
-      h("h3", {}, "Managed block in sandman.yaml"),
-      h("p", { class: "caution" }, "Caution: the managed block in sandman.yaml is overwritten on save. Lines outside the block stay unchanged."),
-      preview ? h("pre", {}, preview.block) : h("span", { class: "muted" }, n ? "Loading preview..." : "No changes yet."),
-      preview?.diff ? h("details", {}, h("summary", {}, "View diff"), h("pre", {}, preview.diff)) : null,
+      h("h3", {}, t("class.blockTitle")),
+      h("p", { class: "caution" }, t("class.caution")),
+      preview ? h("pre", {}, preview.block) : h("span", { class: "muted" }, n ? t("class.loadingPreview") : t("class.noChanges")),
+      preview?.diff ? h("details", {}, h("summary", {}, t("class.viewDiff")), h("pre", {}, preview.diff)) : null,
       ...(preview?.warnings ?? []).map((w) => h("div", { class: "error" }, w)),
       h("div", { class: "row" },
-        h("button", { class: "secondary", disabled: !n, onclick: () => { edits = new Map(); preview = undefined; draw(); } }, "Reset"),
-        h("button", { disabled: !n, onclick: () => void save(false) }, "Save"),
-        h("button", { disabled: !n, onclick: () => void save(true) }, "Save and go to Ingest >")));
+        h("button", { class: "secondary", disabled: !n, onclick: () => { edits = new Map(); preview = undefined; draw(); } }, t("class.reset")),
+        h("button", { disabled: !n, onclick: () => void save(false) }, t("common.save")),
+        h("button", { disabled: !n, onclick: () => void save(true) }, t("class.saveGo"))));
   }
   async function call(write: boolean): Promise<Preview> {
     return JSON.parse(await cmd<string>("classify_rules", { projectId: id, dir: shared.dir, edits: editList(edits), write }));
@@ -93,7 +98,7 @@ export async function renderClassification(root: HTMLElement, ctx: Ctx): Promise
     clear(msg);
     try {
       const r = await call(true);
-      toast(r.written ? "Saved to sandman.yaml." : "No changes to write.");
+      toast(t(r.written ? "class.savedYaml" : "class.nothingToWrite"));
       await load();
       if (next) ctx.go("Ingest");
     } catch (e) { showError(msg, e); }
@@ -122,10 +127,10 @@ export async function renderClassification(root: HTMLElement, ctx: Ctx): Promise
   const radio = (value: ClassFilter, label: string) =>
     h("label", {}, h("input", { type: "radio", name: "cfilter", value, checked: value === filter, onchange: () => { filter = value; draw(); } }), ` ${label} `);
   clear(root,
-    h("div", { class: "row" }, h("button", { class: "secondary", onclick: () => void choose() }, "Pick folder"), h("button", { class: "secondary", onclick: () => void load() }, "Rescan")),
+    h("div", { class: "row" }, h("button", { class: "secondary", onclick: () => void choose() }, t("common.pickFolder")), h("button", { class: "secondary", onclick: () => void load() }, t("class.rescan"))),
     folder, head,
-    h("div", { class: "row" }, "Show: ", radio("all", "All"), radio("weak", "Needs a look"), radio("changed", "Changed by me"), search),
-    msg, tree, h("div", { class: "muted" }, "? needs a look. Rows changed by you are marked. Hover a row for source and reason."), block);
+    h("div", { class: "row" }, t("class.show") + " ", radio("all", t("class.filterAll")), radio("weak", t("class.filterWeak")), radio("changed", t("class.filterChanged")), search),
+    msg, tree, h("div", { class: "muted" }, t("class.legend")), block);
   await load();
   return () => { clearTimeout(timer); document.removeEventListener("keydown", onSlash); };
 }

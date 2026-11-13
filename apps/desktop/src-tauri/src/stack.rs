@@ -1,4 +1,5 @@
-use crate::{store, AppState};
+use crate::{errcode::coded, store, AppState};
+use serde_json::json;
 use serde::Serialize;
 use std::{collections::VecDeque, process::Stdio, sync::Arc};
 use tauri::{AppHandle, Emitter, State};
@@ -87,20 +88,20 @@ pub struct Run {
 }
 
 pub fn missing_program_message(program: &str) -> String {
-    let hint = match program {
-        "make" => "Install the Xcode command line tools (xcode-select --install) or your package manager's make.",
-        "docker" => "Install Docker Desktop or Docker Engine and start it.",
-        "uv" => "Install uv (https://docs.astral.sh/uv/) or set the CLI command in the project settings.",
-        _ => "Install it and restart the app.",
+    let (kind, hint) = match program {
+        "make" => ("make", "Install the Xcode command line tools (xcode-select --install) or your package manager's make."),
+        "docker" => ("docker", "Install Docker Desktop or Docker Engine and start it."),
+        "uv" => ("uv", "Install uv (https://docs.astral.sh/uv/) or set the CLI command in the project settings."),
+        _ => ("other", "Install it and restart the app."),
     };
-    format!("`{program}` was not found. {hint}")
+    coded(&format!("program_missing_{kind}"), json!({"program": program}), format!("`{program}` was not found. {hint}"))
 }
 
 pub fn spawn_error(program: &str, e: &std::io::Error) -> String {
     if e.kind() == std::io::ErrorKind::NotFound {
         missing_program_message(program)
     } else {
-        format!("cannot start `{program}`: {e}")
+        coded("spawn_failed", json!({"program": program, "detail": e.to_string()}), format!("cannot start `{program}`: {e}"))
     }
 }
 
@@ -164,7 +165,7 @@ pub fn secrets_failure(code: i32, tail: &str) -> String {
     if tail.contains("docker: command not found") || tail.contains("docker: not found") {
         return missing_program_message("docker");
     }
-    diagnose(tail).unwrap_or_else(|| format!("make secrets failed with exit code {code}.\n{tail}"))
+    diagnose(tail).unwrap_or_else(|| coded("secrets_failed", json!({"code": code, "tail": tail}), format!("make secrets failed with exit code {code}.\n{tail}")))
 }
 
 pub async fn generate(app: &AppHandle, checkout: &str) -> Result<(), String> {
@@ -195,9 +196,9 @@ pub async fn generate_secrets(app: AppHandle, checkout: String) -> Result<(), St
 fn local_checkout(state: &AppState, id: &str) -> Result<(String, String), String> {
     let p = store::find(&state.dir, id)?;
     if p.mode != "local" {
-        return Err("project is not local".into());
+        return Err(coded("project_not_local", json!({}), "project is not local"));
     }
-    let c = store::valid_checkout(p.checkout.as_deref().ok_or("project has no checkout")?)?;
+    let c = store::valid_checkout(p.checkout.as_deref().ok_or_else(|| coded("no_checkout", json!({}), "project has no checkout"))?)?;
     Ok((c.to_string_lossy().into_owned(), p.url))
 }
 
@@ -257,19 +258,18 @@ pub fn missing_tools(names: Vec<String>) -> Result<Vec<String>, String> {
 
 pub fn diagnose(log: &str) -> Option<String> {
     let l = log.to_lowercase();
-    let msg = if l.contains("cannot connect to the docker daemon") || l.contains("is the docker daemon running") {
-        "Docker is not running. Start Docker Desktop and try again."
+    if l.contains("cannot connect to the docker daemon") || l.contains("is the docker daemon running") {
+        Some(coded("docker_not_running", json!({}), "Docker is not running. Start Docker Desktop and try again."))
     } else if l.contains("port is already allocated") || l.contains("address already in use") || l.contains("ports are not available") {
-        "A port is already in use by another program. Stop that program and try again. The system needs port 8080."
+        Some(coded("port_allocated", json!({}), "A port is already in use by another program. Stop that program and try again. The system needs port 8080."))
     } else if l.contains("check-env:") {
         let line = log.lines().rev().find(|x| x.contains("check-env:")).unwrap_or_default();
-        return Some(format!("The preflight check failed: {}", line.trim()));
+        Some(coded("preflight_failed", json!({"line": line.trim()}), format!("The preflight check failed: {}", line.trim())))
     } else if l.contains("no space left on device") {
-        "Docker has no disk space left. Free space or run docker system prune."
+        Some(coded("disk_full", json!({}), "Docker has no disk space left. Free space or run docker system prune."))
     } else {
-        return None;
-    };
-    Some(msg.to_string())
+        None
+    }
 }
 
 #[derive(Serialize)]
@@ -281,14 +281,14 @@ pub struct Lifecycle {
 async fn lifecycle(app: AppHandle, state: State<'_, AppState>, project_id: String, up: bool) -> Result<Lifecycle, String> {
     let (checkout, url) = local_checkout(&state, &project_id)?;
     if !state.starting.lock().unwrap().insert(project_id.clone()) {
-        return Err("another stack command is running".into());
+        return Err(coded("stack_busy", json!({}), "another stack command is running"));
     }
     let result = async {
         if up {
             if let Some(port) = port_of(&url).filter(|p| port_busy(*p)) {
                 let ours = containers(&checkout).await.map(|c| classify(&c) != "stopped").unwrap_or(false);
                 if !ours {
-                    return Err(format!("Port {port} is in use by another program. Stop that program and try again."));
+                    return Err(coded("port_in_use", json!({"port": port}), format!("Port {port} is in use by another program. Stop that program and try again.")));
                 }
             }
             ensure_secrets(&app, &checkout).await?;
@@ -348,7 +348,8 @@ mod tests {
         assert!(spawn_error("make", &e).contains("`make` was not found"));
         assert!(spawn_error("docker", &e).contains("Docker Desktop"));
         let other = std::io::Error::from(std::io::ErrorKind::PermissionDenied);
-        assert!(spawn_error("make", &other).starts_with("cannot start"));
+        assert!(crate::errcode::plain(&spawn_error("make", &other)).starts_with("cannot start"));
+        assert!(spawn_error("make", &e).contains("program_missing_make"));
     }
 
     #[test]
@@ -383,7 +384,7 @@ mod tests {
     fn explains_secrets_failure() {
         assert!(secrets_failure(127, "sh: docker: command not found").contains("Docker Desktop"));
         assert!(secrets_failure(1, "Cannot connect to the Docker daemon").contains("Docker is not running"));
-        assert!(secrets_failure(2, "boom").starts_with("make secrets failed with exit code 2."));
+        assert!(crate::errcode::plain(&secrets_failure(2, "boom")).starts_with("make secrets failed with exit code 2."));
     }
 
     #[test]

@@ -173,6 +173,10 @@ pub async fn connect_system(state: State<'_, AppState>, url: String, token: Stri
         return Err("token must be one printable word without spaces".into());
     }
     let (url, warning) = store::valid_url(&url)?;
+    finish_connect(&state, url, token, warning).await
+}
+
+async fn finish_connect(state: &AppState, url: String, token: String, warning: Option<String>) -> Result<Connected, String> {
     let get = |path: &str| {
         client(20).get(format!("{url}{path}")).bearer_auth(&token).send()
     };
@@ -203,6 +207,38 @@ pub async fn connect_system(state: State<'_, AppState>, url: String, token: Stri
         store::upsert(&state.dir, p)?;
     }
     Ok(Connected { status: 200, body: Value::Null, username, plan, warning })
+}
+
+pub fn login_body(url: &str, username: &str, password: &str) -> Value {
+    let host = url::Url::parse(url).ok().and_then(|u| u.host_str().map(str::to_string)).unwrap_or_default();
+    let name: String = format!("desktop {host}").chars().take(100).collect();
+    serde_json::json!({ "username": username, "password": password, "name": name })
+}
+
+#[tauri::command]
+pub async fn login_connect(state: State<'_, AppState>, url: String, username: String, password: String) -> Result<Connected, String> {
+    let username = username.trim().to_string();
+    if username.is_empty() || password.is_empty() {
+        return Err("username and password are required".into());
+    }
+    let (url, warning) = store::valid_url(&url)?;
+    if warning.is_some() {
+        return Err("The password is not sent without encryption. Use https for a remote system.".into());
+    }
+    let resp = client(20)
+        .post(format!("{url}/v1/auth/login-token"))
+        .json(&login_body(&url, &username, &password))
+        .send()
+        .await
+        .map_err(|e| format!("system not reachable: {}", e.without_url()))?;
+    let status = resp.status().as_u16();
+    let body = resp.json::<Value>().await.unwrap_or(Value::Null);
+    let secret = body["secret"].as_str().map(str::to_string);
+    match (status, secret) {
+        (201, Some(token)) => finish_connect(&state, url, token, warning).await,
+        (201, None) => Err("unexpected login response".into()),
+        _ => Ok(Connected { status, body, username: String::new(), plan: Plan::default(), warning }),
+    }
 }
 
 #[tauri::command]
@@ -274,6 +310,21 @@ mod tests {
         let plan = plan_connect(&[], &listed(&["A_b"]), "https://s.example");
         assert_eq!(plan.skipped.len(), 1);
         assert!(plan.added.is_empty());
+    }
+
+    #[test]
+    fn login_body_names_the_token_after_the_host() {
+        let body = login_body("https://sandman.example:8443", "alice", "pw");
+        assert_eq!(body["name"], "desktop sandman.example");
+        assert_eq!(body["username"], "alice");
+        assert_eq!(body["password"], "pw");
+        assert_eq!(body.as_object().unwrap().len(), 3);
+    }
+
+    #[test]
+    fn login_body_name_is_at_most_100_chars() {
+        let url = format!("https://{}.example", "a".repeat(120));
+        assert_eq!(login_body(&url, "u", "p")["name"].as_str().unwrap().chars().count(), 100);
     }
 
     #[test]

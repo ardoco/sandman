@@ -159,6 +159,7 @@ pub fn run() {
             api::set_token,
             api::check_token,
             api::connect_system,
+            api::login_connect,
             api::admin_password,
             stack::missing_tools,
             ingest::ingest_cancel,
